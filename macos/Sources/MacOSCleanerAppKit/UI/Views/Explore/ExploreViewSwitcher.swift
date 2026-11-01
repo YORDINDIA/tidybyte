@@ -119,6 +119,7 @@ struct ExploreViewSwitcher: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(selectedView.title)
+        .skeletonLoading(model.isScanning)
     }
 
     private var controls: some View {

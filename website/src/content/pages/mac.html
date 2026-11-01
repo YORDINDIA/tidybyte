@@ -6,7 +6,7 @@
 <section class="pb-12 pt-14 sm:pb-16 sm:pt-20">
   <div class="container-prose">
     <header class="mx-auto max-w-4xl text-center">
-      <h1 class="h-display">A Mac cleaner that asks first.</h1>
+      <h1 class="h-display">The Mac cleaner and Activity Monitor alternative that asks first.</h1>
       <p class="lede mx-auto mt-5 max-w-2xl">TidyByte for Mac finds caches, developer files, duplicates, old downloads, and app leftovers. You see each item and why it matched. Nothing moves until you approve it.</p>
       <div class="mt-8 flex flex-col items-center gap-3">
         <a href="https://github.com/360ghar/tidybyte/releases/download/mac-v1.0.0/Tidybyte-1.0.0.dmg" class="btn-primary px-6 py-3 text-base">
@@ -181,6 +181,32 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</section>
+
+<!-- Monitor: the live half of the app. It has its own page
+     (/activity-monitor-alternative); this section introduces it and hands off. -->
+<section class="section pt-0" aria-labelledby="mac-monitor">
+  <div class="container-prose">
+    <h2 id="mac-monitor" class="h-section max-w-2xl">It also watches, not just cleans.</h2>
+    <p class="lede mt-4 max-w-2xl">TidyByte Monitor is a full system monitor inside the same app. It shows apps instead of processes, and it records what it sees — locally, for up to a year.</p>
+    <div class="mt-12 grid gap-12 lg:grid-cols-3 lg:gap-10">
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">Apps, not processes</h3>
+        <p class="muted mt-3">Helpers group under the app that started them, so hundreds of rows become a list you can read. CPU, memory, disk, network, and energy for each app.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">History and alerts</h3>
+        <p class="muted mt-3">Every metric, per app, stored on your Mac in SQLite, with live menu bar items and notifications when something stays wrong.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">Made for development Macs</h3>
+        <p class="muted mt-3">Dev servers and ports grouped by project, coding agents with locally-known plan usage, and Docker containers as first-class rows.</p>
+      </div>
+    </div>
+    <div class="mt-10">
+      <a href="/activity-monitor-alternative" class="btn-primary">Explore TidyByte Monitor</a>
     </div>
   </div>
 </section>

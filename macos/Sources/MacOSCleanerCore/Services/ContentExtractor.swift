@@ -209,7 +209,10 @@ public actor ContentExtractor {
         }
         if let track = asset.tracks(withMediaType: .video).first {
             let size = track.naturalSize
-            labels.append("\(Int(size.width))x\(Int(size.height))")
+            // NaN/inf from a corrupt file would trap Int(_:).
+            if size.width.isFinite, size.height.isFinite {
+                labels.append("\(Int(size.width))x\(Int(size.height))")
+            }
         }
         return labels
     }

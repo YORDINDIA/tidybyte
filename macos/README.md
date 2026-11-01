@@ -17,11 +17,12 @@ Everything runs on your Mac. Files go to the Trash, and History can restore them
 | Applications | Uninstall an app with its settings, caches, containers, launch agents, and helpers. Each item shows why it matched and how sure the match is. |
 | Leftovers | Data of apps you already deleted. An item counts only when no installed app from the same developer owns it and nothing in it changed for 30 days. |
 | Login Items | Agents and daemons that start with your Mac, with missing programs marked. |
-| Space Explorer | Eight views of your files: list, folders, sunburst, flame, bubbles, mind map, top sizes, and age map. |
+| Space Explorer | Nine views of your files: list, folders, sunburst, flame, bubbles, mind map, top sizes, age map, and treemap. |
 | Changes | Storage forecast, comparison of two scans, and the Photos & Media trend. |
 | History | Every change, with Restore where the operation supports it. |
+| Monitor | A full system monitor: thirteen dashboards from Overview to Containers. Processes group by app with user apps first, and a process opens into an inspector with its code signature, parent, command line, open files, and ports. Menu bar items per metric, a year of local per-metric history, and alerts when an app misbehaves. Dev servers grouped by project with idle flags, Docker container stats, coding agents with their locally-known plan usage, and export of any view as an image. |
 
-Optional extras: a menu bar item with free space and memory status, a notification after you delete an app, weekly reminders, natural-language review ("clean python caches in old projects") with an optional AI provider you configure, and an MCP server for AI agents.
+Optional extras: a menu bar item with free space and memory status, a notification after you delete an app, weekly reminders, natural-language review ("clean python caches in old projects") with an optional AI provider you configure, and an MCP server for AI agents. Monitor ships its menu bar items on by default; its misbehaving-app alerts are opt-in.
 
 ## Requirements
 
@@ -58,7 +59,7 @@ Tidybyte updates itself. Choose **Tidybyte › Check for Updates…** to check n
 
 ```sh
 swift build                    # build
-swift test                     # 492 tests (2 skip headless); destructive tests use fixture folders only
+swift test                     # 535 tests (2 skip headless); destructive tests use fixture folders only
 swiftlint lint --strict --baseline .swiftlint-baseline.json
 Scripts/build-app.sh direct    # .build/Tidybyte.app
 ```
@@ -72,9 +73,9 @@ Pure SwiftPM, Swift 6 language mode, strict concurrency.
 | `MacOSCleaner` | App executable (`Tidybyte`); `--autoscan` runs headless maintenance |
 | `MacOSCleanerMCP` | `tidybyte-mcp`, an MCP server over stdio JSON-RPC |
 
-### MCP server
+### MCP server and CLI
 
-`Tidybyte.app/Contents/MacOS/tidybyte-mcp` exposes scan, findings, plan, execute, history, and undo to AI agents. `execute` is a dry run until called with `confirm: true`, and high-risk destructive actions are refused; those stay in the app.
+`Tidybyte.app/Contents/MacOS/tidybyte-mcp` exposes scan, findings, plan, execute, history, undo, and the read-only monitor tools `monitor_status`, `monitor_top`, `monitor_ports`, `monitor_agents`, and `monitor_limits` to AI agents. `execute` is a dry run until called with `confirm: true`, and high-risk destructive actions are refused; those stay in the app. The app executable answers the same monitor questions from the terminal: `tidybyte monitor status|top|ports|agents|limits`, as a table or `--json`.
 
 ### Release
 

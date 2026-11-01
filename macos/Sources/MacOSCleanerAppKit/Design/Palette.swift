@@ -40,6 +40,37 @@ public enum FolderPastel {
     public static var count: Int { colors.count }
 }
 
+public extension MediaKind {
+    /// Categorical color for the Overview storage breakdown, matching the
+    /// FindingCategory hues already used across the app.
+    var palette: CategoricalPalette {
+        switch self {
+        case .image: .pink
+        case .video: .purple
+        case .pdf: .coral
+        case .audio: .teal
+        case .document: .blue
+        case .archive: .orange
+        case .other: .yellow
+        }
+    }
+}
+
+extension AppDestination {
+    /// Segment colors for the Overview "You Could Free" hero.
+    var palette: CategoricalPalette {
+        switch self {
+        case .systemJunk: .green
+        case .developer: .orange
+        case .largeFiles: .coral
+        case .duplicates: .blue
+        case .media: .pink
+        case .leftovers: .teal
+        default: .blue
+        }
+    }
+}
+
 public extension FindingCategory {
     /// Returns the categorical color palette associated with this finding type.
     var palette: CategoricalPalette {

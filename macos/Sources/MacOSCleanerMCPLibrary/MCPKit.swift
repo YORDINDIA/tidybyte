@@ -76,11 +76,12 @@ public actor MCPKit {
     }
 
     private let store: SQLiteStore
-    private let orchestrator: ScanOrchestrator
+    /// Scans run here; the cleanup tools reach into it.
+    let orchestrator: ScanOrchestrator
     private let planner = PlannerAgent()
     private let executor: ActionExecutor
     private let undoService: UndoManagerService
-    private var lastScan: ScanState?
+    var lastScan: ScanState?
 
     public init(store: SQLiteStore) {
         self.store = store
@@ -126,7 +127,8 @@ public actor MCPKit {
         case "ping":
             return MCPResponse(Self.responsePayload(id: id, result: [:]))
         case "tools/list":
-            return MCPResponse(Self.responsePayload(id: id, result: ["tools": Self.toolDescriptions]))
+            return MCPResponse(Self.responsePayload(
+                    id: id, result: ["tools": Self.toolDescriptions + MonitorToolRouter.toolDescriptions]))
         case "tools/call":
             let params = request["params"] as? [String: Any] ?? [:]
             let name = params["name"] as? String ?? ""
@@ -151,6 +153,8 @@ public actor MCPKit {
     // MARK: - Tools
 
     private func callTool(name: String, arguments: [String: Any]) async throws -> String {
+        if let monitorResult = await MonitorToolRouter.handle(name: name) { return monitorResult }
+
         switch name {
         case "scan": return try await toolScan(arguments)
         case "list_findings": return try toolListFindings(arguments)
@@ -161,43 +165,6 @@ public actor MCPKit {
         case "undo": return try await toolUndo(arguments)
         default: throw MCPError.unknownTool(name)
         }
-    }
-
-    private func toolScan(_ arguments: [String: Any]) async throws -> String {
-        let paths = (arguments["paths"] as? [String] ?? []).map {
-            URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath)
-        }
-        // Local-only and AI-off by construction: MCP never uploads content.
-        let (outcome, plan) = try await orchestrator.scan(
-            mode: paths.isEmpty ? .homeFolder : .selectedFolders,
-            selectedFolders: paths,
-            providerSettings: ProviderSettings(),
-            includeAI: false,
-            posture: .conservative,
-            duplicateStrategy: Self.strategy(from: arguments["duplicate_strategy"] as? String)
-        )
-        var filesByID: [String: FileRecord] = [:]
-        for record in outcome.files {
-            filesByID[record.id] = record
-        }
-        lastScan = ScanState(outcome: outcome, plan: plan, filesByID: filesByID)
-
-        let duplicateFindings = outcome.findings.filter { $0.category == .duplicate }
-        let duplicateBytes = plan.actions
-            .filter { $0.actionType == .cloneDeduplicate || $0.actionType == .moveToTrash }
-            .reduce(Int64(0)) { total, action in
-                total + action.targets.reduce(Int64(0)) { sum, id in sum + (filesByID[id]?.sizeBytes ?? 0) }
-            }
-        var lines = [
-            "Scan finished: \(outcome.files.count) files looked at, "
-                + "\(outcome.findings.count) findings (\(duplicateFindings.count) duplicate groups).",
-            "Plan proposes \(plan.actions.count) actions reclaiming about \(bytes(duplicateBytes)).",
-            "Next: list_findings, then show_plan for a group, then check_finding before execute."
-        ]
-        for finding in duplicateFindings.prefix(10) {
-            lines.append("- [\(Self.shortID(finding.id))] \(finding.summary) (\(bytes(finding.bytesReclaimable)))")
-        }
-        return lines.joined(separator: "\n")
     }
 
     private func toolListFindings(_ arguments: [String: Any]) throws -> String {
@@ -214,7 +181,7 @@ public actor MCPKit {
         guard !matches.isEmpty else { return "No findings match." }
         var lines = ["\(matches.count) findings (showing up to \(limit)):"]
         for finding in matches.prefix(limit) {
-            lines.append("- [\(Self.shortID(finding.id))] \(finding.summary) · \(bytes(finding.bytesReclaimable))")
+            lines.append("- [\(Self.shortID(finding.id))] \(finding.summary) · \(finding.bytesReclaimable.formattedByteCount)")
         }
         return lines.joined(separator: "\n")
     }
@@ -237,7 +204,7 @@ public actor MCPKit {
                 : action.actionType.rawValue
             lines.append(
                 "- [\(Self.shortID(action.id))] \(label): \(action.targets.count) files, "
-                + "\(bytes(targetBytes)), risk \(action.risk.rawValue) · \(action.reason)"
+                + "\(targetBytes.formattedByteCount), risk \(action.risk.rawValue) · \(action.reason)"
             )
         }
         return lines.joined(separator: "\n")
@@ -340,7 +307,7 @@ public actor MCPKit {
             // The dry run is read-only and stays available for destructive
             // plans: it shows the plan and points at the app that must do it.
             return """
-            Dry run. Nothing changed. Would \(pending.count) actions affecting \(bytes(targetBytes)):
+            Dry run. Nothing changed. Would \(pending.count) actions affecting \(targetBytes.formattedByteCount):
             \(summaryText)
             Ask the user, then call execute again with confirm: true.
             """
@@ -438,14 +405,6 @@ public actor MCPKit {
         return lines.joined(separator: "\n")
     }
 
-    /// Local byte formatter — ByteFormatting is internal to Core, and MCP is
-    /// a separate module.
-    private func bytes(_ value: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: value)
-    }
-
 }
 
 // Tool catalog, JSON-schema builders and JSON-RPC payload helpers live outside
@@ -466,10 +425,19 @@ extension MCPKit {
     /// stdio pipes are block-buffered — a buffered response would strand the
     /// client waiting for a line that never arrives.
     public static func emit(_ payload: [String: Any]) {
-        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]) else {
+        guard let data = dataForPayload(payload) else {
             return
         }
         emitRaw(data)
+    }
+
+    /// JSONSerialization raises Objective-C exceptions for invalid payloads —
+    /// NaN or infinity doubles, non-property-list values — and `try?` cannot
+    /// catch those: one non-finite monitor reading aborted the whole server
+    /// (see the crash reports). The sanitize-then-validate order lives in
+    /// Core's JSONSanitizing, shared with the monitor CLI.
+    public static func dataForPayload(_ payload: [String: Any]) -> Data? {
+        JSONSanitizing.data(payload, options: [.sortedKeys])
     }
 
     /// Writes one pre-serialized response frame (Sendable across task
@@ -515,97 +483,4 @@ extension MCPKit {
         return try validatedIDPrefix(raw)
     }
 
-
-    /// Tool descriptors for tools/list. Argument names match the schema keys.
-    static var toolDescriptions: [[String: Any]] {
-        [
-            tool(
-                "scan",
-                "Scan the Mac for cleanup opportunities (duplicate files, caches, old downloads). "
-                    + "Changes nothing. Default duplicate strategy folds exact duplicates into APFS "
-                    + "clones, which deletes nothing.",
-                [
-                    "paths": stringArray("Folders to scan. Omit to scan the whole home folder."),
-                    "duplicate_strategy": string("apfs_clone (default, deletes nothing) or move_to_trash.")
-                ]
-            ),
-            tool(
-                "list_findings",
-                "List findings from the last scan with their ids, summaries and reclaimable bytes.",
-                [
-                    "query": string("Filter by summary or file path substring."),
-                    "limit": integer("How many to return (default 20).")
-                ]
-            ),
-            tool(
-                "show_plan",
-                "Show the proposed actions, optionally for one finding.",
-                ["finding_id": string("Finding id (or its first characters) from list_findings.")],
-                required: ["finding_id"]
-            ),
-            tool(
-                "check_finding",
-                "Re-read a finding's files from disk now: still present, still the scanned "
-                    + "identity, still byte-identical. Always check before executing a stale plan.",
-                ["finding_id": string("Finding id from list_findings.")],
-                required: ["finding_id"]
-            ),
-            tool(
-                "execute",
-                "Run proposed clone-fold actions (apfs_clone strategy — nothing is deleted) after "
-                    + "the user agrees. Without confirm: true this is a dry run that only describes "
-                    + "what would happen. Ask the user first, then call again with confirm: true. "
-                    + "Destructive actions (move_to_trash results, package-manager cleanups) and "
-                    + "high-risk actions are refused here by policy; they must be approved in the "
-                    + "Tidybyte app.",
-                [
-                    "action_ids": stringArray("Action ids to run; omit for every pending clone-fold action."),
-                    "confirm": boolean("true to actually execute; false or missing for a dry run.")
-                ]
-            ),
-            tool(
-                "history",
-                "List recent operations that can be undone.",
-                [:]
-            ),
-            tool(
-                "undo",
-                "Restore what one executed operation changed (pass its id from history). Without "
-                    + "confirm: true it only describes the restore. Ask the user first.",
-                [
-                    "operation_log_id": string("Operation id from history."),
-                    "confirm": boolean("true to actually undo; false or missing for a dry run.")
-                ],
-                required: ["operation_log_id"]
-            )
-        ]
-    }
-
-    private static func tool(_ name: String, _ description: String, _ properties: [String: Any], required: [String] = []) -> [String: Any] {
-        [
-            "name": name,
-            "description": description,
-            "inputSchema": [
-                "type": "object",
-                "properties": properties,
-                "required": required
-            ]
-        ]
-    }
-
-    private static func string(_ description: String) -> [String: Any] {
-        ["type": "string", "description": description]
-    }
-
-    private static func integer(_ description: String) -> [String: Any] {
-        ["type": "integer", "description": description]
-    }
-
-    private static func boolean(_ description: String) -> [String: Any] {
-        ["type": "boolean", "description": description]
-    }
-
-    private static func stringArray(_ description: String) -> [String: Any] {
-        ["type": "array", "items": ["type": "string"], "description": description]
-    }
 }

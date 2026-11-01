@@ -68,7 +68,10 @@ export default defineConfig({
         } else if (path.startsWith('/blog/')) {
           item.changefreq = 'monthly';
           item.priority = 0.7;
-        } else if (path === '/mac') {
+        } else if (path === '/mac' || path === '/activity-monitor-alternative') {
+          // Both Mac pages carry the same commercial intent as a tool
+          // landing page; the monitor page uses the same icon OG pattern
+          // as /mac, and /mac sits at 0.9, so the two match.
           item.changefreq = 'monthly';
           item.priority = 0.9;
         } else if (path === '/support') {

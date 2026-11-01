@@ -2,7 +2,7 @@ import MacOSCleanerCore
 import ServiceManagement
 import SwiftUI
 
-enum SettingsSection: Hashable { case general, scanning, media, privacy, data }
+enum SettingsSection: Hashable { case general, monitoring, scanning, media, privacy, data }
 
 struct SettingsView: View {
     @Bindable var model: AppViewModel
@@ -18,6 +18,9 @@ struct SettingsView: View {
         TabView(selection: $model.settingsSection) {
             Tab(String(localized: "General"), systemImage: "gearshape", value: .general) { general }
             if DistributionChannel.supportsAdvanced {
+                Tab(String(localized: "Monitoring"), systemImage: "waveform.path.ecg", value: .monitoring) {
+                    MonitoringSettingsView()
+                }
                 Tab(String(localized: "Scanning"), systemImage: "magnifyingglass", value: .scanning) { scanning }
             }
             Tab(String(localized: "Photos & Media"), systemImage: "photo.on.rectangle", value: .media) {
@@ -67,13 +70,26 @@ struct SettingsView: View {
                     Text(String(localized: "Tidybyte notices apps removed from Applications while it runs."))
                 }
             }
-            Section(String(localized: "About")) {
+            Section {
                 LabeledContent(
                     String(localized: "Version"),
                     value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Development")
                 LabeledContent(
                     String(localized: "Build"),
                     value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Development")
+            } header: {
+                Text(String(localized: "About"))
+            } footer: {
+                VStack(alignment: .leading, spacing: Spacing.elementTight) {
+                    Text(String(localized: "All processing happens on this device."))
+                    if DistributionChannel.supportsAdvanced {
+                        Text(
+                            String(
+                                localized:
+                                    "Optional AI features are off by default and send data only to the provider you configure."
+                            ))
+                    }
+                }
             }
         }.formStyle(.grouped)
     }

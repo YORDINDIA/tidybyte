@@ -63,7 +63,13 @@ struct CleanupToolView: View {
                 )
                 .font(.callout)
             }
-            if model.result?.isFresh != true {
+            if model.isBusy && model.result == nil {
+                // First scan still running — an honest in-progress state, not
+                // the "Not scanned" empty view.
+                ProgressView(String(localized: "Scanning…", comment: "Media scan in progress"))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 60)
+            } else if model.result?.isFresh != true {
                 ContentUnavailableView(
                     String(localized: "Not scanned"), systemImage: "arrow.clockwise",
                     description: Text(String(localized: "Run a scan to refresh this tool.")))
@@ -89,6 +95,7 @@ struct CleanupToolView: View {
                     model.selection = Set(items.filter(\.canChange).map(\.id))
                 }
                 .onDeleteCommand { requestTrash() }
+                .skeletonLoading(model.isBusy && model.result != nil)
             }
             if !model.jobs.isEmpty {
                 ScrollView {
@@ -96,7 +103,9 @@ struct CleanupToolView: View {
                         ForEach(model.jobs) { job in
                             HStack {
                                 Text(job.item.name).lineLimit(1)
-                                ProgressView(value: job.progress).frame(maxWidth: 180)
+                                // AVFoundation's fractionCompleted can exceed
+                                // 1.0; ProgressView requires 0...1.
+                                ProgressView(value: min(max(job.progress, 0), 1)).frame(maxWidth: 180)
                                 Text(
                                     job.event?.error ?? job.event?.state.title
                                         ?? (model.isBusy
@@ -336,7 +345,7 @@ extension CleanupToolView {
         let selectedBytes = selected.reduce(0) { $0 + $1.bytes }.formattedByteCount
         return GlassEffectContainer {
             HStack(spacing: Spacing.elementNormal) {
-                Button(String(localized: "Review One by One")) {
+                Button(String(localized: "Review with Swipe", comment: "Start a swipe review session (PRD 4.2.1)")) {
                     Task {
                         await model.startSession(items: items, tool: tool)
                         model.selectedTool = .swipe
@@ -345,10 +354,11 @@ extension CleanupToolView {
                 .buttonStyle(.glass)
                 .disabled(model.session != nil)
                 if !groups.isEmpty {
-                    Button(String(localized: "Select Extras in All Groups")) {
+                    Button(String(localized: "Auto-Clean All…", comment: "Select every non-best copy for the trash confirm (PRD 4.1.1)")) {
                         model.selection = MediaAnalysisService.safeSelection(
                             Set(groups.flatMap { group in group.memberIDs.filter { $0 != group.bestID } }),
                             groups: model.result?.groups ?? [])
+                        requestTrash()
                     }
                     .buttonStyle(.glass)
                 }

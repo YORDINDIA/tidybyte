@@ -6,6 +6,24 @@ public struct MacOSCleanerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppViewModel.bootstrap()
     @AppStorage(AppDelegate.menuBarExtraKey) private var showsMenuBarExtra = false
+    // The monitor's own keys are read inside their scenes (MonitorMenuBarExtras),
+    // never here: a second @AppStorage on the App struct makes SwiftUI's menu bar
+    // extra round-trip its isInserted binding through UserDefaults every update
+    // pass, spinning one core at 100% (KVO on the status item -> binding write ->
+    // preference invalidation -> scene update, forever).
+
+    /// Insertion binding for the status item, guarded against SwiftUI's update
+    /// pass: the menu bar controller round-trips this binding on every pass
+    /// (status item KVO writes the same value back through it), and the raw
+    /// @AppStorage binding turned each round-trip into a UserDefaults write
+    /// whose notification re-queued the update — the same 100% CPU loop. The
+    /// Settings toggle writes the key through its own binding; this side only
+    /// reads, and writes on a real change only.
+    private var menuBarExtraInserted: Binding<Bool> {
+        Binding(
+            get: { showsMenuBarExtra },
+            set: { if showsMenuBarExtra != $0 { showsMenuBarExtra = $0 } })
+    }
 
     /// Set by the executable when Sparkle is linked (direct builds only).
     @MainActor public static var checkForUpdates: (() -> Void)?
@@ -16,12 +34,27 @@ public struct MacOSCleanerApp: App {
         Window(AppIdentity.displayName, id: "main") {
             ContentView(model: model)
                 .frame(minWidth: Spacing.windowMinWidth, minHeight: Spacing.windowMinHeight)
+                .task {
+                    // App-scope startup: the menu bar extras need live samples
+                    // even when the Monitor pane was never opened. With no
+                    // surface attached the loop self-throttles to a 30 s
+                    // heartbeat, so this stays cheap. start() is idempotent,
+                    // so MonitorView's own call is a no-op here.
+                    if DistributionChannel.supportsAdvanced {
+                        model.monitor.start()
+                    }
+                }
                 .onOpenURL { url in
                     // tidybyte://<destination>, plus tidybyte://swipe for Swipe Review.
                     guard url.scheme == AppIdentity.urlScheme, let host = url.host else { return }
                     if host == "swipe" {
                         model.destination = .media
                         model.cleanup.selectedTool = .swipe
+                    } else if host == "monitor" {
+                        // The monitor reads system-wide state; the sandboxed
+                        // build has no monitor to open.
+                        guard DistributionChannel.supportsAdvanced else { return }
+                        model.destination = .monitor
                     } else if let destination = AppDestination(rawValue: host),
                         AppDestination.available.contains(destination) {
                         model.destination = destination
@@ -38,9 +71,13 @@ public struct MacOSCleanerApp: App {
             SettingsView(model: model)
         }
 
-        MenuBarExtra(AppIdentity.displayName, systemImage: "internaldrive", isInserted: $showsMenuBarExtra) {
+        MenuBarExtra(AppIdentity.displayName, systemImage: "internaldrive", isInserted: menuBarExtraInserted) {
             MenuBarView()
         }
+
+        #if MONITOR_SCENES
+        MonitorMenuBarExtras(model: model.monitor)
+        #endif
     }
 }
 
@@ -136,17 +173,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
     }
 
+    /// Last-chance cleanup: restore any fan minimums the monitor changed.
+    func applicationWillTerminate(_ notification: Notification) {
+        model?.monitor.stop()
+    }
+
     private func route(_ info: [AnyHashable: Any]) async {
         guard let model else {
             pendingRoute = info
             return
         }
-        if info[NotificationScheduler.routeKey] as? String == "leftovers",
+        let routeKind = info[NotificationScheduler.routeKey] as? String
+        if routeKind == "leftovers",
             let bundleID = info[NotificationScheduler.bundleIDKey] as? String {
             await model.reviewLeftovers(
                 ofRemovedApp: bundleID,
                 name: info[NotificationScheduler.appNameKey] as? String ?? bundleID,
                 bundlePath: info[NotificationScheduler.bundlePathKey] as? String ?? "")
+        } else if routeKind == "monitor", DistributionChannel.supportsAdvanced {
+            // A misbehaving-app alert: open the monitor, not the media tools.
+            model.destination = .monitor
+        } else if routeKind == "activity" {
+            // Scan-complete (and any future tally notifications): open the
+            // ledger that records what was reclaimed (PRD 9.5).
+            model.destination = .history
         } else {
             model.destination = .media
         }
@@ -170,10 +220,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     static let menuBarExtraKey = "showsMenuBarExtra"
     static let removalWatchKey = "watchesAppRemovals"
+    static let monitorExtrasKey = MonitoringKeys.menuBarPanelEnabled
 
-    /// Quit with the last window unless the menu bar extra keeps the app useful.
+    /// Quit with the last window unless a menu bar extra keeps the app useful.
+    /// The monitor extras default to on, so an unset key counts as enabled —
+    /// matching the @AppStorage default in the app scene.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        !UserDefaults.standard.bool(forKey: Self.menuBarExtraKey)
+        let defaults = UserDefaults.standard
+        let monitorExtrasEnabled = defaults.object(forKey: Self.monitorExtrasKey) as? Bool ?? true
+        return !(defaults.bool(forKey: Self.menuBarExtraKey) || monitorExtrasEnabled)
     }
 
     func scanNow() {

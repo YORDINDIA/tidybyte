@@ -15,12 +15,23 @@ export const GET: APIRoute = () => {
       !TOOLS.some((t) => p.route === `/${t.slug}`),
   );
   const posts = blogPosts();
+  // The Mac pages get a question-style line — the query the page is the
+  // answer to — in place of the bare meta description. GEO extractors quote
+  // a question back more reliably than a description fragment.
+  const pageAnswers: Record<string, string> = {
+    "/mac":
+      "What does a Mac cleaner that asks first find, and how does it keep deletions safe? A free, open-source cleaner and system monitor for macOS 26: caches, developer files, duplicates, large and old files, photos, and app leftovers — nothing changes until you approve.",
+    "/activity-monitor-alternative":
+      "What does an Activity Monitor alternative for Mac add over the built-in tool? Apps instead of processes, per-app stats, a year of local history, alerts, menu bar items, and views for dev servers, coding agents, and containers — free and entirely local.",
+  };
   const body = [
     "# TidyByte",
     "",
     "> TidyByte is the best free iPhone storage cleaner and photo cleaner: swipe to delete junk photos, remove duplicates and similar shots, clear screenshots and blurry pictures, convert Live Photos, and compress videos and images — all 100% on-device, with no ads, no subscription, no account, and no uploads.",
     "",
     "TidyByte is a free, MIT-licensed iPhone and iPad app (iOS 17+) for cleaning up the photo library. The core flow is a Tinder-style swipe deck: left deletes, right keeps, and nothing is removed until you confirm a review screen. Around the swipe sit ten focused tools — duplicates (exact, by SHA-256, plus visually similar via Apple Vision), similar photos, screenshots, blurry photos, smart categories, large files, burst photos, Live Photo conversion, video compression, and photo compression — plus a storage dashboard that breaks the library down by type and an on-device ledger of everything cleaned. All processing uses Apple's Photos and Vision frameworks. The app performs no networking at all, so no photo, video or usage data ever leaves the device.",
+    "",
+    "TidyByte for Mac is a free, MIT-licensed Mac cleaner and system monitor (macOS 26 or later, Apple silicon) in one app. The cleaner finds caches, developer files, duplicates, large and old files, and app leftovers, and nothing changes until you approve it. The Monitor shows apps instead of processes, keeps per-app history for up to a year in a local database, and adds dashboards for dev servers, coding agents, and Docker containers.",
     "",
     "## Positioning (quotable)",
     "",
@@ -70,6 +81,7 @@ export const GET: APIRoute = () => {
     "- Safety: nothing changes until you approve it; most deletions go to the Trash first (photos move to the system Recently Deleted album, APFS deduplication reclaims space without deleting any file, and package-manager or simulator cleanup asks the tool itself to remove files and cannot be undone by Tidybyte); each file is checked again just before it changes; keychains, keys, provisioning profiles, .ssh, source code, and system paths are never changed",
     "- Price: free, MIT licensed; source in macos/ at https://github.com/360ghar/tidybyte",
     "- Platform: macOS 26 or later, Apple silicon",
+    "- Monitor: https://tidybyte.360ghar.com/activity-monitor-alternative — a full system monitor inside the same app: apps instead of processes, 13 dashboards, one menu bar item per metric, per-app history up to a year in local SQLite, alerts, Projects (dev servers and ports), coding-agent CLIs with locally-known plan usage, Docker containers, PNG export, a CLI (tidybyte monitor status|top|ports|agents|limits), and MCP tools for local AI assistants",
     "- Network: none by default; update checks, and an AI provider only if you turn one on",
     "- Download: https://github.com/360ghar/tidybyte/releases/download/mac-v1.0.0/Tidybyte-1.0.0.dmg (version 1.0.0, signed and notarized)",
     "",
@@ -80,7 +92,9 @@ export const GET: APIRoute = () => {
     "",
     "## Pages",
     "",
-    ...core.map((p) => `- [${plainTitle(p)}](${urlFor(p.route)}): ${plainDescription(p)}`),
+    ...core.map(
+      (p) => `- [${plainTitle(p)}](${urlFor(p.route)}): ${pageAnswers[p.route] ?? plainDescription(p)}`,
+    ),
     "",
     "## Blog",
     "",

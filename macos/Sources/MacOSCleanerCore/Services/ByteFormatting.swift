@@ -13,4 +13,18 @@ public extension Int64 {
         }
         return ByteCountFormatter.string(fromByteCount: self, countStyle: .file)
     }
+
+    /// A byte count per second, e.g. "2.4 MB/s", as the monitor shows rates.
+    /// Zero goes through the same explicit rendering as `formattedByteCount`
+    /// so the menu bar never shows "Zero KB/s".
+    var formattedByteRate: String {
+        formattedByteCount + "/s"
+    }
+}
+
+public extension Double {
+    /// Rounds a bytes-per-second rate to a whole count, then formats it.
+    var formattedByteRate: String {
+        Int64(self).formattedByteRate
+    }
 }

@@ -362,6 +362,13 @@ public struct ScanSession: Codable, Identifiable, Sendable {
     public var totalFilesSeen: Int
     public var totalBytesSeen: Int64
     public var errorsCount: Int
+    /// Scan diagnostics carried with the session so a relaunch can restore the
+    /// full result: the bulk rows hold files and findings, but notices only
+    /// lived in the in-memory outcome. Optional so older rows decode as nil.
+    public var notices: [ScanNotice]?
+    /// Package-manager cleanup candidates (brew caches, docker, …). They are
+    /// not session-scoped rows, so the session row carries them for restore.
+    public var packageCandidates: [PackageCleanupCandidate]?
 
     public init(
         id: String = UUID().uuidString,
@@ -373,7 +380,9 @@ public struct ScanSession: Codable, Identifiable, Sendable {
         status: ScanSessionStatus = .running,
         totalFilesSeen: Int = 0,
         totalBytesSeen: Int64 = 0,
-        errorsCount: Int = 0
+        errorsCount: Int = 0,
+        notices: [ScanNotice]? = nil,
+        packageCandidates: [PackageCleanupCandidate]? = nil
     ) {
         self.id = id
         self.startedAt = startedAt
@@ -385,6 +394,8 @@ public struct ScanSession: Codable, Identifiable, Sendable {
         self.totalFilesSeen = totalFilesSeen
         self.totalBytesSeen = totalBytesSeen
         self.errorsCount = errorsCount
+        self.notices = notices
+        self.packageCandidates = packageCandidates
     }
 }
 
@@ -744,6 +755,24 @@ public struct StorageSnapshot: Codable, Identifiable, Sendable {
     public var bytesByRootPath: [String: Int64]
     public var bytesByProject: [String: Int64]
     public var removedBytesThroughApp: Int64
+
+    public init(
+        id: String,
+        createdAt: Date,
+        totalBytes: Int64,
+        bytesByCategory: [FindingCategory: Int64],
+        bytesByRootPath: [String: Int64],
+        bytesByProject: [String: Int64],
+        removedBytesThroughApp: Int64
+    ) {
+        self.id = id
+        self.createdAt = createdAt
+        self.totalBytes = totalBytes
+        self.bytesByCategory = bytesByCategory
+        self.bytesByRootPath = bytesByRootPath
+        self.bytesByProject = bytesByProject
+        self.removedBytesThroughApp = removedBytesThroughApp
+    }
 }
 
 public struct PackageCleanupCandidate: Codable, Sendable {
@@ -815,6 +844,34 @@ public struct ScanOutcome: Codable, Sendable {
     public var wasCancelled: Bool = false
     /// Diagnostics for locations the scan could not read or sections it skipped.
     public var notices: [ScanNotice] = []
+
+    public init(
+        session: ScanSession,
+        files: [FileRecord],
+        fingerprints: [FileFingerprint],
+        contentSummaries: [ContentSummary],
+        projects: [ProjectUnit],
+        edges: [RelationshipEdge],
+        findings: [Finding],
+        recommendations: [Recommendation],
+        snapshot: StorageSnapshot,
+        packageCandidates: [PackageCleanupCandidate],
+        wasCancelled: Bool = false,
+        notices: [ScanNotice] = []
+    ) {
+        self.session = session
+        self.files = files
+        self.fingerprints = fingerprints
+        self.contentSummaries = contentSummaries
+        self.projects = projects
+        self.edges = edges
+        self.findings = findings
+        self.recommendations = recommendations
+        self.snapshot = snapshot
+        self.packageCandidates = packageCandidates
+        self.wasCancelled = wasCancelled
+        self.notices = notices
+    }
 
     /// An empty outcome for work that starts without a scan (an uninstall
     /// from the Applications list). Staged files and findings are appended.

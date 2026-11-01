@@ -26,6 +26,7 @@ struct SnapshotDiffView: View {
             }
         }
         .listStyle(.inset)
+        .skeletonLoading(model.isLoadingSnapshots)
         .task { await model.loadSnapshotHistory() }
     }
 

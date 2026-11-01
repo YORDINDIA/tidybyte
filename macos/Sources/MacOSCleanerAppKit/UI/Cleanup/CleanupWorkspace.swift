@@ -48,7 +48,7 @@ struct MediaWorkspace: View {
                         systemImage: "arrow.clockwise")
                 }
             }
-            Section(String(localized: "Review One by One")) {
+            Section(String(localized: "Review with Swipe")) {
                 NavigationLink(value: CleanupTool.swipe) {
                     LabeledContent {
                         Text(model.session == nil ? String(localized: "Start") : String(localized: "Resume"))
@@ -82,6 +82,7 @@ struct MediaWorkspace: View {
             }
         }
         .formStyle(.grouped)
+        .skeletonLoading(model.isBusy)
     }
 
     private func badge(_ tool: CleanupTool) -> String {
@@ -103,8 +104,11 @@ struct MediaWorkspace: View {
 }
 
 /// Year and source buckets. Each starts a Swipe session for that slice.
-private struct SpaceBuckets: View {
+/// Also embedded on the Overview dashboard, which navigates to Photos & Media
+/// via `onSessionStart`.
+struct SpaceBuckets: View {
     @Bindable var model: CleanupModel
+    var onSessionStart: (() -> Void)?
     private var items: [ReviewItem] { model.result?.items ?? [] }
     private var years: [Int] {
         Set(items.compactMap { $0.modifiedAt.map { Calendar.current.component(.year, from: $0) } }).sorted().reversed()
@@ -135,6 +139,7 @@ private struct SpaceBuckets: View {
             Task {
                 await model.startSession(items: items)
                 model.selectedTool = .swipe
+                onSessionStart?()
             }
         } label: {
             LabeledContent(title, value: items.reduce(Int64(0)) { $0 + $1.bytes }.formattedByteCount)

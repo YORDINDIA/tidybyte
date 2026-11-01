@@ -8,7 +8,7 @@ The site lives in `website/` of the monorepo. Run the commands below from `websi
 
 The site is an Astro static build with Tailwind + vanilla JS (no framework runtime). Ongoing CI guard: `npm run check` (asset-hash check + SEO audit + OG-card check; see `public/README.md`).
 
-- `src/pages/` — routes (`index`, `404`, `privacy`, `support`, `changelog`, `[page]` + `[page].md` for the 16 tool landing pages, `blog/index`, `blog/[slug]` + `blog/[slug].md`, plus generated `llms.txt`, `llms-full.txt`). Each renders an assembled document string.
+- `src/pages/` — routes (`index`, `404`, `privacy`, `support`, `changelog`, `mac`, `activity-monitor-alternative`, `[page]` + `[page].md` for the 16 tool landing pages, `blog/index`, `blog/[slug]` + `blog/[slug].md`, plus generated `llms.txt`, `llms-full.txt`). Each renders an assembled document string.
 - `src/layouts/build-page.ts` — the page assembler: `<head>` template (SEO/OG/article meta, LCP preloads, Speakable schema), header/footer chrome, and the visible "Quick answer" box injected on every indexable page (at the `<!-- quick-answer -->` marker, or under the hero figure/header if the content file has no marker).
 - `src/content/pages/*.html` — page body content (the file you edit to change page copy).
 - `src/chrome/{header,footer}.html` — single-source header/footer shared by all pages.
@@ -39,7 +39,7 @@ grep -r 'href="#"' src/content/pages/ && echo "found a placeholder" || echo "no 
 
 ## 3. Verify URLs match App Store Connect
 
-The site exposes `/`, `/support`, `/privacy`, `/changelog`, `/blog`, and the 16 tool landing pages under `/`. The support and marketing URLs (plus the privacy-policy URL specifically) must be configured in App Store Connect. See [`ios/docs/APP_STORE_LISTING.md`](../ios/docs/APP_STORE_LISTING.md) §6 for the field-by-field mapping.
+The site exposes `/`, `/support`, `/privacy`, `/changelog`, `/blog`, `/mac`, `/activity-monitor-alternative`, and the 16 tool landing pages under `/`. The support and marketing URLs (plus the privacy-policy URL specifically) must be configured in App Store Connect. See [`ios/docs/APP_STORE_LISTING.md`](../ios/docs/APP_STORE_LISTING.md) §6 for the field-by-field mapping.
 
 ## 4. Build and preview locally
 
@@ -90,6 +90,9 @@ Tick each:
 - [ ] `https://tidybyte.360ghar.com/changelog` loads
 - [ ] `https://tidybyte.360ghar.com/storage-cleaner` loads, and `/storage-cleaner/` (trailing slash) 301s to it
 - [ ] `https://tidybyte.360ghar.com/storage-cleaner.md` returns `text/markdown`
+- [ ] `https://tidybyte.360ghar.com/activity-monitor-alternative` loads, and `/activity-monitor-alternative/` (trailing slash) 301s to it
+- [ ] `https://tidybyte.360ghar.com/activity-monitor-alternative.md` returns `text/markdown`
+- [ ] View source on `/activity-monitor-alternative`: the title is ≤ 65 characters, the description is 110–165 characters and unique site-wide (`npm run check` enforces both), and the FAQ JSON-LD mirrors the visible FAQ; the page appears in the sitemap and in `llms.txt`
 - [ ] `https://tidybyte.360ghar.com/de` loads in German — check the hero heading, not just the URL
 - [ ] `https://tidybyte.360ghar.com/ar` loads and the whole layout is mirrored right-to-left
 - [ ] `/de/` and `/ar/` (trailing slash) 301 to the slashless form

@@ -6,6 +6,11 @@ struct ContentView: View {
     @FocusState private var isSearchFocused: Bool
     @State private var executionRequest: ExecutionRequest?
     @AppStorage(OnboardingView.stepKey) private var onboardingStep = 0
+    /// Transient confirmation for the model's statusMessage ("Undo completed.",
+    /// "Restored your last scan…"). Status messages were written at ~50 sites
+    /// but rendered nowhere — every non-error outcome was invisible.
+    @State private var statusToast: String?
+    @State private var statusToastTask: Task<Void, Never>?
 
     var body: some View {
         NavigationSplitView {
@@ -37,6 +42,15 @@ struct ContentView: View {
                             .overlay(Capsule().strokeBorder(.separator))
                             .padding(.bottom, Spacing.elementNormal)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else if let statusToast {
+                        Text(statusToast)
+                            .font(.callout)
+                            .padding(.horizontal, Spacing.elementNormal)
+                            .padding(.vertical, Spacing.elementTight)
+                            .background(.regularMaterial, in: Capsule())
+                            .overlay(Capsule().strokeBorder(.separator))
+                            .padding(.bottom, Spacing.elementNormal)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
         }
@@ -57,9 +71,23 @@ struct ContentView: View {
             model.searchText = ""
             if !model.destination.supportsInspector { model.showsInspector = false }
         }
+        .onChange(of: model.statusMessage) {
+            // Scan-step chatter repaints at 2 Hz and is shown by the progress
+            // strip instead; everything else is a one-shot outcome worth a toast.
+            let message = model.statusMessage
+            guard !message.isEmpty, !model.isScanning else { return }
+            statusToastTask?.cancel()
+            statusToast = message
+            statusToastTask = Task {
+                try? await Task.sleep(for: .seconds(4))
+                guard !Task.isCancelled else { return }
+                statusToast = nil
+            }
+        }
         .task {
             await model.cleanup.load()
             await model.loadUndoHistory()
+            await model.restoreLastSession()
         }
     }
 
@@ -80,6 +108,7 @@ struct ContentView: View {
     private var detail: some View {
         switch model.destination {
         case .overview: OverviewView(model: model)
+        case .monitor: MonitorView(model: model.monitor)
         case .systemJunk, .developer, .largeFiles, .leftovers: ActionStackView(model: model)
         case .duplicates: DuplicatesTabView(model: model)
         case .media: MediaWorkspace(model: model.cleanup)
@@ -91,6 +120,14 @@ struct ContentView: View {
         }
     }
 
+    /// The Monitor tab owns its inspector (process details), so the shared
+    /// inspector column stands down there.
+    private var showsSharedInspector: Binding<Bool> {
+        Binding(
+            get: { model.destination != .monitor && model.showsInspector },
+            set: { model.showsInspector = $0 })
+    }
+
     @ViewBuilder
     private var inspectorContent: some View {
         switch model.destination {
@@ -98,6 +135,7 @@ struct ContentView: View {
         case .systemJunk, .developer, .largeFiles, .leftovers, .duplicates: WhyPanelView(model: model)
         case .applications: ApplicationDetailsView(model: model)
         case .history: HistoryDetailsView(model: model)
+        case .monitor: EmptyView()
         default:
             ContentUnavailableView(
                 String(localized: "No selection"), systemImage: "sidebar.trailing",
@@ -122,8 +160,49 @@ struct ContentView: View {
         if model.cleanup.isBusy { model.cleanup.cancel() }
     }
 
+    /// Renders the monitor's fixed summary card and saves it as a PNG next to
+    /// the window. One snapshot in, one static image out — nothing live.
+    private func exportMonitorSnapshot() async {
+        guard let snapshot = model.monitor.snapshot else { return }
+        guard let data = await model.monitor.exportImage(of: MonitorExportView(snapshot: snapshot)) else {
+            model.setErrorMessage(String(
+                localized: "The monitor image could not be rendered.",
+                comment: "Monitor export render failure"))
+            return
+        }
+        let panel = NSSavePanel()
+        let stamp = snapshot.timestamp.formatted(.iso8601.year().month().day())
+        panel.nameFieldStringValue = "Tidybyte Monitor \(stamp).png"
+        panel.allowedContentTypes = [.png]
+        guard let window = NSApp.keyWindow else { return }
+        let response = await panel.beginSheetModal(for: window)
+        guard response == .OK, let url = panel.url else { return }
+        do {
+            try data.write(to: url)
+            model.setStatusMessage(String(
+                localized: "Monitor snapshot saved.",
+                comment: "Monitor export success"))
+        } catch {
+            model.setErrorMessage(error.localizedDescription)
+        }
+    }
+
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
+        // Contextual items come first, before the fixed spacer (DESIGN.md).
+        if model.destination == .monitor {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await exportMonitorSnapshot() }
+                } label: {
+                    Label(
+                        String(localized: "Export…", comment: "Monitor toolbar action"),
+                        systemImage: "square.and.arrow.up")
+                }
+                .help(String(localized: "Save a snapshot image of the monitor", comment: "Monitor export help"))
+                .disabled(model.monitor.snapshot == nil)
+            }
+        }
         if model.destination == .explorer {
             ToolbarItem {
                 Menu {
@@ -159,18 +238,25 @@ struct ContentView: View {
         }
         ToolbarSpacer(.fixed, placement: .primaryAction)
         ToolbarItem(placement: .primaryAction) {
-            if isBusy {
-                Button(role: .cancel, action: stop) {
-                    Label(String(localized: "Stop"), systemImage: "stop.fill")
+            // One identity-stable item that adapts, instead of two branches.
+            // Swapping the item's view tree while AppKit laid out the toolbar
+            // threw NSException during scans (crash reports); mutating one
+            // button's label/action avoids the insert/remove path entirely.
+            Button {
+                if isBusy { stop() } else { model.scanAll() }
+            } label: {
+                Label {
+                    Text(isBusy
+                        ? String(localized: "Stop", comment: "Toolbar stop label")
+                        : String(localized: "Scan", comment: "Toolbar scan label"))
+                } icon: {
+                    Image(systemName: isBusy ? "stop.fill" : "arrow.clockwise")
                 }
-                .help(String(localized: "Stop the current scan or cleanup"))
-            } else {
-                Button(action: model.scanAll) {
-                    Label(String(localized: "Scan"), systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.glassProminent)
-                .help(String(localized: "Scan for cleanup opportunities"))
             }
+            .buttonStyle(.glassProminent)
+            .help(isBusy
+                ? String(localized: "Stop the current scan or cleanup", comment: "Toolbar stop help")
+                : String(localized: "Scan for cleanup opportunities", comment: "Toolbar scan help"))
         }
         if model.destination.supportsInspector {
             ToolbarSpacer(.fixed, placement: .primaryAction)

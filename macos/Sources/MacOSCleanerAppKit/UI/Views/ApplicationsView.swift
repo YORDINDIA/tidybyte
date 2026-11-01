@@ -32,6 +32,7 @@ struct ApplicationsView: View {
             }
         }
         .listStyle(.inset)
+        .skeletonLoading(model.isLoadingApplications)
         .overlay {
             if model.isLoadingApplications {
                 ProgressView(String(localized: "Loading applications…"))

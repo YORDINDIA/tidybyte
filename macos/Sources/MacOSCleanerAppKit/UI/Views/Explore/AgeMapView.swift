@@ -237,7 +237,15 @@ struct AgeMapView: View {
                                     title: String(localized: "Stage"),
                                     icon: "plus.circle",
                                     action: {
-                                        _ = model.stageExploreRecordForCleanup(file)
+                                        if model.stageExploreRecordForCleanup(file) != nil {
+                                            model.setStatusMessage(String(
+                                                localized: "Added to the cleanup plan. Review it in Proposed Actions.",
+                                                comment: "Explore staging accepted"))
+                                        } else {
+                                            model.setStatusMessage(String(
+                                                localized: "Could not stage. A scan, execution, or plan change is in flight.",
+                                                comment: "Explore staging refused"))
+                                        }
                                     }
                                 )
                             }

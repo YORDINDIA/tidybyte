@@ -11,6 +11,7 @@ One `NavigationSplitView` with a source-list sidebar, one detail column, and a n
 | Sidebar | Rows |
 | --- | --- |
 | (top) | Overview |
+| Monitor | Monitor (system dashboard; direct builds only) |
 | Clean | System Junk, Developer, Large & Old Files, Duplicates, Photos & Media |
 | Apps | Applications, Leftovers, Login Items |
 | Insights | Space Explorer, Changes, History |

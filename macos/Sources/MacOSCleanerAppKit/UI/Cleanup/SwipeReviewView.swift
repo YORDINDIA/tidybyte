@@ -68,6 +68,7 @@ struct SwipeReviewView: View {
             }
         }
         .padding(Spacing.cardPadding)
+        .skeletonLoading(model.isBusy || model.isSaving)
         .navigationTitle(CleanupTool.swipe.title)
             .sheet(isPresented: $confirms) {
                 VStack {
@@ -204,7 +205,7 @@ struct SwipeReviewView: View {
                 model.completedSession = nil
                 model.scan()
             }
-            Button(String(localized: "Back to Photos & Media")) { model.selectedTool = nil }
+            Button(String(localized: "Go to Cleanup Tools")) { model.selectedTool = nil }
         }
     }
 }

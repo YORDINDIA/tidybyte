@@ -17,6 +17,12 @@ First public release, as Tidybyte for Mac.
 - Empty Trash, with a confirmation.
 - Menu bar item with free space and memory pressure (off by default).
 - App icon built with Icon Composer; Sparkle updates for the direct download.
+- A system monitor: Overview, CPU, Memory, Disk, Network, GPU, Neural, Battery, Sound, Bluetooth, Projects, Agents, and Containers in one screen. Processes group by app, so helpers roll into the app that launched them, and every process opens into an inspector with its code signature, parent, command line, open files, and listening ports.
+- Live menu bar items, one per metric you pick, each opening the apps behind the reading; a combined panel shows the busiest apps.
+- Up to a year of per-metric history in a local SQLite file, with hourly rollups so old data stays small.
+- Alerts when an app hogs the CPU, keeps growing in memory, or hammers the disk or network.
+- Dev servers and open ports grouped by project, with idle servers flagged; Docker containers with per-container memory, CPU, and ports; running coding agents with their project, child processes, and any local plan-usage data.
+- `tidybyte monitor status|top|ports|agents|limits` for the terminal, table or JSON, and matching read-only tools in `tidybyte-mcp`.
 
 ### Changed
 

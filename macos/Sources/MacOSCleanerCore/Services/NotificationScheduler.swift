@@ -38,6 +38,9 @@ public actor NotificationScheduler {
         content.title = String(localized: "Scan Complete")
         content.body = String(localized: "Review cleanup suggestions for \(reclaimedBytes.formattedByteCount).")
         content.sound = .default
+        // PRD 9.5: a scan-completed tap lands on Activity, where what was
+        // freed is tallied. Cleanup stays reachable from the sidebar.
+        content.userInfo = [Self.routeKey: "activity"]
         let request = UNNotificationRequest(
             identifier: "scan-complete-\(UUID().uuidString)",
             content: content,
@@ -106,6 +109,37 @@ public actor NotificationScheduler {
         }
     }
 
+    /// Monitor threshold alert (sustained CPU, memory growth, heavy disk or
+    /// network). Tapping it routes to the Monitor tab. Gated on a real app
+    /// bundle like every other entry point, so unbundled hosts (tests, the
+    /// `tidybyte monitor` CLI) never touch UNUserNotificationCenter.
+    public func scheduleMonitorAlert(finding: AlertEngine.Finding) async {
+        guard canUseUserNotifications else { return }
+        _ = await requestAuthorization()
+        let content = UNMutableNotificationContent()
+        content.title = switch finding.kind {
+        case .cpu: String(localized: "High CPU usage", comment: "Alert title")
+        case .memory: String(localized: "Memory keeps growing", comment: "Alert title")
+        case .disk: String(localized: "Heavy disk activity", comment: "Alert title")
+        case .network: String(localized: "Heavy network activity", comment: "Alert title")
+        }
+        content.body = finding.detail
+        content.userInfo = [
+            Self.routeKey: "monitor",
+            Self.metricKey: finding.kind.rawValue,
+            Self.appNameKey: finding.appName
+        ]
+        let request = UNNotificationRequest(
+            identifier: "tidybyte.monitor.\(finding.kind.rawValue).\(finding.bundleID ?? finding.appName)",
+            content: content, trigger: nil)
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            Self.logger.warning("Failed to schedule monitor alert: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    public static let metricKey = "metric"
     public static let routeKey = "route"
     public static let bundleIDKey = "bundleID"
     public static let appNameKey = "appName"

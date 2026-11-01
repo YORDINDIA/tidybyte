@@ -38,7 +38,10 @@ let package = Package(
             ],
             swiftSettings: [
                 .swiftLanguageMode(.v6)
-            ]
+                // The monitor menu bar scenes read system-wide state, which the
+                // sandboxed App Store build cannot, so they only compile for
+                // the direct channel.
+            ] + (appStore ? [] : [.define("MONITOR_SCENES")])
         ),
         .executableTarget(
             name: "MacOSCleaner",

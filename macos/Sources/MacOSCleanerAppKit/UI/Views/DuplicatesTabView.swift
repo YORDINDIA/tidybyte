@@ -72,8 +72,17 @@ struct DuplicatesTabView: View {
             }
         }
         .listStyle(.inset)
+        .skeletonLoading(model.isScanning)
         .overlay {
-            if findings.isEmpty {
+            if model.isScanning && findings.isEmpty {
+                // A scan in flight must not read as a finished clean result.
+                VStack(spacing: Spacing.elementNormal) {
+                    ProgressView(String(localized: "Scanning…", comment: "Scan in progress"))
+                    Text(String(localized: "Duplicate results appear when the scan finishes.", comment: "Duplicates scanning note"))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            } else if findings.isEmpty {
                 ContentUnavailableView {
                     Label(
                         model.searchText.isEmpty

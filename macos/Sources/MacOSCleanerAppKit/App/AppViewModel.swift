@@ -25,11 +25,17 @@ private enum SettingsKey: String, CaseIterable {
     case duplicateStrategy
     case autoscanEnabled
     case inboxRootPath
+    case lastDestination
+    case dismissedNoticeSession
+    case dismissedNoticeIDs
 }
 
 @MainActor
 @Observable
 final class AppViewModel {
+    /// The system monitor. One instance for the whole app so the window tabs,
+    /// menu bar items, and alerts share a single sampling loop.
+    let monitor = MonitorModel()
     var selectedMode: ScanMode = .selectedFolders
     var selectedFolders: [URL] = []
     var cleanupPosture: CleanupPosture = .conservative
@@ -119,6 +125,9 @@ final class AppViewModel {
     private(set) var activeScanSummary: String?
     private(set) var undoRecords: [UndoRecord] = []
     private(set) var historyActions: [PlannedAction] = []
+    /// True while the startup (or manual) undo-history load is in flight, so
+    /// the History tab shows a spinner instead of a false "No history yet".
+    private(set) var isLoadingUndoHistory = false
     private(set) var isUsingTempDatabase = false
     /// Non-nil when a completed broad scan returned suspiciously few files —
     /// likely truncated by missing Full Disk Access. Shown as a dismissible banner.
@@ -132,7 +141,14 @@ final class AppViewModel {
 
     /// Selected top-level tab. Explore is the existing scan/review workspace;
     /// the other tabs are read-first surfaces that reuse scan results.
-    var destination: AppDestination = .overview
+    /// The last selection persists across launches (single-key write on change;
+    /// saveSettings() is not called on tab switches).
+    var destination: AppDestination = .overview {
+        didSet {
+            guard oldValue != destination else { return }
+            defaults.set(destination.rawValue, forKey: SettingsKey.lastDestination.rawValue)
+        }
+    }
     var settingsSection = SettingsSection.general
     var selectedApplicationID: String?
     var selectedHistoryID: String?
@@ -203,6 +219,11 @@ final class AppViewModel {
     private var scanTask: Task<Void, Never>?
     private var scanToastTask: Task<Void, Never>?
     private var activeScanID = UUID()
+    /// Last time scan progress repainted the phase text. The crawl reports
+    /// every batch; each repaint invalidates the window subtitle (an NSToolbar
+    /// update), and AppKit threw layout-time exceptions when the subtitle
+    /// churned this fast — so repaint at most ~2×/second.
+    @ObservationIgnored private var lastProgressPaintAt = Date.distantPast
     /// The scan a cancelScan() stopped. Its partial results may still paint
     /// once the orchestrator finalizes them; a newer scan clears this.
     private var cancelledScanID: UUID?
@@ -723,8 +744,15 @@ final class AppViewModel {
             guard let self else { return }
             await MainActor.run {
                 guard self.activeScanID == scanID else { return }
+                // Step transitions paint immediately; same-step ticks (the
+                // crawling counter, which fires many times per second) are
+                // throttled — see lastProgressPaintAt for why.
+                let isStepChange = self.scanCurrentStep != progress.currentStep
                 self.scanCurrentStep = progress.currentStep
                 self.scanTotalSteps = progress.totalSteps
+                let now = Date()
+                guard isStepChange || now.timeIntervalSince(self.lastProgressPaintAt) >= 0.5 else { return }
+                self.lastProgressPaintAt = now
                 // The crawl is the longest step; show what it is doing instead
                 // of a bare phase name for minutes.
                 if let seen = progress.filesSeen {
@@ -955,6 +983,10 @@ final class AppViewModel {
             : .partiallyApproved
         self.plan = updatedPlan
         await saveExecutionHistory(updatedPlan)
+        // Clear the busy flag before the outcome message: ContentView toasts
+        // statusMessage changes only while idle, so the completion line would
+        // otherwise be dropped.
+        isExecuting = false
         statusMessage = if summary.failures.isEmpty {
             if unresolvedActionIDs.isEmpty {
                 String(localized: "All selected approved actions completed.")
@@ -973,7 +1005,6 @@ final class AppViewModel {
         if summary.requiresRescan {
             errorMessage = String(localized: "Some actions need a fresh review: file identities changed since the scan. Run a new scan, then re-approve those actions.", comment: "Guidance when the safety auditor requires a re-scan")
         }
-        isExecuting = false
         // Auto-learn patterns from this execution cycle
         do {
             try await memory.detectPatterns(from: currentPlan.actions, filesByID: filesByID)
@@ -1027,6 +1058,8 @@ final class AppViewModel {
     }
 
     func loadUndoHistory() async {
+        isLoadingUndoHistory = true
+        defer { isLoadingUndoHistory = false }
         do {
             // Purge expired undo records and orphaned operation logs before
             // loading, so the UI never shows stale entries.
@@ -1155,6 +1188,18 @@ final class AppViewModel {
 
     func dismissScanNotice(_ id: String) {
         dismissedScanNoticeIDs.insert(id)
+        // Remember the dismissals for the current session so a relaunch that
+        // restores this scan does not resurrect dismissed banners. Only the
+        // newest session's set is kept, so the keys stay bounded.
+        defaults.set(outcome?.session.id, forKey: SettingsKey.dismissedNoticeSession.rawValue)
+        defaults.set(Array(dismissedScanNoticeIDs), forKey: SettingsKey.dismissedNoticeIDs.rawValue)
+    }
+
+    /// Defaults-backed notice dismissals for one session. Only the newest
+    /// session's set is stored, so the keys stay bounded.
+    func loadDismissedNoticeIDs(sessionID: String) -> Set<String> {
+        guard defaults.string(forKey: SettingsKey.dismissedNoticeSession.rawValue) == sessionID else { return [] }
+        return Set(defaults.stringArray(forKey: SettingsKey.dismissedNoticeIDs.rawValue) ?? [])
     }
 
     /// Notices of the current outcome the strip should still show.
@@ -1381,6 +1426,15 @@ final class AppViewModel {
         defaults.set(exploreDepth, forKey: SettingsKey.exploreDepth.rawValue)
     }
 
+    /// Reopens the tab the user last viewed. Unknown or unavailable rows
+    /// (e.g. Monitor in the sandboxed build) fall back to Overview.
+    private func restoreLastDestination() {
+        guard let destinationRaw = defaults.string(forKey: SettingsKey.lastDestination.rawValue),
+            let restored = AppDestination(rawValue: destinationRaw),
+            AppDestination.available.contains(restored) else { return }
+        destination = restored
+    }
+
     private func loadSettings() {
         let defaults = self.defaults
         if let modeRaw = defaults.string(forKey: SettingsKey.selectedMode.rawValue), let mode = ScanMode(rawValue: modeRaw) {
@@ -1424,6 +1478,7 @@ final class AppViewModel {
         if defaults.object(forKey: SettingsKey.exploreDepth.rawValue) != nil {
             exploreDepth = max(1, min(10, defaults.integer(forKey: SettingsKey.exploreDepth.rawValue)))
         }
+        restoreLastDestination()
         if !selectedFolders.isEmpty {
             showOnboarding = false
         }

@@ -20,14 +20,11 @@ struct TreemapView: View {
             GeometryReader { proxy in
                 let visibleSections = Array(sections.prefix(8))
                 if visibleSections.isEmpty {
-                    Rectangle()
+                    // Same empty state as the other Explore visualizations, so
+                    // every canvas reads identically when there is no data.
+                    RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous)
                         .fill(Color(nsColor: .controlBackgroundColor))
-                        .overlay(
-                            Text(String(localized: "Scan results will appear here."))
-                                .appFont(.caption)
-                                .foregroundStyle(Color.secondary)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
+                        .overlay(ExploreEmptyState())
                 } else {
                     let spacing: CGFloat = 4
                     let availableWidth = max(0, proxy.size.width)

@@ -19,6 +19,15 @@ public struct MemorySnapshot: Sendable, Equatable {
 
 public enum SystemStatus {
     public static func memory() -> MemorySnapshot? {
+        guard let stats = vmStatistics64() else { return nil }
+        return snapshot(
+            stats, pageSize: Int64(getpagesize()), totalBytes: Int64(ProcessInfo.processInfo.physicalMemory),
+            swapUsedBytes: swapUsed(), pressureLevel: sysctlInt("kern.memorystatus_vm_pressure_level"))
+    }
+
+    /// One mach VM statistics fetch, shared by `memory()` and the monitor's
+    /// HostProbes so both surfaces read the same counters the same way.
+    static func vmStatistics64() -> vm_statistics64? {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
         let result = withUnsafeMutablePointer(to: &stats) {
@@ -26,10 +35,7 @@ public enum SystemStatus {
                 host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
             }
         }
-        guard result == KERN_SUCCESS else { return nil }
-        return snapshot(
-            stats, pageSize: Int64(getpagesize()), totalBytes: Int64(ProcessInfo.processInfo.physicalMemory),
-            swapUsedBytes: swapUsed(), pressureLevel: sysctlInt("kern.memorystatus_vm_pressure_level"))
+        return result == KERN_SUCCESS ? stats : nil
     }
 
     /// Activity Monitor's arithmetic: app memory is anonymous pages minus
@@ -53,14 +59,16 @@ public enum SystemStatus {
             pressure: pressure)
     }
 
-    private static func swapUsed() -> Int64 {
+    static func swapUsed() -> Int64 {
         var usage = xsw_usage()
         var size = MemoryLayout<xsw_usage>.size
         guard sysctlbyname("vm.swapusage", &usage, &size, nil, 0) == 0 else { return 0 }
         return Int64(usage.xsu_used)
     }
 
-    private static func sysctlInt(_ name: String) -> Int? {
+    /// One integer sysctl by name; nil when the kernel drops the key. Shared
+    /// with the monitor's HostProbes.
+    static func sysctlInt(_ name: String) -> Int? {
         var value: Int32 = 0
         var size = MemoryLayout<Int32>.size
         return sysctlbyname(name, &value, &size, nil, 0) == 0 ? Int(value) : nil

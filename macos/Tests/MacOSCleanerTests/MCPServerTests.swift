@@ -50,7 +50,10 @@ final class MCPServerTests: XCTestCase {
         let names = tools.compactMap { $0["name"] as? String }
         XCTAssertEqual(
             names,
-            ["scan", "list_findings", "show_plan", "check_finding", "execute", "history", "undo"],
+            [
+                "scan", "list_findings", "show_plan", "check_finding", "execute", "history", "undo",
+                "monitor_status", "monitor_top", "monitor_ports", "monitor_agents", "monitor_limits"
+            ],
             "The tool surface is part of the agent-facing contract"
         )
         // Every tool declares an object input schema.
@@ -153,5 +156,43 @@ final class MCPServerTests: XCTestCase {
         XCTAssertEqual(result["isError"] as? Bool, true)
         let text = try textResult(of: response)
         XCTAssertTrue(text.contains("Unknown tool"))
+    }
+
+    /// JSONSerialization raises Objective-C exceptions for NaN and infinity
+    /// doubles — `try?` cannot catch those, and one non-finite monitor reading
+    /// aborted the whole server. Serialization must sanitize first.
+    func testPayloadWithNonFiniteNumbersSerializesWithoutCrashing() throws {
+        let payload: [String: Any] = [
+            "jsonrpc": "2.0", "id": 1,
+            "result": [
+                "cpu": Double.nan,
+                "load": Double.infinity,
+                "negative": -Double.infinity,
+                "readings": [0.25, Double.nan, 1.5],
+                "nested": ["usage": Double.signalingNaN],
+                "fine": 3
+            ]
+        ]
+        let data = try XCTUnwrap(MCPKit.dataForPayload(payload), "A NaN payload must serialize, not crash")
+        let roundTrip = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let result = try XCTUnwrap(roundTrip?["result"] as? [String: Any])
+        XCTAssertEqual(result["cpu"] as? Double, 0)
+        XCTAssertEqual((result["readings"] as? [Double])?[1], 0)
+        XCTAssertEqual(result["fine"] as? Int, 3)
+        XCTAssertEqual((result["nested"] as? [String: Any])?["usage"] as? Double, 0)
+    }
+
+    /// Full round-trip of a monitor tool through the dispatcher: read-only
+    /// sampling with real system readings rendered as JSON text. The NaN test
+    /// above covers serialization; this covers the routing and the contract.
+    func testMonitorStatusRoundTripReturnsJSONReadings() async throws {
+        let kit = try makeKit()
+        let response = try await handle(kit, Self.toolCall(id: "m1", name: "monitor_status"))
+        XCTAssertEqual((response["result"] as? [String: Any])?["isError"] as? Bool, false)
+        let text = try textResult(of: response)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
+        XCTAssertNotNil(json["cpu_percent"], "status must carry the headline CPU reading")
+        XCTAssertNotNil(json["memory_total_bytes"])
+        XCTAssertNotNil(json["uptime_seconds"])
     }
 }

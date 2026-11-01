@@ -1,8 +1,9 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// Errors and permission notices. Shown only while one needs attention;
-/// progress lives in the window subtitle and the toolbar Stop button.
+/// Errors and permission notices, plus the live progress strip for scans,
+/// executions, and media work. One top-of-window strip: what needs attention,
+/// and what is currently running.
 struct StatusNotices: View {
     @Bindable var model: AppViewModel
 
@@ -10,11 +11,17 @@ struct StatusNotices: View {
         model.errorMessage != nil || model.fullDiskAccessHint != nil || model.isUsingTempDatabase
             || model.cleanup.error != nil || model.cleanup.notice != nil
             || !model.activeScanNotices.isEmpty
+            || model.monitor.lastError != nil
+    }
+
+    private var hasProgress: Bool {
+        model.isScanning || model.isExecuting || (model.cleanup.isBusy && model.cleanup.progress.total > 0)
     }
 
     var body: some View {
-        if hasNotice {
+        if hasNotice || hasProgress {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
+                progressStrip
                 if let error = model.errorMessage {
                     notice(error, symbol: "exclamationmark.triangle.fill", tint: SemanticScale.error) {
                         Button(String(localized: "Dismiss")) { model.dismissError() }
@@ -23,6 +30,11 @@ struct StatusNotices: View {
                 if let error = model.cleanup.error {
                     notice(error, symbol: "exclamationmark.triangle.fill", tint: SemanticScale.error) {
                         Button(String(localized: "Dismiss")) { model.cleanup.error = nil }
+                    }
+                }
+                if let error = model.monitor.lastError {
+                    notice(error, symbol: "waveform.path.ecg", tint: SemanticScale.warning) {
+                        Button(String(localized: "Dismiss")) { model.monitor.dismissError() }
                     }
                 }
                 if let hint = model.fullDiskAccessHint {
@@ -58,6 +70,59 @@ struct StatusNotices: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.background.secondary)
             .accessibilityElement(children: .contain)
+        }
+    }
+
+    // MARK: Progress
+
+    @ViewBuilder private var progressStrip: some View {
+        if model.isScanning {
+            // Determinate per pipeline step (crawl ticks are throttled in the
+            // model, so the bar moves in steps, not per file).
+            VStack(alignment: .leading, spacing: Spacing.elementTight) {
+                HStack {
+                    Label(String(localized: "Scanning"), systemImage: "magnifyingglass")
+                    Spacer()
+                    if model.scanTotalSteps > 0 {
+                        Text("\(model.scanCurrentStep)/\(model.scanTotalSteps)").monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                ProgressView(
+                    value: Double(max(0, model.scanCurrentStep)),
+                    total: Double(max(1, model.scanTotalSteps)))
+                if !model.scanPhaseText.isEmpty {
+                    Text(model.scanPhaseText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+        }
+        if model.isExecuting {
+            VStack(alignment: .leading, spacing: Spacing.elementTight) {
+                HStack {
+                    Label(String(localized: "Applying changes"), systemImage: "checkmark.circle")
+                    Spacer()
+                    Text("\(model.executionCompletedActions)/\(model.executionTotalActions)").monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+                // executionProgress is completed/total with a max(1, total)
+                // denominator, so it stays inside 0...1.
+                ProgressView(value: model.executionProgress)
+            }
+        }
+        if model.cleanup.isBusy, model.cleanup.progress.total > 0 {
+            VStack(alignment: .leading, spacing: Spacing.elementTight) {
+                HStack {
+                    Label(model.cleanup.progress.phase, systemImage: "photo.on.rectangle")
+                    Spacer()
+                    Text("\(model.cleanup.progress.completed)/\(model.cleanup.progress.total)").monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+                ProgressView(value: Double(model.cleanup.progress.completed), total: Double(model.cleanup.progress.total))
+            }
         }
     }
 

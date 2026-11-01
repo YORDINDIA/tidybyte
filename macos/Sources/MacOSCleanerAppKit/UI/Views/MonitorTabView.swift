@@ -19,11 +19,19 @@ struct MonitorTabView: View {
         }
     }
 
+    /// A first visit loads async; until it finishes, neither card may claim
+    /// "not enough history" — that is a conclusion, not a loading state.
+    private var isLoading: Bool {
+        model.isLoadingSnapshots
+    }
+
     @ViewBuilder
     private var forecastCard: some View {
         Section(String(localized: "Storage Forecast")) {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                if let forecast = model.spaceForecast {
+                if isLoading {
+                    ProgressView(String(localized: "Loading storage history…", comment: "Forecast loading"))
+                } else if let forecast = model.spaceForecast {
                     Text(forecast.message)
                         .appFont(.bodyMedium)
                         .foregroundStyle(Color.primary)
@@ -62,7 +70,9 @@ struct MonitorTabView: View {
     private var timelineCard: some View {
         Section(String(localized: "Storage Timeline")) {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                if model.storageSnapshots.isEmpty {
+                if isLoading {
+                    ProgressView(String(localized: "Loading snapshots…", comment: "Timeline loading"))
+                } else if model.storageSnapshots.isEmpty {
                     Text(String(localized: "No snapshots yet: each scan saves one."))
                         .appFont(.caption)
                         .foregroundStyle(Color.secondary)

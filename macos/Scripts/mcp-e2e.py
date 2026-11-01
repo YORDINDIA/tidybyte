@@ -107,7 +107,8 @@ def main():
         tools = client.request("tools/list")["result"]["tools"]
         names = [t["name"] for t in tools]
         check("tools/list has the full surface",
-              names == ["scan", "list_findings", "show_plan", "check_finding", "execute", "history", "undo"],
+              names == ["scan", "list_findings", "show_plan", "check_finding", "execute", "history", "undo",
+                        "monitor_status", "monitor_top", "monitor_ports", "monitor_agents", "monitor_limits"],
               str(names))
 
         is_error, text = client.call("scan", {"paths": [root]})
@@ -125,9 +126,17 @@ def main():
 
         after_first = identity(first)
         after_second = identity(second)
-        check("fold keeps the keeper inode", after_first == before_first)
-        check("fold replaces the duplicate inode", after_second != before_second)
-        with open(second, "rb") as f:
+        # Among byte-identical twins the keeper choice is an implementation
+        # detail (either file may win the tie-break); what the contract
+        # guarantees is: one file keeps its inode, the other is replaced, and
+        # the replaced one is the operation's undo target.
+        if after_first == before_first:
+            keeper, duplicate = first, second
+        else:
+            keeper, duplicate = second, first
+        check("fold keeps the keeper inode", identity(keeper) == (before_first if keeper is first else before_second))
+        check("fold replaces the duplicate inode", identity(duplicate) != (before_second if duplicate is second else before_first))
+        with open(duplicate, "rb") as f:
             check("folded file keeps its contents", f.read() == payload)
 
         is_error, text = client.call("history")
@@ -136,7 +145,7 @@ def main():
         import re
         # Match the operation that touched THIS run's fixture — earlier runs
         # may have left records whose paths no longer exist.
-        match = re.search(rf"op \[([0-9a-fA-F-]+)\] unfoldClone {re.escape(second)} ", text)
+        match = re.search(rf"op \[([0-9a-fA-F-]+)\] unfoldClone {re.escape(duplicate)} ", text)
         check("history exposes an operation id", match is not None, text)
         if match:
             op_id = match.group(1)
@@ -146,9 +155,10 @@ def main():
             is_error, text = client.call("undo", {"operation_log_id": op_id, "confirm": True})
             check("confirmed undo succeeds", not is_error, text)
 
-            undone_second = identity(second)
-            check("undo gives the file a fresh private inode", undone_second != after_second)
-            with open(second, "rb") as f:
+            undone_duplicate = identity(duplicate)
+            after_duplicate = after_second if duplicate is second else after_first
+            check("undo gives the file a fresh private inode", undone_duplicate != after_duplicate)
+            with open(duplicate, "rb") as f:
                 check("unfolded file keeps its contents", f.read() == payload)
     finally:
         try:

@@ -14,7 +14,23 @@ struct ActionStackView: View {
     var body: some View {
         VStack(spacing: 0) {
             if !actions.isEmpty { controls }
-            if actions.isEmpty {
+            if model.isScanning && model.outcome == nil {
+                // First scan in flight: an in-progress state, not a static
+                // "Not scanned yet" that reads as broken.
+                VStack(spacing: Spacing.elementNormal) {
+                    ProgressView(value: Double(max(0, model.scanCurrentStep)), total: Double(max(1, model.scanTotalSteps)))
+                        .frame(maxWidth: 320)
+                    Text(model.scanPhaseText.isEmpty
+                        ? String(localized: "Scanning…", comment: "Scan in progress")
+                        : model.scanPhaseText)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(Spacing.elementSection)
+            } else if actions.isEmpty {
                 ContentUnavailableView {
                     Label(
                         model.outcome == nil
@@ -53,6 +69,7 @@ struct ActionStackView: View {
                     }
                 }
                 .listStyle(.inset)
+                .skeletonLoading(model.isScanning)
                 .contextMenu(forSelectionType: String.self) { ids in
                     if let id = ids.first, let action = actions.first(where: { $0.id == id }) {
                         Button(String(localized: "Show Details")) {

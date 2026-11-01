@@ -36,6 +36,17 @@ Five-target SPM layout: `MacOSCleanerCore` (library: all services, domain models
 
 Every service is a Swift `actor`, not a class. This enforces data isolation without locks. `AppViewModel` is `@MainActor` with `@Observable` for SwiftUI binding. Use `async/await` and `TaskGroup`; never `DispatchQueue` for new code.
 
+### Monitor
+
+The monitor is a second surface in the same window. `MonitoringEngine` (actor, `MacOSCleanerCore/Services/Monitoring/`) samples the probes into one Sendable `SystemSnapshot` per tick. `MonitorModel` (`@MainActor` `@Observable`, in `MacOSCleanerAppKit/Monitor/`) consumes that snapshot stream for the window's Monitor tabs and for the menu bar extras. `MetricsHistoryStore` is its own SQLite actor (WAL, raw samples plus hourly rollups) that keeps up to a year of per-metric history. `AlertEngine` evaluates threshold windows and posts through the existing `NotificationScheduler`. Plan and decisions: `docs/monitoring-v1/plan.md`.
+
+Monitor hazards — each of these has bitten or would bite:
+
+- Never signal a process without UI confirmation. Quit and Force Quit both confirm; Cancel must never signal.
+- Fan-control writes require confirmation and must restore the previous value on quit. No fan UI ships yet; macOS 26 gates SMC access for third-party processes.
+- The App Store build hides the monitor and the menu bar extras — gate on `DistributionChannel.supportsAdvanced`, like the other advanced features.
+- MenuBarExtra insertion bindings MUST be change-guarded `AppStorage`. A derived binding round-trips and causes a 100% CPU SwiftUI update loop (this bit us; see `MonitorMenuBar.swift`).
+
 ### Safety Model
 
 - `PathSafetyPolicy` defines protected paths (`.ssh`, `.gnupg`, `.env`, source code, certificates, coding-agent configs like `.claude/`, `.codex/`) and marks files with `riskFlags`

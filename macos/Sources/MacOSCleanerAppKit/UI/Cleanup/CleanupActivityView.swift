@@ -31,21 +31,34 @@ struct CleanupActivityView: View {
                 LabeledContent(
                     String(localized: "Verified compression and format reductions"),
                     value: total { $0.action == "compress" || $0.action == "keepComponent" })
-                Chart {
-                    ForEach(model.activity.filter { $0.state == .complete }) { event in
-                        if event.date > Date().addingTimeInterval(-30 * 86_400) {
-                            BarMark(
-                                x: .value(String(localized: "Date"), event.date, unit: .day),
-                                y: .value(String(localized: "Bytes"), event.completedReduction))
-                        }
-                        if let restored = event.restoredAt, restored > Date().addingTimeInterval(-30 * 86_400) {
-                            BarMark(
-                                x: .value(String(localized: "Date"), restored, unit: .day),
-                                y: .value(String(localized: "Restore adjustment"), -event.completedReduction))
+                if completed.isEmpty {
+                    // No empty-axes box: an honest empty state where the
+                    // chart would otherwise render 180pt of nothing.
+                    ContentUnavailableView(
+                        String(localized: "No activity in the last 30 days"),
+                        systemImage: "chart.bar",
+                        description: Text(
+                            String(localized: "Reviewed photos and media appear here once you clean them.")))
+                        .frame(height: 180)
+                } else {
+                    Chart {
+                        ForEach(model.activity.filter { $0.state == .complete }) { event in
+                            if event.date > Date().addingTimeInterval(-30 * 86_400) {
+                                BarMark(
+                                    x: .value(String(localized: "Date"), event.date, unit: .day),
+                                    y: .value(String(localized: "Bytes"), event.completedReduction))
+                            }
+                            if let restored = event.restoredAt, restored > Date().addingTimeInterval(-30 * 86_400) {
+                                BarMark(
+                                    x: .value(String(localized: "Date"), restored, unit: .day),
+                                    y: .value(String(localized: "Restore adjustment"), -event.completedReduction))
+                            }
                         }
                     }
-                }.frame(height: 180).accessibilityLabel(
-                    String(localized: "Logical bytes processed in the last 30 days"))
+                    .frame(height: 180)
+                    .accessibilityLabel(
+                        String(localized: "Logical bytes processed in the last 30 days"))
+                }
                 GroupBox(String(localized: "By tool")) {
                     ForEach(CleanupTool.allCases) { tool in
                         let values = completed.filter { $0.tool == tool }
@@ -106,6 +119,7 @@ struct CleanupActivityView: View {
                     }
                 }
             }.padding(Spacing.cardPadding)
+            .skeletonLoading(model.isBusy)
         }
     }
 }

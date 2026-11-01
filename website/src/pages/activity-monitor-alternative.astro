@@ -1,0 +1,8 @@
+---
+// The Monitor feature page. It lives at a top-level slug because that is the
+// query people actually type; hierarchically it is the live half of the Mac
+// app, and /mac links here from its teaser section.
+import { renderRoute } from "../layouts/build-page";
+const html = renderRoute("/activity-monitor-alternative");
+---
+<Fragment set:html={html} />

@@ -68,11 +68,12 @@ for await line in lines {
     }
     // Serialize the response inside the task so only Sendable Data crosses
     // back; the request object is loop-local and unreachable by the reader,
-    // so passing it in unchecked is sound.
+    // so passing it in unchecked is sound. dataForPayload sanitizes first:
+    // JSONSerialization throws for NaN readings, which aborts the server.
     nonisolated(unsafe) let requestObject = object
     let task = Task { () -> Data? in
         guard let response = await kit.handle(request: requestObject) else { return nil }
-        return try? JSONSerialization.data(withJSONObject: response.payload, options: [.sortedKeys])
+        return MCPKit.dataForPayload(response.payload)
     }
     inFlight = task
     if let responseData = await task.value, !task.isCancelled {

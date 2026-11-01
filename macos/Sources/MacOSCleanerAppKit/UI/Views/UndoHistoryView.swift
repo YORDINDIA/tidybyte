@@ -109,11 +109,17 @@ struct UndoHistoryView: View {
                     .padding(.vertical, Spacing.elementTight).tag(record.id)
                 }
             }
+            .opacity(records.isEmpty ? 0 : 1)
         }
         .listStyle(.inset)
+        .skeletonLoading(model.isLoadingUndoHistory)
         .overlay {
             if records.isEmpty && previousActions.isEmpty && model.executionSummary == nil {
-                if !model.searchText.isEmpty {
+                if model.isLoadingUndoHistory {
+                    // Startup load in flight — never claim "No history yet"
+                    // before the database has been read.
+                    ProgressView(String(localized: "Loading history…", comment: "Undo history loading"))
+                } else if !model.searchText.isEmpty {
                     ContentUnavailableView.search(text: model.searchText)
                 } else {
                     ContentUnavailableView(

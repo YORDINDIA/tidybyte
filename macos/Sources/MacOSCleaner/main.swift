@@ -14,6 +14,17 @@ if CommandLine.arguments.contains("--autoscan") {
     exit(0)
 }
 
+// `tidybyte monitor <status|top|ports|agents|limits> [--json]`: one-shot
+// system readings for the terminal and for AI assistants. Exits; no window.
+// The sandboxed App Store build omits it: a sandboxed process cannot spawn
+// pmset/lsof/nettop, so the readings would be dishonest there anyway.
+#if !APP_STORE
+if CommandLine.arguments.dropFirst().first == "monitor" {
+    let code = await MonitorCLI.run(Array(CommandLine.arguments.dropFirst(2)))
+    exit(code)
+}
+#endif
+
 #if canImport(Sparkle) && !APP_STORE
 import Sparkle
 

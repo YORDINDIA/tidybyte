@@ -5,6 +5,7 @@ import SwiftUI
 /// of the plan, so no action appears twice.
 enum AppDestination: String, CaseIterable, Identifiable {
     case overview
+    case monitor
     case systemJunk, developer, largeFiles, duplicates, media
     case applications, leftovers, loginItems
     case explorer, changes, history
@@ -14,15 +15,25 @@ enum AppDestination: String, CaseIterable, Identifiable {
     /// Rows backed by the shared review list (ActionStackView).
     var isReview: Bool { [.systemJunk, .developer, .largeFiles, .leftovers].contains(self) }
     /// App Store History shows Photos & Media activity only, which has no search.
+    /// The Monitor owns its own search field, so the shared one stands down
+    /// there (attaching a second would bind it to the wrong model).
     var supportsSearch: Bool {
         isReview || [.duplicates, .applications, .explorer].contains(self)
             || (self == .history && DistributionChannel.supportsAdvanced)
     }
-    var supportsInspector: Bool { supportsSearch }
+    /// The Monitor also owns its inspector (process details); the shared
+    /// inspector column never opens for it.
+    var supportsInspector: Bool { supportsSearch && self != .monitor }
+    /// Surfaces whose search lives inside their own view. ⌘F must focus it
+    /// there instead of jumping away to Space Explorer.
+    var usesEmbeddedSearch: Bool { self == .monitor }
+    /// The monitor reads system-wide state, which the sandboxed build cannot.
+    var isAvailable: Bool { self != .monitor || DistributionChannel.supportsAdvanced }
 
     var title: String {
         switch self {
         case .overview: String(localized: "Overview")
+        case .monitor: String(localized: "Monitor")
         case .systemJunk: String(localized: "System Junk")
         case .developer: String(localized: "Developer")
         case .largeFiles: String(localized: "Large & Old Files")
@@ -40,6 +51,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .overview: "internaldrive"
+        case .monitor: "waveform.path.ecg"
         case .systemJunk: "trash"
         case .developer: "hammer"
         case .largeFiles: "doc.badge.clock"
@@ -55,7 +67,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
     }
 
     /// Rows this build shows; routes and menus go nowhere else.
-    static var available: [AppDestination] { sections.flatMap(\.rows) }
+    static var available: [AppDestination] { sections.flatMap(\.rows).filter(\.isAvailable) }
 
     /// Sidebar sections in order. The App Store build has no system access,
     /// so it shows only the folder-scoped rows.
@@ -65,6 +77,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
         }
         return [
             (nil, [.overview]),
+            (String(localized: "Monitor"), [.monitor]),
             (String(localized: "Clean"), [.systemJunk, .developer, .largeFiles, .duplicates, .media]),
             (String(localized: "Apps"), [.applications, .leftovers, .loginItems]),
             (String(localized: "Insights"), [.explorer, .changes, .history])
@@ -132,7 +145,10 @@ struct CleanerCommands: Commands {
         }
         CommandGroup(after: .textEditing) {
             Button(String(localized: "Find")) {
-                if !model.destination.supportsSearch, DistributionChannel.supportsAdvanced { model.destination = .explorer }
+                if !model.destination.supportsSearch, !model.destination.usesEmbeddedSearch,
+                    DistributionChannel.supportsAdvanced {
+                    model.destination = .explorer
+                }
                 model.searchFocusRequest += 1
             }
             .keyboardShortcut("f", modifiers: .command)

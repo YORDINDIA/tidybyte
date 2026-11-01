@@ -343,8 +343,12 @@ extension MediaAnalysisService {
             facts.duration = try await asset.load(.duration).seconds
             if let track = try await asset.loadTracks(withMediaType: .video).first {
                 let size = try await track.load(.naturalSize)
-                facts.width = Int(size.width)
-                facts.height = Int(size.height)
+                // Corrupt files can report NaN/inf dimensions; Int(Double.nan)
+                // is a trap, not a throwable error, and it killed the whole scan.
+                if size.width.isFinite, size.height.isFinite {
+                    facts.width = Int(size.width)
+                    facts.height = Int(size.height)
+                }
             }
             let metadata = try await asset.load(.metadata)
             for entry in metadata where entry.identifier == .quickTimeMetadataContentIdentifier {

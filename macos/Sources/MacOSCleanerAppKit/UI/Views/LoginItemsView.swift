@@ -7,12 +7,18 @@ import SwiftUI
 struct LoginItemsView: View {
     @Bindable var model: AppViewModel
     @State private var items: [LaunchItem] = []
+    @State private var isLoading = true
     @State private var selection: LaunchItem.ID?
     @State private var pendingRemoval: LaunchItem?
 
     var body: some View {
         Group {
-            if items.isEmpty {
+            if isLoading {
+                // Enumeration runs synchronously after first render; without
+                // this gate every visit flashed "No login items" first.
+                ProgressView(String(localized: "Listing login items…", comment: "Login items loading"))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if items.isEmpty {
                 ContentUnavailableView(
                     String(localized: "No login items"), systemImage: "power",
                     description: Text(String(localized: "No third-party agents or daemons start with this Mac.")))
@@ -32,7 +38,10 @@ struct LoginItemsView: View {
                 .help(String(localized: "Open System Settings › General › Login Items"))
             }
         }
-        .task { items = LaunchItems.list() }
+        .task {
+            items = LaunchItems.list()
+            isLoading = false
+        }
         .confirmationDialog(
             String(localized: "Add \(pendingRemoval?.label ?? "") to Leftovers?"),
             isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }),

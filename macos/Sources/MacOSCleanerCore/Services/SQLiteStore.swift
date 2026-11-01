@@ -326,28 +326,32 @@ public actor SQLiteStore {
         try saveAll(records, idKeyPath: \.id, table: .fileRecords)
     }
 
-    public func saveFingerprints(_ fingerprints: [FileFingerprint]) throws {
-        try saveAll(fingerprints, idKeyPath: \.fileID, table: .fingerprints)
+    /// Types whose models carry no session field (fingerprints, content
+    /// summaries, projects, relationship edges, recommendations) must be
+    /// stamped with `scanSessionID` here, or the restore loaders — which all
+    /// filter `WHERE scan_session_id = ?` — can never find them.
+    public func saveFingerprints(_ fingerprints: [FileFingerprint], scanSessionID: String) throws {
+        try saveAll(fingerprints, idKeyPath: \.fileID, table: .fingerprints, scanSessionID: scanSessionID)
     }
 
-    public func saveContentSummaries(_ summaries: [ContentSummary]) throws {
-        try saveAll(summaries, idKeyPath: \.fileID, table: .contentSummaries)
+    public func saveContentSummaries(_ summaries: [ContentSummary], scanSessionID: String) throws {
+        try saveAll(summaries, idKeyPath: \.fileID, table: .contentSummaries, scanSessionID: scanSessionID)
     }
 
-    public func saveProjects(_ projects: [ProjectUnit]) throws {
-        try saveAll(projects, idKeyPath: \.id, table: .projects)
+    public func saveProjects(_ projects: [ProjectUnit], scanSessionID: String) throws {
+        try saveAll(projects, idKeyPath: \.id, table: .projects, scanSessionID: scanSessionID)
     }
 
-    public func saveRelationshipEdges(_ edges: [RelationshipEdge]) throws {
-        try saveAll(edges, idKeyPath: \.id, table: .relationshipEdges)
+    public func saveRelationshipEdges(_ edges: [RelationshipEdge], scanSessionID: String) throws {
+        try saveAll(edges, idKeyPath: \.id, table: .relationshipEdges, scanSessionID: scanSessionID)
     }
 
     public func saveFindings(_ findings: [Finding]) throws {
         try saveAll(findings, idKeyPath: \.id, table: .findings)
     }
 
-    public func saveRecommendations(_ recommendations: [Recommendation]) throws {
-        try saveAll(recommendations, idKeyPath: \.id, table: .recommendations)
+    public func saveRecommendations(_ recommendations: [Recommendation], scanSessionID: String) throws {
+        try saveAll(recommendations, idKeyPath: \.id, table: .recommendations, scanSessionID: scanSessionID)
     }
 
     public func savePlan(_ plan: Plan) throws {
@@ -432,7 +436,11 @@ public actor SQLiteStore {
         )
     }
 
-    private func saveAll<T: Encodable>(_ items: [T], idKeyPath: KeyPath<T, String>, table: SQLiteTable) throws {
+    /// `scanSessionID` stamps rows whose type has no session field of its
+    /// own; ScanSessionScoped types extract theirs from the object.
+    private func saveAll<T: Encodable>(
+        _ items: [T], idKeyPath: KeyPath<T, String>, table: SQLiteTable, scanSessionID: String? = nil
+    ) throws {
         // Batch all INSERTs inside one explicit transaction. Per-row autocommit
         // inserts are quadratic for large batches (each row pays fsync); a single
         // BEGIN IMMEDIATE/COMMIT keeps bulk persistence linear and atomic.
@@ -451,7 +459,11 @@ public actor SQLiteStore {
                 // One pool per row: a scan saves up to a million records in this loop.
                 try autoreleasepool {
                     let json = try encodeJSON(item)
-                    try bind(upsertValues(item, id: item[keyPath: idKeyPath], table: table, json: json), to: statement)
+                    try bind(
+                        upsertValues(
+                            item, id: item[keyPath: idKeyPath], table: table, json: json,
+                            scanSessionID: scanSessionID),
+                        to: statement)
                     let result = sqlite3_step(statement)
                     guard result == SQLITE_DONE || result == SQLITE_ROW else {
                         throw DatabaseError.stepFailed(lastErrorMessage())
@@ -468,6 +480,103 @@ public actor SQLiteStore {
             values: [.text(sessionID)],
             as: FileRecord.self
         )
+    }
+
+    // MARK: Last-session restore
+
+    /// The most recent scan session that reached a terminal state. Running
+    /// sessions are skipped: a session still marked running at launch belongs
+    /// to a crashed process (failStaleRunningSessions retires those first).
+    public func latestFinishedScanSession() throws -> ScanSession? {
+        let sessions: [ScanSession] = try selectJSON(
+            """
+            SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
+            WHERE json_extract(json, '$.status') != 'running'
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            values: [],
+            as: ScanSession.self
+        )
+        return sessions.first
+    }
+
+    /// Marks crashed runs as failed so they never read as fresh results and
+    /// purgeOldData can retire them. Sessions newer than the cutoff may belong
+    /// to a concurrently running app (the LaunchAgent, MCP server) and stay.
+    /// Returns how many sessions were retired.
+    @discardableResult
+    public func failStaleRunningSessions(olderThan cutoff: Date) throws -> Int {
+        try execute(
+            """
+            UPDATE \(SQLiteTable.scanSessions.rawValue)
+            SET json = json_set(json, '$.status', 'failed')
+            WHERE json_extract(json, '$.status') = 'running' AND created_at < ?
+            """,
+            values: [.real(cutoff.timeIntervalSince1970)]
+        )
+        return changedRowCount()
+    }
+
+    public func loadFindings(for sessionID: String) throws -> [Finding] {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.findings.rawValue) WHERE scan_session_id = ? ORDER BY created_at",
+            values: [.text(sessionID)],
+            as: Finding.self
+        )
+    }
+
+    public func loadRecommendations(for sessionID: String) throws -> [Recommendation] {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.recommendations.rawValue) WHERE scan_session_id = ? ORDER BY created_at",
+            values: [.text(sessionID)],
+            as: Recommendation.self
+        )
+    }
+
+    public func loadProjects(for sessionID: String) throws -> [ProjectUnit] {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.projects.rawValue) WHERE scan_session_id = ? ORDER BY created_at",
+            values: [.text(sessionID)],
+            as: ProjectUnit.self
+        )
+    }
+
+    public func loadRelationshipEdges(for sessionID: String) throws -> [RelationshipEdge] {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.relationshipEdges.rawValue) WHERE scan_session_id = ? ORDER BY created_at",
+            values: [.text(sessionID)],
+            as: RelationshipEdge.self
+        )
+    }
+
+    public func loadContentSummaries(for sessionID: String) throws -> [ContentSummary] {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.contentSummaries.rawValue) WHERE scan_session_id = ? ORDER BY created_at",
+            values: [.text(sessionID)],
+            as: ContentSummary.self
+        )
+    }
+
+    /// Fingerprints carry no session column; they join to file records by id.
+    public func loadFingerprints(forSession sessionID: String) throws -> [FileFingerprint] {
+        try selectJSON(
+            """
+            SELECT fp.json FROM \(SQLiteTable.fingerprints.rawValue) AS fp
+            JOIN \(SQLiteTable.fileRecords.rawValue) AS fr ON fr.id = fp.id
+            WHERE fr.scan_session_id = ?
+            """,
+            values: [.text(sessionID)],
+            as: FileFingerprint.self
+        )
+    }
+
+    /// The newest plan recorded for a scan session (review decisions included).
+    public func latestPlan(for sessionID: String) throws -> Plan? {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.plans.rawValue) WHERE scan_session_id = ? ORDER BY created_at DESC LIMIT 1",
+            values: [.text(sessionID)],
+            as: Plan.self
+        ).first
     }
 
     public func loadPlan(id: String) throws -> Plan? {
@@ -911,8 +1020,12 @@ public actor SQLiteStore {
     }
 
     /// Bound parameter list matching `upsertSQL(for:)` for the same table.
-    private func upsertValues<T: Encodable>(_ object: T, id: String, table: SQLiteTable, json: String) -> [SQLiteValue] {
-        let scanSessionID = extractScanSessionID(from: object)
+    private func upsertValues<T: Encodable>(
+        _ object: T, id: String, table: SQLiteTable, json: String, scanSessionID: String? = nil
+    ) -> [SQLiteValue] {
+        // An explicit session wins (types without a session field); otherwise
+        // extract it from the object.
+        let scanSessionID = scanSessionID ?? extractScanSessionID(from: object)
         let operationLogID = extractOperationLogID(from: object)
         let filePath = extractFilePath(from: object)
         let now = Date().timeIntervalSince1970
@@ -1051,7 +1164,6 @@ public actor SQLiteStore {
     }
 
     private func bind(_ values: [SQLiteValue], to statement: OpaquePointer?) throws {
-        let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
         for (index, value) in values.enumerated() {
             let bindIndex = Int32(index + 1)
             let result: Int32

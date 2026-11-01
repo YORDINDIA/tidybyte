@@ -501,6 +501,11 @@ public actor ScanOrchestrator {
         session.totalFilesSeen = files.count
         session.totalBytesSeen = snapshot.totalBytes
         session.errorsCount = errors
+        // The session row carries what has no bulk table: scan diagnostics and
+        // package candidates. A relaunch rebuilds the whole outcome from the
+        // session plus the bulk rows, so these must ride along.
+        session.notices = notices
+        session.packageCandidates = packageCandidates
 
         // The session row is small and records the cancellation; the bulk rows
         // are what made Stop look unresponsive (up to a million records in one
@@ -508,13 +513,15 @@ public actor ScanOrchestrator {
         // review and execution, so skip the bulk writes when asked.
         try await store.saveScanSession(session)
         if persistRecords {
+            // The five auxiliary loaders filter by session, so their bulk
+            // saves must carry the session id explicitly.
             try await store.saveFileRecords(files)
-            try await store.saveFingerprints(fingerprints)
-            try await store.saveContentSummaries(contentSummaries)
-            try await store.saveProjects(projects)
-            try await store.saveRelationshipEdges(edges)
+            try await store.saveFingerprints(fingerprints, scanSessionID: session.id)
+            try await store.saveContentSummaries(contentSummaries, scanSessionID: session.id)
+            try await store.saveProjects(projects, scanSessionID: session.id)
+            try await store.saveRelationshipEdges(edges, scanSessionID: session.id)
             try await store.saveFindings(findings)
-            try await store.saveRecommendations(recommendations)
+            try await store.saveRecommendations(recommendations, scanSessionID: session.id)
             try await store.savePlan(plan)
             try await store.saveStorageSnapshot(snapshot)
         }

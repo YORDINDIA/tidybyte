@@ -1,13 +1,18 @@
+import Charts
 import MacOSCleanerCore
 import SwiftUI
 
-/// The home screen, modeled on System Settings › General › Storage: one
-/// capacity bar, then one recommendation row per sidebar area.
+/// The home screen: the storage dashboard. One capacity bar, Trash, the
+/// kind breakdown, the reclaim hero, and where space goes — modeled on
+/// System Settings › General › Storage (PRD section 5).
 struct OverviewView: View {
     @Bindable var model: AppViewModel
     @State private var disk = DiskGaugeData.currentHomeVolume()
     @State private var trashBytes: Int64?
+    @State private var isMeasuringTrash = true
     @State private var confirmsEmptyTrash = false
+    /// True while any scan or media analysis runs; drives the skeletons.
+    private var isLoading: Bool { model.isScanning || model.cleanup.isBusy }
 
     private static let recommendationRows: [AppDestination] = [
         .systemJunk, .developer, .largeFiles, .duplicates, .media, .leftovers
@@ -19,13 +24,29 @@ struct OverviewView: View {
             if model.outcome == nil && model.cleanup.result == nil {
                 Section { firstScan }
             } else {
+                if model.cleanup.result != nil { kindBreakdown }
                 Section(String(localized: "Recommendations")) {
                     let rows = recommendations
                     if rows.isEmpty {
                         Text(String(localized: "Nothing to clean right now. Scan again after you use your Mac for a while."))
                             .foregroundStyle(.secondary)
+                    } else {
+                        ReclaimHero(rows: rows) { model.destination = $0 }
+                            .skeletonLoading(isLoading)
                     }
                     ForEach(rows, id: \.row) { item in recommendationRow(item.row, bytes: item.bytes) }
+                        .skeletonLoading(isLoading)
+                }
+                if model.cleanup.result?.isFresh == true {
+                    Section(String(localized: "Where Space Goes")) {
+                        SpaceBuckets(model: model.cleanup) { model.destination = .media }
+                            .skeletonLoading(isLoading)
+                    }
+                }
+                if model.cleanup.snapshots.count >= 2 {
+                    Section(String(localized: "Trend")) {
+                        MediaTrendView(model: model.cleanup)
+                    }
                 }
             }
             if let outcome = model.outcome { latestScan(outcome) }
@@ -43,6 +64,21 @@ struct OverviewView: View {
         .task {
             disk = DiskGaugeData.currentHomeVolume()
             trashBytes = await TrashMeasure.userTrashBytes()
+            isMeasuringTrash = false
+        }
+    }
+
+    // MARK: Storage by kind (PRD 5.1)
+
+    @ViewBuilder private var kindBreakdown: some View {
+        Section(String(localized: "Storage by Kind")) {
+            if model.cleanup.result?.isFresh == true {
+                MediaKindBreakdown(items: model.cleanup.result?.items ?? []) { model.destination = $0 }
+            } else {
+                ContentUnavailableView(
+                    String(localized: "Not scanned"), systemImage: "arrow.clockwise",
+                    description: Text(String(localized: "Run a Photos & Media scan to refresh this breakdown.")))
+            }
         }
     }
 
@@ -74,7 +110,20 @@ struct OverviewView: View {
         }
         LabeledContent {
             HStack {
-                Text(trashBytes?.formattedByteCount ?? String(localized: "Unknown")).monospacedDigit()
+                if isMeasuringTrash {
+                    // Measuring walks the Trash; "Unknown" is the answer only
+                    // after it finishes (nil usually means missing access).
+                    ProgressView().controlSize(.small)
+                } else {
+                    Text(trashBytes?.formattedByteCount ?? String(localized: "Unknown")).monospacedDigit()
+                    if trashBytes == nil {
+                        Text(String(
+                            localized: "Full Disk Access is needed to measure the Trash.",
+                            comment: "Trash measure unavailable hint"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Button(String(localized: "Open Trash")) {
                     if let url = URL(string: "trash:///") { NSWorkspace.shared.open(url) }
                 }
@@ -212,6 +261,7 @@ struct OverviewView: View {
             }
             HStack {
                 Button(String(localized: "Export Report…")) { Task { await model.generateReport() } }
+                    .disabled(model.isScanning || model.isExecuting)
                 if model.generatedReportURL != nil {
                     Button(String(localized: "Open Report")) { model.openLatestReport() }
                 }
@@ -221,6 +271,127 @@ struct OverviewView: View {
         } footer: {
             Text(String(localized: "Results cover the scanned locations, not the whole disk."))
         }
+    }
+}
+
+/// Donut of the media scope by file kind. Legend rows are buttons that jump
+/// to the matching cleanup surface.
+private struct MediaKindBreakdown: View {
+    let items: [ReviewItem]
+    let onPick: (AppDestination) -> Void
+
+    private struct Entry: Identifiable {
+        let kind: MediaKind
+        let count: Int
+        let bytes: Int64
+        var id: MediaKind { kind }
+    }
+
+    private var entries: [Entry] {
+        MediaKind.allCases.compactMap { kind in
+            let matching = items.filter { $0.kind == kind }
+            guard !matching.isEmpty else { return nil }
+            return Entry(kind: kind, count: matching.count, bytes: matching.reduce(0) { $0 + $1.bytes })
+        }
+        .sorted { $0.bytes > $1.bytes }
+    }
+
+    var body: some View {
+        if entries.isEmpty {
+            Text(String(localized: "No files in this scope yet.")).foregroundStyle(.secondary)
+        } else {
+            VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+                Chart(entries) { entry in
+                    SectorMark(
+                        angle: .value(String(localized: "Size"), entry.bytes),
+                        innerRadius: .ratio(0.58),
+                        angularInset: 1.5)
+                    .foregroundStyle(entry.kind.palette.mid)
+                    .cornerRadius(3)
+                }
+                .frame(height: 160)
+                .accessibilityLabel(
+                    entries.first.map { entry in
+                        String(
+                            localized: "Storage by kind; largest is \(entry.kind.title) at \(entry.bytes.formattedByteCount)")
+                    } ?? String(localized: "Storage by kind"))
+                ForEach(entries) { entry in legendRow(entry) }
+            }
+        }
+    }
+
+    private func legendRow(_ entry: Entry) -> some View {
+        Button { onPick(destination(for: entry.kind)) } label: {
+            LabeledContent {
+                Text(String(localized: "\(entry.count) · \(entry.bytes.formattedByteCount)", comment: "Item count and size"))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            } label: {
+                Label {
+                    Text(entry.kind.title)
+                } icon: {
+                    Circle().fill(entry.kind.palette.mid).frame(width: 9, height: 9)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Media kinds review in Photos & Media; everything else lives in Large Files.
+    private func destination(for kind: MediaKind) -> AppDestination {
+        kind == .image || kind == .video ? .media : .largeFiles
+    }
+}
+
+/// PRD 5.2: total reclaimable space with one tappable segment per area and a
+/// single prominent action for the biggest win.
+private struct ReclaimHero: View {
+    let rows: [(row: AppDestination, bytes: Int64)]
+    let onPick: (AppDestination) -> Void
+
+    private var total: Int64 { rows.reduce(0) { $0 + $1.bytes } }
+    private var biggest: AppDestination { rows.first?.row ?? .media }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+            LabeledContent {
+                Text(total.formattedByteCount)
+                    .font(.title3.bold())
+                    .monospacedDigit()
+            } label: {
+                Label(String(localized: "You Could Free"), systemImage: "sparkles")
+            }
+            if rows.count > 1 { segments }
+            HStack(alignment: .center) {
+                Text(String(localized: "Biggest win: \(biggest.title)", comment: "Largest reclaim opportunity"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button(String(localized: "Review now")) { onPick(biggest) }
+                    .buttonStyle(.borderedProminent)
+            }
+        }
+    }
+
+    private var segments: some View {
+        GeometryReader { proxy in
+            HStack(spacing: 2) {
+                ForEach(rows, id: \.row) { item in
+                    Button { onPick(item.row) } label: {
+                        Capsule().fill(item.row.palette.mid)
+                            .frame(
+                                width: max(12, proxy.size.width * CGFloat(item.bytes) / CGFloat(max(total, 1))),
+                                height: 14)
+                    }
+                    .buttonStyle(.plain)
+                    .help(String(localized: "\(item.row.title) · \(item.bytes.formattedByteCount)"))
+                    .accessibilityLabel(String(localized: "\(item.row.title), \(item.bytes.formattedByteCount)"))
+                }
+            }
+        }
+        .frame(height: 14)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(String(localized: "Reclaimable space by area"))
     }
 }
 
