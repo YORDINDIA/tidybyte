@@ -102,9 +102,12 @@ swift package clean
 
 CI runs on GitHub Actions (macOS 26) via `.github/workflows/macos.yml`:
 SwiftLint strict (new violations only, per the baseline), `swift build`,
-the `APP_STORE=1` variant (which must not link Sparkle), the test suite
-via xcodebuild, the `Scripts/mcp-e2e.py` end-to-end, and an app-bundle
-smoke build. Two Vision/notifications suites are skipped on headless
+the `APP_STORE=1` variant (which must not link Sparkle; build it with the
+scratch-path form `APP_STORE=1 swift build -Xswiftc -DAPP_STORE
+--scratch-path .build/app-store-scratch` — a bare `APP_STORE=1 swift build`
+reuses the shared `.build` link plan and false-positives the Sparkle check),
+the test suite via xcodebuild, the `Scripts/mcp-e2e.py` end-to-end, and an
+app-bundle smoke build. Two Vision/notifications suites are skipped on headless
 runners; release packaging additionally requires `SPARKLE_PUBLIC_KEY` and
 `SPARKLE_PRIVATE_KEY_FILE` (or `NO_SPARKLE=1` for local builds).
 

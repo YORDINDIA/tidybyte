@@ -59,9 +59,15 @@ Tidybyte updates itself. Choose **Tidybyte › Check for Updates…** to check n
 
 ```sh
 swift build                    # build
-swift test                     # 535 tests (2 skip headless); destructive tests use fixture folders only
+swift test                     # 542 tests (2 skip headless); destructive tests use fixture folders only
 swiftlint lint --strict --baseline .swiftlint-baseline.json
 Scripts/build-app.sh direct    # .build/Tidybyte.app
+
+# App Store variant: scratch-path form only — a bare APP_STORE=1 swift build
+# reuses the shared .build link plan and false-positives the Sparkle check
+APP_STORE=1 swift build -Xswiftc -DAPP_STORE --scratch-path .build/app-store-scratch
+otool -L .build/app-store-scratch/debug/Tidybyte \
+  .build/app-store-scratch/debug/tidybyte-mcp | grep -ci sparkle   # expect 0
 ```
 
 Pure SwiftPM, Swift 6 language mode, strict concurrency.
