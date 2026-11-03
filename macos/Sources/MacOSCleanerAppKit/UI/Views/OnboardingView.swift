@@ -131,6 +131,12 @@ struct OnboardingView: View {
             }
             .buttonStyle(.borderedProminent).controlSize(.large)
             .keyboardShortcut(.defaultAction)
+            // The escape hatch: finishing onboarding never requires scanning,
+            // so quitting mid-onboarding is never the only way out (O-01).
+            Button(String(localized: "I'll scan later")) {
+                step = Self.doneStep
+            }
+            .buttonStyle(.bordered)
         }
     }
 

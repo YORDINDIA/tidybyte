@@ -30,6 +30,8 @@ final class CleanupModel {
     var progress = CleanupProgress("", completed: 0, total: 0)
     var isBusy = false
     var isSaving = false
+    /// Test seam: how many times scan() was entered (PSA-01/S-04 coverage).
+    private(set) var scanRequestCount = 0
     var error: String?
     var notice: String?
     var showsScope = false
@@ -45,6 +47,10 @@ final class CleanupModel {
     private var loaded = false
     private var monitoredGrants: [URL] = []
     private var freshness: CleanupFreshnessMonitor?
+    private var freshnessEpoch = 0
+    private var rescanEpoch = 0
+    /// Test seam: the detached monitor build has landed (PSA-01 coverage).
+    var hasFreshnessMonitor: Bool { freshness != nil }
     private var changeGeneration = 0
 
     init(store: SQLiteStore) {
@@ -117,7 +123,16 @@ final class CleanupModel {
     }
 
     func scan() {
-        guard !isBusy, !scope.roots.isEmpty || scope.includesPhotos else {
+        scanRequestCount += 1
+        // O-03: a second request while a scan is already running must not pop
+        // the scope sheet mid-flow — coalesce with a notice instead.
+        guard !isBusy else {
+            notice = String(
+                localized: "A media scan is already running.",
+                comment: "Duplicate scan request while busy")
+            return
+        }
+        guard !scope.roots.isEmpty || scope.includesPhotos else {
             showsScope = true
             return
         }
@@ -473,13 +488,40 @@ extension CleanupModel {
     }
 
     private func startMonitoring() {
-        freshness = CleanupFreshnessMonitor(roots: scope.roots, includesPhotos: scope.includesPhotos) { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                self.changeGeneration += 1
-                self.result?.isFresh = false
-                if !self.isBusy, self.session == nil { self.scan() }
+        freshnessEpoch += 1
+        let epoch = freshnessEpoch
+        let roots = scope.roots
+        let includesPhotos = scope.includesPhotos
+        let changed: @Sendable () -> Void = { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.freshnessDidChange()
             }
+        }
+        // PSA-01: FSEventStreamCreate can block indefinitely, so the monitor
+        // is built off the main actor and handed back; a build superseded by
+        // a newer call loses the race and is dropped.
+        Task.detached(priority: .utility) {
+            let monitor = CleanupFreshnessMonitor(roots: roots, includesPhotos: includesPhotos, changed: changed)
+            await MainActor.run {
+                guard epoch == self.freshnessEpoch else { return }
+                self.freshness = monitor
+            }
+        }
+    }
+
+    /// Freshness callback from the monitor: mark staleness immediately and
+    /// auto-rescan only when idle. Rescans are debounced so a burst of file
+    /// changes (S-04) coalesces into one pass. Internal so tests can drive it.
+    func freshnessDidChange() {
+        changeGeneration += 1
+        result?.isFresh = false
+        guard !isBusy, session == nil else { return }
+        rescanEpoch += 1
+        let epoch = rescanEpoch
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            guard epoch == self.rescanEpoch, !self.isBusy, self.session == nil else { return }
+            self.scan()
         }
     }
 

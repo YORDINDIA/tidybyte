@@ -231,6 +231,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return !(defaults.bool(forKey: Self.menuBarExtraKey) || monitorExtrasEnabled)
     }
 
+    /// O-01: SwiftUI sheets run as modal sessions on macOS 26, and a presented
+    /// sheet vetoes the quit Apple event — ⌘Q and the menu-bar Quit silently
+    /// no-op whenever a sheet is up (first-run onboarding was force-quit-only).
+    /// End any open sheets, then terminate once the dismissal has landed.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        let sheets = sender.windows.flatMap(\.sheets)
+        guard !sheets.isEmpty else { return .terminateNow }
+        for sheet in sheets { sheet.sheetParent?.endSheet(sheet) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            MainActor.assumeIsolated {
+                NSApp.reply(toApplicationShouldTerminate: true)
+            }
+        }
+        return .terminateLater
+    }
+
     func scanNow() {
         model?.scanAll()
     }

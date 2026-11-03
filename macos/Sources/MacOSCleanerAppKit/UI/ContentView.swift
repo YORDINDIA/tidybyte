@@ -62,7 +62,12 @@ struct ContentView: View {
         .sheet(
             isPresented: Binding(
                 get: { onboardingStep < OnboardingView.doneStep },
-                set: { if !$0 { onboardingStep = OnboardingView.doneStep } })
+                set: { _ in
+                    // O-02: the step is the single source of truth — only the
+                    // explicit completion buttons mark onboarding done. Writing
+                    // it here force-completed onboarding when the environment
+                    // (a quit, a windowless launch) tore the sheet down.
+                })
         ) {
             OnboardingView(model: model).interactiveDismissDisabled()
         }
