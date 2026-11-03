@@ -6,6 +6,9 @@ import XCTest
 final class MockURLProtocol: URLProtocol {
     // Use nonisolated(unsafe) for test-only mutable state
     nonisolated(unsafe) static var mockResponse: ((URLRequest) -> (Data, HTTPURLResponse))?
+    /// Counts requests observed by the protocol, so retry tests can assert the
+    /// exact attempt count (AI-06). Attempts are sequential per classify() call.
+    nonisolated(unsafe) static var requestCount = 0
 
     override class func canInit(with request: URLRequest) -> Bool {
         true
@@ -55,8 +58,9 @@ final class AIGatewayTests: XCTestCase {
         try? await keychain.deleteAPIKey(account: "OpenAI-compatible")
         self.keychain = keychain
 
-        // Create gateway with mock session
-        gateway = AIGateway(keychain: keychain)
+        // Create gateway with the mock session — without it the gateway falls
+        // back to URLSession.shared and HTTP-level tests hit the real network.
+        gateway = AIGateway(keychain: keychain, session: session)
     }
 
     override func tearDown() async throws {
@@ -149,5 +153,110 @@ final class AIGatewayTests: XCTestCase {
                 }
             }
         }
+    }
+
+    // MARK: - AI-06: retry with backoff
+
+    /// A valid chat-completions envelope whose content is an empty
+    /// recommendations JSON object, as the gateway expects from providers.
+    private static let chatEnvelopeData = Data(
+        #"""
+        {"choices":[{"message":{"content":"{\"recommendations\":[]}"}}]}
+        """#.utf8
+    )
+
+    private static func httpBody(status: Int, body: Data) -> (Data, HTTPURLResponse) {
+        let url = URL(string: "https://api.openai.com/v1/chat/completions")
+            ?? URL(fileURLWithPath: "/chat/completions")
+        let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil)
+            ?? HTTPURLResponse()
+        return (body, response)
+    }
+
+    /// Stores a key in the provider account the gateway reads first, so the
+    /// HTTP layer (and with it the retry loop) is actually exercised.
+    private func saveTestAPIKey() async throws {
+        try await keychain.saveAPIKey("sk-tidybyte-test", account: "OpenAI-compatible")
+    }
+
+    func testAIGatewayRetriesTransientServerErrorThenSucceeds() async throws {
+        try await saveTestAPIKey()
+        let settings = ProviderSettings(privacyMode: .metadataOnlyAI)
+        MockURLProtocol.requestCount = 0
+        MockURLProtocol.mockResponse = { _ in
+            MockURLProtocol.requestCount += 1
+            if MockURLProtocol.requestCount == 1 {
+                return Self.httpBody(status: 500, body: Data("server exploded".utf8))
+            }
+            return Self.httpBody(status: 200, body: Self.chatEnvelopeData)
+        }
+
+        let recommendations = try await gateway.classify(findings: [], filesByID: [:], settings: settings)
+
+        XCTAssertTrue(recommendations.isEmpty)
+        XCTAssertEqual(MockURLProtocol.requestCount, 2, "A single transient 500 must be retried, not fatal")
+    }
+
+    func testAIGatewayThrowsRetryLimitExhaustedAfterThreeAttempts() async throws {
+        try await saveTestAPIKey()
+        let settings = ProviderSettings(privacyMode: .metadataOnlyAI)
+        MockURLProtocol.requestCount = 0
+        MockURLProtocol.mockResponse = { _ in
+            MockURLProtocol.requestCount += 1
+            return Self.httpBody(status: 500, body: Data("still down".utf8))
+        }
+
+        do {
+            _ = try await gateway.classify(findings: [], filesByID: [:], settings: settings)
+            XCTFail("Expected retryLimitExhausted")
+        } catch let error as AIGatewayError {
+            guard case .retryLimitExhausted = error else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
+        XCTAssertEqual(MockURLProtocol.requestCount, 3, "Exactly maxRetries attempts before giving up")
+    }
+
+    func testAIGatewayDoesNotRetryPermanentClientErrors() async throws {
+        try await saveTestAPIKey()
+        let settings = ProviderSettings(privacyMode: .metadataOnlyAI)
+        MockURLProtocol.requestCount = 0
+        MockURLProtocol.mockResponse = { _ in
+            MockURLProtocol.requestCount += 1
+            return Self.httpBody(status: 404, body: Data("no such model".utf8))
+        }
+
+        do {
+            _ = try await gateway.classify(findings: [], filesByID: [:], settings: settings)
+            XCTFail("Expected invalidResponse for HTTP 404")
+        } catch let error as AIGatewayError {
+            guard case .invalidResponse(let statusCode, _) = error, statusCode == 404 else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
+        XCTAssertEqual(MockURLProtocol.requestCount, 1, "4xx (except 429) is permanent: one attempt, no retries")
+    }
+
+    func testAIGatewayDoesNotRetryMalformedResponses() async throws {
+        try await saveTestAPIKey()
+        let settings = ProviderSettings(privacyMode: .metadataOnlyAI)
+        MockURLProtocol.requestCount = 0
+        MockURLProtocol.mockResponse = { _ in
+            MockURLProtocol.requestCount += 1
+            return Self.httpBody(status: 200, body: Data("Here is my prose answer.".utf8))
+        }
+
+        do {
+            _ = try await gateway.classify(findings: [], filesByID: [:], settings: settings)
+            XCTFail("Expected malformedResponse for non-JSON content")
+        } catch let error as AIGatewayError {
+            guard case .malformedResponse = error else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
+        XCTAssertEqual(MockURLProtocol.requestCount, 1, "Deterministic malformed output must not burn retry attempts")
     }
 }
