@@ -75,7 +75,8 @@ final class AppViewModel {
     var providerSettings = ProviderSettings()
     var includeAI = false
     var apiKeyInput = ""
-    private(set) var isScanning = false
+    // Internal set so tests can pin the busy state (PR-18 guard coverage).
+    var isScanning = false
     private(set) var isExecuting = false
     private(set) var isPlanning = false
 
@@ -135,6 +136,8 @@ final class AppViewModel {
     private(set) var showScanSummaryToast = false
     private(set) var activeScanSummary: String?
     private(set) var undoRecords: [UndoRecord] = []
+    /// MB-10: a restore routed through the shared regret prompt (menu bar).
+    var pendingUndoRestore: PendingUndoRestore?
     private(set) var historyActions: [PlannedAction] = []
     /// True while the startup (or manual) undo-history load is in flight, so
     /// the History tab shows a spinner instead of a false "No history yet".
@@ -316,51 +319,29 @@ final class AppViewModel {
     }
 
     static func bootstrap() -> AppViewModel {
-        do {
-            let store = try SQLiteStore()
-            let keychain = KeychainStore()
-            let memory = MemoryEngine(store: store)
-            let planner = PlannerAgent()
-            let orchestrator = ScanOrchestrator(
-                store: store,
-                planner: planner,
-                memory: memory
-            )
-            let executor = ActionExecutor(store: store)
-            let undo = UndoManagerService(store: store, memory: memory)
-            let reports = ReportGenerator(store: store)
-            return AppViewModel(
-                store: store,
-                keychain: keychain,
-                memory: memory,
-                orchestrator: orchestrator,
-                executor: executor,
-                undoService: undo,
-                reportGenerator: reports,
-                notifications: NotificationScheduler(),
-                planner: planner
-            )
-        } catch {
-            let fallbackURL = FileManager.default.temporaryDirectory.appendingPathComponent("MacOSCleaner.sqlite", isDirectory: false)
-            let store = (try? SQLiteStore(databaseURL: fallbackURL)) ?? tryFallbackStore()
-            let keychain = KeychainStore()
-            let memory = MemoryEngine(store: store)
-            let planner = PlannerAgent()
-            let model = AppViewModel(
-                store: store,
-                keychain: keychain,
-                memory: memory,
-                orchestrator: ScanOrchestrator(store: store, planner: planner, memory: memory),
-                executor: ActionExecutor(store: store),
-                undoService: UndoManagerService(store: store, memory: memory),
-                reportGenerator: ReportGenerator(store: store),
-                notifications: NotificationScheduler(),
-                planner: planner
-            )
+        // The store ladder (primary → temp → in-memory → unavailable) lives in
+        // AppViewModel+StoreSelection.swift so the tiers are directly testable.
+        let resolved = resolveStore(primary: { try SQLiteStore() })
+        let store = resolved.store
+        let keychain = KeychainStore()
+        let memory = MemoryEngine(store: store)
+        let planner = PlannerAgent()
+        let model = AppViewModel(
+            store: store,
+            keychain: keychain,
+            memory: memory,
+            orchestrator: ScanOrchestrator(store: store, planner: planner, memory: memory),
+            executor: ActionExecutor(store: store),
+            undoService: UndoManagerService(store: store, memory: memory),
+            reportGenerator: ReportGenerator(store: store),
+            notifications: NotificationScheduler(),
+            planner: planner
+        )
+        if resolved.usedTempDatabase {
             model.isUsingTempDatabase = true
             model.errorMessage = String(localized: "Primary database failed. Using a temporary database. Data will not persist after quit.")
-            return model
         }
+        return model
     }
 
     /// O(n·depth) subtree byte totals, computed once per scan. The Explore
@@ -1396,14 +1377,6 @@ final class AppViewModel {
                 self?.logger.warning("Plan persistence failed: \(error.localizedDescription)")
             }
         }
-    }
-
-    private static func tryFallbackStore() -> SQLiteStore {
-        let uniqueURL = FileManager.default.temporaryDirectory.appendingPathComponent("MacOSCleaner-\(UUID().uuidString).sqlite", isDirectory: false)
-        if let store = try? SQLiteStore(databaseURL: uniqueURL) {
-            return store
-        }
-        return (try? SQLiteStore.inMemory()) ?? SQLiteStore.unavailable
     }
 
     private func mergeSelectedFolders(with newFolders: [URL]) -> [URL] {

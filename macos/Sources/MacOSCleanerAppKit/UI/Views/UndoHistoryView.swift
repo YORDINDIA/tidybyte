@@ -130,31 +130,19 @@ struct UndoHistoryView: View {
             }
         }
         .sheet(item: $restoreRequest) { record in
-            VStack(alignment: .leading, spacing: Spacing.elementSection) {
-                Text(String(localized: "Restore this change?")).font(.title2.bold())
-                Text(record.restoreURL?.path ?? record.trashURL?.path ?? record.inverseAction.displayName)
-                    .textSelection(.enabled)
-                Text(String(localized: "Optional: tell Tidybyte why you want to restore it."))
-                    .foregroundStyle(.secondary)
-                ForEach(AppViewModel.RegretReason.allCases, id: \.self) { reason in
-                    Button(reason.rawValue) {
-                        model.selectedRegretReason = reason.rawValue
-                        restoreRequest = nil
-                        Task { await model.restoreWithReason(record) }
-                    }
-                }
-                HStack {
-                    Button(String(localized: "Cancel")) { restoreRequest = nil }.keyboardShortcut(.cancelAction)
-                    Spacer()
-                    Button(String(localized: "Restore without answering")) {
-                        restoreRequest = nil
+            // MB-10: the same shared prompt the menu-bar undo presents.
+            RegretReasonSheet(
+                subject: record.restoreURL?.path ?? record.trashURL?.path ?? record.inverseAction.displayName,
+                onCancel: { restoreRequest = nil },
+                restore: { reason in
+                    restoreRequest = nil
+                    guard let reason else {
                         Task { await model.restore(record) }
-                    }.buttonStyle(.borderedProminent)
-                }
-            }
-            .padding(Spacing.screenEdge)
-            .frame(minWidth: 460)
-            .presentationSizing(.fitted)
+                        return
+                    }
+                    model.selectedRegretReason = reason.rawValue
+                    Task { await model.restoreWithReason(record) }
+                })
         }
     }
 }

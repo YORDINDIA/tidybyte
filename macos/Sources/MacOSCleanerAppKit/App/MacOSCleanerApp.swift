@@ -274,10 +274,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 systemDate = log.timestamp
             }
         }
+        // MB-10: route through the same regret prompt as a History restore —
+        // nothing is restored until the user answers (or skips) on the window.
         if let mediaEvent, systemRecord == nil || mediaEvent.date >= systemDate {
-            await model.cleanup.restore(mediaEvent)
+            openMainWindow?()
+            model.pendingUndoRestore = .mediaEvent(mediaEvent)
         } else if let systemRecord {
-            await model.restore(systemRecord)
+            openMainWindow?()
+            model.pendingUndoRestore = .systemRecord(systemRecord)
         } else {
             model.setStatusMessage(
                 String(

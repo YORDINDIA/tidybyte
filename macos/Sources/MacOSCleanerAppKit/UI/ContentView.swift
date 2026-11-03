@@ -52,6 +52,26 @@ struct ContentView: View {
         .sheet(isPresented: $model.showsPlanner) { NaturalLanguagePlanView(model: model) }
         .sheet(isPresented: Bindable(model.cleanup).showsScope) { CleanupScopeView(model: model.cleanup) }
         .sheet(item: $executionRequest) { request in ExecutionConfirmView(model: model, request: request) }
+        .sheet(item: $model.pendingUndoRestore) { request in
+            // MB-10: menu-bar undo asks the same regret question as History.
+            RegretReasonSheet(
+                subject: request.subject,
+                onCancel: { model.pendingUndoRestore = nil },
+                restore: { reason in
+                    model.pendingUndoRestore = nil
+                    switch request {
+                    case .systemRecord(let record):
+                        if let reason {
+                            model.selectedRegretReason = reason.rawValue
+                            Task { await model.restoreWithReason(record) }
+                        } else {
+                            Task { await model.restore(record) }
+                        }
+                    case .mediaEvent(let event):
+                        Task { await model.cleanup.restore(event) }
+                    }
+                })
+        }
         .sheet(
             isPresented: Binding(
                 get: { onboardingStep < OnboardingView.doneStep },
