@@ -54,9 +54,12 @@ public actor PlannerAgent {
         }
 
         actions = actions.map { Self.demotingReviewOnly($0, filesByID: filesByID) }
+        // PSA-03: one global sort, risk DESCENDING then confidence
+        // descending — the highest-risk actions lead the review so they can
+        // never hide below thousands of low-risk rows.
         actions = dedupe(actions).sorted { lhs, rhs in
             if lhs.risk != rhs.risk {
-                return lhs.risk < rhs.risk
+                return lhs.risk > rhs.risk
             }
             return lhs.confidence > rhs.confidence
         }

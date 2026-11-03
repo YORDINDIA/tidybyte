@@ -361,5 +361,14 @@ public struct CleanupProgress: Sendable {
 
 public enum CleanupError: Error, LocalizedError, Sendable {
     case message(String)
-    public var errorDescription: String? { if case .message(let message) = self { message } else { nil } }
+    /// PL-04: typed so the UI can offer the Photos Settings grant link
+    /// instead of matching on a localized string.
+    case photosAccessDenied
+    public var errorDescription: String? {
+        switch self {
+        case .message(let message): message
+        case .photosAccessDenied:
+            String(localized: "Photos access was not granted. You can still scan folders.")
+        }
+    }
 }

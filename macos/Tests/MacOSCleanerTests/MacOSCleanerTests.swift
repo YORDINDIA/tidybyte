@@ -1410,12 +1410,12 @@ final class MacOSCleanerTests: XCTestCase {
         let rec2 = makeRecommendation(id: "r2", targetID: "f2", action: .moveToTrash, risk: .high, confidence: 0.8)
         let rec3 = makeRecommendation(id: "r3", targetID: "f3", action: .moveToTrash, risk: .low, confidence: 0.7)
         let plan = await planner.makePlan(sessionID: "s", recommendations: [rec1, rec2, rec3], filesByID: [:])
-        // PlannerAgent sorts ascending by risk, then descending by confidence:
-        // low(0.9) -> low(0.7) -> high(0.8).
-        XCTAssertEqual(plan.actions.map(\.targets), [["f1"], ["f3"], ["f2"]],
-                       "Actions should sort by risk ascending, then confidence descending")
-        XCTAssertEqual(plan.actions.map(\.risk), [.low, .low, .high])
-        XCTAssertEqual(plan.actions.map(\.confidence), [0.9, 0.7, 0.8])
+        // PSA-03: the plan sorts risk DESCENDING, then confidence descending —
+        // high(0.8) leads, so risky actions are never buried below low rows.
+        XCTAssertEqual(plan.actions.map(\.targets), [["f2"], ["f1"], ["f3"]],
+                       "Actions should sort by risk descending, then confidence descending")
+        XCTAssertEqual(plan.actions.map(\.risk), [.high, .low, .low])
+        XCTAssertEqual(plan.actions.map(\.confidence), [0.8, 0.9, 0.7])
     }
 
     func testPlannerAgentGeneratesSummary() async {

@@ -156,9 +156,13 @@ struct ProcessTableView: View {
             .frame(width: 200)
             Spacer()
             if let snapshot = model.snapshot {
-                Text(String(
-                    localized: "\(snapshot.groups.count) apps · \(snapshot.processes.count) processes",
-                    comment: "Process count footer"))
+                // MON-02: in By Process mode the rows ARE processes, so the
+                // footer must not call them apps.
+                Text(model.groupingMode == .byProcess
+                    ? String(localized: "\(snapshot.processes.count) processes", comment: "Process count footer, by process")
+                    : String(
+                        localized: "\(snapshot.groups.count) apps · \(snapshot.processes.count) processes",
+                        comment: "Process count footer"))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -511,7 +515,9 @@ struct ProcessInspectorView: View {
                     .foregroundStyle(.tertiary)
             } else {
                 ForEach(inspection.listeningPorts) { port in
-                    Text("\(port.kind) \(port.address):\(port.port)")
+                    // MON-03: ports are identifiers — no locale digit
+                    // grouping ("*:5,000" is unreadable against lsof output).
+                    Text("\(port.kind) \(port.address):\(port.port.formatted(.number.grouping(.never)))")
                         .font(.caption.monospacedDigit())
                 }
             }

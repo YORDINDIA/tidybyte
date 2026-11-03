@@ -385,9 +385,14 @@ struct BatteryTabView: View {
                             title: String(localized: "Power", comment: "Wattage tile"),
                             icon: "bolt.badge.clock",
                             value: MetricFormatting.watts(abs(wattage)), unit: nil,
-                            context: wattage >= 0
-                                ? String(localized: "Discharging", comment: "Power direction")
-                                : String(localized: "Charging", comment: "Power direction"),
+                            // MON-01: the direction follows the same
+                            // isCharging source as the Battery tile — the
+                            // SMC amperage sign disagrees with IOPS on some
+                            // hardware and used to show "Discharging" next
+                            // to a charging battery.
+                            context: power.isCharging
+                                ? String(localized: "Charging", comment: "Power direction")
+                                : String(localized: "Discharging", comment: "Power direction"),
                             tint: MonitorTab.battery.tint)
                     }
                     if let health = power.healthFraction {

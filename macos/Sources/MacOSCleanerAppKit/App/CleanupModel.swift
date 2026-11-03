@@ -33,6 +33,9 @@ final class CleanupModel {
     /// Test seam: how many times scan() was entered (PSA-01/S-04 coverage).
     private(set) var scanRequestCount = 0
     var error: String?
+    /// PL-04: set when the failure is the typed Photos-denial, so the notice
+    /// can offer the Settings grant link.
+    var photosAccessDenied = false
     var notice: String?
     var showsScope = false
     var selectedTool: CleanupTool?
@@ -174,7 +177,7 @@ final class CleanupModel {
                 try await reloadHistory()
                 startMonitoring()
                 try await updateReminder()
-            } catch is CancellationError { result?.isFresh = false } catch { self.error = error.localizedDescription }
+            } catch is CancellationError { result?.isFresh = false } catch { surfaceError(error) }
         }
     }
 
@@ -479,6 +482,15 @@ extension CleanupModel {
     private func reloadHistory() async throws {
         activity = try await store.cleanupActivity()
         snapshots = try await store.cleanupSnapshots(scopeID: scope.id)
+    }
+
+    /// Records the failure message plus the typed Photos-denial flag (PL-04).
+    private func surfaceError(_ error: Error) {
+        photosAccessDenied = false
+        if case CleanupError.photosAccessDenied = error {
+            photosAccessDenied = true
+        }
+        self.error = error.localizedDescription
     }
 
     private func updateReminder() async throws {

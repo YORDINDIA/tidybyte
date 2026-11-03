@@ -36,8 +36,17 @@ extension AppViewModel {
             let row = AppDestination.forCategory(action.findingID.flatMap { categories[$0] })
             targets[row, default: []].formUnion(action.targets)
         }
+        // CP-01: directory targets show their subtree total, not the ~0
+        // directory-entry allocation.
+        let subtree = subtreeTotals
         return targets.mapValues { ids in
-            ids.compactMap { files[$0].map { ReclaimableBytes.size(of: $0, checkClones: false) } }.reduce(0, +)
+            ids.reduce(Int64(0)) { total, id in
+                guard let record = files[id] else { return total }
+                if record.kind == .directory || record.kind == .package {
+                    return total + max(record.sizeBytes, subtree[record.displayPath] ?? 0)
+                }
+                return total + ReclaimableBytes.size(of: record, checkClones: false)
+            }
         }
     }
 

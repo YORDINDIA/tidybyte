@@ -391,9 +391,38 @@ final class AppViewModel {
         guard let outcome else {
             return []
         }
-        return Dictionary(grouping: outcome.findings, by: \.category)
-            .mapValues { $0.reduce(Int64(0)) { $0 + $1.bytesReclaimable } }
-            .sorted { $0.value > $1.value }
+        // AIApps-01: nested findings (Caches + Caches/App) used to double-count
+        // the treemap headline. Within a category, a finding whose targets all
+        // sit inside an already-counted directory target adds nothing — the
+        // same counting rule the execution estimate uses.
+        let files = filesByID
+        func targetPaths(_ finding: Finding) -> [String] {
+            finding.targetFileIDs.compactMap { files[$0]?.url.standardizedFileURL.path }
+        }
+        var bytesByCategory: [FindingCategory: Int64] = [:]
+        for (category, group) in Dictionary(grouping: outcome.findings, by: \.category) {
+            // Parents first so directory coverage applies before children.
+            func depth(_ finding: Finding) -> Int {
+                targetPaths(finding).first.map { URL(fileURLWithPath: $0).pathComponents.count } ?? 99
+            }
+            let ordered = group.sorted { depth($0) < depth($1) }
+            var coveredDirs: [String] = []
+            var total: Int64 = 0
+            for finding in ordered {
+                let paths = targetPaths(finding)
+                if paths.allSatisfy({ path in coveredDirs.contains { path.hasPrefix($0 + "/") } }) {
+                    continue
+                }
+                total += finding.bytesReclaimable
+                for path in paths
+                where files[finding.targetFileIDs.first ?? ""]?.kind == .directory
+                    || files[finding.targetFileIDs.first ?? ""]?.kind == .package {
+                    coveredDirs.append(path)
+                }
+            }
+            bytesByCategory[category] = total
+        }
+        return bytesByCategory.sorted { $0.value > $1.value }
     }
 
     func addDownloadFolderToSelection() {

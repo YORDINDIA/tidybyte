@@ -81,7 +81,7 @@ public actor PhotoLibraryService: PhotoMutationService {
     public func authorize() async throws {
         let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
         guard status == .authorized || status == .limited else {
-            throw CleanupError.message(String(localized: "Photos access was not granted. You can still scan folders."))
+            throw CleanupError.photosAccessDenied
         }
     }
 

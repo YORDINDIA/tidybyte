@@ -29,7 +29,15 @@ struct StatusNotices: View {
                 }
                 if let error = model.cleanup.error {
                     notice(error, symbol: "exclamationmark.triangle.fill", tint: SemanticScale.error) {
-                        Button(String(localized: "Dismiss")) { model.cleanup.error = nil }
+                        // PL-04: the Photos denial pairs with the Settings
+                        // deep link (requestAuthorization never re-prompts).
+                        if model.cleanup.photosAccessDenied {
+                            Button(String(localized: "Open Photos Settings")) { PermissionLinks.openPhotos() }
+                        }
+                        Button(String(localized: "Dismiss")) {
+                            model.cleanup.error = nil
+                            model.cleanup.photosAccessDenied = false
+                        }
                     }
                 }
                 if let error = model.monitor.lastError {

@@ -136,6 +136,36 @@ final class M2ReliabilityEvidenceTests: XCTestCase {
         XCTAssertEqual(model.plan?.actions.first?.userDecision, .undecided, "reject is a no-op while scanning")
     }
 
+    // MARK: - PSA-03: one global plan order, risk descending
+
+    /// A plan assembled across many recommendation sources must be globally
+    /// monotonic: no high-risk action may ever sit below a low-risk one (PSA-03).
+    func testPlanSortsGloballyRiskDescThenConfidenceDesc() async throws {
+        let planner = PlannerAgent()
+        var recommendations: [Recommendation] = []
+        var filesByID: [String: FileRecord] = [:]
+        for index in 0..<40 {
+            let risk: RiskLevel = [.low, .medium, .high, .forbidden][index % 4]
+            let record = FileRecord(
+                scanSessionID: "s",
+                url: URL(fileURLWithPath: "/tmp/psa03/\(index).bin"), sizeBytes: 1000)
+            filesByID[record.id] = record
+            recommendations.append(TestFixtures.makeRecommendation(
+                id: "rec-\(index)", targetID: record.id, action: .moveToTrash, risk: risk,
+                confidence: 0.5 + Double(index % 5) * 0.05))
+        }
+        let plan = await planner.makePlan(
+            sessionID: "s", recommendations: recommendations, filesByID: filesByID)
+        XCTAssertFalse(plan.actions.isEmpty)
+        let rank = [RiskLevel.low: 0, .medium: 1, .high: 2, .forbidden: 3]
+        let risks = plan.actions.map(\.risk)
+        for index in 0..<(risks.count - 1) {
+            XCTAssertGreaterThanOrEqual(
+                rank[risks[index]] ?? 0, rank[risks[index + 1]] ?? 0,
+                "risk inversion at \(index): \(risks[index]) followed by \(risks[index + 1])")
+        }
+    }
+
     // MARK: - DP-04/05/06: the store-fallback ladder
 
     func testStoreSelectionUsesPrimaryWhenItWorks() async throws {

@@ -208,7 +208,7 @@ struct ProjectsTabView: View {
                                         .background(Capsule().fill(SemanticScale.warningSoft))
                                         .foregroundStyle(SemanticScale.warning)
                                 }
-                                Text("\(server.processName) · :\(server.port)")
+                                Text("\(server.processName) · :\(server.port.formatted(.number.grouping(.never)))")
                                     .font(.callout.monospacedDigit())
                                 Spacer()
                                 Text(MetricFormatting.value(server.cpuPercent, metric: .cpu))

@@ -244,6 +244,14 @@ struct ActionRow: View {
             ? String(localized: "\(record.displayPath) and \(action.targets.count - 1) more") : record.displayPath
     }
     private var affectedBytes: Int64 {
-        Set(action.targets).compactMap { model.filesByID[$0] }.reduce(0) { $0 + $1.sizeBytes }
+        // CP-01: directory records carry ~0 entry bytes; the row must show
+        // the subtree total (the cached Explore index) or it invites
+        // approving a large folder that claims to be empty.
+        Set(action.targets).compactMap { model.filesByID[$0] }.reduce(Int64(0)) { total, record in
+            guard record.kind == .directory || record.kind == .package else {
+                return total + max(0, record.sizeBytes)
+            }
+            return total + max(record.sizeBytes, model.subtreeTotals[record.displayPath] ?? 0)
+        }
     }
 }

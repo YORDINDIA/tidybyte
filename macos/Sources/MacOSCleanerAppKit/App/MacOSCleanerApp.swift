@@ -129,7 +129,9 @@ struct MenuBarView: View {
 
     private func showMainWindow() {
         openWindow(id: "main")
-        NSApp.activate()
+        // MB-F1: a status-item interaction confers no activation rights,
+        // and the macOS 14+ no-argument activate() does not steal focus.
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func memoryLine(_ memory: MemorySnapshot) -> String {
@@ -212,7 +214,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         Task { @MainActor in
             await route(strings)
             openMainWindow?()
-            NSApp.activate()
+            // MB-F1: a status-item interaction confers no activation rights,
+        // and the macOS 14+ no-argument activate() does not steal focus.
+        NSApp.activate(ignoringOtherApps: true)
             NSApp.windows.first(where: \.canBecomeKey)?.makeKeyAndOrderFront(nil)
         }
         completionHandler()
