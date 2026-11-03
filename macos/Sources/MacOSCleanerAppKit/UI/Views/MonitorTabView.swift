@@ -13,6 +13,7 @@ struct MonitorTabView: View {
             timelineCard
         }
         .listStyle(.inset)
+        .skeletonLoading(model.isLoadingSnapshots)
         .task {
             if model.storageSnapshots.isEmpty { await model.loadSnapshotHistory() }
             if model.spaceForecast == nil { await model.loadStorageTimeline() }

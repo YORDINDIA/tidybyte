@@ -36,6 +36,11 @@ struct MonitorView: View {
                     model.quit(pid: pid, force: force)
                 }
                 .inspectorColumnWidth(min: 300, ideal: 380, max: 520)
+            } else if model.selectedGroupID != nil {
+                // The probes are still fetching for the fresh selection — a
+                // skeleton instead of the false "No selection" (Phase 3).
+                InspectorSkeletonView()
+                    .inspectorColumnWidth(min: 300, ideal: 380, max: 520)
             } else {
                 ContentUnavailableView(
                     String(localized: "No selection"),
@@ -111,14 +116,8 @@ struct MonitorView: View {
             // First tick has not landed yet (~1–2s). Every tab would otherwise
             // render fake zeros ("0.0% CPU", "0 B/s") or false empties ("This
             // Mac does not have a battery", "No GPU readings") during warmup;
-            // one gate shows an honest loading state everywhere instead.
-            VStack {
-                ProgressView(String(localized: "Reading the system…", comment: "Monitor first tick"))
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 60)
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // one gate shows a skeleton of the real layout instead (Phase 3).
+            MonitorSkeletonView()
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.sectionGap) {

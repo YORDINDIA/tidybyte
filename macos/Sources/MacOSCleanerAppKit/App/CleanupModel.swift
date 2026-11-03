@@ -48,6 +48,8 @@ final class CleanupModel {
     var filterFolder: URL?
     private var task: Task<Void, Never>?
     private var loaded = false
+    /// Phase 3: false until the first `load()` finished reading stored state.
+    private(set) var hasLoaded = false
     private var monitoredGrants: [URL] = []
     // Freshness state is wired in CleanupModel+Freshness.swift, so these are
     // internal rather than file-private.
@@ -72,6 +74,7 @@ final class CleanupModel {
     func load() async {
         guard !loaded else { return }
         loaded = true
+        defer { hasLoaded = true }
         do {
             scope = try await store.loadCleanupState(ReviewScope.self, key: "scope") ?? scope
             settings = try await store.loadCleanupState(CleanupSettings.self, key: "settings") ?? settings

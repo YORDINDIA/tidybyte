@@ -15,9 +15,22 @@ struct LoginItemsView: View {
         Group {
             if isLoading {
                 // Enumeration runs synchronously after first render; without
-                // this gate every visit flashed "No login items" first.
-                ProgressView(String(localized: "Listing login items…", comment: "Login items loading"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // this gate every visit flashed "No login items" first. The
+                // skeleton mirrors the table's rows (Phase 3).
+                VStack(spacing: 0) {
+                    ForEach(0..<6, id: \.self) { _ in
+                        HStack(spacing: Spacing.elementNormal) {
+                            SkeletonBlock(height: 20, width: 20)
+                            SkeletonBlock(height: 14)
+                            SkeletonBlock(height: 14, width: 110)
+                            SkeletonBlock(height: 14, width: 110)
+                        }
+                        .padding(.vertical, Spacing.elementTight)
+                    }
+                }
+                .padding(.horizontal, Spacing.screenEdge)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .accessibilityLabel(Text(String(localized: "Listing login items…", comment: "Login items loading")))
             } else if items.isEmpty {
                 ContentUnavailableView(
                     String(localized: "No login items"), systemImage: "power",

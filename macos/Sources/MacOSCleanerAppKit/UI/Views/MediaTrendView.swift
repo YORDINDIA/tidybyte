@@ -9,7 +9,15 @@ struct MediaTrendView: View {
     @Bindable var model: CleanupModel
 
     var body: some View {
-        if model.snapshots.count >= 2, let first = model.snapshots.first, let last = model.snapshots.last {
+        if !model.hasLoaded {
+            // Stored snapshots are still being read (Phase 3): skeleton chart
+            // frame instead of a false "No trend yet".
+            VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+                SkeletonBlock(height: 180)
+                SkeletonBlock(height: 14, width: 220)
+            }
+            .accessibilityLabel(Text(String(localized: "Loading snapshots…", comment: "Trend loading")))
+        } else if model.snapshots.count >= 2, let first = model.snapshots.first, let last = model.snapshots.last {
             VStack(alignment: .leading, spacing: Spacing.elementNormal) {
                 Chart(model.snapshots) {
                     LineMark(

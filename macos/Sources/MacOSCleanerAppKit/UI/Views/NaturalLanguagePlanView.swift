@@ -17,7 +17,19 @@ struct NaturalLanguagePlanView: View {
                 .disabled(model.isPlanning)
             FlowSuggestions(model: model)
                 .disabled(model.isPlanning)
-            if model.isPlanning { ProgressView(String(localized: "Preparing your plan…")) }
+            if model.isPlanning {
+                // Phase 3: the plan results preview as skeleton rows.
+                VStack(alignment: .leading, spacing: Spacing.elementTight) {
+                    ForEach(0..<4, id: \.self) { _ in
+                        HStack(spacing: Spacing.elementNormal) {
+                            SkeletonBlock(height: 16, width: 16)
+                            SkeletonBlock(height: 12)
+                            SkeletonBlock(height: 12, width: 70)
+                        }
+                    }
+                }
+                .accessibilityLabel(Text(String(localized: "Preparing your plan…", comment: "NL planning")))
+            }
             if let error = model.errorMessage { Text(error).foregroundStyle(SemanticScale.error) }
             HStack {
                 Button(String(localized: "Cancel")) {

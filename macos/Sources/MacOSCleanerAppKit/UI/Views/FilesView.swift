@@ -22,7 +22,22 @@ struct FilesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if model.outcome == nil {
+            if model.isScanning {
+                // A first scan would otherwise flash the "No scanned files"
+                // empty state mid-crawl (Phase 3).
+                VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+                    ForEach(0..<10, id: \.self) { _ in
+                        HStack(spacing: Spacing.elementNormal) {
+                            SkeletonBlock(height: 16, width: 16)
+                            SkeletonBlock(height: 12)
+                            SkeletonBlock(height: 12, width: 80)
+                        }
+                    }
+                }
+                .padding(Spacing.screenEdge)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .accessibilityLabel(Text(String(localized: "Scanning files…", comment: "File browser loading")))
+            } else if model.outcome == nil {
                 ContentUnavailableView(
                     String(localized: "No scanned files"), systemImage: "folder",
                     description: Text(String(localized: "Start a scan to browse files and storage.")))
