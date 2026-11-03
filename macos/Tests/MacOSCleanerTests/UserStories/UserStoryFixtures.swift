@@ -34,7 +34,8 @@ enum UserStoryFixtures {
     static func fileRecord(from url: URL, sessionID: String = "scan") async throws -> FileRecord {
         let root = url.deletingLastPathComponent()
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: sessionID)
+        let crawlOutcome84 = await crawler.crawl(rootURLs: [root], sessionID: sessionID)
+        let (records, _) = (crawlOutcome84.files, crawlOutcome84.errors)
         guard let record = records.first(where: { $0.url == url.standardizedFileURL }) else {
             throw FixtureError.missingRecord
         }

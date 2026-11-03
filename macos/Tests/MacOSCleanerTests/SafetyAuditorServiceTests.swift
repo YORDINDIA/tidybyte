@@ -16,7 +16,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         try FileManager.default.createSymbolicLink(at: symlink, withDestinationURL: target)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome10 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome10.files, crawlOutcome10.errors)
         let linkRecord = try XCTUnwrap(records.first { $0.url == symlink.standardizedFileURL })
         XCTAssertTrue(linkRecord.isSymlink)
 
@@ -47,7 +48,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome11 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome11.files, crawlOutcome11.errors)
         let record = try XCTUnwrap(records.first { $0.url == file.standardizedFileURL })
         XCTAssertNotNil(record.cloudProvider, "File in Mobile Documents should be detected as cloud-synced")
 
@@ -104,7 +106,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome12 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome12.files, crawlOutcome12.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let action = PlannedAction(
@@ -124,7 +127,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome13 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome13.files, crawlOutcome13.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let action = PlannedAction(
@@ -151,7 +155,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome14 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome14.files, crawlOutcome14.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let action = PlannedAction(
@@ -174,7 +179,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome15 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome15.files, crawlOutcome15.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         // Verify the record has identity fields
@@ -198,7 +204,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try Data("a".utf8).write(to: folder.appendingPathComponent("a.bin"))
 
-        let (records, _) = await FileCrawler().crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome16 = await FileCrawler().crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome16.files, crawlOutcome16.errors)
         let record = try XCTUnwrap(records.first { $0.url == folder.standardizedFileURL })
         // Apps keep writing into cache folders between scan and cleanup.
         try Data("b".utf8).write(to: folder.appendingPathComponent("b.bin"))
@@ -222,7 +229,8 @@ final class SafetyAuditorServiceTests: XCTestCase {
         let fileURL = root.appendingPathComponent("regular.txt", isDirectory: false)
         try Data("original".utf8).write(to: fileURL)
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome17 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome17.files, crawlOutcome17.errors)
         let record = try XCTUnwrap(records.first { $0.url == fileURL.standardizedFileURL })
         XCTAssertFalse(record.isSymlink, "File should not be a symlink at scan time")
 

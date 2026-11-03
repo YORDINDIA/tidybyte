@@ -15,7 +15,8 @@ final class CrawlerParityTests: XCTestCase {
         try fm.linkItem(at: root.appendingPathComponent("a/d.bin"), to: root.appendingPathComponent("a/hard.bin"))
         try fm.createSymbolicLink(at: root.appendingPathComponent("link"), withDestinationURL: root.appendingPathComponent("a"))
 
-        let (fast, fastErrors) = await FileCrawler().crawl(rootURLs: [root], sessionID: "s")
+        let crawlOutcome7 = await FileCrawler().crawl(rootURLs: [root], sessionID: "s")
+        let (fast, fastErrors) = (crawlOutcome7.files, crawlOutcome7.errors)
         let (legacy, legacyErrors) = await LegacyFileCrawlerReference().crawl(rootURLs: [root], sessionID: "s")
 
         XCTAssertEqual(fastErrors, legacyErrors)
@@ -43,7 +44,8 @@ final class CrawlerParityTests: XCTestCase {
         // A chosen package root is entered; a symlink root is recorded, never followed.
         for (chosen, count) in [("Tool.app", 4), ("link", 1)] {
             let url = root.appendingPathComponent(chosen)
-            let (fastRoot, _) = await FileCrawler().crawl(rootURLs: [url], sessionID: "s")
+            let crawlOutcome8 = await FileCrawler().crawl(rootURLs: [url], sessionID: "s")
+        let (fastRoot, _) = (crawlOutcome8.files, crawlOutcome8.errors)
             let (legacyRoot, _) = await LegacyFileCrawlerReference().crawl(rootURLs: [url], sessionID: "s")
             XCTAssertEqual(fastRoot.count, count, chosen)
             XCTAssertEqual(fastRoot.map(\.displayPath), legacyRoot.map(\.displayPath))
@@ -65,7 +67,7 @@ final class CrawlerParityTests: XCTestCase {
         let legacyTime = await clock.measure {
             legacyCount = await LegacyFileCrawlerReference().crawl(rootURLs: urls, sessionID: "b").0.count
         }
-        let fastTime = await clock.measure { fastCount = await FileCrawler().crawl(rootURLs: urls, sessionID: "b").0.count }
+        let fastTime = await clock.measure { fastCount = await FileCrawler().crawl(rootURLs: urls, sessionID: "b").files.count }
         print("BENCH legacy \(legacyCount) items in \(legacyTime); fast \(fastCount) items in \(fastTime)")
         XCTAssertEqual(fastCount, legacyCount)
     }
@@ -82,7 +84,8 @@ final class ReclaimableBytesTests: XCTestCase {
         let link = root.appendingPathComponent("link.bin")
         try FileManager.default.linkItem(at: original, to: link)
 
-        let (records, _) = await FileCrawler().crawl(rootURLs: [root], sessionID: "s")
+        let crawlOutcome9 = await FileCrawler().crawl(rootURLs: [root], sessionID: "s")
+        let (records, _) = (crawlOutcome9.files, crawlOutcome9.errors)
         func size(_ name: String) -> Int64? {
             records.first { $0.fileName == name }.map { ReclaimableBytes.size(of: $0) }
         }

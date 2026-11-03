@@ -399,7 +399,8 @@ public actor MoCleanScanner {
         sessionID: String
     ) async -> ScanResult {
         let home = homeDirectoryOverride ?? fileManager.homeDirectoryForCurrentUser
-        let (files, crawlErrors) = await crawler.crawl(rootURLs: roots, sessionID: sessionID)
+        let outcome = await crawler.crawl(rootURLs: roots, sessionID: sessionID)
+        let files = outcome.files
         let subtreeIndex = Self.buildSubtreeByteIndex(files: files)
 
         var findings: [Finding] = []
@@ -492,7 +493,9 @@ public actor MoCleanScanner {
         // Surface the records that back each finding so the Why Panel and
         // executor can resolve targets. Contents of proposed directories are not
         // enumerated individually — trashing the directory handles the subtree.
-        return ScanResult(files: relevantFiles, findings: findings, recommendations: recommendations, crawlErrors: crawlErrors)
+        return ScanResult(
+            files: relevantFiles, findings: findings, recommendations: recommendations,
+            crawlErrors: outcome.errors, notices: outcome.skippedRootNotices)
     }
 
     // MARK: - Uninstalled app data
@@ -527,7 +530,9 @@ public actor MoCleanScanner {
             }
         }
         guard !orphanIDs.isEmpty else { return ScanResult(files: [], findings: [], recommendations: []) }
-        let (files, crawlErrors) = await crawler.crawl(rootURLs: Array(orphanIDs.keys), sessionID: sessionID)
+        let outcome = await crawler.crawl(rootURLs: Array(orphanIDs.keys), sessionID: sessionID)
+        let files = outcome.files
+        let crawlErrors = outcome.errors
         let subtreeIndex = Self.buildSubtreeByteIndex(files: files)
         let recentEntries = Self.entriesChanged(after: cutoff, in: files, entries: Set(orphanIDs.keys.map(\.path)))
         var recordsByID: [String: [FileRecord]] = [:]
@@ -603,7 +608,8 @@ public actor MoCleanScanner {
         section: SystemCleanSection,
         sessionID: String
     ) async -> ScanResult {
-        let (files, crawlErrors) = await crawler.crawl(rootURLs: roots, sessionID: sessionID)
+        let outcome = await crawler.crawl(rootURLs: roots, sessionID: sessionID)
+        let files = outcome.files
         var findings: [Finding] = []
         var recommendations: [Recommendation] = []
         var relevantFiles: [FileRecord] = []
@@ -633,7 +639,9 @@ public actor MoCleanScanner {
             ))
             relevantFiles.append(record)
         }
-        return ScanResult(files: relevantFiles, findings: findings, recommendations: recommendations, crawlErrors: crawlErrors)
+        return ScanResult(
+            files: relevantFiles, findings: findings, recommendations: recommendations,
+            crawlErrors: outcome.errors, notices: outcome.skippedRootNotices)
     }
 
     // MARK: - Time Machine
@@ -689,7 +697,9 @@ public actor MoCleanScanner {
             older += Self.olderDeviceSupport(entries)
         }
         guard !older.isEmpty else { return ScanResult(files: [], findings: [], recommendations: []) }
-        let (files, crawlErrors) = await crawler.crawl(rootURLs: older, sessionID: sessionID)
+        let outcome = await crawler.crawl(rootURLs: older, sessionID: sessionID)
+        let files = outcome.files
+        let crawlErrors = outcome.errors
         let index = Self.buildSubtreeByteIndex(files: files)
         let roots = Set(older.map(\.standardizedFileURL))
         let records = files.filter { roots.contains($0.url.standardizedFileURL) && isAllowed($0) }.map { record in

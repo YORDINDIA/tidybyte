@@ -62,7 +62,7 @@ final class NearDuplicateTests: XCTestCase {
         try writePNG("sunset.png", size: 512, draw: Self.sunset)
         try writePNG("sunset-small.png", size: 480, draw: Self.sunsetWithBird)
         try writePNG("stripes.png", size: 512, draw: Self.stripes)
-        let files = await FileCrawler().crawl(rootURLs: [root], sessionID: "near").0
+        let files = await FileCrawler().crawl(rootURLs: [root], sessionID: "near").files
 
         let analysis = try await DuplicateDetector().analyze(files: files, sessionID: "near")
 

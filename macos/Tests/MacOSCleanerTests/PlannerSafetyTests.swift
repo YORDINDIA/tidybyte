@@ -61,7 +61,8 @@ final class PlannerSafetyTests: XCTestCase {
         try payload.write(to: root.appendingPathComponent("copy-b.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome81 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome81.files, crawlOutcome81.errors)
         let filesByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
         let detector = DuplicateDetector()
         let analysis = try await detector.analyze(files: records, sessionID: "scan")
@@ -208,7 +209,8 @@ final class PlannerSafetyTests: XCTestCase {
         let envURL = root.appendingPathComponent(".env", isDirectory: false)
         try Data("TOKEN=secret".utf8).write(to: envURL)
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome82 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome82.files, crawlOutcome82.errors)
         let record = try XCTUnwrap(records.first { $0.url == envURL.standardizedFileURL })
         var action = makePlannedAction(
             id: "protected-1", actionType: .moveToTrash, targets: [record.id],
@@ -242,7 +244,8 @@ final class PlannerSafetyTests: XCTestCase {
         let url = root.appendingPathComponent(name, isDirectory: false)
         try Data("fixture content".utf8).write(to: url)
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome83 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome83.files, crawlOutcome83.errors)
         guard let record = records.first(where: { $0.url == url.standardizedFileURL }) else {
             throw FixtureError.missingRecord
         }

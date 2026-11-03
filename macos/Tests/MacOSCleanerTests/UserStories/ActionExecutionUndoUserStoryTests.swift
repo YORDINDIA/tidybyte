@@ -11,7 +11,8 @@ final class ActionExecutionUndoUserStoryTests: XCTestCase {
         let undecidedURL = try UserStoryFixtures.writeFile("not-reviewed-cache.bin", in: root)
         let destination = try UserStoryFixtures.createDirectory("Destination", in: root)
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome85 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome85.files, crawlOutcome85.errors)
         let approvedRecord = try XCTUnwrap(records.first { $0.url == approvedURL.standardizedFileURL }, "Root: \(root.path); records: \(records.map(\.displayPath))")
         let undecidedRecord = try XCTUnwrap(records.first { $0.url == undecidedURL.standardizedFileURL })
         let filesByID = [approvedRecord.id: approvedRecord, undecidedRecord.id: undecidedRecord]
@@ -70,7 +71,8 @@ final class ActionExecutionUndoUserStoryTests: XCTestCase {
         let protectedURL = try UserStoryFixtures.writeFile(".env", in: root, data: Data("TOKEN=secret".utf8))
         let highRiskURL = try UserStoryFixtures.writeFile("Downloads/high-risk.txt", in: root)
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome86 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome86.files, crawlOutcome86.errors)
         let protectedRecord = try XCTUnwrap(records.first { $0.url == protectedURL.standardizedFileURL })
         let highRiskRecord = try XCTUnwrap(records.first { $0.url == highRiskURL.standardizedFileURL })
         let filesByID = [protectedRecord.id: protectedRecord, highRiskRecord.id: highRiskRecord]

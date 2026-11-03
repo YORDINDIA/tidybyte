@@ -97,7 +97,18 @@ final class AppViewModel {
     // Internal setters (not `private(set)`) so the AppViewModel+Tabs and
     // AppViewModel+Explore extensions (separate files) can update state.
     // All mutation still funnels through @MainActor methods.
-    var statusMessage = String(localized: "Choose folders or a scan mode to begin.")
+    private var _statusMessage = String(localized: "Choose folders or a scan mode to begin.")
+    /// MB-F4: bumps on every assignment — including repeats of the same
+    /// text — so the toast layer can re-fire on repeated identical messages
+    /// that used to look like silent no-ops.
+    private(set) var statusMessageEpoch = 0
+    var statusMessage: String {
+        get { _statusMessage }
+        set {
+            _statusMessage = newValue
+            statusMessageEpoch += 1
+        }
+    }
     var errorMessage: String?
     var showOnboarding = true
     var outcome: ScanOutcome? {

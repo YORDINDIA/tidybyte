@@ -36,7 +36,8 @@ final class CrawlerSymlinkCycleTests: XCTestCase {
         try makeSymlink("self", pointingTo: root.appendingPathComponent("self", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "cycle")
+        let crawlOutcome24 = await crawler.crawl(rootURLs: [root], sessionID: "cycle")
+        let (records, _) = (crawlOutcome24.files, crawlOutcome24.errors)
 
         let names = records.map(\.fileName)
         XCTAssertEqual(names.filter { $0 == "real.txt" }.count, 1,
@@ -60,7 +61,8 @@ final class CrawlerSymlinkCycleTests: XCTestCase {
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [link], sessionID: "cycle-root")
+        let crawlOutcome25 = await crawler.crawl(rootURLs: [link], sessionID: "cycle-root")
+        let (records, _) = (crawlOutcome25.files, crawlOutcome25.errors)
 
         XCTAssertTrue(records.contains { $0.fileName == "root-link" && $0.kind == .symlink },
                       "The symlink root itself must be recorded")

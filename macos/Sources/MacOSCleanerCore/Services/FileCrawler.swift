@@ -19,6 +19,21 @@ import os
 /// `maxRecords` records every further folder is summarized the same way and
 /// every further loose file is folded into the size of its folder. Only files
 /// of `largeFileBytes` or more keep a record past the budget.
+/// One crawl's output: the records, the unreadable-entry count, and notices
+/// for requested roots the safety policy refused (S-03 — a skipped root must
+/// not look like a clean folder).
+public struct CrawlOutcome: Sendable {
+    public var files: [FileRecord]
+    public var errors: Int
+    public var skippedRootNotices: [ScanNotice]
+
+    public init(files: [FileRecord], errors: Int, skippedRootNotices: [ScanNotice]) {
+        self.files = files
+        self.errors = errors
+        self.skippedRootNotices = skippedRootNotices
+    }
+}
+
 public actor FileCrawler {
     /// Crawl progress snapshot relayed to the orchestrator while the crawl runs.
     public struct CrawlProgress: Sendable, Equatable {
@@ -59,9 +74,12 @@ public actor FileCrawler {
         rootURLs: [URL],
         sessionID: String,
         progress: (@Sendable (CrawlProgress) async -> Void)? = nil
-    ) async -> ([FileRecord], Int) {
+    ) async -> CrawlOutcome {
         var records: [FileRecord] = []
         var errors = 0
+        // S-03: a requested root that the policy refuses to crawl used to be
+        // dropped with a log line only, indistinguishable from a clean folder.
+        var skippedRootNotices: [ScanNotice] = []
         var folders: [(url: URL, tier: Int)] = []
         let closed = FullDiskAccess.closedAppDataFolders()
         let policy = policy
@@ -72,6 +90,11 @@ public actor FileCrawler {
             let expansion = Self.expandRoot(root, sessionID: sessionID, policy: policy, closed: closed)
             records += expansion.records
             errors += expansion.errors
+            if depth == 0, expansion.skippedRoot != nil {
+                skippedRootNotices.append(ScanNotice(message: String(
+                    localized: "\(root.path) was skipped: it is a protected or system location, so it was not scanned.",
+                    comment: "Scan notice when a requested scan root is refused by the safety policy")))
+            }
             for folder in expansion.folders {
                 let tier = childTier ?? Self.crawlOrder(folder)
                 if tier == Self.lastCrawlTier, depth < 2 {
@@ -130,7 +153,7 @@ public actor FileCrawler {
         await progress?(counter.snapshot())
         // Sorted in place: a sorted copy would hold every record twice at the peak.
         records.sort { $0.displayPath < $1.displayPath }
-        return (records, errors)
+        return CrawlOutcome(files: records, errors: errors, skippedRootNotices: skippedRootNotices)
     }
 
     static let lastCrawlTier = 2
@@ -145,6 +168,9 @@ public actor FileCrawler {
         var records: [FileRecord] = []
         var errors = 0
         var folders: [URL] = []
+        /// Set when the root itself was refused (protected or closed folder)
+        /// so the crawl can surface the skip instead of a silent no-op (S-03).
+        var skippedRoot: Bool?
     }
 
     /// Counts records across the parallel folder tasks.
@@ -203,7 +229,7 @@ public actor FileCrawler {
         // A protected root (.ssh, SIP path, Trash) is never crawled at all.
         if policy.shouldSkipTraversal(of: root) || closed.contains(root.standardizedFileURL.path) {
             logger.warning("Skipping protected scan root: \(root.path, privacy: .public)")
-            return RootExpansion()
+            return RootExpansion(skippedRoot: true)
         }
         guard let rootRecord = makeRecord(for: root, sessionID: sessionID, policy: policy) else {
             logger.error("Unreadable scan root: \(root.path, privacy: .public)")

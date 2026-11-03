@@ -33,25 +33,18 @@ struct ContentView: View {
                 .overlay(alignment: .bottom) {
                     // The model computes a scan summary (duration, candidates,
                     // errors) and retires it after 6 seconds; this renders it.
-                    if model.showScanSummaryToast, let summary = model.activeScanSummary {
-                        Text(summary)
-                            .font(.callout)
-                            .padding(.horizontal, Spacing.elementNormal)
-                            .padding(.vertical, Spacing.elementTight)
-                            .background(.regularMaterial, in: Capsule())
-                            .overlay(Capsule().strokeBorder(.separator))
-                            .padding(.bottom, Spacing.elementNormal)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    } else if let statusToast {
-                        Text(statusToast)
-                            .font(.callout)
-                            .padding(.horizontal, Spacing.elementNormal)
-                            .padding(.vertical, Spacing.elementTight)
-                            .background(.regularMaterial, in: Capsule())
-                            .overlay(Capsule().strokeBorder(.separator))
-                            .padding(.bottom, Spacing.elementNormal)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    // MB-F3: the summary stacks above a concurrent status toast
+                    // instead of displacing it, so a message set during or right
+                    // after a scan stays readable for its full lifetime.
+                    VStack(spacing: Spacing.elementTight) {
+                        if let statusToast {
+                            toastCapsule(statusToast)
+                        }
+                        if model.showScanSummaryToast, let summary = model.activeScanSummary {
+                            toastCapsule(summary)
+                        }
                     }
+                    .padding(.bottom, Spacing.elementNormal)
                 }
         }
         .toolbar { toolbar }
@@ -76,9 +69,11 @@ struct ContentView: View {
             model.searchText = ""
             if !model.destination.supportsInspector { model.showsInspector = false }
         }
-        .onChange(of: model.statusMessage) {
-            // Scan-step chatter repaints at 2 Hz and is shown by the progress
-            // strip instead; everything else is a one-shot outcome worth a toast.
+        .onChange(of: model.statusMessageEpoch) {
+            // The epoch bumps on every assignment, so repeated identical
+            // messages still toast (MB-F4). Scan-step chatter repaints at 2 Hz
+            // and is shown by the progress strip instead; everything else is a
+            // one-shot outcome worth a toast.
             let message = model.statusMessage
             guard !message.isEmpty, !model.isScanning else { return }
             statusToastTask?.cancel()
@@ -159,6 +154,17 @@ struct ContentView: View {
         return nil
     }
 
+    /// One capsule style shared by the status toast and the scan summary.
+    private func toastCapsule(_ text: String) -> some View {
+        Text(text)
+            .font(.callout)
+            .padding(.horizontal, Spacing.elementNormal)
+            .padding(.vertical, Spacing.elementTight)
+            .background(.regularMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(.separator))
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
     private func stop() {
         if model.isScanning { model.cancelScan() }
         if model.isExecuting { model.cancelExecution() }
@@ -179,7 +185,15 @@ struct ContentView: View {
         let stamp = snapshot.timestamp.formatted(.iso8601.year().month().day())
         panel.nameFieldStringValue = "Tidybyte Monitor \(stamp).png"
         panel.allowedContentTypes = [.png]
-        guard let window = NSApp.keyWindow else { return }
+        // MON-04: a backgrounded app has no key window; fall back to any
+        // visible window of ours instead of silently returning.
+        guard let window = NSApp.keyWindow ?? NSApp.mainWindow
+            ?? NSApp.windows.first(where: \.isVisible) else {
+            model.setErrorMessage(String(
+                localized: "The monitor snapshot could not be saved: no window is available to attach the save panel to.",
+                comment: "Monitor export without a window"))
+            return
+        }
         let response = await panel.beginSheetModal(for: window)
         guard response == .OK, let url = panel.url else { return }
         do {
@@ -194,9 +208,13 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
-        // Contextual items come first, before the fixed spacer (DESIGN.md).
-        if model.destination == .monitor {
-            ToolbarItem(placement: .primaryAction) {
+        // SSA-01: every slot below is identity-stable — the item stays in the
+        // toolbar and only its content mutates. Items that entered and left
+        // the toolbar on destination changes raced AppKit's layout pass and
+        // threw NSException inside NSToolbar item insertion (crash reports).
+        ToolbarItem {
+            switch model.destination {
+            case .monitor:
                 Button {
                     Task { await exportMonitorSnapshot() }
                 } label: {
@@ -206,10 +224,7 @@ struct ContentView: View {
                 }
                 .help(String(localized: "Save a snapshot image of the monitor", comment: "Monitor export help"))
                 .disabled(model.monitor.snapshot == nil)
-            }
-        }
-        if model.destination == .explorer {
-            ToolbarItem {
+            case .explorer:
                 Menu {
                     Picker(String(localized: "View"), selection: $model.exploreViewKindRaw) {
                         ForEach(ExploreViewKind.allCases) { kind in Text(kind.title).tag(kind.rawValue) }
@@ -219,26 +234,25 @@ struct ContentView: View {
                     Label(String(localized: "View"), systemImage: "rectangle.3.group")
                 }
                 .help(String(localized: "Choose how to show files"))
-            }
-        }
-        if model.destination.isReview {
-            ToolbarItem {
-                Picker(String(localized: "Risk"), selection: $model.reviewRiskFilter) {
-                    Text(String(localized: "All Risks")).tag(nil as RiskLevel?)
-                    ForEach([RiskLevel.low, .medium, .high, .forbidden], id: \.self) { risk in
-                        Text(risk.displayName).tag(Optional(risk))
+            case let destination where destination.isReview:
+                HStack(spacing: Spacing.elementTight) {
+                    Picker(String(localized: "Risk"), selection: $model.reviewRiskFilter) {
+                        Text(String(localized: "All Risks")).tag(nil as RiskLevel?)
+                        ForEach([RiskLevel.low, .medium, .high, .forbidden], id: \.self) { risk in
+                            Text(risk.displayName).tag(Optional(risk))
+                        }
                     }
+                    .help(String(localized: "Show actions of one risk level"))
+                    Button {
+                        model.showsPlanner = true
+                    } label: {
+                        Label(String(localized: "Ask Tidybyte"), systemImage: "text.bubble")
+                    }
+                    .help(String(localized: "Describe what to clean in your own words"))
+                    .disabled(model.plan == nil || isBusy)
                 }
-                .help(String(localized: "Show actions of one risk level"))
-            }
-            ToolbarItem {
-                Button {
-                    model.showsPlanner = true
-                } label: {
-                    Label(String(localized: "Ask Tidybyte"), systemImage: "text.bubble")
-                }
-                .help(String(localized: "Describe what to clean in your own words"))
-                .disabled(model.plan == nil || isBusy)
+            default:
+                EmptyView()
             }
         }
         ToolbarSpacer(.fixed, placement: .primaryAction)
@@ -263,15 +277,17 @@ struct ContentView: View {
                 ? String(localized: "Stop the current scan or cleanup", comment: "Toolbar stop help")
                 : String(localized: "Scan for cleanup opportunities", comment: "Toolbar scan help"))
         }
-        if model.destination.supportsInspector {
-            ToolbarSpacer(.fixed, placement: .primaryAction)
-            ToolbarItem(placement: .primaryAction) {
+        ToolbarSpacer(.fixed, placement: .primaryAction)
+        ToolbarItem(placement: .primaryAction) {
+            if model.destination.supportsInspector {
                 Button {
                     model.showsInspector.toggle()
                 } label: {
                     Label(String(localized: "Inspector"), systemImage: "sidebar.trailing")
                 }
                 .help(String(localized: "Show or hide details"))
+            } else {
+                EmptyView()
             }
         }
     }

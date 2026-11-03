@@ -200,7 +200,8 @@ final class ProcessMemoryScannerTests: XCTestCase {
         _ = try UserStoryFixtures.writeFile("node_modules/pkg/index.js", in: root, data: Data(repeating: 1, count: 2_000_000))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome2 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome2.files, crawlOutcome2.errors)
         let engine = CleanerRuleEngine()
         let (findings, recommendations) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
 
@@ -216,7 +217,8 @@ final class ProcessMemoryScannerTests: XCTestCase {
         _ = try UserStoryFixtures.writeFile("node_modules/pkg/index.js", in: root, data: Data(repeating: 1, count: 2_000_000))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome3 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome3.files, crawlOutcome3.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [makeProject(root: root)], sessionID: "scan")
 
@@ -232,7 +234,8 @@ final class ProcessMemoryScannerTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: outside) }
         _ = try UserStoryFixtures.createDirectory("node_modules/.cache", in: outside)
         _ = try UserStoryFixtures.writeFile("node_modules/.cache/blob.bin", in: outside, data: Data(repeating: 1, count: 2_000_000))
-        let (outsideRecords, _) = await crawler.crawl(rootURLs: [outside], sessionID: "scan")
+        let crawlOutcome4 = await crawler.crawl(rootURLs: [outside], sessionID: "scan")
+        let (outsideRecords, _) = (crawlOutcome4.files, crawlOutcome4.errors)
         let (outsideFindings, outsideRecs) = try await engine.analyze(files: outsideRecords, projects: [], sessionID: "scan")
         XCTAssertFalse(outsideFindings.contains { $0.category == .cache || $0.category == .developerArtifact })
         XCTAssertTrue(outsideRecs.isEmpty, "node_modules/.cache outside a project root must not be proposed")
@@ -243,7 +246,8 @@ final class ProcessMemoryScannerTests: XCTestCase {
         _ = try UserStoryFixtures.writeFile("package.json", in: inside, data: Data("{}".utf8))
         _ = try UserStoryFixtures.createDirectory("node_modules/.cache", in: inside)
         _ = try UserStoryFixtures.writeFile("node_modules/.cache/blob.bin", in: inside, data: Data(repeating: 1, count: 2_000_000))
-        let (insideRecords, _) = await crawler.crawl(rootURLs: [inside], sessionID: "scan")
+        let crawlOutcome5 = await crawler.crawl(rootURLs: [inside], sessionID: "scan")
+        let (insideRecords, _) = (crawlOutcome5.files, crawlOutcome5.errors)
         let (insideFindings, _) = try await engine.analyze(files: insideRecords, projects: [makeProject(root: inside)], sessionID: "scan")
         XCTAssertTrue(insideFindings.contains { $0.category == .cache }, "node_modules/.cache inside a project root should be proposed as cache")
     }
@@ -259,7 +263,8 @@ final class ProcessMemoryScannerTests: XCTestCase {
         _ = try UserStoryFixtures.writeFile("Caches/blob.bin", in: root, data: Data(repeating: 1, count: 2_000_000))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome6 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome6.files, crawlOutcome6.errors)
         let engine = CleanerRuleEngine()
         let (_, recommendations) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
 

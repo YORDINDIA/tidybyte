@@ -20,7 +20,7 @@ final class CrawlerRollupTests: XCTestCase {
     }
 
     private func crawl(maxRecords: Int = FileCrawler.defaultMaxRecords) async -> [FileRecord] {
-        await FileCrawler(maxRecords: maxRecords).crawl(rootURLs: [root], sessionID: "rollup").0
+        await FileCrawler(maxRecords: maxRecords).crawl(rootURLs: [root], sessionID: "rollup").files
     }
 
     private func record(_ files: [FileRecord], at relative: String) -> FileRecord? {

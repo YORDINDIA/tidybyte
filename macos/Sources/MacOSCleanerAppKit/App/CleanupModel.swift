@@ -46,12 +46,14 @@ final class CleanupModel {
     private var task: Task<Void, Never>?
     private var loaded = false
     private var monitoredGrants: [URL] = []
-    private var freshness: CleanupFreshnessMonitor?
-    private var freshnessEpoch = 0
-    private var rescanEpoch = 0
+    // Freshness state is wired in CleanupModel+Freshness.swift, so these are
+    // internal rather than file-private.
+    var freshness: CleanupFreshnessMonitor?
+    var freshnessEpoch = 0
+    var rescanEpoch = 0
     /// Test seam: the detached monitor build has landed (PSA-01 coverage).
     var hasFreshnessMonitor: Bool { freshness != nil }
-    private var changeGeneration = 0
+    var changeGeneration = 0  // bumped by the freshness monitor (CleanupModel+Freshness.swift)
 
     init(store: SQLiteStore) {
         self.store = store
@@ -124,12 +126,9 @@ final class CleanupModel {
 
     func scan() {
         scanRequestCount += 1
-        // O-03: a second request while a scan is already running must not pop
-        // the scope sheet mid-flow — coalesce with a notice instead.
+        // O-03: a request while a scan runs coalesces (no mid-flow scope sheet).
         guard !isBusy else {
-            notice = String(
-                localized: "A media scan is already running.",
-                comment: "Duplicate scan request while busy")
+            notice = String(localized: "A media scan is already running.", comment: "Duplicate scan request while busy")
             return
         }
         guard !scope.roots.isEmpty || scope.includesPhotos else {
@@ -140,8 +139,7 @@ final class CleanupModel {
         error = nil
         notice = nil
         result?.isFresh = false
-        let scope = scope
-        let settings = settings
+        let scope = scope, settings = settings
         startMonitoring()
         let generation = changeGeneration
         task = Task {
@@ -157,16 +155,12 @@ final class CleanupModel {
                 monitoredGrants = []
                 for root in scope.roots { monitoredGrants.append(try await access.acquire(root)) }
                 try await store.saveCleanupState(scope, key: "scope")
-                let report: @Sendable (CleanupProgress) async -> Void = { [self] value in
-                    await MainActor.run { self.progress = value }
-                }
+                let report: @Sendable (CleanupProgress) async -> Void = { [self] value in await MainActor.run { self.progress = value } }
                 var items = try await inventory.scan(scope, progress: report)
                 if scope.includesPhotos { items += try await photos.scan(progress: report) }
-                var analyzed = try await analysis.analyze(
-                    items, scopeID: scope.id, settings: settings, progress: report)
+                var analyzed = try await analysis.analyze(items, scopeID: scope.id, settings: settings, progress: report)
                 try Task.checkCancellation()
-                analyzed.isFresh =
-                    generation == changeGeneration && self.scope.id == scope.id
+                analyzed.isFresh = generation == changeGeneration && self.scope.id == scope.id
                     && self.settings.analysisVersion == settings.analysisVersion
                 try await store.saveCleanupState(analyzed, key: "inventory")
                 result = analyzed
@@ -485,44 +479,6 @@ extension CleanupModel {
     private func reloadHistory() async throws {
         activity = try await store.cleanupActivity()
         snapshots = try await store.cleanupSnapshots(scopeID: scope.id)
-    }
-
-    private func startMonitoring() {
-        freshnessEpoch += 1
-        let epoch = freshnessEpoch
-        let roots = scope.roots
-        let includesPhotos = scope.includesPhotos
-        let changed: @Sendable () -> Void = { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.freshnessDidChange()
-            }
-        }
-        // PSA-01: FSEventStreamCreate can block indefinitely, so the monitor
-        // is built off the main actor and handed back; a build superseded by
-        // a newer call loses the race and is dropped.
-        Task.detached(priority: .utility) {
-            let monitor = CleanupFreshnessMonitor(roots: roots, includesPhotos: includesPhotos, changed: changed)
-            await MainActor.run {
-                guard epoch == self.freshnessEpoch else { return }
-                self.freshness = monitor
-            }
-        }
-    }
-
-    /// Freshness callback from the monitor: mark staleness immediately and
-    /// auto-rescan only when idle. Rescans are debounced so a burst of file
-    /// changes (S-04) coalesces into one pass. Internal so tests can drive it.
-    func freshnessDidChange() {
-        changeGeneration += 1
-        result?.isFresh = false
-        guard !isBusy, session == nil else { return }
-        rescanEpoch += 1
-        let epoch = rescanEpoch
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(2))
-            guard epoch == self.rescanEpoch, !self.isBusy, self.session == nil else { return }
-            self.scan()
-        }
     }
 
     private func updateReminder() async throws {

@@ -10,7 +10,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("SECRET=1".utf8).write(to: envURL)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome29 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome29.files, crawlOutcome29.errors)
         let envRecord = try XCTUnwrap(records.first { $0.url == envURL.standardizedFileURL })
         XCTAssertTrue(envRecord.riskFlags.contains(.protectedFile))
 
@@ -47,7 +48,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("duplicate-payload".utf8).write(to: root.appendingPathComponent("b.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome30 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome30.files, crawlOutcome30.errors)
         let detector = DuplicateDetector()
         let analysis = try await detector.analyze(files: records, sessionID: "scan")
 
@@ -67,7 +69,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 1, count: 2048).write(to: nodeModules.appendingPathComponent("package.bin", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome31 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome31.files, crawlOutcome31.errors)
         let projects = try await ProjectDetector().detectProjects(in: records)
         let (findings, recommendations) = try await CleanerRuleEngine().analyze(files: records, projects: projects, sessionID: "scan")
 
@@ -110,7 +113,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("token".utf8).write(to: codexRoot.appendingPathComponent("auth.json", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome32 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome32.files, crawlOutcome32.errors)
         let logsRecord = try XCTUnwrap(records.first { $0.url == logs.standardizedFileURL })
         let authRecord = try XCTUnwrap(records.first { $0.fileName == "auth.json" })
         XCTAssertFalse(logsRecord.riskFlags.contains(.protectedDirectory))
@@ -169,7 +173,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("move".utf8).write(to: source)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome33 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome33.files, crawlOutcome33.errors)
         let record = try XCTUnwrap(records.first { $0.url == source.standardizedFileURL })
         let databaseURL = root.appendingPathComponent("test.sqlite", isDirectory: false)
         let store = try SQLiteStore(databaseURL: databaseURL)
@@ -209,7 +214,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("archive".utf8).write(to: source)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome34 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome34.files, crawlOutcome34.errors)
         let record = try XCTUnwrap(records.first { $0.url == source.standardizedFileURL })
         let databaseURL = root.appendingPathComponent("archive.sqlite", isDirectory: false)
         let store = try SQLiteStore(databaseURL: databaseURL)
@@ -334,7 +340,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("invoice for cleanup test".utf8).write(to: note)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome35 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome35.files, crawlOutcome35.errors)
         let summaries = await ContentExtractor().summarize(files: records, privacyMode: .snippetsAI)
 
         let summary = try XCTUnwrap(summaries.first)
@@ -354,7 +361,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.setAttributes([.modificationDate: oldDate], ofItemAtPath: file.path)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome36 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome36.files, crawlOutcome36.errors)
         let (_, recommendations) = try await OrganizationPlanner().suggestOrganization(files: records, sessionID: "scan")
 
         XCTAssertTrue(recommendations.contains { $0.actionType == .createAlias })
@@ -451,7 +459,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("SECRET=1".utf8).write(to: envURL)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome37 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome37.files, crawlOutcome37.errors)
         let envRecord = try XCTUnwrap(records.first { $0.url == envURL.standardizedFileURL })
 
         XCTAssertTrue(envRecord.riskFlags.contains(.protectedFile))
@@ -472,7 +481,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("undo test".utf8).write(to: source)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome38 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome38.files, crawlOutcome38.errors)
         let record = try XCTUnwrap(records.first { $0.url == source.standardizedFileURL })
         let databaseURL = root.appendingPathComponent("undo-test.sqlite", isDirectory: false)
         let store = try SQLiteStore(databaseURL: databaseURL)
@@ -605,7 +615,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 1024).write(to: videoURL)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome39 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome39.files, crawlOutcome39.errors)
         // snippetsAI permits local metadata extraction (localOnly would correctly return no summaries).
         let summaries = await ContentExtractor().summarize(files: records, privacyMode: .snippetsAI)
 
@@ -667,7 +678,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("rename test".utf8).write(to: source)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome40 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome40.files, crawlOutcome40.errors)
         let record = try XCTUnwrap(records.first { $0.url == source.standardizedFileURL })
         let databaseURL = root.appendingPathComponent("rename.sqlite", isDirectory: false)
         let store = try SQLiteStore(databaseURL: databaseURL)
@@ -783,7 +795,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 2048).write(to: screenshot2)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome41 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome41.files, crawlOutcome41.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
 
@@ -803,7 +816,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 1, count: 1024).write(to: smallFile)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome42 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome42.files, crawlOutcome42.errors)
         let largeRecord = try XCTUnwrap(records.first { $0.fileName == "large-video.mp4" })
         XCTAssertGreaterThanOrEqual(largeRecord.sizeBytes, 1_000_000_000,
                                      "Sparse file should report its logical size")
@@ -829,7 +843,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 1, count: 2 * 1024 * 1024).write(to: cacheDir.appendingPathComponent("cache.bin", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome43 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome43.files, crawlOutcome43.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
 
@@ -903,7 +918,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.createSymbolicLink(at: symlink, withDestinationURL: realFile)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome44 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome44.files, crawlOutcome44.errors)
 
         let realRecord = records.first { $0.fileName == "real.txt" }
         let symlinkRecord = records.first { $0.fileName == "link.txt" }
@@ -926,7 +942,8 @@ final class MacOSCleanerTests: XCTestCase {
         defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: restrictedDir.path) }
 
         let crawler = FileCrawler()
-        let (records, errors) = await crawler.crawl(rootURLs: [restrictedDir], sessionID: "scan")
+        let crawlOutcome45 = await crawler.crawl(rootURLs: [restrictedDir], sessionID: "scan")
+        let (records, errors) = (crawlOutcome45.files, crawlOutcome45.errors)
 
         if errors == 0 && !records.isEmpty {
             // chmod 000 is not enforced for this process (e.g. root or Full Disk
@@ -1043,7 +1060,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.setAttributes([.modificationDate: oldDate], ofItemAtPath: testFile.path)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome46 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome46.files, crawlOutcome46.errors)
         let testRecord = try XCTUnwrap(records.first { $0.url == testFile.standardizedFileURL })
         XCTAssertNotNil(testRecord.modifiedAt, "Modified date should be set")
         XCTAssertTrue(testRecord.url.pathComponents.contains("Downloads"), "Path should contain Downloads")
@@ -1065,7 +1083,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 2000).write(to: desktop.appendingPathComponent("Screenshot 2024-01-02.png", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome47 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome47.files, crawlOutcome47.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
         let screenshotFindings = findings.filter { $0.category == .screenshot }
@@ -1129,7 +1148,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("outside".utf8).write(to: outsideFile)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome48 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome48.files, crawlOutcome48.errors)
         let insideRecord = try XCTUnwrap(records.first { $0.url == insideFile.standardizedFileURL })
         let outsideRecord = try XCTUnwrap(records.first { $0.url == outsideFile.standardizedFileURL })
         let filesByID = [insideRecord.id: insideRecord, outsideRecord.id: outsideRecord]
@@ -1219,7 +1239,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 5000).write(to: nmDir.appendingPathComponent("index.js", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome49 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome49.files, crawlOutcome49.errors)
         let engine = CleanerRuleEngine()
         // node_modules is a project-bound build output: it only matches inside a
         // detected project root (a directory with a manifest such as package.json).
@@ -1245,7 +1266,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 1000).write(to: cacheDir.appendingPathComponent("module.pyc", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome50 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome50.files, crawlOutcome50.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
         let devFindings = findings.filter { $0.category == .developerArtifact }
@@ -1260,7 +1282,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 5000).write(to: ddDir.appendingPathComponent("build.o", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome51 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome51.files, crawlOutcome51.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
         let devFindings = findings.filter { $0.category == .developerArtifact }
@@ -1277,7 +1300,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 2000).write(to: agentDir.appendingPathComponent("session.log", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome52 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome52.files, crawlOutcome52.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
         let agentFindings = findings.filter { $0.category == .codingAgentArtifact }
@@ -1299,7 +1323,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("unique content".utf8).write(to: root.appendingPathComponent("unique.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome53 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome53.files, crawlOutcome53.errors)
         let detector = DuplicateDetector()
         let analysis = try await detector.analyze(files: records, sessionID: "scan")
         XCTAssertFalse(analysis.findings.isEmpty, "Exact duplicates should be detected")
@@ -1313,7 +1338,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("content B".utf8).write(to: root.appendingPathComponent("b.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome54 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome54.files, crawlOutcome54.errors)
         let detector = DuplicateDetector()
         let analysis = try await detector.analyze(files: records, sessionID: "scan")
         XCTAssertTrue(analysis.findings.isEmpty, "Different files should not be flagged as duplicates")
@@ -1329,7 +1355,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("console.log('hi')".utf8).write(to: root.appendingPathComponent("index.js", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome55 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome55.files, crawlOutcome55.errors)
         let detector = ProjectDetector()
         let projects = try await detector.detectProjects(in: records)
         XCTAssertFalse(projects.isEmpty, "Project with package.json should be detected")
@@ -1345,7 +1372,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("fn main() {}".utf8).write(to: srcDir.appendingPathComponent("main.rs", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome56 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome56.files, crawlOutcome56.errors)
         let detector = ProjectDetector()
         let projects = try await detector.detectProjects(in: records)
         XCTAssertFalse(projects.isEmpty, "Rust project should be detected")
@@ -1365,7 +1393,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.setAttributes([.modificationDate: oldDate], ofItemAtPath: file.path)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome57 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome57.files, crawlOutcome57.errors)
         let planner = OrganizationPlanner()
         let (findings, recs) = try await planner.suggestOrganization(files: records, sessionID: "scan")
         // Files 7-29 days old in Downloads should get organization suggestions
@@ -1462,7 +1491,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 42).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome58 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome58.files, crawlOutcome58.errors)
         let record = records.first { $0.url == file.standardizedFileURL }
         XCTAssertNotNil(record)
         XCTAssertEqual(record?.sizeBytes, 42)
@@ -1475,7 +1505,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(repeating: 0, count: 10).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome59 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome59.files, crawlOutcome59.errors)
         let record = records.first { $0.url == file.standardizedFileURL }
         XCTAssertNotNil(record)
         XCTAssertEqual(record?.fileName, "document.pdf")
@@ -1489,7 +1520,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.createDirectory(at: subdir, withIntermediateDirectories: true)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome60 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome60.files, crawlOutcome60.errors)
         let dirRecord = records.first { $0.url == subdir.standardizedFileURL }
         XCTAssertNotNil(dirRecord)
         XCTAssertEqual(dirRecord?.kind, .directory)
@@ -1581,7 +1613,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("This is a test document with some content.".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome61 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome61.files, crawlOutcome61.errors)
         let extractor = ContentExtractor()
         let summaries = await extractor.summarize(files: records, privacyMode: .snippetsAI)
         let summary = summaries.first { $0.fileID == records.first { $0.url == file.standardizedFileURL }?.id }
@@ -1685,7 +1718,6 @@ final class MacOSCleanerTests: XCTestCase {
         let size = getxattr(path, key, nil, 0, 0, 0)
         XCTAssertGreaterThan(size, 0, "Tags should be written as extended attributes")
     }
-
 
     func testRiskLevelComparable() {
         XCTAssertTrue(RiskLevel.low < RiskLevel.medium)
@@ -1988,7 +2020,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome62 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome62.files, crawlOutcome62.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let store = try SQLiteStore.inMemory()
@@ -2013,7 +2046,8 @@ final class MacOSCleanerTests: XCTestCase {
         let aliasDest = root.appendingPathComponent("aliases", isDirectory: true)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome63 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome63.files, crawlOutcome63.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let store = try SQLiteStore.inMemory()
@@ -2038,7 +2072,8 @@ final class MacOSCleanerTests: XCTestCase {
         let archiveDest = root.appendingPathComponent("archives", isDirectory: true)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome64 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome64.files, crawlOutcome64.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let store = try SQLiteStore.inMemory()
@@ -2099,7 +2134,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("secret".utf8).write(to: hidden)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome65 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome65.files, crawlOutcome65.errors)
         let record = records.first { $0.url == hidden.standardizedFileURL }
         XCTAssertNotNil(record, "Hidden files should be found by crawler")
         XCTAssertTrue(record?.fileName.hasPrefix(".") ?? false, "Hidden file name should start with dot")
@@ -2112,7 +2148,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.createDirectory(at: emptyDir, withIntermediateDirectories: true)
 
         let crawler = FileCrawler()
-        let (records, errors) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome66 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, errors) = (crawlOutcome66.files, crawlOutcome66.errors)
         let dirRecord = records.first { $0.url == emptyDir.standardizedFileURL }
         XCTAssertNotNil(dirRecord, "Empty directory should be found")
         XCTAssertEqual(errors, 0, "No errors expected for empty directory")
@@ -2221,7 +2258,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data(content.utf8).write(to: root.appendingPathComponent("dup2.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome67 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome67.files, crawlOutcome67.errors)
         let detector = DuplicateDetector()
         let analysis = try await detector.analyze(files: records, sessionID: "scan")
         XCTAssertFalse(analysis.edges.isEmpty, "Duplicate files should produce relationship edges")
@@ -2235,7 +2273,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("console.log('hi')".utf8).write(to: root.appendingPathComponent("index.js", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome68 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome68.files, crawlOutcome68.errors)
         let detector = ProjectDetector()
         let projects = try await detector.detectProjects(in: records)
         let edges = await detector.buildEdges(files: records, projects: projects)
@@ -2714,7 +2753,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.setAttributes([.modificationDate: oldDate], ofItemAtPath: file.path)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome69 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome69.files, crawlOutcome69.errors)
         let planner = OrganizationPlanner()
         let (_, recs) = try await planner.suggestOrganization(files: records, sessionID: "scan")
         // Inbox files should get alias recommendations
@@ -2732,7 +2772,8 @@ final class MacOSCleanerTests: XCTestCase {
         try TestFileFixtures.makePDF(at: pdfFile, text: "Invoice for cleanup test")
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome70 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome70.files, crawlOutcome70.errors)
         let extractor = ContentExtractor()
         let summaries = await extractor.summarize(files: records, privacyMode: .snippetsAI)
         let summary = try XCTUnwrap(summaries.first, "A readable PDF should produce a text summary")
@@ -2748,7 +2789,8 @@ final class MacOSCleanerTests: XCTestCase {
         try TestFileFixtures.makePNG(at: imgFile, width: 10, height: 10)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome71 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome71.files, crawlOutcome71.errors)
         let extractor = ContentExtractor()
         let summaries = await extractor.summarize(files: records, privacyMode: .snippetsAI)
         let summary = try XCTUnwrap(summaries.first, "A readable image should produce a summary with metadata labels")
@@ -2767,7 +2809,8 @@ final class MacOSCleanerTests: XCTestCase {
         let linkDest = root.appendingPathComponent("links", isDirectory: true)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome72 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome72.files, crawlOutcome72.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let store = try SQLiteStore.inMemory()
@@ -2791,7 +2834,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome73 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome73.files, crawlOutcome73.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let store = try SQLiteStore.inMemory()
@@ -2843,7 +2887,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("unique".utf8).write(to: root.appendingPathComponent("single.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome74 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome74.files, crawlOutcome74.errors)
         let detector = DuplicateDetector()
         let analysis = try await detector.analyze(files: records, sessionID: "scan")
         XCTAssertTrue(analysis.findings.isEmpty, "Single file should not produce duplicates")
@@ -2857,7 +2902,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("content".utf8).write(to: root.appendingPathComponent("file.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, errors) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome75 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, errors) = (crawlOutcome75.files, crawlOutcome75.errors)
         XCTAssertGreaterThan(records.count, 0, "Should find files")
         XCTAssertEqual(errors, 0, "No errors expected for accessible directory")
     }
@@ -2873,7 +2919,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("content2".utf8).write(to: root2.appendingPathComponent("file2.txt", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root1, root2], sessionID: "scan")
+        let crawlOutcome76 = await crawler.crawl(rootURLs: [root1, root2], sessionID: "scan")
+        let (records, _) = (crawlOutcome76.files, crawlOutcome76.errors)
         let names = records.map(\.fileName)
         XCTAssertTrue(names.contains("file1.txt"), "Should find file in root1")
         XCTAssertTrue(names.contains("file2.txt"), "Should find file in root2")
@@ -3067,7 +3114,8 @@ final class MacOSCleanerTests: XCTestCase {
         try FileManager.default.setAttributes([.modificationDate: oldDate], ofItemAtPath: file.path)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome77 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome77.files, crawlOutcome77.errors)
         let planner = OrganizationPlanner()
         let (_, recs) = try await planner.suggestOrganization(files: records, sessionID: "scan")
         let tagRecs = recs.filter { $0.actionType == .tag }
@@ -3176,7 +3224,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome78 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome78.files, crawlOutcome78.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let store = try SQLiteStore.inMemory()
@@ -3202,7 +3251,8 @@ final class MacOSCleanerTests: XCTestCase {
         try Data("content".utf8).write(to: file)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome79 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome79.files, crawlOutcome79.errors)
         let record = records.first { $0.url == file.standardizedFileURL }!
 
         let store = try SQLiteStore.inMemory()
@@ -3329,7 +3379,8 @@ final class MacOSCleanerTests: XCTestCase {
         let destination = root.appendingPathComponent("Archive", isDirectory: true)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome80 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome80.files, crawlOutcome80.errors)
         let goodRecord = try XCTUnwrap(records.first { $0.url == goodFile.standardizedFileURL })
         // Fabricate a record for a non-existent file so the executor attempts to archive it.
         let missingRecord = FileRecord(

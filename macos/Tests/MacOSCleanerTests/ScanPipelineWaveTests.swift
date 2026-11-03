@@ -46,7 +46,8 @@ final class ScanPipelineWaveTests: XCTestCase {
         }
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let crawlOutcome18 = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let (records, _) = (crawlOutcome18.files, crawlOutcome18.errors)
         let recordsByPath = Dictionary(uniqueKeysWithValues: records.map { ($0.url.path, $0) })
         let ordered = fileURLs.compactMap { recordsByPath[$0.standardizedFileURL.path] }
         XCTAssertEqual(ordered.count, fileURLs.count, "Every fixture file must be crawled")
@@ -69,7 +70,8 @@ final class ScanPipelineWaveTests: XCTestCase {
         let url = root.appendingPathComponent("secret.txt")
         try Data("sensitive content".utf8).write(to: url)
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let crawlOutcome19 = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let (records, _) = (crawlOutcome19.files, crawlOutcome19.errors)
         let record = try XCTUnwrap(records.first { $0.url == url.standardizedFileURL })
 
         let extractor = ContentExtractor()

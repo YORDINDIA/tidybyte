@@ -53,7 +53,8 @@ final class RuleEngineLeftoverAndCacheRuleTests: XCTestCase {
         try TestFileFixtures.makeSparseFile(at: blob, logicalSize: 50_500_000)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome22 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome22.files, crawlOutcome22.errors)
         let engine = CleanerRuleEngine()
         let (findings, recommendations) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
 
@@ -89,7 +90,8 @@ final class RuleEngineLeftoverAndCacheRuleTests: XCTestCase {
         try Data(repeating: 0, count: 1_000).write(to: smallFolder.appendingPathComponent("settings.plist", isDirectory: false))
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome23 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome23.files, crawlOutcome23.errors)
         let engine = CleanerRuleEngine()
         let (findings, _) = try await engine.analyze(files: records, projects: [], sessionID: "scan")
 

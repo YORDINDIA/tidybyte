@@ -231,17 +231,19 @@ public actor ScanOrchestrator {
             } else {
                 crawlSink = nil
             }
-            let (files, errors) = await crawler.crawl(rootURLs: roots, sessionID: session.id, progress: crawlSink)
+            let crawl = await crawler.crawl(rootURLs: roots, sessionID: session.id, progress: crawlSink)
             finishStage("Crawl")
-            partial.files = files
-            partial.errors = errors
-            if errors > 0 {
-                let message = errors == 1
-                    ? String(localized: "Crawl completed with 1 error across \(files.count) files.", comment: "Log: single crawl error")
-                    : String(localized: "Crawl completed with \(errors) errors across \(files.count) files.", comment: "Log: multiple crawl errors")
-                logger.warning("\(message, privacy: .public)")
+            let files = crawl.files
+            let errors = crawl.errors
+            partial.files = crawl.files
+            partial.errors = crawl.errors
+            // S-03: a requested root the policy refused (e.g. a SIP-protected
+            // path) must not look like a clean scan.
+            partial.notices += crawl.skippedRootNotices
+            if crawl.errors > 0 {
+                logger.warning("Crawl completed with \(crawl.errors) errors across \(crawl.files.count) files.")
                 partial.notices.append(ScanNotice(message: String(
-                    localized: "\(errors) items could not be read during the scan and are not included in these results.",
+                    localized: "\(crawl.errors) items could not be read during the scan and are not included in these results.",
                     comment: "Scan notice for unreadable entries")))
             }
             await notifyProgress(3, String(localized: "Analyzing findings"))
@@ -320,6 +322,11 @@ public actor ScanOrchestrator {
                 } catch {
                     logger.warning("AI classification failed: \(error.localizedDescription, privacy: .public). Proceeding without AI recommendations.")
                     aiRecommendations = []
+                    // S-02: this used to be log-only, so the plan rendered as
+                    // if AI had run. Surface the skip in the scan notices.
+                    partial.notices.append(ScanNotice(message: String(
+                        localized: "AI classification was skipped (\(error.localizedDescription)); results are from local rules only.",
+                        comment: "Scan notice when AI classification fails")))
                 }
             } else {
                 aiRecommendations = []
@@ -334,7 +341,7 @@ public actor ScanOrchestrator {
             finishStage("Memory, AI, and plan")
             return try await finalizeScan(
                 session: &session,
-                files: files,
+                files: crawl.files,
                 roots: roots,
                 findings: partial.findings,
                 recommendations: partial.recommendations,
@@ -344,7 +351,7 @@ public actor ScanOrchestrator {
                 fingerprints: partial.fingerprints,
                 contentSummaries: partial.contentSummaries,
                 packageCandidates: partial.packageCandidates,
-                errors: errors,
+                errors: crawl.errors,
                 notices: partial.notices,
                 wasCancelled: false,
                 notifyProgress: notifyProgress
@@ -599,6 +606,11 @@ public actor ScanOrchestrator {
             } catch {
                 logger.warning("AI classification failed: \(error.localizedDescription, privacy: .public). Proceeding without AI recommendations.")
                 aiRecommendations = []
+                // S-02: surface the skip here too — this is the stopped-scan
+                // rule pass, and it feeds the same notices strip.
+                partial.notices.append(ScanNotice(message: String(
+                    localized: "AI classification was skipped (\(error.localizedDescription)); results are from local rules only.",
+                    comment: "Scan notice when AI classification fails")))
             }
         } else {
             aiRecommendations = []

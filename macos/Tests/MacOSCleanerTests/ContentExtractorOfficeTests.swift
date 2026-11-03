@@ -44,7 +44,8 @@ final class ContentExtractorOfficeTests: XCTestCase {
         try makeOfficeFixture(at: docx, from: source, format: "docx")
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome26 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome26.files, crawlOutcome26.errors)
         let docxRecord = try XCTUnwrap(records.first { $0.fileName == "report.docx" })
         let extractor = ContentExtractor()
         let summaries = await extractor.summarize(files: records, privacyMode: .snippetsAI)
@@ -76,7 +77,8 @@ final class ContentExtractorOfficeTests: XCTestCase {
         }
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let crawlOutcome27 = await crawler.crawl(rootURLs: [root], sessionID: "scan")
+        let (records, _) = (crawlOutcome27.files, crawlOutcome27.errors)
         let pptxRecord = try XCTUnwrap(records.first { $0.fileName == "deck.pptx" })
         let extractor = ContentExtractor()
         let summaries = await extractor.summarize(files: records, privacyMode: .snippetsAI)

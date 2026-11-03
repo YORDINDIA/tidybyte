@@ -190,7 +190,8 @@ final class RedesignSafetyTests: XCTestCase {
             urls.append(fileURL)
         }
         let crawler = FileCrawler()
-        let (files, _) = await crawler.crawl(rootURLs: [root], sessionID: "s")
+        let crawlOutcome28 = await crawler.crawl(rootURLs: [root], sessionID: "s")
+        let (files, _) = (crawlOutcome28.files, crawlOutcome28.errors)
         let detector = ProjectDetector()
         let projects = try await detector.detectProjects(in: files)
         XCTAssertFalse(projects.isEmpty, "Fixture must detect a project")

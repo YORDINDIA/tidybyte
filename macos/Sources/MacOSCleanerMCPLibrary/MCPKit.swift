@@ -458,7 +458,7 @@ extension MCPKit {
     /// runs and history list 8-character short ids, and an empty (or very
     /// short) prefix would silently match everything.
     static func validatedIDPrefix(_ raw: String?) throws -> String {
-        guard var id = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty else {
+        guard let id = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty else {
             throw MCPError.invalidIDPrefix
         }
         if id.count < minIDPrefixLength {

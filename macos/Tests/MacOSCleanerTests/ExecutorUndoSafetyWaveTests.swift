@@ -51,7 +51,8 @@ final class ExecutorUndoSafetyWaveTests: XCTestCase {
         try Data("gone".utf8).write(to: vanishedURL)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let crawlOutcome20 = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let (records, _) = (crawlOutcome20.files, crawlOutcome20.errors)
         let validRecord = try XCTUnwrap(records.first { $0.url == validURL.standardizedFileURL })
         let vanishedRecord = try XCTUnwrap(records.first { $0.url == vanishedURL.standardizedFileURL })
         try FileManager.default.removeItem(at: vanishedURL)
@@ -80,7 +81,8 @@ final class ExecutorUndoSafetyWaveTests: XCTestCase {
         try FileManager.default.createDirectory(at: aliasesDir, withIntermediateDirectories: true)
 
         let crawler = FileCrawler()
-        let (records, _) = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let crawlOutcome21 = await crawler.crawl(rootURLs: [root], sessionID: "wave")
+        let (records, _) = (crawlOutcome21.files, crawlOutcome21.errors)
         let validRecord = try XCTUnwrap(records.first { $0.url == validURL.standardizedFileURL })
         let vanishedRecord = try XCTUnwrap(records.first { $0.url == vanishedURL.standardizedFileURL })
         try FileManager.default.removeItem(at: vanishedURL)

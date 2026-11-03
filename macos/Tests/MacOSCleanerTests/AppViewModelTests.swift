@@ -1047,4 +1047,20 @@ final class AppViewModelTests: XCTestCase {
         XCTAssertEqual(model.statusMessage, "Preference saved.")
         XCTAssertNil(model.errorMessage)
     }
+
+    // MARK: - MB-F4: repeated identical status messages still surface
+
+    /// The toast layer observes `statusMessageEpoch`, which must bump on
+    /// every assignment — setting the same string twice used to look like a
+    /// silent no-op because SwiftUI's onChange dedupes by value.
+    func testRepeatedIdenticalStatusMessagesBumpTheToastEpoch() throws {
+        let model = try makeModel(defaults: makeDefaultsSuite())
+        let first = model.statusMessageEpoch
+        model.setStatusMessage("Nothing to undo. No completed cleanup operations yet.")
+        let afterFirst = model.statusMessageEpoch
+        model.setStatusMessage("Nothing to undo. No completed cleanup operations yet.")
+        XCTAssertEqual(afterFirst, first + 1, "the first assignment bumps the epoch")
+        XCTAssertEqual(model.statusMessageEpoch, first + 2, "a repeated identical message must bump the epoch again")
+        XCTAssertEqual(model.statusMessage, "Nothing to undo. No completed cleanup operations yet.")
+    }
 }
