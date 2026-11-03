@@ -210,13 +210,22 @@ struct MonitorPanelView: View {
                 if !snapshot.devServers.isEmpty || !snapshot.agents.isEmpty || !snapshot.containers.isEmpty {
                     HStack(spacing: Spacing.elementTight) {
                         if !snapshot.devServers.isEmpty {
-                            chip(icon: "curlybraces.square", text: String(snapshot.devServers.count), tint: MonitorTab.projects.tint)
+                            chip(
+                                icon: "curlybraces.square", text: String(snapshot.devServers.count),
+                                tint: MonitorTab.projects.tint,
+                                label: String(localized: "\(snapshot.devServers.count) dev servers", comment: "Panel chip a11y label"))
                         }
                         if !snapshot.agents.isEmpty {
-                            chip(icon: "sparkles", text: String(snapshot.agents.count), tint: MonitorTab.agents.tint)
+                            chip(
+                                icon: "sparkles", text: String(snapshot.agents.count),
+                                tint: MonitorTab.agents.tint,
+                                label: String(localized: "\(snapshot.agents.count) coding agents", comment: "Panel chip a11y label"))
                         }
                         if !snapshot.containers.isEmpty {
-                            chip(icon: "shippingbox", text: String(snapshot.containers.count), tint: MonitorTab.containers.tint)
+                            chip(
+                                icon: "shippingbox", text: String(snapshot.containers.count),
+                                tint: MonitorTab.containers.tint,
+                                label: String(localized: "\(snapshot.containers.count) containers", comment: "Panel chip a11y label"))
                         }
                         Spacer()
                     }
@@ -258,13 +267,15 @@ struct MonitorPanelView: View {
         }
     }
 
-    private func chip(icon: String, text: String, tint: Color) -> some View {
+    private func chip(icon: String, text: String, tint: Color, label: String) -> some View {
         Label(text, systemImage: icon)
             .font(.caption.monospacedDigit())
             .foregroundStyle(tint)
             .padding(.horizontal, 8)
             .padding(.vertical, 2)
             .background(Capsule().fill(tint.opacity(0.12)))
+            // VoiceOver hears what the chip means, not a bare number.
+            .accessibilityLabel(Text(label))
     }
 
     /// Panels sample every few points to keep the sparkline readable at

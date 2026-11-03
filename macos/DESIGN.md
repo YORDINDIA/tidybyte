@@ -22,7 +22,7 @@ One `NavigationSplitView` with a source-list sidebar, one detail column, and a n
 - Changes and History switch views with a segmented control in the toolbar.
 - The App Store build shows Overview, Photos & Media, and History only.
 
-Default window 1200 × 800 points; detail column minimum 420 points, so macOS collapses the sidebar before content clips. Sidebar 200–280 points. Inspector 280–400 points; it never turns into a sheet.
+Default window 1200 × 800 points, clamped at a 900 × 640 minimum; detail column minimum 420 points, so macOS collapses the sidebar before content clips. Sidebar 200–280 points (ideal 220). Inspector 280–400 points (ideal 320); it never turns into a sheet.
 
 ## Toolbar
 

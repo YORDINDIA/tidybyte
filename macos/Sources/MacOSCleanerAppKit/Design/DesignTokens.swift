@@ -46,6 +46,10 @@ public enum Radius {
     public static let cardCompact: CGFloat = 8
 }
 
+/// Window metrics, reconciled with DESIGN.md: the window defaults to
+/// 1200 × 800 (`.defaultSize` in MacOSCleanerApp) and clamps at this 900 × 640
+/// minimum; the detail column floors at 420 (ContentView); the sidebar runs
+/// 200–280 with this ideal; the inspector runs 280–400 with this ideal.
 public enum Spacing {
     public static let windowMinWidth: CGFloat = 900
     public static let windowMinHeight: CGFloat = 640
