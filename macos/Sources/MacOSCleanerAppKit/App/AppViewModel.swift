@@ -38,7 +38,10 @@ final class AppViewModel {
     let monitor = MonitorModel()
     var selectedMode: ScanMode = .selectedFolders
     var selectedFolders: [URL] = []
-    var cleanupPosture: CleanupPosture = .conservative
+    // S-01: the posture now really gates the rule engine, so the default is
+    // Balanced — the thresholds this app has always used — while
+    // Conservative/Aggressive tighten and loosen from there.
+    var cleanupPosture: CleanupPosture = .balanced
     /// How exact duplicate groups are resolved by default. APFS clone folding
     /// is the default because it reclaims space without deleting anything.
     var duplicateStrategy: DuplicateStrategy = .apfsClone
@@ -1274,7 +1277,7 @@ final class AppViewModel {
             naturalLanguageCommand = ""
             selectedFolders = []
             selectedMode = .selectedFolders
-            cleanupPosture = .conservative
+            cleanupPosture = .balanced  // factory default (S-01)
             includeAI = false
             providerSettings = ProviderSettings()
             // Must run before the defaults wipe below: the observer unregisters

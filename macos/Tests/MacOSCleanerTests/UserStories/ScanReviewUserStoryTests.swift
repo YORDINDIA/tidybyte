@@ -31,12 +31,14 @@ final class ScanReviewUserStoryTests: XCTestCase {
         let memory = MemoryEngine(store: store)
         let orchestrator = ScanOrchestrator(store: store, memory: memory)
 
+        // Balanced posture: this story pins core-category coverage, not the
+        // Conservative gates (which hold back the 45-day installer by design).
         let (outcome, plan) = try await orchestrator.scan(
             mode: .selectedFolders,
             selectedFolders: [root],
             providerSettings: ProviderSettings(privacyMode: .metadataOnlyAI),
             includeAI: false,
-            posture: .conservative
+            posture: .balanced
         )
 
         XCTAssertEqual(outcome.session.status, .completed)

@@ -126,7 +126,7 @@ final class AppViewModelTests: XCTestCase {
         XCTAssertNil(model.errorMessage)
         XCTAssertEqual(model.selectedMode, .selectedFolders)
         XCTAssertEqual(model.selectedFolders, [])
-        XCTAssertEqual(model.cleanupPosture, .conservative)
+        XCTAssertEqual(model.cleanupPosture, .balanced, "factory default is Balanced (S-01)")
     }
 
     // MARK: - 2. Settings persistence
@@ -864,7 +864,7 @@ final class AppViewModelTests: XCTestCase {
         await model.clearAllData()
 
         // Then every preference resets in memory (ST-18)
-        XCTAssertEqual(model.cleanupPosture, .conservative)
+        XCTAssertEqual(model.cleanupPosture, .balanced, "factory default is Balanced (S-01)")
         XCTAssertFalse(model.includeAI)
         XCTAssertEqual(model.providerSettings.providerName, "OpenAI-compatible")
         XCTAssertEqual(model.providerSettings.textModel, "gpt-4.1-mini")
@@ -874,7 +874,7 @@ final class AppViewModelTests: XCTestCase {
 
         // And a fresh model against the same suite starts from factory defaults
         let reloaded = try makeModel(defaults: defaults)
-        XCTAssertEqual(reloaded.cleanupPosture, .conservative)
+        XCTAssertEqual(reloaded.cleanupPosture, .balanced, "factory default is Balanced (S-01)")
         XCTAssertFalse(reloaded.includeAI)
         XCTAssertEqual(reloaded.providerSettings.providerName, "OpenAI-compatible")
         XCTAssertEqual(reloaded.providerSettings.privacyMode, .localOnly)

@@ -1,6 +1,33 @@
 import Foundation
 import os
 
+/// S-01: the cleanup posture has to change what the rule engine proposes.
+/// Conservative asks for older, larger candidates; aggressive proposes
+/// younger, smaller ones; balanced keeps the thresholds this engine has
+/// always used.
+private struct PostureThresholds {
+    let oldDownloadDays: Int
+    let organizationDays: Int
+    let largeFileBytes: Int64
+
+    init(_ posture: CleanupPosture) {
+        switch posture {
+        case .conservative:
+            oldDownloadDays = 60
+            organizationDays = 90
+            largeFileBytes = 2 * FileCrawler.largeFileBytes
+        case .balanced:
+            oldDownloadDays = 30
+            organizationDays = 45
+            largeFileBytes = FileCrawler.largeFileBytes
+        case .aggressive:
+            oldDownloadDays = 14
+            organizationDays = 30
+            largeFileBytes = FileCrawler.largeFileBytes / 2
+        }
+    }
+}
+
 public actor CleanerRuleEngine {
     private let policy: PathSafetyPolicy
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "CleanerRuleEngine")
@@ -44,11 +71,12 @@ public actor CleanerRuleEngine {
         files: [FileRecord],
         projects: [ProjectUnit],
         sessionID: String,
-        posture: CleanupPosture = .conservative
+        posture: CleanupPosture = .balanced
     ) throws -> ([Finding], [Recommendation]) {
         var findings: [Finding] = []
         var recommendations: [Recommendation] = []
         let directorySizes = subtreeSizes(for: files)
+        let thresholds = PostureThresholds(posture)
 
         // One policy pass for every rule below. The crawler already recorded
         // each record's risk flags, so filtering is string work; the allowed
@@ -64,7 +92,9 @@ public actor CleanerRuleEngine {
                 try Task.checkCancellation()
             }
             if let result = autoreleasepool(invoking: {
-                firstFinding(for: record, sessionID: sessionID, directorySizes: directorySizes, projects: projects)
+                firstFinding(
+                    for: record, sessionID: sessionID, directorySizes: directorySizes, projects: projects,
+                    thresholds: thresholds)
             }) {
                 findings.append(result.finding)
                 recommendations.append(result.recommendation)
@@ -93,7 +123,7 @@ public actor CleanerRuleEngine {
         findings.append(contentsOf: packageCacheResults.map(\.finding))
         recommendations.append(contentsOf: packageCacheResults.map(\.recommendation))
 
-        let largeFiles = largeFileFindings(files: allowedFiles, sessionID: sessionID)
+        let largeFiles = largeFileFindings(files: allowedFiles, sessionID: sessionID, thresholds: thresholds)
         findings.append(contentsOf: largeFiles.map(\.finding))
         recommendations.append(contentsOf: largeFiles.map(\.recommendation))
         let appLeftovers = appLeftoverFindings(files: allowedFiles, sessionID: sessionID, directorySizes: directorySizes)
@@ -260,7 +290,9 @@ public actor CleanerRuleEngine {
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent($0).standardizedFileURL.path + "/"
     }
 
-    private func oldDownloadFinding(_ record: FileRecord, sessionID: String) -> (finding: Finding, recommendation: Recommendation)? {
+    private func oldDownloadFinding(
+        _ record: FileRecord, sessionID: String, thresholds: PostureThresholds
+    ) -> (finding: Finding, recommendation: Recommendation)? {
         let folders = Set(record.url.pathComponents.map { $0.lowercased() })
         let isInstaller = record.fileExtension.map(Self.installerExtensions.contains) ?? false
         let inDownloads = folders.contains("downloads")
@@ -269,7 +301,7 @@ public actor CleanerRuleEngine {
         guard record.kind == .regularFile || (record.kind == .package && isInstaller),
               inDownloads || (isInstaller && Self.desktopAndDocuments.contains { path.hasPrefix($0) }),
               let modifiedAt = record.modifiedAt,
-              let cutoff = Calendar.current.date(byAdding: .day, value: -30, to: Date()),
+              let cutoff = Calendar.current.date(byAdding: .day, value: -thresholds.oldDownloadDays, to: Date()),
               modifiedAt < cutoff else {
             return nil
         }
@@ -353,11 +385,13 @@ public actor CleanerRuleEngine {
         return (finding, recommendation)
     }
 
-    private func organizationFinding(_ record: FileRecord, sessionID: String) -> (finding: Finding, recommendation: Recommendation)? {
+    private func organizationFinding(
+        _ record: FileRecord, sessionID: String, thresholds: PostureThresholds
+    ) -> (finding: Finding, recommendation: Recommendation)? {
         guard record.kind == .regularFile,
               record.url.pathComponents.contains(where: { $0.lowercased() == "downloads" }),
               let modifiedAt = record.modifiedAt,
-              let cutoff = Calendar.current.date(byAdding: .day, value: -45, to: Date()),
+              let cutoff = Calendar.current.date(byAdding: .day, value: -thresholds.organizationDays, to: Date()),
               modifiedAt < cutoff else {
             return nil
         }
@@ -393,9 +427,11 @@ public actor CleanerRuleEngine {
         return (finding, recommendation)
     }
 
-    private func largeFileFindings(files: [FileRecord], sessionID: String) -> [(finding: Finding, recommendation: Recommendation)] {
+    private func largeFileFindings(
+        files: [FileRecord], sessionID: String, thresholds: PostureThresholds
+    ) -> [(finding: Finding, recommendation: Recommendation)] {
         files
-            .filter { $0.kind == .regularFile && $0.sizeBytes >= FileCrawler.largeFileBytes }
+            .filter { $0.kind == .regularFile && $0.sizeBytes >= thresholds.largeFileBytes }
             .map { record in
                 let findingID = UUID().uuidString
                 let finding = Finding(
@@ -490,16 +526,17 @@ public actor CleanerRuleEngine {
 
     /// The first rule that matches the record, in priority order.
     private func firstFinding(
-        for record: FileRecord, sessionID: String, directorySizes: [String: Int64], projects: [ProjectUnit]
+        for record: FileRecord, sessionID: String, directorySizes: [String: Int64], projects: [ProjectUnit],
+        thresholds: PostureThresholds
     ) -> (finding: Finding, recommendation: Recommendation)? {
         // The caller loops over the engine's one policy pass, so `record` is
         // already policy-allowed.
         return developerArtifactFinding(record, sessionID: sessionID, directorySizes: directorySizes, projects: projects)
             ?? xcarchiveFinding(record, sessionID: sessionID, directorySizes: directorySizes)
             ?? cacheOrLogFinding(record, sessionID: sessionID, directorySizes: directorySizes, projects: projects)
-            ?? oldDownloadFinding(record, sessionID: sessionID)
+            ?? oldDownloadFinding(record, sessionID: sessionID, thresholds: thresholds)
             ?? codingAgentFinding(record, sessionID: sessionID, directorySizes: directorySizes)
-            ?? organizationFinding(record, sessionID: sessionID)
+            ?? organizationFinding(record, sessionID: sessionID, thresholds: thresholds)
     }
 
     private func subtreeSizes(for files: [FileRecord]) -> [String: Int64] {

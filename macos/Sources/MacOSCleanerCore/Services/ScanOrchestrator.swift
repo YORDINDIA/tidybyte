@@ -234,7 +234,6 @@ public actor ScanOrchestrator {
             let crawl = await crawler.crawl(rootURLs: roots, sessionID: session.id, progress: crawlSink)
             finishStage("Crawl")
             let files = crawl.files
-            let errors = crawl.errors
             partial.files = crawl.files
             partial.errors = crawl.errors
             // S-03: a requested root the policy refused (e.g. a SIP-protected
