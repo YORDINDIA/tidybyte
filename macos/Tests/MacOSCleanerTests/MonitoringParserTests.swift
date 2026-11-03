@@ -151,7 +151,8 @@ final class MonitoringParserTests: XCTestCase {
     }
 
     /// Keys leave the alert state when their app leaves the snapshot, and
-    /// baselines/cooldowns expire after 2 and 24 hours.
+    /// baselines/cooldowns expire after 2 and 24 hours. (The actor-boundary
+    /// alert evidence tests live in MonitoringEvidenceTests.)
     func testStaleAlertStateIsPruned() {
         let now = Date(timeIntervalSince1970: 100_000)
         let present = AppProcessGroup(
