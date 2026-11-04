@@ -65,7 +65,18 @@ public struct MacOSCleanerApp: App {
         .defaultSize(width: 1200, height: 800)
         .windowToolbarStyle(.unified)
         .windowResizability(.contentMinSize)
-        .commands { CleanerCommands(model: model) }
+        .commands {
+            CleanerCommands(model: model)
+            // O-01: the system Quit item calls NSApplication.terminate:,
+            // which is a silent no-op while a sheet's modal session is
+            // active on macOS 26. Route Quit through the sheet-aware path.
+            CommandGroup(replacing: .appTermination) {
+                Button(String(localized: "Quit Tidybyte", comment: "App menu Quit")) {
+                    AppDelegate.shared?.requestQuit()
+                }
+                .keyboardShortcut("q", modifiers: .command)
+            }
+        }
 
         Settings {
             SettingsView(model: model)
@@ -174,9 +185,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             andEventID: AEEventID(kAEQuitApplication))
     }
 
-    /// Intercepts the quit Apple event (⌘Q, Dock, `quit app`, system shutdown).
-    @objc func handleQuitAppleEvent(_ event: NSAppleEventDescriptor, withReplyEvent reply: NSAppleEventDescriptor) {
+    /// The one quit entry point: ⌘Q, the menu item, Dock, `quit app`, and
+    /// system shutdown all end here (O-01).
+    @MainActor func requestQuit() {
         endSheetsAndQuit()
+    }
+
+    /// Intercepts the quit Apple event (Dock, `quit app`, system shutdown).
+    @objc func handleQuitAppleEvent(_ event: NSAppleEventDescriptor, withReplyEvent reply: NSAppleEventDescriptor) {
+        MainActor.assumeIsolated { self.endSheetsAndQuit() }
     }
 
     /// O-01: SwiftUI sheets run as modal sessions on macOS 26 and answer the

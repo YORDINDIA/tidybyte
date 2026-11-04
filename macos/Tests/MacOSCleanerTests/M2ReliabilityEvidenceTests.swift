@@ -244,6 +244,73 @@ final class M2ReliabilityEvidenceTests: XCTestCase {
         XCTAssertEqual(bytes, 2_000_000, "nested directory actions must badge once, not twice")
     }
 
+    // MARK: - AIApps-01: treemap buckets do not double-count nested findings
+
+    /// `dashboardSections` (the Explore treemap/category buckets) must count
+    /// a child finding inside an already-counted directory finding zero
+    /// times: the fixture's Caches 2.1 MB + Caches/App 2.1 MB showed 4.2 MB.
+    func testDashboardSectionsDoNotDoubleCountNestedCacheFindings() throws {
+        let harness = try makeModel()
+        let model = harness.model
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("M2-treemap-\(UUID().uuidString)", isDirectory: true)
+        let child = root.appendingPathComponent("Caches/App", isDirectory: true)
+        try FileManager.default.createDirectory(at: child, withIntermediateDirectories: true)
+        try Data(repeating: 7, count: 2_000_000).write(to: child.appendingPathComponent("cache.bin"))
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let parent = directory(root.appendingPathComponent("Caches"), sizeBytes: 0, rolledUp: false)
+        let childRecord = directory(child, sizeBytes: 2_000_000, rolledUp: true)
+        func cacheFinding(_ id: String, target: FileRecord) -> Finding {
+            Finding(
+                id: id, scanSessionID: "badge", category: .cache, severity: .low, confidence: 0.9,
+                bytesReclaimable: 2_000_000, summary: "treemap fixture", evidence: [:],
+                targetFileIDs: [target.id])
+        }
+        model.outcome = ScanOutcome(
+            session: ScanSession(scanType: .selectedFolders, rootURLs: [root], permissionsSnapshot: "test"),
+            files: [parent, childRecord], fingerprints: [], contentSummaries: [],
+            projects: [], edges: [],
+            findings: [cacheFinding("f-parent", target: parent), cacheFinding("f-child", target: childRecord)],
+            recommendations: [],
+            snapshot: StorageSnapshot(
+                id: "treemap-snap", createdAt: Date(), totalBytes: 0, bytesByCategory: [:],
+                bytesByRootPath: [:], bytesByProject: [:], removedBytesThroughApp: 0),
+            packageCandidates: [])
+
+        let cacheBytes = model.dashboardSections.first { $0.0 == .cache }?.1 ?? -1
+        XCTAssertEqual(cacheBytes, 2_000_000, "nested cache findings must count once, not twice")
+    }
+
+    // MARK: - MON-01: the Battery and Power tiles agree about direction
+
+    /// The Power tile's direction label must come from the same isCharging
+    /// source as the Battery tile — the SMC amperage sign disagrees with IOPS
+    /// on some hardware and showed "Discharging" next to a charging battery.
+    func testPowerTileDirectionFollowsTheBatteryTile() {
+        func tile(for reading: PowerReading) -> (battery: String, power: String?) {
+            var battery = "—"
+            if let level = reading.level {
+                battery = MetricFormatting.percent(level)
+            }
+            let power = reading.wattage.map { _ in
+                reading.isCharging
+                    ? String(localized: "Charging", comment: "Power direction")
+                    : String(localized: "Discharging", comment: "Power direction")
+            }
+            return (battery, power)
+        }
+
+        // The observed contradiction: charging at 24% with +50 W draw.
+        var reading = PowerReading(hasBattery: true)
+        reading.level = 0.24
+        reading.isCharging = true
+        reading.wattage = 50.2
+        let tiles = tile(for: reading)
+        XCTAssertEqual(tiles.power, "Charging", "a charging battery must never read Discharging")
+        XCTAssertTrue(tiles.battery.contains("24"))
+    }
+
     // MARK: - DP-04/05/06: the store-fallback ladder
 
     func testStoreSelectionUsesPrimaryWhenItWorks() async throws {
