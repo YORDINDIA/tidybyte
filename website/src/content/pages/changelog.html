@@ -9,11 +9,38 @@
       <div class="mx-auto mt-16 max-w-3xl">
         <article>
           <header class="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 class="h-section text-2xl sm:text-3xl">Mac v1.0.0 &mdash; the first Mac release</h2>
+            <time class="muted text-sm" datetime="2026-11">November 2026</time>
+          </header>
+          <p class="muted mt-2 inline-flex items-center gap-2 text-sm">
+            <span class="badge">Mac &middot; Unreleased</span>
+            <span>The whole Mac app &mdash; cleaner, monitor, and MCP server &mdash; hardened by a full production audit.</span>
+          </p>
+
+          <h3 class="mt-6 text-base font-semibold text-ink">Highlights</h3>
+          <ul class="muted mt-3 space-y-2 text-base">
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-lav" aria-hidden="true"></span><span><strong class="text-ink">One window, Apple-native.</strong> Overview, Clean (System Junk, Developer, Large &amp; Old Files, Duplicates, Photos &amp; Media), Apps (Applications, Leftovers, Login Items), Insights, and a full system monitor with thirteen dashboards. Quitting works even with a sheet open, and switching areas as fast as you like no longer trips an AppKit toolbar crash.</span></li>
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-lav" aria-hidden="true"></span><span><strong class="text-ink">Sizes and review order are honest.</strong> Folder rows show what is really inside, nested suggestions are not counted twice, and the riskiest actions lead the review instead of hiding at the bottom. The cleanup posture setting now really changes what is proposed.</span></li>
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-lav" aria-hidden="true"></span><span><strong class="text-ink">Nothing fails silently.</strong> Skipped AI classification and locations the safety rules refuse surface as scan notices, every loading surface shows skeletons until data arrives, and undoing from the menu bar asks the same why-question as undoing in History.</span></li>
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-lav" aria-hidden="true"></span><span><strong class="text-ink">A monitor and an MCP server.</strong> Thirteen dashboards where helpers roll into their app, a process inspector with code signature and ports, menu bar items, a year of local history, alerts, a terminal command, and read-only MCP tools for AI assistants.</span></li>
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-lav" aria-hidden="true"></span><span><strong class="text-ink">Verified end to end.</strong> 582 automated tests, a scripted MCP check-in, a headless maintenance run that only merges exact duplicates into clones, and a live pass of scan &rarr; review &rarr; approve &rarr; execute &rarr; undo.</span></li>
+          </ul>
+
+          <h3 class="mt-8 text-base font-semibold text-ink">Release notes</h3>
+          <p class="muted mt-3 text-base leading-relaxed">
+            TidyByte for Mac is the desktop half of TidyByte: it finds caches, developer files, duplicates, old downloads, and app leftovers, explains every proposal, and changes nothing until you approve. This first release went through a full production audit &mdash; crashes, silent failures, misleading sizes, and every untested surface were chased down on fixture sandboxes, and these pages describe exactly what shipped. Everything runs on your Mac, with no account, no ads and no subscription.
+          </p>
+        </article>
+
+        <hr class="my-12 border-hairline">
+
+        <article>
+          <header class="flex flex-wrap items-baseline justify-between gap-3">
             <h2 class="h-section text-2xl sm:text-3xl">v1.1.1 &mdash; iPhone Duo, and the review fixes</h2>
             <time class="muted text-sm" datetime="2026-10">October 2026</time>
           </header>
           <p class="muted mt-2 inline-flex items-center gap-2 text-sm">
-            <span class="badge">Latest</span>
+            <span class="badge">Latest iPhone release</span>
             <span>Adapts to both iPhone Duo displays, and fixes what a full review of 1.1.0 turned up.</span>
           </p>
 

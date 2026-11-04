@@ -111,8 +111,8 @@ const CORE_PAGES: PageMeta[] = [
   },
   {
     route: "/changelog",
-    title: "Changelog &mdash; TidyByte Photo Cleaner for iPhone",
-    description: "Release notes for TidyByte, the free iPhone photo cleaner. See what's new in each version &mdash; features, fixes, and improvements.",
+    title: "Changelog &mdash; TidyByte for Mac and iPhone",
+    description: "Release notes for TidyByte on Mac and iPhone. See what's new in each version — features, fixes, and improvements, newest first.",
     robots: "index, follow",
     ogType: "website",
     ogImage: "https://tidybyte.360ghar.com/assets/img/icon-1024.png",

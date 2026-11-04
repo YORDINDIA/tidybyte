@@ -38,7 +38,16 @@ First public release, as Tidybyte for Mac.
 
 ### Fixed
 
-- An empty review is no longer silent. The scan now says when app data was skipped for lack of Full Disk Access, when locations could not be read, and when a section could not be checked (Spotlight off), in the status strip and in Overview's Latest Scan.
+- Quitting works even when a sheet is open. On macOS 26 the quit command was silently cancelled whenever the onboarding sheet (or any sheet) was presented.
+- Switching areas as fast as you like no longer trips an AppKit toolbar crash; the toolbar keeps the same four slots for the app's whole life.
+- Quitting mid-onboarding keeps your place, and the last onboarding step offers "I'll scan later" so finishing never requires a scan.
+- The Cleanup posture setting now really changes what is proposed: Conservative asks for older, larger candidates; Aggressive proposes younger, smaller ones.
+- Folder rows and sidebar badges show what is really inside a folder, and nested suggestions are not counted twice.
+- The riskiest actions lead the review list instead of hiding at the bottom.
+- Undoing from the menu bar asks the same why-question as undoing in History.
+- The monitor's Battery and Power tiles can no longer disagree about charging; port numbers render without digit grouping; the process footer says "processes" in By Process mode.
+- Saving a monitor snapshot works from a backgrounded window instead of doing nothing.
+- An empty review is no longer silent. The scan now says when app data was skipped for lack of Full Disk Access, when locations could not be read, and when a section could not be checked (Spotlight off), in the status strip and in Overview's Latest Scan — and a skipped AI classification now appears there too.
 - A full scan of a large home folder no longer runs out of memory. Folders that no review lists file by file (`node_modules`, `.git`, build output beside a build manifest, each cache entry, each simulator device) are now one item with the total size of their contents. The detailed-record budget is capped at one million records; folders past the budget are still summarized as one record each, and only files of 1 GB or more keep a record of their own. On a Mac with 7.9 million files in the home folder, the scan used 42 GB before this fix.
 - Xcode archives, Xcode UserData, simulator devices, keychains, and provisioning profiles can no longer be proposed for deletion.
 - Duplicate folding no longer reaches into `~/Library`.
