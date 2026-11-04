@@ -64,13 +64,13 @@ export const TOOLS: Tool[] = [
     name: "Photo cleaner",
     title: "iPhone Photo Cleaner & Image Cleaner App | TidyByte",
     description:
-      "TidyByte is a free iPhone photo cleaner and image cleaner: duplicates, screenshots, blur, bursts and big files, plus video and image compression. 100% on-device.",
+      "TidyByte is a free iPhone photo cleaner for duplicates, screenshots, blur and compression. Core cleanup runs on-device; Google Photos is optional.",
     h1: "The best free iPhone photo cleaner and image cleaner.",
     badge: "Photo &amp; image cleaner",
     lede:
-      "One free app that clears every kind of photo clutter &mdash; duplicates, similar shots, screenshots, screen recordings, chat media, blur, bursts, Live Photos and oversized videos. Nothing ever leaves your iPhone.",
+      "One free app that clears every kind of photo clutter &mdash; duplicates, similar shots, screenshots, screen recordings, chat media, blur, bursts, Live Photos and oversized videos. iPhone-library cleanup runs on-device.",
     quickAnswer:
-      "TidyByte is a free iPhone photo cleaner and image cleaner that removes duplicate photos, similar shots, screenshots, screen recordings, chat media, blurry pictures and burst sequences, then compresses videos and photos. It runs entirely on-device with Apple&rsquo;s Photos and Vision frameworks, so no image is ever uploaded. No ads, no subscription, no account.",
+      "TidyByte is a free iPhone photo cleaner and image cleaner that removes duplicate photos, similar shots, screenshots, screen recordings, chat media, blurry pictures and burst sequences, then compresses videos and photos. iPhone-library cleanup runs on-device with Apple&rsquo;s Photos and Vision frameworks; no photo is sent to TidyByte. Google Photos is optional in enabled builds.",
     keywords: [
       "iphone photo cleaner",
       "image cleaner",
@@ -115,7 +115,7 @@ export const TOOLS: Tool[] = [
         },
         {
           label: "Where your photos are processed",
-          cells: ["On-device, no network access", "On-device", "Often a cloud service"],
+          cells: ["On-device; optional Google Photos connects to Google", "On-device", "Often a cloud service"],
         },
         {
           label: "Source code auditable",
@@ -134,7 +134,7 @@ export const TOOLS: Tool[] = [
       },
       {
         q: "Is TidyByte really free, or is there a catch?",
-        a: "It is free with no in-app purchases, no subscription, and no ads. There is no catch and no upsell screen, because the app has no backend to pay for: it performs no networking at all, and the source is MIT licensed on GitHub so the claim is verifiable.",
+        a: "It is free with no in-app purchases, no subscription, and no ads. There is no catch or upsell screen: the local tools need no TidyByte backend, and optional Google Photos connects directly to Google in enabled builds. The source is MIT licensed on GitHub.",
       },
       {
         q: "Can a photo cleaner app delete the wrong photos?",
@@ -162,7 +162,7 @@ export const TOOLS: Tool[] = [
     ],
     ctaHeading: "Clean your photo library for free.",
     ctaBody:
-      "Download TidyByte and clear the clutter in one sitting. No account, no subscription, no uploads.",
+      "Download TidyByte and clear the clutter in one sitting. No TidyByte server receives photos; no TidyByte account or subscription is required.",
     hub: true,
   },
   {
@@ -174,9 +174,9 @@ export const TOOLS: Tool[] = [
     h1: "The best free iPhone storage cleaner.",
     badge: "Storage cleaner",
     lede:
-      "See exactly what is filling your iPhone, then clear it: duplicates, oversized videos, screenshots, blurry shots and Live Photos. Free, on-device, nothing uploaded.",
+      "See exactly what is filling your iPhone, then clear it: duplicates, oversized videos, screenshots, blurry shots and Live Photos. Free, with iPhone-library cleanup on-device.",
     quickAnswer:
-      "TidyByte is a free iPhone storage cleaner that maps your photo library into photos, videos, screenshots, Live Photos and other, then removes what wastes the most space and compresses what is worth keeping. It runs 100% on-device, so no file is uploaded, and it has no ads, no subscription and no account.",
+      "TidyByte is a free iPhone storage cleaner that maps your photo library into photos, videos, screenshots, Live Photos and other, then removes what wastes the most space and compresses what is worth keeping. iPhone-library cleanup runs on-device; no photo is sent to TidyByte. Google Photos is optional in enabled builds.",
     keywords: [
       "iphone storage cleaner",
       "storage cleaner app",
@@ -553,7 +553,7 @@ export const TOOLS: Tool[] = [
     lede:
       "Sharpness, darkness and overexposure scored on-device, with a sensitivity control you can tune. Keep the memories, bin the misses.",
     quickAnswer:
-      "TidyByte is a free blurry photo finder and cleaner for iPhone. It scores every photo for sharpness, darkness and overexposure using on-device Vision analysis, groups the results into blurry, dark and overexposed tabs, and deletes what you select after review. No uploads, no ads, no subscription.",
+      "TidyByte is a free blurry photo finder and cleaner for iPhone. It scores every photo for sharpness, darkness and overexposure using on-device Vision analysis, groups the results into blurry, dark and overexposed tabs, and deletes what you select after review. No photos are sent to TidyByte; no ads or subscription.",
     keywords: [
       "blurry photo finder",
       "find blurry photos iphone",
@@ -820,13 +820,13 @@ export const TOOLS: Tool[] = [
     name: "Live Photo converter",
     title: "iPhone Live Photo Converter — Save Space | TidyByte",
     description:
-      "Convert Live Photos to still images on iPhone and reclaim the space the motion clips use. Free, on-device conversion that keeps date, location and album.",
+      "Convert Live Photos to still images on iPhone and reclaim the space the motion clips use. Free on-device conversion; photos are not sent to TidyByte.",
     h1: "Live Photo converter for iPhone.",
     badge: "Live Photos",
     lede:
       "Every Live Photo carries a short video you rarely watch. Keep the still, lose the motion, keep the metadata.",
     quickAnswer:
-      "TidyByte is a free Live Photo converter for iPhone. It turns Live Photos into still images on-device, preserving the capture date, location, favourite status and album membership, then lets you delete the originals once you are happy. No uploads, no account, no subscription.",
+      "TidyByte is a free Live Photo converter for iPhone. It turns Live Photos into still images on-device, preserving the capture date, location, favourite status and album membership, then lets you delete the originals once you are happy. Photos are not sent to TidyByte; no TidyByte account or subscription is required.",
     keywords: [
       "live photo converter",
       "convert live photos to stills",
@@ -911,7 +911,7 @@ export const TOOLS: Tool[] = [
     name: "Video compression",
     title: "Video Compression for iPhone — Shrink Videos | TidyByte",
     description:
-      "Compress videos on iPhone without uploading them. Choose a preset, shrink 4K clips to a fraction of the size, and verify the result before deleting the original.",
+      "Compress iPhone videos on-device; selected videos are not sent to TidyByte. Choose a preset, shrink 4K clips, and verify the result before deleting the original.",
     h1: "Video compression for iPhone.",
     badge: "Video compression",
     lede:
@@ -935,8 +935,8 @@ export const TOOLS: Tool[] = [
       columns: ["TidyByte", "iMovie export", "Cloud video compressors"],
       rows: [
         {
-          label: "Works offline",
-          cells: ["Yes, fully on-device", "Yes", "No, upload required"],
+          label: "Uploads videos to a TidyByte server",
+          cells: ["No, compression runs on-device", "No", "Yes"],
         },
         {
           label: "Batch multiple clips",
@@ -979,7 +979,7 @@ export const TOOLS: Tool[] = [
       },
       {
         q: "What happens with videos stored only in iCloud?",
-        a: "The app downloads the asset first, which takes time on a large file, and then compresses it locally. Nothing is uploaded at any point, and if a video cannot be downloaded within the timeout, it is reported as skipped instead of hanging the batch.",
+        a: "The app downloads the asset first, which takes time on a large file, and then compresses it locally. The video is not uploaded to TidyByte, and if it cannot be downloaded within the timeout, it is reported as skipped instead of hanging the batch.",
       },
     ],
     relatedTools: [
@@ -1002,13 +1002,13 @@ export const TOOLS: Tool[] = [
     name: "Image compression",
     title: "Image Compression for iPhone — Compress Photos | TidyByte",
     description:
-      "Compress images on iPhone without uploading them. Re-encode large photos at the quality you choose, verify the size saved, and keep the originals until you decide.",
+      "Compress iPhone photos on-device; selected images are not sent to TidyByte. Choose quality, verify the size saved, and keep originals until you decide.",
     h1: "Image compression for iPhone.",
     badge: "Image compression",
     lede:
       "Re-encode the photos that are larger than they need to be, choose the quality, and see exactly how many megabytes each one returned.",
     quickAnswer:
-      "TidyByte is a free image compression app for iPhone. It re-encodes large photos on-device at a quality preset you choose, checks the new file is genuinely smaller, saves it to the library with the original metadata, and offers to delete the original afterwards. Nothing is uploaded and there is no subscription.",
+      "TidyByte is a free image compression app for iPhone. It re-encodes large photos on-device at a quality preset you choose, checks the new file is genuinely smaller, saves it to the library with the original metadata, and offers to delete the original afterwards. Photos are not sent to TidyByte; there is no subscription.",
     keywords: [
       "image compression iphone",
       "compress images",
@@ -1026,8 +1026,8 @@ export const TOOLS: Tool[] = [
       columns: ["TidyByte", "iOS Mail or Shortcuts", "Web image compressors"],
       rows: [
         {
-          label: "Stays on-device",
-          cells: ["Yes, no network access", "Yes", "No, your photos are uploaded"],
+          label: "Sends photos to a TidyByte server",
+          cells: ["No, processed on-device", "No", "Uploads to the service"],
         },
         {
           label: "Batch a whole selection",
@@ -1086,7 +1086,7 @@ export const TOOLS: Tool[] = [
     ],
     ctaHeading: "Make big photos small.",
     ctaBody:
-      "Download TidyByte Free and re-encode the oversized images without sending a single one to a server.",
+      "Download TidyByte Free and re-encode oversized images without sending them to a TidyByte server.",
   },
   {
     slug: "photo-organizer",
@@ -1099,7 +1099,7 @@ export const TOOLS: Tool[] = [
     lede:
       "Sort thirty thousand photos without renaming a single file: browse by category, year or album, and make keep-or-delete decisions in one pass.",
     quickAnswer:
-      "TidyByte is a free photo organizer for iPhone. It classifies your library into smart categories on-device, breaks it down by year and album, and turns organizing into swipe decisions: keep, delete or add to an album. Nothing is uploaded and no files are renamed or moved.",
+      "TidyByte is a free photo organizer for iPhone. It classifies your library into smart categories on-device, breaks it down by year and album, and turns organizing into swipe decisions: keep, delete or add to an album. Photos are not sent to TidyByte, and no files are renamed or moved.",
     keywords: [
       "photo organizer iphone",
       "organize photos",
@@ -1133,8 +1133,8 @@ export const TOOLS: Tool[] = [
           cells: ["No moves, no renames", "Not applicable", "Sometimes re-imports"],
         },
         {
-          label: "Works offline",
-          cells: ["Always", "Yes", "Often needs a server"],
+          label: "Where classification runs",
+          cells: ["On-device with Apple Vision", "On-device", "Often uses a server"],
         },
         {
           label: "Cost",
@@ -1153,7 +1153,7 @@ export const TOOLS: Tool[] = [
       },
       {
         q: "How does it sort photos by category?",
-        a: "Each photo is classified on-device with Apple Vision: screenshots, documents, receipts, food, pets, people and more. The categories come from on-device image analysis, not from a server, so the classification works in airplane mode and your photos are never uploaded.",
+        a: "Each photo is classified with Apple Vision: screenshots, documents, receipts, food, pets, people and more. Photos available on-device are analyzed locally; iCloud-only items may need to download first. Photos are not sent to TidyByte.",
       },
       {
         q: "Can I organize only one album or one year?",
@@ -1184,13 +1184,13 @@ export const TOOLS: Tool[] = [
     name: "Free, no subscription",
     title: "Free Photo Cleaner App — No Subscription, No Ads | TidyByte",
     description:
-      "A genuinely free photo cleaner for iPhone: no subscription, no ads, no in-app purchases, no account, and no uploads. MIT open source, 100% on-device.",
+      "A free iPhone photo cleaner: no subscription, ads, in-app purchases, or TidyByte account. Core cleanup runs on-device; Google Photos is optional.",
     h1: "A free photo cleaner with no subscription and no ads.",
     badge: "Free, no subscription",
     lede:
-      "No paywall on the delete button. No weekly plan. No ads between photos. Free because the app does no networking and has nothing to pay for.",
+      "No paywall on the delete button. No weekly plan. No ads between photos. Free because there is no TidyByte backend, ad system, or subscription to fund.",
     quickAnswer:
-      "TidyByte is a free iPhone photo cleaner with no subscription, no ads, no in-app purchases and no account. It performs no networking at all, so there is no server to fund and nothing to upsell. Every tool is unlocked for everyone, and the source code is MIT licensed on GitHub.",
+      "TidyByte is a free iPhone photo cleaner with no subscription, no ads, no in-app purchases and no TidyByte account. The local tools need no TidyByte backend; optional Google Photos connects directly to Google in enabled builds. Every tool is unlocked, and the source is MIT licensed on GitHub.",
     keywords: [
       "free photo cleaner app",
       "photo cleaner no subscription",
@@ -1225,7 +1225,7 @@ export const TOOLS: Tool[] = [
         },
         {
           label: "Data collected",
-          cells: ["None, no analytics SDK", "Usage analytics, ad SDKs", "Analytics plus uploads"],
+          cells: ["No TidyByte analytics or ad SDK", "Usage analytics, ad SDKs", "Analytics plus uploads"],
         },
         {
           label: "Source code",
@@ -1236,19 +1236,19 @@ export const TOOLS: Tool[] = [
     faqs: [
       {
         q: "Is TidyByte really free, or is there a hidden limit?",
-        a: "It is free with no limits on features or photos. There are no in-app purchases in the binary, no credit system, no trial that ends, and no upgrade prompt. The app has no backend and performs no networking, so there is no cost to recover and nothing to sell you.",
+        a: "It is free with no limits on features or photos. There are no in-app purchases in the binary, no credit system, no trial that ends, and no upgrade prompt. The local tools need no TidyByte backend; the optional Google Photos source connects directly to Google in enabled builds.",
       },
       {
         q: "Why would a developer give away a photo cleaner?",
-        a: "Because this one runs entirely on your device, so it costs nothing to operate. TidyByte is MIT open source: the source is public on GitHub, anyone can audit or build it, and there is no analytics or ad SDK inside that would need paying for.",
+        a: "The local cleanup tools run on your device and there are no paid tiers. TidyByte is MIT open source: the source is public on GitHub, anyone can audit or build it, and there is no analytics or ad SDK.",
       },
       {
         q: "Does the free version upload my photos to a server?",
-        a: "No version uploads anything. The app performs no network requests at all, and all analysis runs locally with Apple's Vision and Photos frameworks. You can verify this by reading the source or by watching your network activity while you use it.",
+        a: "TidyByte has no server that receives photos. iPhone-library analysis runs locally with Apple's Vision and Photos frameworks. In builds with Google Photos enabled, the app connects directly to Google for sign-in, storage quota, and the items you select; selected previews are scanned on your device.",
       },
       {
         q: "Do free cleaner apps sell my data?",
-        a: "Apps that upload your photos to fund themselves can, and many freemium cleaners do collect usage data through analytics and ad SDKs. TidyByte ships with none of those libraries and has no server to send anything to, which removes the question entirely.",
+        a: "Some apps use analytics or advertising SDKs, and some send photos to their own servers. TidyByte has no analytics or ad SDK and no server that receives photos. If Google Photos is enabled, the app connects directly to Google for the items you select.",
       },
       {
         q: "What do I give up by not paying for a cleaner app?",
@@ -1372,7 +1372,7 @@ export const TOOLS: Tool[] = [
     lede:
       "Every chat app quietly saves photos and videos into your library. Review them by album and clear the ones you never meant to keep.",
     quickAnswer:
-      "TidyByte is a free chat media cleaner for iPhone. It finds the media that messaging apps saved into your photo library by looking at your albums, starting with the ones WhatsApp, Telegram, Signal, Messenger, Viber, LINE and WeChat create, and lets you review and delete it in one pass. On-device, no uploads.",
+      "TidyByte is a free chat media cleaner for iPhone. It finds the media that messaging apps saved into your photo library by looking at your albums, starting with the ones WhatsApp, Telegram, Signal, Messenger, Viber, LINE and WeChat create, and lets you review and delete it in one pass. This tool scans local library copies on-device; they are not sent to TidyByte.",
     keywords: [
       "chat media cleaner",
       "delete whatsapp photos iphone",
@@ -1406,8 +1406,8 @@ export const TOOLS: Tool[] = [
           cells: ["Yes", "WhatsApp only", "Sometimes"],
         },
         {
-          label: "Uploads anything",
-          cells: ["No, on-device", "No", "Often yes"],
+          label: "Sends photos to a TidyByte server",
+          cells: ["No, processed on-device", "No", "Often yes"],
         },
         {
           label: "Cost",
@@ -1457,13 +1457,13 @@ export const TOOLS: Tool[] = [
     name: "AI photo search",
     title: "On-Device AI Photo Search for iPhone | TidyByte",
     description:
-      "Search your photo library in plain English — &ldquo;dogs on a beach&rdquo; — with on-device AI. No uploads, no cloud, works offline. Free, private, no subscription.",
+      "Search your local iPhone library with on-device AI. Search works offline and sends no photos to TidyByte; optional Google Photos is separate in enabled builds.",
     h1: "On-device AI photo search for iPhone.",
     badge: "On-device AI",
     lede:
-      "Describe what you are looking for and let local AI find it. The model runs on your iPhone, so nothing is uploaded and the search works offline.",
+      "Describe what you are looking for. Local AI searches the iPhone library on-device and works offline for photos already available there. Optional Google Photos is separate in enabled builds.",
     quickAnswer:
-      "TidyByte adds on-device AI search to your photo library: type a description like &ldquo;dogs on a beach&rdquo; and it matches photos by their content labels. On iPhones with Apple's on-device language model available, the search is interpreted by that model; elsewhere the same words are matched against the labels directly. Nothing is uploaded.",
+      "TidyByte adds on-device AI search to your local photo library: describe what you are looking for and it matches photos by their content labels. The local search does not send photos or search text to a TidyByte server. Google Photos is a separate optional source in enabled builds.",
     keywords: [
       "ai photo search",
       "natural language photo search",
@@ -1486,11 +1486,11 @@ export const TOOLS: Tool[] = [
         },
         {
           label: "Requires an account",
-          cells: ["No account exists", "Google account", "iCloud account"],
+          cells: ["No account required for local search", "Google account", "iCloud account"],
         },
         {
           label: "Works offline",
-          cells: ["Yes", "No", "Partly"],
+          cells: ["Yes, for local-library search", "No", "Partly"],
         },
         {
           label: "What it can search",
@@ -1509,7 +1509,7 @@ export const TOOLS: Tool[] = [
     faqs: [
       {
         q: "What is on-device AI photo search?",
-        a: "It means the language understanding happens on your iPhone rather than on a server. You type a description in ordinary words, the on-device model turns it into content labels, and the app matches those labels against the photos it has already classified locally. Nothing is sent anywhere and it works in airplane mode.",
+        a: "It means the language understanding happens on your iPhone rather than on a server. You type a description in ordinary words, the on-device model turns it into content labels, and the app matches those labels against photos it has already classified locally. This local-library search sends no photos or search text to TidyByte and works offline for downloaded photos.",
       },
       {
         q: "Which photos can AI search find?",
@@ -1517,7 +1517,7 @@ export const TOOLS: Tool[] = [
       },
       {
         q: "Does the AI send my photos to a server?",
-        a: "No. TidyByte performs no network requests at all, so there is no path for a photo to leave the device. On iPhones where Apple's on-device language model is available, that model interprets your search text locally; when it is not available, the app matches your words against the same local labels directly.",
+        a: "The local AI search does not send your iPhone photos or search text to a server. On iPhones where Apple's on-device language model is available, that model interprets your search text locally; otherwise, the app matches your words against local labels. The optional Google Photos source, when enabled, connects directly to Google for the items you select.",
       },
       {
         q: "Which iPhones support the local language model?",
@@ -1565,7 +1565,7 @@ for (const t of TOOLS) {
   }
 }
 
-const SITE = "https://tidybyte.360ghar.com";
+const SITE = "https://tidybyte.yord.si";
 
 /** Strip the small entity set used in copy, for JSON-LD values and text lists. */
 export function plain(s: string): string {

@@ -46,13 +46,19 @@ extension View {
     func originalsKeptAlert(
         isPresented: Binding<Bool>,
         onTryAgain: @escaping () -> Void,
-        onRemoveCopies: @escaping () -> Void
+        onRemoveCopies: @escaping () -> Void,
+        onKeepBoth: (() -> Void)? = nil
     ) -> some View {
         alert("Originals Kept", isPresented: isPresented) {
             Button("Try Again", action: onTryAgain)
             Button("Remove Copies", action: onRemoveCopies)
+            if let onKeepBoth {
+                Button("Keep Both", role: .cancel, action: onKeepBoth)
+            }
         } message: {
-            Text("Your new copies are saved. Nothing was lost. Try again to delete the originals and free space, or remove the new copies.")
+            Text(onKeepBoth == nil
+                 ? LocalizedStringKey("Your new copies are saved. Nothing was lost. Try again to delete the originals and free space, or remove the new copies.")
+                 : LocalizedStringKey("Your new copies are saved. Nothing was lost. Try again to delete the originals, remove the new copies, or keep both versions."))
         }
     }
 }

@@ -16,7 +16,6 @@
     initMobileMenu();
     initLanguageMenu();
     initFaqAccordion();
-    initSupportFormSuccess();
   });
 
   // 1) Mobile menu toggle
@@ -132,30 +131,4 @@
     });
   }
 
-  // 4) Support form success state.
-  // Netlify forms post back to the same URL with ?submitted=true when the
-  // submission lands. We detect that and swap the form for a thank-you.
-  function initSupportFormSuccess() {
-    var form = document.querySelector('form[name="support"]');
-    if (!form) return;
-    if (!/submitted=true/.test(window.location.search)) return;
-
-    form.hidden = true;
-
-    var thanks = document.createElement('div');
-    thanks.className = 'clay-card motion-enter p-6 sm:p-8';
-    thanks.setAttribute('role', 'status');
-    thanks.setAttribute('aria-live', 'polite');
-    thanks.innerHTML =
-      '<h2 class="h-section">Thanks! We&rsquo;ll be in touch.</h2>' +
-      '<p class="lede mt-3">Your message is on its way. We typically respond within 2 business days.</p>' +
-      '<p class="muted mt-6 text-sm"><a href="/support" class="link">Send another message &rarr;</a></p>';
-
-    form.parentNode.insertBefore(thanks, form);
-
-    // Defer scroll to next frame so the inserted node is laid out first.
-    requestAnimationFrame(function () {
-      thanks.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }
 })();

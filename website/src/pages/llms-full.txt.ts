@@ -17,9 +17,9 @@ export const GET: APIRoute = () => {
   const sections: string[] = [
     "# TidyByte — Full Site Content",
     "",
-    "Free iPhone storage cleaner, photo cleaner and image compressor. 100% on-device, no ads, no subscription, no account, MIT open source.",
+    "Free iPhone storage cleaner, photo cleaner and image compressor. Core iPhone-library cleanup runs on-device; optional Google Photos connects directly to Google in enabled builds. No ads or subscription. Open source under MIT.",
     "",
-    "Download on the App Store: https://apps.apple.com/in/app/tidybyte/id6775769763",
+    "Download on the App Store: https://apps.apple.com/app/id6775769763",
     "",
   ];
   const core = PAGES.filter(

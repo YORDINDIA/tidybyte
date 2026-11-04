@@ -3,57 +3,32 @@
       <header class="mx-auto max-w-2xl text-center">
         <p class="badge mx-auto mb-5">Support</p>
         <h1 class="h-display">We&rsquo;re here to help.</h1>
-        <p class="lede mt-5">Need a hand, want to report a bug, or have a feature request? Pick whichever channel suits you.</p>
+        <p class="lede mt-5">Need a hand, want to report a bug, or have a feature request? Email us or open an issue on GitHub.</p>
       </header>
 
       <div class="mt-16 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-        <!-- Contact form -->
-        <section aria-labelledby="contact-form" class="clay-card p-6 sm:p-8">
-          <h2 id="contact-form" class="h-section text-2xl sm:text-3xl">Send us a message</h2>
-          <p class="muted mt-2 text-sm">All fields are required. We&rsquo;ll reply from <span class="text-ink">contact@sakshammittal.com</span>.</p>
+        <!-- Email contact -->
+        <section aria-labelledby="email-support" class="clay-card p-6 sm:p-8">
+          <h2 id="email-support" class="h-section text-2xl sm:text-3xl">Email support</h2>
+          <p class="muted mt-2 text-sm">Your email app will open so you can send us a message directly. For bug reports, include your iOS version and iPhone model.</p>
 
-          <form name="support" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" action="?submitted=true" class="mt-6 space-y-5">
-            <input type="hidden" name="form-name" value="support">
-            <p class="hidden">
-              <label>Don&rsquo;t fill: <input name="bot-field"></label>
-            </p>
+          <p class="mt-6">
+            <!--email_off-->
+            <a href="mailto:contact@sakshammittal.com?subject=TidyByte%20Support" class="btn-primary">Write to support</a>
+            <!--/email_off-->
+          </p>
 
-            <div>
-              <label for="name" class="block text-sm font-medium text-ink">Name</label>
-              <input id="name" name="name" type="text" required autocomplete="name" class="mt-1.5 block w-full rounded-xl border border-hairline bg-surface-card px-3.5 py-2.5 text-sm text-ink placeholder:text-muted transition focus:border-clay-pink/60 focus:outline-none focus:ring-2 focus:ring-clay-pink/40">
-            </div>
-
-            <div>
-              <label for="email" class="block text-sm font-medium text-ink">Email</label>
-              <input id="email" name="email" type="email" required autocomplete="email" class="mt-1.5 block w-full rounded-xl border border-hairline bg-surface-card px-3.5 py-2.5 text-sm text-ink placeholder:text-muted transition focus:border-clay-pink/60 focus:outline-none focus:ring-2 focus:ring-clay-pink/40">
-            </div>
-
-            <div>
-              <label for="subject" class="block text-sm font-medium text-ink">Subject</label>
-              <input id="subject" name="subject" type="text" required placeholder="What&rsquo;s this about?" class="mt-1.5 block w-full rounded-xl border border-hairline bg-surface-card px-3.5 py-2.5 text-sm text-ink placeholder:text-muted transition focus:border-clay-pink/60 focus:outline-none focus:ring-2 focus:ring-clay-pink/40">
-            </div>
-
-            <div>
-              <label for="message" class="block text-sm font-medium text-ink">Message</label>
-              <textarea id="message" name="message" rows="6" required placeholder="Tell us what&rsquo;s going on. For bugs, include your iOS version and iPhone model." class="mt-1.5 block w-full rounded-xl border border-hairline bg-surface-card px-3.5 py-2.5 text-sm text-ink placeholder:text-muted transition focus:border-clay-pink/60 focus:outline-none focus:ring-2 focus:ring-clay-pink/40"></textarea>
-            </div>
-
-            <div class="flex items-center justify-between gap-4 pt-1">
-              <button type="submit" class="btn-primary">Send message</button>
-              <p class="muted text-xs">No tracking. No newsletter.</p>
-            </div>
-          </form>
-
-          <p class="muted mt-6 text-sm">Prefer email? Write to <a href="mailto:contact@sakshammittal.com" class="link hover:underline">contact@sakshammittal.com</a>.</p>
         </section>
 
         <!-- Direct contact card -->
         <aside aria-label="Direct contact" class="space-y-4">
           <div class="clay-card p-6">
             <h3 class="text-base font-semibold">Direct email</h3>
-            <p class="muted mt-2 text-sm">For anything that doesn&rsquo;t fit the form &mdash; partnership enquiries, security disclosures, app review coordination.</p>
+            <p class="muted mt-2 text-sm">For partnership enquiries, security disclosures, or app review coordination.</p>
             <p class="mt-4 text-sm">
+              <!--email_off-->
               <a href="mailto:contact@sakshammittal.com" class="link hover:underline">contact@sakshammittal.com</a>
+              <!--/email_off-->
             </p>
             <p class="muted mt-3 text-xs">We respond within 2 business days.</p>
           </div>
@@ -61,7 +36,7 @@
             <h3 class="text-base font-semibold">GitHub issues</h3>
             <p class="muted mt-2 text-sm">Public bug reports and feature requests are tracked on GitHub. Open one and the community can chime in.</p>
             <p class="mt-4 text-sm">
-              <a href="https://github.com/360ghar/snap-clean-ios/issues" target="_blank" rel="noopener" class="link hover:underline">Open an issue &rarr;</a>
+              <a href="https://github.com/YORDINDIA/tidybyte/issues" target="_blank" rel="noopener" class="link hover:underline">Open an issue &rarr;</a>
             </p>
           </div>
         </aside>
@@ -70,7 +45,7 @@
       <!-- FAQ -->
       <section id="faq" aria-labelledby="faq-heading" class="mt-20">
         <h2 id="faq-heading" class="h-section text-center">Frequently asked questions</h2>
-        <p class="lede mx-auto mt-4 max-w-2xl text-center">Quick answers to the things people ask most. Don&rsquo;t see yours? Use the form above.</p>
+        <p class="lede mx-auto mt-4 max-w-2xl text-center">Quick answers to the things people ask most. Don&rsquo;t see yours? Email us above.</p>
 
         <div data-faq-accordion class="mx-auto mt-10 max-w-3xl divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-surface-card shadow-card">
           <details class="group p-5 sm:p-6 [&_summary::-webkit-details-marker]:hidden">
@@ -78,7 +53,7 @@
               <span>Does TidyByte upload my photos?</span>
               <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-muted transition group-open:rotate-45"><path d="M12 5v14M5 12h14"/></svg>
             </summary>
-            <p class="muted mt-3 text-sm sm:text-base">No. All processing happens locally on your iPhone using Apple&rsquo;s Photos and Vision frameworks. TidyByte has no backend, no analytics SDK, and no tracking.</p>
+            <p class="muted mt-3 text-sm sm:text-base">No. TidyByte has no server that receives photos. iPhone-library cleanup runs on-device. In builds with Google Photos enabled, the app connects directly to Google for sign-in, storage quota, and the items you select; previews are scanned on your device.</p>
           </details>
           <details class="group p-5 sm:p-6 [&_summary::-webkit-details-marker]:hidden">
             <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-base font-semibold text-ink transition">
@@ -134,13 +109,13 @@
               <span>How do I report a bug or request a feature?</span>
               <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-muted transition group-open:rotate-45"><path d="M12 5v14M5 12h14"/></svg>
             </summary>
-            <p class="muted mt-3 text-sm sm:text-base">Open an issue on <a href="https://github.com/360ghar/snap-clean-ios" target="_blank" rel="noopener" class="link hover:underline">GitHub</a> or use the contact form above.</p>
+            <p class="muted mt-3 text-sm sm:text-base">Open an issue on <a href="https://github.com/YORDINDIA/tidybyte/issues" target="_blank" rel="noopener" class="link hover:underline">GitHub</a> or email us using the link above.</p>
           </details>
         </div>
       </section>
 
       <section class="mt-12 text-center">
-        <p class="muted text-base">Need the app? <a href="https://apps.apple.com/in/app/tidybyte/id6775769763" class="link hover:underline" target="_blank" rel="noopener">Download TidyByte on the App Store</a>.</p>
+        <p class="muted text-base">Need the app? <a href="https://apps.apple.com/app/id6775769763" class="link hover:underline" target="_blank" rel="noopener">Download TidyByte on the App Store</a>.</p>
       </section>
     </div>
     </main>

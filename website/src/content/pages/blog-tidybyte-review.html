@@ -90,7 +90,7 @@
       <h2 id="tidybyte-review-section-3" class="h-section mt-12 scroll-mt-24 text-2xl sm:text-3xl">Privacy and Security</h2>
       <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Privacy is the strongest argument for TidyByte over cloud-based alternatives. Every analysis task, blur detection, duplicate hashing, feature print generation, happens on-device using Apple's Vision and Core ML frameworks. No images leave your phone. No account is required. The app does not phone home, does not send analytics, and does not track you across sessions.</p>
       <p class="muted mt-4 text-base leading-relaxed sm:text-lg">This matters more than most people realize. Many popular cleaning apps upload your photos to their servers for processing. Even if their privacy policy promises deletion, the images still transit the internet and sit in temporary storage you do not control. TidyByte eliminates that risk entirely because the architecture makes cloud transmission impossible, there is no server component.</p>
-      <p class="muted mt-4 text-base leading-relaxed sm:text-lg">The app stores its own metadata (swipe records, compression history, storage snapshots) in a local SwiftData database. None of this data is shared. The app requests photo library access and nothing else. It does not ask for contacts, location, network access, or any other permission. For users who want to verify these claims, the entire codebase is available on <a class="link hover:underline" href="https://github.com/360ghar/snap-clean-ios" target="_blank" rel="noopener">GitHub</a>. You can also read the full <a class="link hover:underline" href="/privacy">privacy policy</a> for details.</p>
+      <p class="muted mt-4 text-base leading-relaxed sm:text-lg">The app stores its own metadata (swipe records, compression history, storage snapshots) in a local SwiftData database. None of this data is shared. The app requests photo library access and nothing else. It does not ask for contacts, location, network access, or any other permission. For users who want to verify these claims, the entire codebase is available on <a class="link hover:underline" href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener">GitHub</a>. You can also read the full <a class="link hover:underline" href="/privacy">privacy policy</a> for details.</p>
 
       <!-- Section 4 -->
       <h2 id="tidybyte-review-section-4" class="h-section mt-12 scroll-mt-24 text-2xl sm:text-3xl">User Experience</h2>
@@ -107,11 +107,11 @@
         <h3 class="mt-8 text-lg font-semibold text-ink">Pros</h3>
         <ul class="muted mt-4 space-y-2 text-base sm:text-lg">
           <li><strong class="font-semibold text-ink">Completely free.</strong> No in-app purchases, no subscriptions, no ads, no paywalls. Every feature is available from the moment you install.</li>
-          <li><strong class="font-semibold text-ink">Privacy-first architecture.</strong> All processing is on-device. Photos never leave your phone. Open-source code is publicly auditable.</li>
+          <li><strong class="font-semibold text-ink">Privacy-first architecture.</strong> iPhone-library cleanup runs on-device, and photos are not sent to TidyByte. In builds with optional Google Photos, the app connects directly to Google for selected items. Open-source code is publicly auditable.</li>
           <li><strong class="font-semibold text-ink">Fast swipe UX.</strong> The Tinder-style interface makes bulk review genuinely fast. You can process hundreds of photos in a single sitting without fatigue.</li>
           <li><strong class="font-semibold text-ink">Smart prioritization.</strong> Blur and exposure scoring surfaces the worst photos first, so you waste less time reviewing good shots.</li>
           <li><strong class="font-semibold text-ink">Near-duplicate detection.</strong> Vision feature print comparison catches duplicates that simple hash matching would miss, including cropped and filtered variants.</li>
-          <li><strong class="font-semibold text-ink">No account required.</strong> Download, grant photo access, and start cleaning. No email, no password, no onboarding friction.</li>
+          <li><strong class="font-semibold text-ink">No TidyByte account required for local cleanup.</strong> Download, grant photo access, and start cleaning. Google sign-in is only needed if you choose Google Photos in a build where it is enabled.</li>
         </ul>
       </div>
 
@@ -190,7 +190,7 @@
       <!-- Section 6 -->
       <h2 id="tidybyte-review-section-6" class="h-section mt-12 scroll-mt-24 text-2xl sm:text-3xl">Verdict: Who Is It For?</h2>
       <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte is best suited for iPhone users who want a fast, private way to reduce photo library clutter without spending money. If you have never done a cleanup and your library is full of blurry shots, duplicate bursts, and forgotten screenshots, TidyByte will save you real storage space in a single session. The swipe interface makes the process feel less like a chore and more like a game.</p>
-      <p class="muted mt-4 text-base leading-relaxed sm:text-lg">The app is also a strong choice for anyone who cares about privacy. Because all processing happens on-device with no cloud component, you never have to trust a third party with your personal photos. The open-source codebase means you can verify this claim yourself or hire someone to audit it.</p>
+      <p class="muted mt-4 text-base leading-relaxed sm:text-lg">The app is also a strong choice for anyone who cares about privacy. Core iPhone-library cleanup happens on-device, and TidyByte operates no server that receives photos. In builds with Google Photos enabled, that optional source connects directly to Google for sign-in and selected items. The open-source codebase lets you inspect these paths yourself.</p>
       <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Where TidyByte falls short is platform breadth and polish. If you need Android or desktop support, cross-device sync, or a highly guided onboarding experience, you will need to look elsewhere. Paid alternatives like Gemini Photos offer more polish and platform coverage, but they come with subscription costs and cloud dependencies.</p>
       <p class="muted mt-4 text-base leading-relaxed sm:text-lg">For the specific use case of cleaning an iPhone photo library quickly and privately, TidyByte is hard to beat at any price. That it is completely free makes the value proposition even stronger. If you are curious, install it, grant photo access, and swipe through your worst 100 photos. You will know within five minutes whether it works for you. Check the <a class="link hover:underline" href="/changelog">changelog</a> to see what features have been added recently, or visit <a class="link hover:underline" href="/support">support</a> if you need help getting started.</p>
 
@@ -245,7 +245,7 @@
         <h2 class="text-xl font-semibold text-ink">Ready to clean up your photo library?</h2>
         <p class="muted mt-2 text-base">TidyByte is free, runs 100% on your device, and takes just minutes to use.</p>
         <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
-          <a href="https://apps.apple.com/in/app/tidybyte/id6775769763" class="btn-primary" target="_blank" rel="noopener">Download TidyByte Free</a>
+          <a href="https://apps.apple.com/app/id6775769763" class="btn-primary" target="_blank" rel="noopener">Download TidyByte Free</a>
           <a href="/photo-cleaner" class="btn-ghost">See all cleanup tools</a>
         </div>
       </section>

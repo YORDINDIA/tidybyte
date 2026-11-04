@@ -309,7 +309,7 @@
     animation-delay: calc(var(--i, 0) * 32ms);
   }
 
-  /* --- Support form: the thank-you card is an arrival ------------------- */
+  /* --- Enter transitions ------------------------------------------------ */
   html.js .motion-enter {
     animation: rise var(--dur-enter) var(--ease-out-quart) backwards;
   }
@@ -603,4 +603,101 @@ html.js .faq-chev {
 
 @media (prefers-reduced-motion: reduce) {
   .mac-views__panels figure { animation: none !important; }
+}
+
+/* ===========================================================================
+   HOME PAGE APP DEMOS (src/content/pages/index.html)
+   ---------------------------------------------------------------------------
+   The landing page replicates both apps in HTML/CSS, and the replicas are
+   interactive the same way the Mac page's screen switcher is: radio inputs
+   and CSS only. The checked radio shows its screen, so everything works
+   with no JS, arrow keys move between tabs, and keyboard focus draws the
+   ring on the label that owns the focus. Unlayered, like the motion system
+   above, so Tailwind keeps it.
+=========================================================================== */
+
+/* --- iPhone demo: the app's own tab bar is the switcher ------------------ */
+.ios-screens > [data-ios] {
+  display: none;
+}
+
+#tidy-ios-swipe:checked    ~ .demo-phone [data-ios="swipe"],
+#tidy-ios-cleanup:checked  ~ .demo-phone [data-ios="cleanup"],
+#tidy-ios-storage:checked  ~ .demo-phone [data-ios="storage"],
+#tidy-ios-settings:checked ~ .demo-phone [data-ios="settings"] {
+  display: flex;
+}
+
+.ios-tabbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+  background: #141416;
+  padding: 0.375rem 0.5rem 0.625rem;
+}
+
+.ios-tabbar label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #8e8e93;
+  transition: color var(--dur-quick) var(--ease-out-quart);
+}
+
+.ios-tabbar label:hover {
+  color: #c7c7cc;
+}
+
+#tidy-ios-swipe:checked    ~ .demo-phone .ios-tabbar label[for="tidy-ios-swipe"],
+#tidy-ios-cleanup:checked  ~ .demo-phone .ios-tabbar label[for="tidy-ios-cleanup"],
+#tidy-ios-storage:checked  ~ .demo-phone .ios-tabbar label[for="tidy-ios-storage"],
+#tidy-ios-settings:checked ~ .demo-phone .ios-tabbar label[for="tidy-ios-settings"] {
+  color: #0a84ff;
+}
+
+#tidy-ios-swipe:focus-visible    ~ .demo-phone .ios-tabbar label[for="tidy-ios-swipe"],
+#tidy-ios-cleanup:focus-visible  ~ .demo-phone .ios-tabbar label[for="tidy-ios-cleanup"],
+#tidy-ios-storage:focus-visible  ~ .demo-phone .ios-tabbar label[for="tidy-ios-storage"],
+#tidy-ios-settings:focus-visible ~ .demo-phone .ios-tabbar label[for="tidy-ios-settings"] {
+  outline: 2px solid rgb(10 132 255 / 0.7);
+  outline-offset: 2px;
+}
+
+/* --- Mac demo: pill tabs above the window switch the main pane; the
+       sidebar stays put, like the app's navigation ------------------------- */
+.mac-home-panes > [data-mac] {
+  display: none;
+}
+
+#tidy-mac-home-overview:checked   ~ .mac-home-window [data-mac="overview"],
+#tidy-mac-home-duplicates:checked ~ .mac-home-window [data-mac="duplicates"],
+#tidy-mac-home-explorer:checked   ~ .mac-home-window [data-mac="explorer"] {
+  display: block;
+  animation: mac-view-in var(--dur-base) var(--ease-out-quart);
+}
+
+#tidy-mac-home-overview:checked   ~ .mac-views__tabs label[for="tidy-mac-home-overview"],
+#tidy-mac-home-duplicates:checked ~ .mac-views__tabs label[for="tidy-mac-home-duplicates"],
+#tidy-mac-home-explorer:checked   ~ .mac-views__tabs label[for="tidy-mac-home-explorer"] {
+  background: rgb(var(--c-primary));
+  color: rgb(var(--c-on-primary));
+}
+
+#tidy-mac-home-overview:focus-visible   ~ .mac-views__tabs label[for="tidy-mac-home-overview"],
+#tidy-mac-home-duplicates:focus-visible ~ .mac-views__tabs label[for="tidy-mac-home-duplicates"],
+#tidy-mac-home-explorer:focus-visible   ~ .mac-views__tabs label[for="tidy-mac-home-explorer"] {
+  outline: 2px solid rgb(255 77 139 / 0.6);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-home-panes > [data-mac] { animation: none !important; }
 }

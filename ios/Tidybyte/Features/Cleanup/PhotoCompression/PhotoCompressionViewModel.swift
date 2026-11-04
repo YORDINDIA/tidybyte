@@ -1,6 +1,34 @@
 import SwiftUI
 import SwiftData
 
+enum PhotoCompressionSortOrder: String, CaseIterable, Identifiable {
+    case recentlyAdded, dateTaken, largestFirst
+    var id: String { rawValue }
+    var label: LocalizedStringKey {
+        switch self {
+        case .recentlyAdded: "Recently Added"
+        case .dateTaken: "Date Taken"
+        case .largestFirst: "Largest First"
+        }
+    }
+
+    /// Ids in display order. `libraryOrder` is the PhotoKit fetch order
+    /// (oldest added first), which the Photos app also uses.
+    nonisolated static func ordered(_ assets: [AssetSummary], by order: Self) -> [String] {
+        switch order {
+        case .recentlyAdded:
+            return assets.reversed().map(\.id)
+        case .dateTaken:
+            return assets.enumerated().sorted {
+                let a = $0.element.creationDate ?? .distantPast, b = $1.element.creationDate ?? .distantPast
+                return a != b ? a > b : $0.offset > $1.offset
+            }.map(\.element.id)
+        case .largestFirst:
+            return assets.sorted { $0.fileSize > $1.fileSize }.map(\.id)
+        }
+    }
+}
+
 struct PhotoItem: Identifiable {
     let id: String
     let asset: AssetSummary
@@ -29,6 +57,23 @@ final class PhotoCompressionViewModel {
     /// "Don't Allow"). The view offers Try Again / Remove Copies.
     /// `OriginalsCommit.commit` already settles them as kept-both in the journal.
     var keptOriginals: [PendingOriginal] = []
+    /// Real encoded sizes from "Check Sizes", keyed by `sizeKey`.
+    private(set) var measuredSizes: [String: Int64] = [:]
+    private(set) var isMeasuring = false
+
+    /// Off: save the new copies and keep the originals (no iOS delete prompt).
+    var deleteOriginals = AppPreferences.deletePhotoOriginalsAfterCompression() {
+        didSet { AppPreferences.saveDeletePhotoOriginalsAfterCompression(deleteOriginals) }
+    }
+
+    var sortOrder: PhotoCompressionSortOrder = PhotoCompressionSortOrder(
+        rawValue: UserDefaults.standard.string(forKey: AppPreferences.Key.photoCompressionSortOrder) ?? ""
+    ) ?? .recentlyAdded {
+        didSet {
+            UserDefaults.standard.set(sortOrder.rawValue, forKey: AppPreferences.Key.photoCompressionSortOrder)
+            cachedSortedPhotoIdSet = []
+        }
+    }
     /// The batch mutation loop, owned by the VM so leaving the screen can
     /// cancel it instead of orphaning the mutation loop (COMP-08).
     private var batchTask: Task<Void, Never>?
@@ -51,8 +96,8 @@ final class PhotoCompressionViewModel {
 
     /// Cached sort ORDER (ids only, C13 parity with ScreenshotCleanerViewModel):
     /// `sortedPhotos` used to re-sort on every access, and progress ticks +
-    /// `body` touch it repeatedly. Sort keys are immutable (`fileSize`), so the
-    /// order is recomputed only when the id set changes. Items are always
+    /// `body` touch it repeatedly. Sort keys are immutable, so the order is
+    /// recomputed only when the id set or `sortOrder` changes. Items are always
     /// mapped from the current `photos`, so preset/state edits never render
     /// stale copies.
     private var cachedSortedPhotoOrder: [String] = []
@@ -61,7 +106,7 @@ final class PhotoCompressionViewModel {
     var sortedPhotos: [PhotoItem] {
         let ids = Set(photos.map(\.id))
         if ids != cachedSortedPhotoIdSet {
-            cachedSortedPhotoOrder = photos.sorted { $0.asset.fileSize > $1.asset.fileSize }.map(\.id)
+            cachedSortedPhotoOrder = PhotoCompressionSortOrder.ordered(photos.map(\.asset), by: sortOrder)
             cachedSortedPhotoIdSet = ids
         }
         let byId = Dictionary(uniqueKeysWithValues: photos.map { ($0.id, $0) })
@@ -127,7 +172,8 @@ final class PhotoCompressionViewModel {
 
     private func fetch(modelContext: ModelContext) async {
         compressedCopyIds = CompressionJournal.savedCopyIds(modelContext: modelContext)
-        allPhotoAssets = await photoService.fetchAllPhotos()
+        // Library (date added) order: `sortOrder` derives every display order from it.
+        allPhotoAssets = await photoService.fetchAllPhotos(sortByCreationDate: false)
         eligibleCount = Self.candidates(from: allPhotoAssets, excluding: compressedCopyIds, showAll: true).count
         applyFilter()
         hasLoadedPhotos = true
@@ -201,9 +247,52 @@ final class PhotoCompressionViewModel {
         }
     }
 
+    /// One choice for every selected photo: compress to at most `megabytes`.
+    func setMaxSizeForSelected(megabytes: Double) {
+        setPresetForSelected(.maxSize(megabytes: megabytes))
+    }
+
+    nonisolated static func sizeKey(_ id: String, _ preset: PhotoCompressionPreset) -> String { "\(id)|\(preset.id)" }
+
+    /// The real size from "Check Sizes" for the row's current preset.
+    func measuredSize(for photo: PhotoItem) -> Int64? {
+        measuredSizes[Self.sizeKey(photo.id, photo.selectedPreset)]
+    }
+
+    /// True when a "Max size" preset leaves this photo as is: it is already
+    /// at or under the limit, so no copy is made.
+    nonisolated static func isAlreadyUnderTarget(_ asset: AssetSummary, preset: PhotoCompressionPreset) -> Bool {
+        guard let target = preset.targetBytes else { return false }
+        return asset.fileSize <= target
+    }
+
+    /// Encodes each selected photo without saving, so the user can review
+    /// the real result sizes before Compress.
+    func measureSelected() {
+        guard !isMeasuring, !isCompressing else { return }
+        let items = photos.filter { selectedIds.contains($0.id) && measuredSize(for: $0) == nil
+            && !Self.isAlreadyUnderTarget($0.asset, preset: $0.selectedPreset) }
+        guard !items.isEmpty else { return }
+        isMeasuring = true
+        Task {
+            for item in items {
+                if let size = try? await compressionService.measureCompressedSize(assetId: item.id, preset: item.selectedPreset) {
+                    measuredSizes[Self.sizeKey(item.id, item.selectedPreset)] = size
+                } else if item.selectedPreset.targetBytes != nil {
+                    // Marks "can't reach" for the row: 0 never comes from a real encode.
+                    measuredSizes[Self.sizeKey(item.id, item.selectedPreset)] = 0
+                }
+            }
+            isMeasuring = false
+        }
+    }
+
     /// Conservative synchronous savings estimate for the row hint: scale the
     /// original by quality and, when downscaling, by the area ratio.
     func estimateSize(for photo: PhotoItem) -> Int64 {
+        if let target = photo.selectedPreset.targetBytes {
+            return min(target, photo.asset.fileSize)
+        }
         var factor = Double(photo.selectedPreset.quality)
         if let maxDim = photo.selectedPreset.maxDimension {
             let longest = Double(max(photo.asset.pixelWidth, photo.asset.pixelHeight))
@@ -289,6 +378,17 @@ final class PhotoCompressionViewModel {
             if !done.isEmpty, outcome.failed.isEmpty, outcome.kept.isEmpty {
                 HapticHelper.notification(.success)
             }
+        }
+    }
+
+    /// "Keep Both" on the Originals Kept alert. `OriginalsCommit.commit`
+    /// already journaled these rows as kept-both, so the library needs no
+    /// change: close the decision and show the outcome on each row.
+    func keepBoth() {
+        let ids = Set(keptOriginals.map(\.assetId))
+        keptOriginals = []
+        for index in photos.indices where ids.contains(photos[index].id) {
+            photos[index].compressionState = .keptOriginal(reason: L10n.string("Original kept — both versions in your library"))
         }
     }
 
@@ -402,10 +502,18 @@ final class PhotoCompressionViewModel {
             isSizeUnknown: isSizeUnknown,
             modelContext: modelContext,
             handlers: handlers,
+            deleteOriginals: deleteOriginals,
             execute: { [weak self] id, index, report in
                 guard let self else { throw CancellationError() }
                 let preset = self.photos[index].selectedPreset
                 let originalSize = self.photos[index].asset.fileSize
+                // Max size mode: a photo already under the limit is left as
+                // is. No journal row, no copy.
+                if Self.isAlreadyUnderTarget(self.photos[index].asset, preset: preset) {
+                    self.photos[index].compressionState = .keptOriginal(
+                        reason: L10n.format("Already under %@", preset.targetBytes?.formattedFileSize ?? ""))
+                    return .skipped
+                }
                 // D1: journal the swap before it starts (see VideoCompressionViewModel).
                 // Throws when the pending row is not durable — that aborts this
                 // item before any library write (no journal, no swap).
@@ -455,6 +563,13 @@ final class PhotoCompressionViewModel {
                         // badge for something the batch summary reports as cancelled.
                         await swap.markSkipped(assetId: id)
                         throw error
+                    }
+                    if let compressionError = error as? PhotoCompressionError,
+                       case .cannotReachTarget = compressionError {
+                        // Max size mode could not fit: nothing was saved.
+                        await swap.markSkipped(assetId: id)
+                        self.photos[index].compressionState = .keptOriginal(reason: compressionError.localizedDescription)
+                        return .skipped
                     }
                     if let compressionError = error as? PhotoCompressionError,
                        case .sizeUnknown = compressionError {

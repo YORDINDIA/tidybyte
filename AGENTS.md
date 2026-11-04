@@ -51,7 +51,7 @@ Run these from inside each folder:
   `website/public/assets/fonts/`.
 - `ios/Tidybyte/Scripts/GenerateAppIcon.swift --sync-site` writes the site icons
   to `website/public/assets/img/`. Run it from `ios/`.
-- The Mac app's Sparkle feed is `https://tidybyte.360ghar.com/mac/appcast.xml`.
+- The Mac app's Sparkle feed is `https://tidybyte.yord.si/mac/appcast.xml`.
   The site serves it from `website/public/mac/appcast.xml`. Replace that file
   with the `appcast.xml` that `macos/Scripts/package-release.sh` writes for each
   release.

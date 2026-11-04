@@ -49,6 +49,10 @@
       "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
     },
     {
+      "key": "%@ of %@ used",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "%@ of %lld",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
@@ -62,7 +66,7 @@
     },
     {
       "key": "%@ used",
-      "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "%@ with TidyByte — a private, on-device photo cleanup app. %@",
@@ -296,6 +300,10 @@
       "file": "Tidybyte/Features/Onboarding/OnboardingView.swift"
     },
     {
+      "key": "Account",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "Acknowledgements",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
@@ -382,6 +390,14 @@
     {
       "key": "Already compressed",
       "file": "Tidybyte/Shared/Utilities/CompressionBatchRunner.swift"
+    },
+    {
+      "key": "Already under %@",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionViewModel.swift"
+    },
+    {
+      "key": "Already under limit",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "App",
@@ -484,6 +500,10 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     },
     {
+      "key": "Can't reach the size limit — kept original",
+      "file": "Tidybyte/Services/PhotoCompressionService.swift"
+    },
+    {
       "key": "Cancel",
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
     },
@@ -512,12 +532,24 @@
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
     },
     {
+      "key": "Check Result Sizes",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
+      "key": "Checking sizes…",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
       "key": "Choose a filter to start reviewing your photos",
       "file": "Tidybyte/Features/Swipe/SwipeHomeView.swift"
     },
     {
       "key": "Clean up burst sequences",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
+    },
+    {
+      "key": "Clean up Google Photos",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "cleaned %lld burst photo",
@@ -573,6 +605,10 @@
       "key": "cleared %lld screenshot",
       "fallback": "cleared %lld screenshots",
       "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
+    },
+    {
+      "key": "Close",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Close preview",
@@ -688,6 +724,10 @@
     {
       "key": "Copy saved",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
+    },
+    {
+      "key": "Copy saved (%@) — original kept",
+      "file": "Tidybyte/Shared/Utilities/CompressionBatchRunner.swift"
     },
     {
       "key": "Could not clear swipe history. Please try again.",
@@ -837,6 +877,14 @@
     {
       "key": "Delete Live Photo?",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
+    },
+    {
+      "key": "Delete Originals",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
+      "key": "Delete Originals After Compressing",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
       "key": "Delete photo",
@@ -1084,6 +1132,34 @@
       "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
+      "key": "Google Account Storage",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Google did not return a picker link.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosViewModel.swift"
+    },
+    {
+      "key": "Google does not let other apps delete from Google Photos. Open Google Photos, find these items by date and name, and move them to Trash. Then come back and tap Mark as Deleted.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Google lets apps read only the items you pick, up to 2,000 at a time.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Google Photos",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Google Photos is not set up in this build.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
+      "key": "Google returned an error (%lld).",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
       "key": "Haptics",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
@@ -1175,6 +1251,10 @@
     {
       "key": "Keep as Best",
       "file": "Tidybyte/Shared/Components/GroupComparisonView.swift"
+    },
+    {
+      "key": "Keep Both",
+      "file": "Tidybyte/Shared/Components/ReplaceOriginalsNotice.swift"
     },
     {
       "key": "Keep everything, use less room",
@@ -1279,6 +1359,10 @@
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
     },
     {
+      "key": "Library",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "Library breakdown",
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     },
@@ -1359,6 +1443,10 @@
       "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
+      "key": "Mark as Deleted",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "Marked for deletion",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
@@ -1369,6 +1457,14 @@
     {
       "key": "Marks this photo for deletion and shows the next one",
       "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
+    },
+    {
+      "key": "Max %@",
+      "file": "Tidybyte/Services/PhotoCompressionService.swift"
+    },
+    {
+      "key": "Max File Size",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "media",
@@ -1511,6 +1607,10 @@
       "file": "Tidybyte/Features/Activity/ActivityView.swift"
     },
     {
+      "key": "Nothing to clean in the %lld items you picked.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "Nothing to free on iPhone",
       "file": "TidybyteWidget/StorageWidgetView.swift"
     },
@@ -1521,6 +1621,10 @@
     {
       "key": "Notifications Disabled",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
+      "key": "Off: keep both versions.",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "OK",
@@ -1541,6 +1645,10 @@
     {
       "key": "Only the first 25 are listed. Space freed by cleaning items stored only in iCloud may not be counted.",
       "file": "Tidybyte/Features/Activity/ActivityView.swift"
+    },
+    {
+      "key": "Open Google Photos",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Open iOS Settings",
@@ -1663,6 +1771,10 @@
       "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
     },
     {
+      "key": "Photos & Gmail: %@ · Drive: %@",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "Photos & Videos",
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     },
@@ -1673,6 +1785,10 @@
     {
       "key": "Photos taken close together",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
+    },
+    {
+      "key": "Pick items in Google Photos, tap Done, then come back.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Pinch or double-tap a photo to inspect it",
@@ -1720,7 +1836,7 @@
     },
     {
       "key": "Quality: %@",
-      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+      "file": "Tidybyte/Features/Cleanup/VideoCompression/VideoCompressionView.swift"
     },
     {
       "key": "Rate on the App Store",
@@ -1845,6 +1961,10 @@
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
     },
     {
+      "key": "Review %lld Items",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "Review Changes",
       "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
     },
@@ -1910,8 +2030,16 @@
       "file": "Tidybyte/Features/Cleanup/SmartCategories/SmartCategoriesView.swift"
     },
     {
+      "key": "Saving copy %lld of %lld",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
       "key": "Scan Type",
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
+    },
+    {
+      "key": "Scanning…",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Screen Recordings",
@@ -1944,6 +2072,14 @@
     {
       "key": "Select Album",
       "file": "Tidybyte/Features/Swipe/SwipeAlbumPickerSheet.swift"
+    },
+    {
+      "key": "Select All",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Select Extras",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Selfies",
@@ -1990,6 +2126,22 @@
       "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
     },
     {
+      "key": "Sign in with Google",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Sign in, pick the photos and videos to check, and TidyByte finds duplicates, blurry shots, screenshots, and large videos. TidyByte connects to Google only after you sign in here, and reads only the items you pick. Nothing goes to a TidyByte server.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Sign Out",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
+      "key": "Sign-in cancelled.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
       "key": "Similar Photo Time Window",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
@@ -2022,6 +2174,10 @@
       "file": "Tidybyte/Features/Onboarding/OnboardingView.swift"
     },
     {
+      "key": "Smallest change that fits the size limit",
+      "file": "Tidybyte/Services/PhotoCompressionService.swift"
+    },
+    {
       "key": "Smart Categories",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
     },
@@ -2036,6 +2192,10 @@
     {
       "key": "Sort",
       "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
+    },
+    {
+      "key": "Sort photos",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "Sort photos by content type",
@@ -2299,10 +2459,6 @@
       "file": "Tidybyte/Features/Onboarding/OnboardingView.swift"
     },
     {
-      "key": "TidyByte has no account and no servers. Your photos and activity never leave your device.",
-      "file": "Tidybyte/Features/Settings/SettingsView.swift"
-    },
-    {
       "key": "TidyByte has permission to see some of your photos, but none are shared with it right now, so there is nothing to review. Pick the photos it can see, or switch it to Full Access in Settings.",
       "file": "Tidybyte/Shared/Utilities/PhotoAccessRecovery.swift"
     },
@@ -2321,6 +2477,10 @@
     {
       "key": "TidyByte reviews your library on this device to find what's worth cleaning up. Nothing is uploaded, and nothing changes without your say-so. iOS will ask for access next.",
       "file": "Tidybyte/Shared/Utilities/PhotoPermissionHandler.swift"
+    },
+    {
+      "key": "TidyByte saves a new, smaller copy of each photo and keeps the originals. You get both versions in your library.",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "Time for a Photo Cleanup",
@@ -2353,6 +2513,10 @@
     {
       "key": "Total saved: %@",
       "file": "Tidybyte/Features/Cleanup/VideoCompression/CompressionHistoryView.swift"
+    },
+    {
+      "key": "Total: %@",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Total: %@ · est. savings ~%@",
@@ -2397,6 +2561,10 @@
     {
       "key": "Up to %@",
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
+    },
+    {
+      "key": "Up to %@ can be freed in the items you picked",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Up to %@ to free on iPhone",
@@ -2507,6 +2675,10 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
+      "key": "Your Google session ended. Sign in again.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
       "key": "Your library changed during analysis. Scan again for current results.",
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosViewModel.swift"
     },
@@ -2517,10 +2689,6 @@
     {
       "key": "Your library changed. Scan again before searching.",
       "file": "Tidybyte/Features/Cleanup/SmartCategories/SmartCategoriesViewModel.swift"
-    },
-    {
-      "key": "Your new copies are saved. Nothing was lost. Try again to delete the originals and free space, or remove the new copies.",
-      "file": "Tidybyte/Shared/Components/ReplaceOriginalsNotice.swift"
     },
     {
       "key": "Your photos are untouched and were never uploaded.",
@@ -2535,5 +2703,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 626
+  "total": 668
 }

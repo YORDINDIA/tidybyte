@@ -92,7 +92,7 @@ if [ -n "${NO_SPARKLE:-}" ]; then
 elif [ -n "${SPARKLE_PRIVATE_KEY_FILE:-}" ] && [ -x "$SIGN_UPDATE" ]; then
     SIGNATURE="$("$SIGN_UPDATE" --ed-key-file "$SPARKLE_PRIVATE_KEY_FILE" "$DMG")"
     BUILD="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$APP/Contents/Info.plist")"
-    URL="${DOWNLOAD_BASE_URL:-https://github.com/360ghar/tidybyte/releases/download/mac-v$VERSION}/$(basename "$DMG")"
+    URL="${DOWNLOAD_BASE_URL:-https://github.com/YORDINDIA/tidybyte/releases/download/mac-v$VERSION}/$(basename "$DMG")"
     cat > "$OUT/appcast.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">

@@ -393,11 +393,13 @@ actor PhotoLibraryService {
         return groups.filter { $0.value.count > 1 }
     }
 
-    func fetchAllPhotos() async -> [AssetSummary] {
+    /// `sortByCreationDate: false` keeps PhotoKit's fetch order, which is the
+    /// order photos were added to the library (oldest added first).
+    func fetchAllPhotos(sortByCreationDate: Bool = true) async -> [AssetSummary] {
         let options = allAssetsFetchOptions()
         options.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
         let result = PHAsset.fetchAssets(with: options)
-        return await extractSummaries(from: result)
+        return await extractSummaries(from: result, sort: sortByCreationDate)
     }
 
     // MARK: - Image Loading

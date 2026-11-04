@@ -23,6 +23,8 @@ src/
 └── input.css         # Tailwind source (design tokens live here)
 public/
 ├── assets/           # css/, js/, img/, fonts/ — copied to dist/ as-is
+├── _headers          # Security, content-type and cache headers for Pages
+├── _redirects        # Legacy blog URLs and trailing-slash redirects
 └── serve.py          # Local server for the built site (serves dist/)
 dist/                 # Build output (never committed)
 ```
@@ -156,7 +158,7 @@ The `dist/` folder is the deployable artifact (never committed).
 
 ## Before going live
 
-All placeholders are resolved. The site is configured for the domain `tidybyte.360ghar.com` and the contact email `contact@sakshammittal.com`. Deploy checklist: [`../DEPLOY_CHECKLIST.md`](../DEPLOY_CHECKLIST.md).
+All placeholders are resolved. The site is configured for the domain `tidybyte.yord.si` and the contact email `contact@sakshammittal.com`. Deploy checklist: [`../DEPLOY_CHECKLIST.md`](../DEPLOY_CHECKLIST.md).
 
 ## License
 

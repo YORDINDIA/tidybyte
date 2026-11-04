@@ -69,7 +69,7 @@
         <p class="muted mt-4 text-base leading-relaxed sm:text-lg"><strong class="font-semibold text-ink">TidyByte is the best iPhone cleaner app no subscription can match.</strong> It is a free, open-source iPhone app that gives you every feature from the moment you install it. There is no trial period, no feature gating, no premium tier, and no ads. You download it and start cleaning &mdash; that is it.</p>
         <p class="muted mt-4 text-base leading-relaxed sm:text-lg">What makes TidyByte stand out is its dual duplicate detection system. It uses <strong class="font-semibold text-ink">SHA-256 hashing</strong> for exact byte-for-byte duplicates and <strong class="font-semibold text-ink">Apple's Vision framework</strong> for near-duplicates &mdash; photos that look almost identical but differ by a crop, filter, or slight recomposition. Most free apps only catch exact matches, leaving you with dozens of near-duplicate clusters that still eat storage.</p>
         <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Beyond duplicates, TidyByte includes blur and exposure detection (using Vision's image analysis), video compression with real-time progress, screenshot cleanup, a large file finder, a storage dashboard, and Live Photo to still conversion. The swipe-based interface lets you review photos quickly &mdash; swipe left to delete, right to keep &mdash; and users report clearing 500 to 1,000 photos in a single 15-minute session.</p>
-        <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Everything runs on-device. Your photos never leave your phone. The app uses only Apple's built-in frameworks &mdash; SwiftUI, PhotoKit, Vision, AVFoundation &mdash; with zero third-party dependencies. The full source code is available on the <a class="link hover:underline" href="https://github.com/360ghar/snap-clean-ios" target="_blank" rel="noopener">TidyByte GitHub repository</a> under the MIT license, so you can verify exactly what it does with your data. For more details on each feature, see the <a class="link hover:underline" href="/#features">TidyByte features page</a>.</p>
+        <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Core iPhone-library cleanup runs on-device, and photos are not sent to TidyByte. In builds with Google Photos enabled, that optional source connects directly to Google for the items you select. The full source code is available on the <a class="link hover:underline" href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener">TidyByte GitHub repository</a> under the MIT license, so you can inspect these paths. For more details on each feature, see the <a class="link hover:underline" href="/#features">TidyByte features page</a>.</p>
       </section>
 
       <!-- Section 3: iOS Built-In Tools -->
@@ -181,7 +181,7 @@
       <!-- Section 6: Our Recommendation -->
       <section>
         <h2 id="best-iphone-cleaner-app-no-subscription-section-6" class="h-section mt-12 scroll-mt-24 text-2xl sm:text-3xl">Our Recommendation</h2>
-        <p class="muted mt-4 text-base leading-relaxed sm:text-lg">After testing every major option, our recommendation is clear: <strong class="font-semibold text-ink">start with TidyByte</strong>. It is the most complete free iPhone cleaner available, and it avoids every common pain point with competing apps. There is no subscription to cancel, no trial to expire, no ads to dismiss, and no cloud processing to worry about. You get exact and near-duplicate detection, blur scanning, video compression, and an intuitive swipe interface &mdash; all in a single free download.</p>
+        <p class="muted mt-4 text-base leading-relaxed sm:text-lg">After testing every major option, our recommendation is clear: <strong class="font-semibold text-ink">start with TidyByte</strong>. It is the most complete free iPhone cleaner available, and it avoids every common pain point with competing apps. There is no subscription to cancel, no trial to expire, and no ads to dismiss. Core iPhone-library cleanup runs on-device; optional Google Photos connects directly to Google in enabled builds. You get exact and near-duplicate detection, blur scanning, video compression, and an intuitive swipe interface &mdash; all in a single free download.</p>
         <p class="muted mt-4 text-base leading-relaxed sm:text-lg">As a complement, enable the built-in iOS Duplicates album (Settings &rarr; Photos &rarr; look for the Duplicates album under Utilities). It runs automatically in the background and catches exact duplicates that accumulate over time. Between the two tools &mdash; TidyByte for deep cleaning and iOS Duplicates for maintenance &mdash; you have a complete, subscription-free photo management system.</p>
         <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Here is a practical workflow we recommend:</p>
         <ul class="muted mt-4 space-y-2 text-base sm:text-lg">
@@ -223,14 +223,14 @@
       <summary class="faq-summary">How does TidyByte stay free?
         <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
       </summary>
-      <div class="muted mt-4 leading-relaxed"><p class="muted mt-3 text-base leading-relaxed">TidyByte runs entirely on your device with no servers, no cloud processing, and no user accounts. This eliminates the biggest cost center for most apps: infrastructure. The app uses only Apple's built-in frameworks with zero third-party dependencies, so there are no licensing fees or SDK costs. It is open-source under the MIT license, and its operating costs are effectively zero &mdash; there is simply nothing to pay for.</p></div>
+      <div class="muted mt-4 leading-relaxed"><p class="muted mt-3 text-base leading-relaxed">TidyByte's core cleanup runs locally and requires no TidyByte server or account. In builds with Google Photos enabled, that optional source makes direct Google API requests when you choose to connect it. The app has no ads or subscription and is open-source under the MIT license.</p></div>
     </details>
 
               <details class="clay-card group p-5 sm:p-6">
       <summary class="faq-summary">Are free cleaner apps safe?
         <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
       </summary>
-      <div class="muted mt-4 leading-relaxed"><p class="muted mt-3 text-base leading-relaxed">Free apps that process everything on-device &mdash; like TidyByte &mdash; are safe because your photos never leave your phone. Be cautious with apps that upload photos to cloud servers for processing, even if they claim to be free, as this creates privacy risks. TidyByte is open-source, so you can verify exactly what it does with your data by reviewing the source code on <a class="link hover:underline" href="https://github.com/360ghar/snap-clean-ios" target="_blank" rel="noopener">GitHub</a>. For more on this topic, see our <a class="link hover:underline" href="/blog/are-photo-cleaner-apps-safe">detailed safety guide</a>.</p></div>
+      <div class="muted mt-4 leading-relaxed"><p class="muted mt-3 text-base leading-relaxed">Safety depends on how a free app handles your data. TidyByte's core local-library cleanup runs on-device, and no photos are sent to a TidyByte server. In builds with Google Photos enabled, the optional source connects directly to Google for selected items. Review the privacy policy and source code, and be cautious of apps that upload photos to their own servers. See our <a class="link hover:underline" href="/blog/are-photo-cleaner-apps-safe">detailed safety guide</a>.</p></div>
     </details>
         </div>
       </section>
@@ -240,7 +240,7 @@
         <h2 class="text-xl font-semibold text-ink">Ready to clean up your photo library?</h2>
         <p class="muted mt-2 text-base">TidyByte is free, runs 100% on your device, and takes just minutes to use.</p>
         <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
-          <a href="https://apps.apple.com/in/app/tidybyte/id6775769763" class="btn-primary" target="_blank" rel="noopener">Download TidyByte Free</a>
+          <a href="https://apps.apple.com/app/id6775769763" class="btn-primary" target="_blank" rel="noopener">Download TidyByte Free</a>
           <a href="/free-photo-cleaner-no-subscription" class="btn-ghost">Why TidyByte stays free</a>
         </div>
       </section>

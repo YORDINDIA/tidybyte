@@ -9,7 +9,7 @@
  *
  *   verify   read-only report on the live account          (verify.mjs)
  *   build    upload the signed IPA
- *   details  update subtitle, keywords, description, promo text, what's new
+ *   details  update name, subtitle, keywords, description, promo text, what's new
  *   media    upload assets to the library and place them on every surface
  *   submit   create a review submission and submit the version
  *   all      build, then details, then media, then submit
@@ -110,6 +110,9 @@ async function cmdPrepare() {
   const { LOCALE_BY_LANGUAGE } = await import('./plan.mjs');
   const wanted = Object.keys(listings).filter((key) => !key.startsWith('_'));
   const locales = wanted.map((language) => LOCALE_BY_LANGUAGE[language] ?? language);
+  const namesByLocale = new Map(
+    wanted.map((language, index) => [locales[index], listings[language].name]),
+  );
 
   heading(`Version ${marketingVersion()}`);
   const existing = await client.getAll(
@@ -144,7 +147,7 @@ async function cmdPrepare() {
     if (appInfo) {
       const infoLocs = await client.getAll(`/v1/appInfos/${appInfo.id}/appInfoLocalizations?limit=200`);
       const haveInfo = new Set(infoLocs.map((l) => l.attributes.locale));
-      console.log('\n  App info (subtitle):');
+      console.log('\n  App info (name and subtitle):');
       for (const locale of locales) {
         if (haveInfo.has(locale)) console.log(`    ${locale.padEnd(9)} exists`);
         else plan('POST', '/v1/appInfoLocalizations', locale);
@@ -158,6 +161,7 @@ async function cmdPrepare() {
     version,
     appInfoId: appInfo?.id,
     locales,
+    namesByLocale,
     create: true,
   });
 
@@ -236,7 +240,7 @@ async function ensureEditableVersion(client, appId, { create = false } = {}) {
  * media can be attached, and the two are different resources with different
  * parents, which is the usual place this goes wrong.
  */
-async function ensureLocalizations(client, { version, appInfoId, locales, create }) {
+async function ensureLocalizations(client, { version, appInfoId, locales, namesByLocale, create }) {
   const wanted = [...new Set(locales)].sort();
   const report = { created: [], existing: [], failed: [] };
 
@@ -273,8 +277,8 @@ async function ensureLocalizations(client, { version, appInfoId, locales, create
     }
   }
 
-  // App info localizations are a separate resource. The subtitle lives here, and
-  // a locale with no app info localization cannot carry one.
+  // App info localizations are a separate resource. Name and subtitle live
+  // here, and a locale with no app info localization cannot carry either.
   if (appInfoId) {
     const infoLocales = new Map(
       (await client.getAll(`/v1/appInfos/${appInfoId}/appInfoLocalizations?limit=200`))
@@ -283,11 +287,16 @@ async function ensureLocalizations(client, { version, appInfoId, locales, create
     for (const locale of wanted) {
       if (infoLocales.has(locale)) continue;
       if (!create) continue;
+      const name = namesByLocale.get(locale);
+      if (!name) {
+        report.failed.push(`appInfo ${locale}: name missing from listings.json`);
+        continue;
+      }
       try {
         await client.post('/v1/appInfoLocalizations', {
           data: {
             type: 'appInfoLocalizations',
-            attributes: { locale, name: 'TidyByte' },
+            attributes: { locale, name },
             relationships: { appInfo: { data: { type: 'appInfos', id: appInfoId } } },
           },
         });
@@ -411,12 +420,16 @@ async function cmdDetails() {
   const { LOCALE_BY_LANGUAGE } = await import('./plan.mjs');
   const wanted = Object.keys(listings).filter((key) => !key.startsWith('_'));
   const wantedLocales = wanted.map((language) => LOCALE_BY_LANGUAGE[language] ?? language);
+  const namesByLocale = new Map(
+    wanted.map((language, index) => [wantedLocales[index], listings[language].name]),
+  );
 
   const appInfo = await findAppInfo(client, appId);
   const prepared = await ensureLocalizations(client, {
     version,
     appInfoId: appInfo?.id,
     locales: wantedLocales,
+    namesByLocale,
     create: args.includes('--create'),
   });
   if (prepared.created.length > 0) {
@@ -435,6 +448,7 @@ async function cmdDetails() {
 
   let changed = 0;
   let unchanged = 0;
+  let appInfoChanged = 0;
   const missingLocales = [];
 
   for (const language of wanted) {
@@ -480,10 +494,10 @@ async function cmdDetails() {
     });
   }
 
-  // The subtitle lives on the app info, not the version, and it is per-locale.
-  heading('Subtitle (app info localizations)');
+  // Name and subtitle live on the per-locale app info, not the version.
+  heading('Name and subtitle (app info localizations)');
   if (!appInfo) {
-    console.log('  no app info record found; subtitle not updated.');
+    console.log('  no app info record found; name and subtitle not updated.');
   } else {
     // Re-read: ensureLocalizations may have just created these.
     const infoLocalizations = await client.getAll(
@@ -493,19 +507,29 @@ async function cmdDetails() {
     for (const language of wanted) {
       const locale = LOCALE_BY_LANGUAGE[language] ?? language;
       const localization = infoByLocale.get(locale);
-      const subtitle = listings[language].subtitle;
+      const attributes = {
+        name: listings[language].name,
+        subtitle: listings[language].subtitle,
+      };
       if (!localization) {
-        missingLocales.push(`subtitle ${language} -> ${locale}`);
+        missingLocales.push(`app info ${language} -> ${locale}`);
         continue;
       }
-      if (localization.attributes?.subtitle === subtitle) continue;
-      console.log(`  ${locale.padEnd(9)} subtitle -> ${subtitle}`);
+      const differing = Object.entries(attributes)
+        .filter(([key, value]) => localization.attributes?.[key] !== value)
+        .map(([key]) => key);
+      if (differing.length === 0) continue;
+      appInfoChanged += 1;
+      console.log(`  ${locale.padEnd(9)} updating ${differing.join(', ')}`);
+      for (const key of differing) {
+        console.log(`    ${key} -> ${attributes[key]}`);
+      }
       if (dryRun) {
-        plan('PATCH', `/v1/appInfoLocalizations/${localization.id}`, 'subtitle');
+        plan('PATCH', `/v1/appInfoLocalizations/${localization.id}`, differing.join(','));
         continue;
       }
       await client.patch(`/v1/appInfoLocalizations/${localization.id}`, {
-        data: { type: 'appInfoLocalizations', id: localization.id, attributes: { subtitle } },
+        data: { type: 'appInfoLocalizations', id: localization.id, attributes },
       });
     }
 
@@ -533,7 +557,8 @@ async function cmdDetails() {
   }
 
   heading('Summary');
-  console.log(`  ${changed} localization(s) needed changes, ${unchanged} already matched`);
+  console.log(`  version copy: ${changed} localization(s) needed changes, ${unchanged} already matched`);
+  console.log(`  app info: ${appInfoChanged} localization(s) needed name/subtitle updates`);
   if (missingLocales.length > 0) {
     console.log(`  ${missingLocales.length} locale(s) have no App Store localization yet:`);
     for (const entry of missingLocales) console.log(`    ${entry}`);

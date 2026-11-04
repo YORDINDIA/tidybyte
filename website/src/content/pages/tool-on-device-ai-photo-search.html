@@ -4,7 +4,7 @@
     <h2 class="h-section text-2xl sm:text-3xl">Why searching beats scrolling</h2>
     <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">Search is the only feature that gets faster as your library gets bigger. Scrolling gets slower, albums need maintenance, and sorting by year only helps if you remember when something happened. Typing &ldquo;dogs on a beach&rdquo; and getting the photos back takes a second, at any library size.</p>
     <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">The catch is where that search runs. Cloud photo services answer questions like this by holding your library on their servers, which is why they need an account and a connection. TidyByte does it locally: the content labels come from Apple&rsquo;s Vision framework on your device, and the interpretation of your sentence happens on the device too.</p>
-    <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">The practical result is search that works on a plane, with no account, no upload, and no terms of service about what may be done with your photos.</p>
+    <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">The practical result is local-library search that works offline, requires no TidyByte account, and sends no photos or search text to a TidyByte server. Google Photos is a separate optional source in builds where it is enabled.</p>
   </div>
 </section>
 
@@ -53,7 +53,7 @@
   <div class="container-prose mx-auto max-w-prose">
     <h2 class="h-section text-2xl sm:text-3xl">Why this is a privacy feature, not just a search box</h2>
     <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">Searching your photo library by description is the most personal query you can make of your own device. Doing it in the cloud means building a profile of what you photograph, when, and what you look for &mdash; which is exactly what on-device processing avoids.</p>
-    <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">TidyByte performs no network requests at all. There is no account, no analytics SDK, and no upload path for a photo or a search term. You can verify the claim by turning on airplane mode and searching, or by reading the source: it is MIT licensed on <a href="https://github.com/360ghar/snap-clean-ios" class="link" target="_blank" rel="noopener">GitHub</a>.</p>
-    <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">That is the point of building search this way: the feature that would normally be the most invasive one in a photo app becomes the one that never leaves the phone.</p>
+    <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">Local-library search itself does not make network requests or send photo data to a TidyByte server. In builds with Google Photos enabled, connecting that separate source calls Google directly. You can verify the local search by turning on airplane mode, or review the MIT-licensed source on <a href="https://github.com/YORDINDIA/tidybyte" class="link" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p class="mt-4 text-base leading-relaxed text-body sm:text-lg">That is the point of building search this way: local-library search runs on-device, while selected Google Photos previews are fetched from Google and scanned locally in enabled builds.</p>
   </div>
 </section>

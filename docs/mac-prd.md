@@ -130,7 +130,9 @@ Each tool shows a live item-count badge; tools needing a full scan show
    copy verifies. Per-file progress, max two concurrent jobs, history log
    with before/after sizes.
 2. **Image Compression** — quality presets with estimated savings, same
-   verify-then-trash flow and history as video.
+   verify-then-trash flow and history as video. Follow-up from iOS user
+   feedback (2026-11-04): keep-both option, delete-originals choice, sort by
+   date added, and a max-file-size mode. See `macos/FEATURE_TRACKER.md` IC-01..IC-04.
 3. **Duplicate-Format Pairs** — RAW+JPEG, HEIC+JPEG, and Live-Photo-style
    still/video pairs (Mac photo libraries and camera imports); convert or
    keep-one-side with savings shown first.

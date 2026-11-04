@@ -56,7 +56,7 @@ const SKIP_LINK =
   "focus:py-1.5 focus:text-sm focus:font-semibold focus:text-on-primary\">" +
   "Skip to content</a>";
 
-const ICON_OG = "https://tidybyte.360ghar.com/assets/img/icon-1024.png";
+const ICON_OG = "https://tidybyte.yord.si/assets/img/icon-1024.png";
 
 /** Placeholder an author drops where the quick-answer box should render. */
 const MARKER = "<!-- quick-answer -->";
@@ -93,15 +93,9 @@ function articleDates(m: PageMeta): { published: string | null; modified: string
  * <img>/<picture> actually fetches, otherwise the preload is wasted.
  */
 function imagePreloadTag(m: PageMeta): string | null {
-  // baseRoute() so /de preloads the same hero as / — it renders the same
-  // markup, and without this the localized pages would each ship a hero
-  // with no preload.
-  if (baseRoute(m.route) === "/") {
-    // Home hero is an AVIF-first <picture> (see src/content/pages/index.html);
-    // AVIF is the LCP resource in every evergreen browser. Preload matches
-    // by URL, so a plain href preload feeds the <source> request.
-    return `  <link rel="preload" as="image" href="/assets/img/illustrations/hero-cleanup.avif" type="image/avif" fetchpriority="high">`;
-  }
+  // The home page has no LCP image: its hero devices are HTML/CSS replicas
+  // (see src/content/pages/index.html), so the LCP element is the h1 and no
+  // preload is needed. The /de…/ copies render the same markup.
   if (m.route === "/mac") {
     // The first screen of the Mac page's screen switcher is its LCP image.
     // Same srcset and sizes as the <source>, so the preload fetches the file the browser picks.
@@ -147,10 +141,10 @@ function breadcrumbScript(m: PageMeta): string {
       .replace(/\s*[—–|-]\s*TidyByte\s*$/i, "")
       .trim() || "TidyByte";
   const items: { name: string; url: string }[] = [
-    { name: "Home", url: "https://tidybyte.360ghar.com/" },
+    { name: "Home", url: "https://tidybyte.yord.si/" },
   ];
   if (m.route.startsWith("/blog/")) {
-    items.push({ name: "Blog", url: "https://tidybyte.360ghar.com/blog" });
+    items.push({ name: "Blog", url: "https://tidybyte.yord.si/blog" });
   }
   items.push({ name, url: m.canonical });
   const body = items

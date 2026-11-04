@@ -41,7 +41,7 @@ const LANG_ROUTES = [
 ];
 
 export default defineConfig({
-  site: 'https://tidybyte.360ghar.com',
+  site: 'https://tidybyte.yord.si',
   output: 'static',
   compressHTML: true,
   trailingSlash: 'never',

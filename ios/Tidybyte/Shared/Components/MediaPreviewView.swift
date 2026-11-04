@@ -47,6 +47,7 @@ struct MediaPreviewView: View {
     var showOriginalsKept: (() -> Bool)?
     var onRetryRemovingOriginals: (() -> Void)?
     var onRemoveCopies: (() -> Void)?
+    var onKeepBoth: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     /// Read by the formatted values below: the environment is what makes this
@@ -73,7 +74,8 @@ struct MediaPreviewView: View {
         accessory: AccessoryAction? = nil,
         showOriginalsKept: (() -> Bool)? = nil,
         onRetryRemovingOriginals: (() -> Void)? = nil,
-        onRemoveCopies: (() -> Void)? = nil
+        onRemoveCopies: (() -> Void)? = nil,
+        onKeepBoth: (() -> Void)? = nil
     ) {
         self.photoService = photoService
         self.onDelete = onDelete
@@ -81,6 +83,7 @@ struct MediaPreviewView: View {
         self.showOriginalsKept = showOriginalsKept
         self.onRetryRemovingOriginals = onRetryRemovingOriginals
         self.onRemoveCopies = onRemoveCopies
+        self.onKeepBoth = onKeepBoth
         self.staticAssets = assets
         self.assetsProvider = nil
         let clamped = max(0, min(startIndex, max(0, assets.count - 1)))
@@ -95,7 +98,8 @@ struct MediaPreviewView: View {
         accessory: AccessoryAction? = nil,
         showOriginalsKept: (() -> Bool)? = nil,
         onRetryRemovingOriginals: (() -> Void)? = nil,
-        onRemoveCopies: (() -> Void)? = nil
+        onRemoveCopies: (() -> Void)? = nil,
+        onKeepBoth: (() -> Void)? = nil
     ) {
         self.photoService = photoService
         self.onDelete = onDelete
@@ -103,6 +107,7 @@ struct MediaPreviewView: View {
         self.showOriginalsKept = showOriginalsKept
         self.onRetryRemovingOriginals = onRetryRemovingOriginals
         self.onRemoveCopies = onRemoveCopies
+        self.onKeepBoth = onKeepBoth
         self.staticAssets = nil
         self.assetsProvider = assetsProvider
         let initial = assetsProvider()
@@ -153,7 +158,8 @@ struct MediaPreviewView: View {
         .originalsKeptAlert(
             isPresented: .constant(showOriginalsKept?() ?? false),
             onTryAgain: { onRetryRemovingOriginals?() },
-            onRemoveCopies: { onRemoveCopies?() }
+            onRemoveCopies: { onRemoveCopies?() },
+            onKeepBoth: onKeepBoth
         )
         .onChange(of: assets) { _, newAssets in
             if newAssets.isEmpty {

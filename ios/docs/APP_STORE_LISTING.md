@@ -1,10 +1,9 @@
 # App Store Connect Listing — TidyByte
 
-> **HISTORICAL (2026-08):** the shipped version is **1.1.1 (build 8)**;
-> **1.1.3 (build 10)** is in review. 1.1.2 never shipped. This document preserves the original v1.0 listing copy; the
-> site's `/changelog` is now the canonical version history. §4 (Keywords) and §1
-> (Subtitle) were refreshed on 2026-10-18 for the storage-cleaner and
-> image-compressor positioning — see the notes under each table.
+> **HISTORICAL (2026-08):** 1.1.1 (build 8) had shipped and 1.1.3 (build 10)
+> was in review; 1.1.2 never shipped. A fresh App Store Connect check on
+> 2026-11-01 shows 1.1.3 is **READY_FOR_SALE** with no editable version.
+> The site's `/changelog` is the canonical version history.
 
 Paste-ready copy for App Store Connect. Char-count annotations are inline. Anything marked **TODO** needs a human decision before submission.
 
@@ -17,15 +16,17 @@ Paste-ready copy for App Store Connect. Char-count annotations are inline. Anyth
 **App Name** (max 30 chars):
 
 ```
-TidyByte
+TidyByte: Photo Cleaner
 ```
-`TidyByte` = 8 chars. ✅
+23 chars. ✅ This keeps the TidyByte brand and adds the high-intent "Photo
+Cleaner" phrase. The same title is used in all 21 storefront localizations.
 
 **Subtitle options** (max 30 chars each — pick one):
 
 | Option | Text | Chars | Notes |
 |---|---|---|---|
-| **I** | `Clean photos, free up storage` | 29 ✅ | **In use.** Verb-forward; carries both the cleaning action and the storage outcome. |
+| **New** | `Swipe to free up storage` | 24 ✅ | **Approved candidate.** Pairs the swipe loop with the storage outcome. |
+| I | `Clean photos, free up storage` | 29 ✅ | Previous subtitle. |
 | H | `Photo cleaner, free space` | 25 ✅ | Shortest phrase carrying both intents, but noun-form and weaker on storage. |
 | A | `Swipe to clean your photos` | 26 ✅ | Strong on the swipe hook, weak on storage intent. |
 | B | `Declutter photos, free space` | 28 ✅ | Balanced. |
@@ -40,11 +41,11 @@ An earlier revision of this table listed E as 31 characters and marked it too lo
 it is 30 and fits. D and F were each overstated by one character. The counts are
 what App Store Connect enforces, so they are worth re-measuring after any edit.
 
-**Decided:** option I, `Clean photos, free up storage`, ships. It is set in
-`docs/appstore/listings.json` for all 21 locales. H was the earlier working
-default; the localized values were rewritten for I and are machine-drafted —
-they carry the previous per-language phrasing forward with the verb-forward
-shift, but have not had a native review pass.
+**Selected candidate:** `TidyByte: Photo Cleaner` / `Swipe to free up storage`.
+The English subtitle is 24 characters. All 21 subtitle localizations are
+machine-drafted and have not had a native-speaker review. This is a directional
+listing change, not a randomized title test; compare performance to the prior
+baseline after release.
 
 Neither option fits the word "compressor" alongside "cleaner" within 30
 characters, so the App Store keyword field is where that term belongs.
@@ -54,9 +55,9 @@ characters, so the App Store keyword field is where that term belongs.
 ## 2. Promotional Text (max 170 chars)
 
 ```
-Free up storage in minutes. Swipe to delete junk photos, find duplicates and blurry shots, and compress videos — all 100% on your device. No ads, no account.
+Free up storage with a swipe. Find duplicates and blurry shots, and compress videos. Cleanup runs on your device. No ads or TidyByte account.
 ```
-Length: **157 chars** ✅ (Promotional text can be updated anytime without a new build.)
+Length: **141 chars** ✅ (Promotional text can be updated without a new version.)
 
 ---
 
@@ -71,7 +72,7 @@ Tired of "Storage Almost Full"? TidyByte turns photo cleanup into something you'
 
 Beyond swiping, TidyByte packs a full toolkit of smart cleanup tools that surface exactly what's wasting your space: exact and visual duplicates, near-identical similar shots, blurry or poorly-lit photos, screenshots, screen recordings, chat media saved by messaging apps, burst sequences, and your largest files. Convert Live Photos to stills and compress videos and photos to save even more — without deleting your memories.
 
-Your photos never leave your phone. TidyByte does 100% of its processing on-device using Apple's Vision and Photos frameworks, including a local AI search that finds photos from a plain-language description. There is no backend, no account or login, no ads, and no tracking of any kind. Nothing is uploaded, ever.
+Your iPhone photo library stays on your device. TidyByte analyzes and cleans photos on-device with Apple's Vision and Photos frameworks, including local AI search that finds photos from a plain-language description. There is no TidyByte backend or account, no ads, and no tracking. If you choose to connect Google Photos, you sign in with Google, and TidyByte reads only the items you select directly from Google. Your iPhone photo library is never uploaded to TidyByte.
 
 TidyByte is free, with no in-app purchases and no paywalls. Every feature is available to everyone.
 
@@ -105,18 +106,18 @@ All listed features map to shipping tools (see verification at bottom). No fabri
 
 Apple indexes the app name, subtitle and keyword field together, so words already present in the name or subtitle must not be repeated here. The field therefore depends on which subtitle ships.
 
-**Shipped: subtitle I (`Clean photos, free up storage`)** — the name and subtitle
-already index "tidybyte", "clean", "photos", "free", "up" and "storage", so the field
-targets the remaining intents. This is the set in `docs/appstore/listings.json`
-(93 chars ✅):
+**Approved candidate: `TidyByte: Photo Cleaner` / `Swipe to free up storage`.**
+The name and subtitle already index "tidybyte", "photo", "cleaner", "swipe",
+"free", "up", and "storage", so the field targets other intents. This is the
+current candidate in `docs/appstore/listings.json` (93 chars ✅):
 
 ```
-duplicate,image compressor,compress video,screenshot,blurry,declutter,junk,similar,ai,cleaner
+duplicate,image compressor,compress video,screenshot,blurry,declutter,junk,similar,ai,gallery
 ```
 
-`gallery` was dropped for `ai` and `cleaner` (2026-10). The reasoning is a
-**hypothesis, not measurement** — no search-term or ranking data backs any of it,
-and the change has not yet been read in App Store Connect search results:
+`cleaner` was removed because the new app name indexes it; `gallery` is back in
+the field. This is a **hypothesis, not measurement** — no App Store search-term
+or ranking data was inspected:
 
 - `gallery` is assumed to be browsing intent rather than cleanup intent, and the
   app is assumed to rank poorly (or not at all) on it.
@@ -126,16 +127,15 @@ and the change has not yet been read in App Store Connect search results:
   is not evidence about this app's ranking.
 - TidyByte ships an on-device AI search without naming it anywhere Apple indexes,
   so the token is cheap to try.
-- `cleaner` is the noun form people are assumed to type ("photo cleaner"); the
-  subtitle's verb "Clean" does not match it.
+- `gallery` may be less valuable than an alternative term; validate with search
+  term data before treating this as settled.
 
-Validate against App Store Connect search-term data before treating this as
-settled. The localized keyword fields were **not** re-derived: they were tuned
-against the same subtitle, and "ai" is the same token in every storefront that
-uses the Latin alphabet. A native ASO pass per language is still open.
+The localized keyword fields were adjusted where the new subtitle created an
+exact repeated term. The translations and the full keyword strategy still need
+a native ASO review per language.
 
-An earlier revision gave the field below for this subtitle. It repeats "storage" and
-"clean" — both already indexed — and so spends 12 characters to add nothing:
+The following field was for the previous subtitle I. It repeated "storage" and
+"clean", both already indexed, and is retained here as a historical example:
 
 ```
 storage,duplicate,image compressor,compress video,screenshot,blurry,declutter,gallery,clean
@@ -167,11 +167,16 @@ Subtitle H (`Photo cleaner, free space`) — "photo", "cleaner", "free" and "spa
 storage,duplicate,image compressor,compress video,screenshot,blurry,declutter,gallery,clean
 ```
 
-**What changed from the original 91-char field.** The original was `photo cleaner,storage,duplicates,cleanup,swipe,declutter,free space,blurry,compress,gallery`. It covered the photo-cleaner cluster but not the two intents users actually search for when storage is full: **storage** and **image compressor**. Both are now covered, along with the multi-word phrases (`compress video`, `duplicate photo`) that Apple matches as combinations. Generic single words that carry little ranking weight — `cleanup`, `swipe`, `compress` alone — were dropped to make room. Under the shipped subtitle, `storage` and `clean` moved out of the field entirely because the subtitle now indexes them.
+**What changed from the previous 93-char field.** `cleaner` moved into the app
+name, and `gallery` returned to the field. The current subtitle indexes
+`swipe`, `free`, `up`, and `storage`; the remaining terms are candidates, not
+measured winners.
 
 **TODO (human):** final keyword tuning is an ASO call. Validate against your App Store Connect search-term data before shipping, and re-check the character count after any subtitle change: 100 characters is a hard limit, and spaces after commas waste them.
 
-**Caveat on the localized keyword fields.** The rule above (do not repeat a word the name or subtitle already indexes) has been applied to the English field and to the five languages where an exact token repeat was measurable — Bengali, German, Arabic and Hebrew, plus English. It is *not* applied to the remaining languages, because whether a repeat is waste depends on how the storefront tokenizes the script. In the Indic languages the subtitle and keyword field often spell the same word with and without a nukta (`फ़ोटो` vs `फोटो`), which is two different tokens to a tokenizer but one word to a reader; keeping both is defensible and was left alone deliberately. Treat this as an ASO pass, not a finished audit.
+**Caveat on localized keywords.** The strict validator removes exact name/subtitle
+overlaps. It does not infer stemming, transliteration, or how each storefront
+tokenizes a script, so these machine-drafted fields still need native ASO review.
 
 ---
 
@@ -188,11 +193,16 @@ storage,duplicate,image compressor,compress video,screenshot,blurry,declutter,ga
 
 | Field | Value | Required? |
 |---|---|---|
-| Support URL | `https://tidybyte.360ghar.com/support` | Required |
-| Marketing URL | `https://tidybyte.360ghar.com` | Optional |
-| Privacy Policy URL | `https://tidybyte.360ghar.com/privacy` | **Required** |
+| Support URL | `https://tidybyte.yord.si/support` | Required |
+| Marketing URL | `https://tidybyte.yord.si` | Optional |
+| Privacy Policy URL | `https://tidybyte.yord.si/privacy` | **Required** |
+| Terms of Service (EULA) link | `https://tidybyte.yord.si/terms` | Required |
 
-All three URLs are live and reachable.
+The Terms of Service page incorporates Apple's standard EULA by reference for App Store downloads. Leave App Store Connect's custom EULA fields empty (select "Apple's standard EULA"); the link satisfies the "public terms of service" field.
+
+The production site is live at `https://tidybyte.yord.si`. Support and privacy
+routes were checked after deployment; verify the terms route before submitting
+a new app version. Search Console and Bing sitemap submission were not checked.
 
 ---
 
@@ -225,7 +235,7 @@ In **App Store Connect → your app → App Privacy**:
 2. This produces a **"Data Not Collected"** privacy label with no data-type details required.
 
 **Rationale (truthful and verifiable):**
-- TidyByte has **no backend and performs no networking** — nothing is transmitted off the device.
+- TidyByte has **no backend**. It makes no network connections unless the user connects the optional Google Photos source. Only then does it connect, and only to Google APIs, with the user's own sign-in. Nothing goes to the developer, and nothing from the iPhone library leaves the device.
 - All photo analysis (Vision feature prints, blur/exposure detection, SHA-256 hashing) and all cleanup run **100% on-device**.
 - There is **no account/login, no analytics SDK, no ad SDK, and no tracking**.
 - This is reflected in `Tidybyte/Resources/PrivacyInfo.xcprivacy`: `NSPrivacyTracking = false`, empty `NSPrivacyTrackingDomains`, and an **empty `NSPrivacyCollectedDataTypes` array**. (The file declares only required-reason API usage: DiskSpace, UserDefaults, and FileTimestamp — these are API-usage declarations, not data collection.)
@@ -234,7 +244,7 @@ In **App Store Connect → your app → App Privacy**:
 
 ## 9. Export Compliance
 
-- The app uses **no encryption** beyond what is exempt (standard OS/HTTPS usage), and in fact does no networking at all.
+- The app uses **no encryption** beyond what is exempt (standard OS/HTTPS usage). HTTPS is used only if the user connects Google Photos.
 - `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption` is set to **`NO`** in `project.yml`, so the value is baked into the build's Info.plist. App Store Connect should **not** show a "Missing Compliance" prompt.
 - If a compliance question does appear, answer: **"No"** (the app does not use non-exempt encryption). No CCATS / self-classification report is needed.
 
@@ -250,8 +260,8 @@ TidyByte cleans up the device photo library. To review it properly:
 - Use a PHYSICAL iPhone with REAL photos and videos in the library. The iOS Simulator has a small fake photo library and will not exercise most tools meaningfully.
 - On first launch, the app requests Photo Library access — please grant FULL access (read & write). Without it, the Swipe screen and Cleanup tools have nothing to operate on.
 - Optionally, the app requests Notifications permission only if "Cleanup Reminders" is enabled in Settings; it is not required to review the app.
-- There is NO login, NO account, and NO demo credentials — all features are available immediately once photo access is granted.
-- The app is free with no in-app purchases. All processing is on-device; the app performs no networking.
+- No TidyByte account or login is needed for the core app. Google Photos is optional and requires Google sign-in.
+- The app is free with no in-app purchases. All processing is on-device. The app goes online only if the user connects Google Photos. That optional source (Cleanup tab → Google Photos) signs in with Google and reads only the items the user picks. Add a test Google account (on the OAuth test-user list) to the review notes before submitting.
 - Write actions (deleting photos, saving compressed videos/converted Live Photos) go through the standard iOS PhotoKit confirmation prompts.
 ```
 
@@ -325,7 +335,7 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 | 1.0.1 | — | Native iPad support, album picker fix, settings layout. |
 | 1.0 | 1 | Initial release. |
 
-The same table appears on the site at `https://tidybyte.360ghar.com/changelog`, which is the canonical version history. `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml` are the source of truth for the app binary.
+The same table appears on the site at `https://tidybyte.yord.si/changelog`, which is the canonical version history. `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml` are the source of truth for the app binary.
 
 ---
 
@@ -335,22 +345,22 @@ The marketing site now has one landing page per cleanup tool, each targeting its
 
 | Tool | URL |
 |---|---|
-| All cleanup tools (hub) | https://tidybyte.360ghar.com/photo-cleaner |
-| Storage cleaner | https://tidybyte.360ghar.com/storage-cleaner |
-| Duplicate photos | https://tidybyte.360ghar.com/duplicate-photo-cleaner |
-| Similar photos | https://tidybyte.360ghar.com/similar-photo-cleaner |
-| Screenshots | https://tidybyte.360ghar.com/screenshot-cleaner |
-| Screen recordings | https://tidybyte.360ghar.com/screen-recording-cleaner |
-| Chat media | https://tidybyte.360ghar.com/chat-media-cleaner |
-| Blurry photos | https://tidybyte.360ghar.com/blurry-photo-cleaner |
-| Large files | https://tidybyte.360ghar.com/large-file-cleaner |
-| Burst photos | https://tidybyte.360ghar.com/burst-photo-cleaner |
-| Live Photo converter | https://tidybyte.360ghar.com/live-photo-converter |
-| Video compression | https://tidybyte.360ghar.com/video-compression |
-| Image compression | https://tidybyte.360ghar.com/image-compression |
-| Photo organizer | https://tidybyte.360ghar.com/photo-organizer |
-| AI photo search | https://tidybyte.360ghar.com/on-device-ai-photo-search |
-| Free, no subscription | https://tidybyte.360ghar.com/free-photo-cleaner-no-subscription |
+| All cleanup tools (hub) | https://tidybyte.yord.si/photo-cleaner |
+| Storage cleaner | https://tidybyte.yord.si/storage-cleaner |
+| Duplicate photos | https://tidybyte.yord.si/duplicate-photo-cleaner |
+| Similar photos | https://tidybyte.yord.si/similar-photo-cleaner |
+| Screenshots | https://tidybyte.yord.si/screenshot-cleaner |
+| Screen recordings | https://tidybyte.yord.si/screen-recording-cleaner |
+| Chat media | https://tidybyte.yord.si/chat-media-cleaner |
+| Blurry photos | https://tidybyte.yord.si/blurry-photo-cleaner |
+| Large files | https://tidybyte.yord.si/large-file-cleaner |
+| Burst photos | https://tidybyte.yord.si/burst-photo-cleaner |
+| Live Photo converter | https://tidybyte.yord.si/live-photo-converter |
+| Video compression | https://tidybyte.yord.si/video-compression |
+| Image compression | https://tidybyte.yord.si/image-compression |
+| Photo organizer | https://tidybyte.yord.si/photo-organizer |
+| AI photo search | https://tidybyte.yord.si/on-device-ai-photo-search |
+| Free, no subscription | https://tidybyte.yord.si/free-photo-cleaner-no-subscription |
 
 ---
 
@@ -381,25 +391,24 @@ App Store Connect's field limits recorded in `_limits` so they cannot drift from
 | Command | Purpose |
 |---|---|
 | `node scripts/localization/make-listings.mjs` | Regenerates `listings.json` from the English copy in this document. Run it after editing §1–§4 or §12. |
-| `node scripts/localization/check-listings.mjs` | Validates every field: character limits, empty values, keyword hygiene (no space after a comma, no term repeated from the subtitle), and that `name` is `TidyByte` in every language. |
+| `node scripts/localization/check-listings.mjs` | Validates every field: character limits, empty values, keyword hygiene (no space after a comma, no term repeated from the name or subtitle), and a shared name across storefronts. |
 | `node scripts/localization/check-listings.mjs --strict` | The same, but also fails while any language is untranslated. All 20 languages are translated, and this is what CI runs. |
 
 **Subtitle and keywords carry the ASO weight:**
 
-1. **Subtitle** — the decision is **closed**: option **I**, `Clean photos, free up storage`
-   (29 chars), ships, and `listings.json` already carries it in all 21 locales. Option I
-   was chosen from the nine candidates listed in §1. The choice is load-bearing for ASO:
-   Apple indexes the app name, subtitle, and keyword field together, so whichever
-   subtitle ships decides which words must be removed from the keyword field. If the
-   subtitle changes again, change `en.subtitle` and re-translate that one field in all
-   20 languages.
-2. **Keywords** — tuned against the subtitle in use. See §4 for the per-subtitle
-   variants and the reasoning.
+1. **Subtitle** — the selected candidate is `Swipe to free up storage` (24 chars).
+   It is in `listings.json` for all 21 locales as a machine-drafted translation;
+   native-speaker review is still needed. Apple indexes the app name, subtitle,
+   and keyword field together, so a subtitle change can make keyword terms
+   redundant.
+2. **Keywords** — tuned against the selected candidate, but not against App Store
+   search-term data. See §4 for the hypothesis and review caveats.
 
 **What is deliberately *not* localized:**
 
-- `name` stays `TidyByte` in every storefront. A translated app name would not match
-  what users search for, and the keyword field carries the descriptive terms instead.
+- `name` stays `TidyByte: Photo Cleaner` in every storefront to keep the brand and
+  shared English search phrase consistent. The subtitle, promotional text, and
+  description are localized; those machine-drafted translations still need review.
 - **Screenshots** are captured in English only (`npm run screenshots`). App Store Connect
   accepts a localized set per language, but Apple does not require one: if a localization
   has no screenshots, the next best available language is shown. Localized screenshots

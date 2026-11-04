@@ -13,6 +13,7 @@
 export const KEEP_LITERAL = new Set([
   "TidyByte",
   "TidyByte Free",
+  "TidyByte for Mac",
   "iOS 17+",
   "iPhone",
   "iPad",
@@ -24,6 +25,19 @@ export const KEEP_LITERAL = new Set([
   "WhatsApp",
   "Telegram",
   "1.0.5",
+  // The landing page's app replicas: unit symbols, a disk and file names,
+  // a duration, and HTML entities that render as glyphs. Every language
+  // sees the same characters on screen, so there is nothing to translate.
+  "GB",
+  "MB",
+  "KB",
+  "60s",
+  "Macintosh HD",
+  "IMG_4032.jpg",
+  "IMG_4032 2.jpg",
+  "holiday-video.mp4",
+  "&middot;",
+  "&#x2039;",
 ]);
 
 /// True when a page string is deliberately not translated.

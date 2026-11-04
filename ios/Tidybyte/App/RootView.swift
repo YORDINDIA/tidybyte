@@ -47,7 +47,7 @@ struct RootView: View {
             .tag(AppTab.swipe)
 
             NavigationStack(path: cleanupPathBinding) {
-                permissionGatedView { CleanupHomeView() }
+                MediaSourceGate { permissionGatedView { CleanupHomeView() } }
                     .recentlyDeletedNoticeInset()
                     .navigationDestination(for: CleanupTool.self) { tool in
                         permissionGatedView { cleanupDestinationView(for: tool) }
@@ -60,7 +60,7 @@ struct RootView: View {
             .tag(AppTab.cleanup)
 
             NavigationStack(path: storagePathBinding) {
-                permissionGatedView { StorageDashboardView() }
+                MediaSourceGate { permissionGatedView { StorageDashboardView() } }
                     .recentlyDeletedNoticeInset()
                     .navigationDestination(for: StorageRoute.self) { route in
                         switch route {

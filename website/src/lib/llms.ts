@@ -13,7 +13,7 @@ const contentFiles = import.meta.glob("../content/pages/*.html", {
   eager: true,
 }) as Record<string, string>;
 
-const SITE = "https://tidybyte.360ghar.com";
+const SITE = "https://tidybyte.yord.si";
 
 export function contentFor(route: string): string {
   const meta = PAGES.find((p) => p.route === route);

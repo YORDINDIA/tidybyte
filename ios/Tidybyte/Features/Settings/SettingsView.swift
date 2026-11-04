@@ -35,6 +35,7 @@ struct SettingsView: View {
 
     // Photo Compression
     @AppStorage(AppPreferences.Key.defaultPhotoCompressionPreset) private var photoCompressionPreset: String = "high"
+    @AppStorage(AppPreferences.Key.deletePhotoOriginalsAfterCompression) private var deletePhotoOriginals = true
 
     // Notifications
     @AppStorage(AppPreferences.Key.cleanupRemindersEnabled) private var remindersEnabled: Bool = false
@@ -172,7 +173,9 @@ struct SettingsView: View {
                 Label("All processing happens on your device.", systemImage: "lock.shield")
                     .font(.subheadline)
             } footer: {
-                Text("TidyByte has no account and no servers. Your photos and activity never leave your device.")
+                Text(GoogleAuthService.isConfigured
+                     ? "TidyByte has no account and no servers. Your photos and activity never leave your device. TidyByte goes online only if you connect Google Photos, and then only to Google."
+                     : "TidyByte has no account and no servers. Your photos and activity never leave your device.")
             }
 
             // MARK: - Language & Appearance
@@ -323,6 +326,7 @@ struct SettingsView: View {
                         Text(preset.label).tag(preset.id)
                     }
                 }
+                Toggle("Delete Originals After Compressing", isOn: $deletePhotoOriginals)
             }
 
             // MARK: - Notifications

@@ -105,7 +105,7 @@ npm run publish:build      # uploads the IPA
 
 node scripts/publish/publish.mjs prepare
                            # creates the editable version + its localizations
-npm run publish:details    # pushes subtitle, keywords, description, what's new
+npm run publish:details    # pushes name, subtitle, keywords, description, what's new
 npm run publish:media      # uploads assets and creates placements
 npm run publish:submit     # submits the version for review
 ```
@@ -151,9 +151,10 @@ key. The REST API can read build metadata but cannot create a build, so the
 binary goes through altool.
 
 **`details`** writes the store copy from `docs/appstore/listings.json` into every
-`appStoreVersionLocalization`, and the subtitle into the matching
+`appStoreVersionLocalization`, and the name and subtitle into each matching
 `appInfoLocalization`. It compares before writing, so a re-run is a no-op rather
-than a rewrite.
+than a rewrite. Apple requires a new version to change an app name after its
+first submission; `details` only writes while an editable version exists.
 
 **`media`** uploads each distinct file to the app's asset library once, then
 creates a placement per surface. Files are deduplicated by **content hash**, not
@@ -234,7 +235,7 @@ Reachable through the API, and handled here:
 
 | Listing field | Where it lives | Command |
 |---|---|---|
-| Subtitle | `appInfoLocalization` | `details` |
+| App name and subtitle | `appInfoLocalization` | `details` |
 | Description, keywords, promotional text, what's new | `appStoreVersionLocalization` | `details` |
 | Screenshots | asset library placements | `media` |
 | Product page header, search creative | asset library placements | `media` |

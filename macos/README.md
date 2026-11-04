@@ -31,7 +31,7 @@ Optional extras: a menu bar item with free space and memory status, a notificati
 
 ## Install
 
-1. Download `Tidybyte-<version>.dmg` from the [releases page](https://github.com/360ghar/tidybyte/releases).
+1. Download `Tidybyte-<version>.dmg` from the [releases page](https://github.com/YORDINDIA/tidybyte/releases).
 2. Open the disk image and drag Tidybyte to Applications.
 3. Open Tidybyte. Onboarding asks for Full Disk Access and, if you want, Photos access.
 
@@ -92,7 +92,7 @@ SPARKLE_PUBLIC_KEY=<base64 key> SPARKLE_PRIVATE_KEY_FILE=<path> \
 Scripts/package-release.sh direct
 ```
 
-The script signs inside out with the hardened runtime, notarizes and staples the app and the DMG, and writes a one-item `appcast.xml`. `SIGNING_IDENTITY=- SKIP_NOTARIZE=1` runs it without credentials. The update feed is `https://tidybyte.360ghar.com/mac/appcast.xml`; set `SPARKLE_FEED_URL` to change it.
+The script signs inside out with the hardened runtime, notarizes and staples the app and the DMG, and writes a one-item `appcast.xml`. `SIGNING_IDENTITY=- SKIP_NOTARIZE=1` runs it without credentials. The update feed is `https://tidybyte.yord.si/mac/appcast.xml`; set `SPARKLE_FEED_URL` to change it.
 
 See [DESIGN.md](DESIGN.md) for the interface and [CHANGELOG.md](CHANGELOG.md) for changes.
 

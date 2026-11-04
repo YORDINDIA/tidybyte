@@ -223,6 +223,7 @@ enum CompressionBatchRunner {
         isSizeUnknown: @MainActor @Sendable (Error) -> Bool,
         modelContext: ModelContext,
         handlers: Handlers,
+        deleteOriginals: Bool = true,
         execute: @MainActor @Sendable (String, Int, @escaping @MainActor @Sendable (Float) -> Void) async throws
             -> CompressionItemOutcome
     ) async -> Result {
@@ -278,7 +279,19 @@ enum CompressionBatchRunner {
         // prompt. This also runs after a cancel, so finished items finish.
         var successfulIds: Set<String> = []
         var kept: [PendingOriginal] = []
-        if !saved.isEmpty {
+        var copiesOnly = 0
+        if !saved.isEmpty, !deleteOriginals {
+            // Copy-only mode: the user chose to keep the originals before the
+            // batch, so there is no delete prompt. Settle each row as kept-both.
+            for item in saved {
+                item.swap.finalizeKeptBoth()
+                if let index = indexById[item.assetId] {
+                    handlers.setState(index, .keptOriginal(reason: L10n.format(
+                        "Copy saved (%@) — original kept", item.compressedSize.formattedFileSize)))
+                }
+            }
+            copiesOnly = saved.count
+        } else if !saved.isEmpty {
             handlers.setPhase(.removingOriginals(count: saved.count))
             let outcome = await OriginalsCommit.commit(saved)
             for item in outcome.committed {
@@ -302,7 +315,7 @@ enum CompressionBatchRunner {
         return Result(
             successfulIds: successfulIds,
             summary: CompressionBatchSummary(
-                completed: successfulIds.count,
+                completed: successfulIds.count + copiesOnly,
                 failed: failed,
                 skipped: skipped,
                 cancelled: isCancelled()

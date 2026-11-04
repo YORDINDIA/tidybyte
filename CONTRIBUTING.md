@@ -19,12 +19,12 @@ Run each command in this guide from the folder it names.
 
 ## Find something to work on
 
-- Issues labeled [`good first issue`](https://github.com/360ghar/tidybyte/labels/good%20first%20issue)
+- Issues labeled [`good first issue`](https://github.com/YORDINDIA/tidybyte/labels/good%20first%20issue)
   are small and well scoped.
-- Issues labeled [`help wanted`](https://github.com/360ghar/tidybyte/labels/help%20wanted)
+- Issues labeled [`help wanted`](https://github.com/YORDINDIA/tidybyte/labels/help%20wanted)
   are larger.
 - For questions and ideas, use
-  [Discussions](https://github.com/360ghar/tidybyte/discussions).
+  [Discussions](https://github.com/YORDINDIA/tidybyte/discussions).
 - Before you start a large change, open an issue or a discussion first. Then we
   can agree on the approach before you write the code.
 
@@ -38,7 +38,7 @@ You need:
 - macOS 26 on Apple silicon, for the Mac app
 
 ```bash
-git clone https://github.com/360ghar/tidybyte.git
+git clone https://github.com/YORDINDIA/tidybyte.git
 cd tidybyte
 ```
 
@@ -167,7 +167,7 @@ Pull requests #6 to #10 are good examples of the format.
 
 ## Report a bug
 
-Use the [bug report form](https://github.com/360ghar/tidybyte/issues/new/choose).
+Use the [bug report form](https://github.com/YORDINDIA/tidybyte/issues/new/choose).
 Give the app version (Settings in the app), the iOS or macOS version, the device,
 and the steps to see the problem.
 

@@ -1,15 +1,15 @@
 # TidyByte for iPhone and iPad
 
-[![CI](https://github.com/360ghar/tidybyte/actions/workflows/ci.yml/badge.svg)](https://github.com/360ghar/tidybyte/actions/workflows/ci.yml)
+[![CI](https://github.com/YORDINDIA/tidybyte/actions/workflows/ci.yml/badge.svg)](https://github.com/YORDINDIA/tidybyte/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../LICENSE)
-[![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/in/app/tidybyte/id6775769763)
+[![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/app/id6775769763)
 
 A native iOS app that helps users clean up their photo library. Core UX is a Tinder-style swipe interface for reviewing media.
 
 This folder is `ios/` in the TidyByte monorepo. Run every command below from it. The Mac app is in [`../macos/`](../macos/) and the website in [`../website/`](../website/).
 
 - **Swift/SwiftUI**, iOS 17+, iPhone (portrait) + iPad + iPhone Duo
-- **No backend** — all processing on-device
+- **No backend** — all processing on-device. No network connections unless the user connects Google Photos. Only then does the app connect to Google, and only for the items the user picks (`docs/google-photos-oauth-setup.md`).
 - **No third-party dependencies** — Apple frameworks only
 - MVVM + Actors + SwiftData architecture
 - **21 languages** (including RTL) across the app, the App Store listing, the

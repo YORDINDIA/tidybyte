@@ -38,9 +38,9 @@ export const BUNDLE_ID = 'com.sakshammittal.tidybyte';
  * translated copy, and a URL is not translated. `docs/APP_STORE_LISTING.md` §6
  * documents the same values for a human.
  */
-export const SUPPORT_URL = 'https://tidybyte.360ghar.com/support';
-export const MARKETING_URL = 'https://tidybyte.360ghar.com';
-export const PRIVACY_POLICY_URL = 'https://tidybyte.360ghar.com/privacy';
+export const SUPPORT_URL = 'https://tidybyte.yord.si/support';
+export const MARKETING_URL = 'https://tidybyte.yord.si';
+export const PRIVACY_POLICY_URL = 'https://tidybyte.yord.si/privacy';
 
 /**
  * Which App Store surface each growth surface targets.

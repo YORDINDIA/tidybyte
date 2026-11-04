@@ -113,7 +113,7 @@ if [ "$CHANNEL" = direct ] && [ -z "${SPARKLE_PUBLIC_KEY:-}" ] && [ -z "${NO_SPA
     exit 1
 fi
 if [ "$CHANNEL" = direct ] && [ -n "${SPARKLE_PUBLIC_KEY:-}" ]; then
-    FEED="${SPARKLE_FEED_URL:-https://tidybyte.360ghar.com/mac/appcast.xml}"
+    FEED="${SPARKLE_FEED_URL:-https://tidybyte.yord.si/mac/appcast.xml}"
     SPARKLE_KEYS="
     <key>SUFeedURL</key>
     <string>$FEED</string>

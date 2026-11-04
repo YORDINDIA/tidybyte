@@ -4,7 +4,7 @@
 
 Only the current release gets security fixes: the App Store release of
 TidyByte for iPhone and iPad, and the latest `mac-v*` release of Tidybyte for
-Mac on [GitHub Releases](https://github.com/360ghar/tidybyte/releases). The
+Mac on [GitHub Releases](https://github.com/YORDINDIA/tidybyte/releases). The
 current version shows in the app under **Settings**.
 
 ## Report a vulnerability
@@ -13,7 +13,7 @@ Do not report a security problem in a public issue, discussion, or pull request.
 
 Use one of these private channels:
 
-- **GitHub:** [Report a vulnerability](https://github.com/360ghar/tidybyte/security/advisories/new)
+- **GitHub:** [Report a vulnerability](https://github.com/YORDINDIA/tidybyte/security/advisories/new)
   (private vulnerability reporting).
 - **Email:** [saksham1991999@gmail.com](mailto:saksham1991999@gmail.com).
 

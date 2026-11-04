@@ -50,3 +50,6 @@ yarn-error.log*
 
 # ZCode session state
 .zcode/
+.claude/settings.local.json*
+trajector-doctor-*.tar.gz
+trajector-doctor-*/

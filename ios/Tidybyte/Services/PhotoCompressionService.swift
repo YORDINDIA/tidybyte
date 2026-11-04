@@ -11,6 +11,9 @@ struct PhotoCompressionPreset: Identifiable, Sendable {
     /// HEIC lossy quality, 0...1.
     let quality: CGFloat
     let description: String
+    /// Set for "Max size" mode: the encoder searches quality / resolution
+    /// until the output is at or under this many bytes.
+    var targetBytes: Int64? = nil
 
     /// Computed, not a `static let` — see `CompressionPreset.presets` for why
     /// caching a localized array breaks live language switching.
@@ -23,6 +26,23 @@ struct PhotoCompressionPreset: Identifiable, Sendable {
             PhotoCompressionPreset(id: "space", label: L10n.string("Space Saver"), maxDimension: 2048, quality: 0.5,
                                    description: L10n.string("Resize to 2K, maximum savings"))
         ]
+    }
+
+    /// Size caps offered in the "Max size" menu, in MB.
+    static let maxSizeChoicesMB: [Double] = [1, 2, 3, 4.5, 5, 10]
+
+    /// "Max size" mode: compress each photo to at most `megabytes` MB.
+    /// Photos already under the cap are skipped, with no copy made.
+    static func maxSize(megabytes: Double) -> PhotoCompressionPreset {
+        let bytes = Int64(megabytes * 1_000_000)
+        return PhotoCompressionPreset(
+            id: "max-\(bytes)",
+            label: L10n.format("Max %@", bytes.formattedFileSize),
+            maxDimension: nil,
+            quality: 0.9,
+            description: L10n.string("Smallest change that fits the size limit"),
+            targetBytes: bytes
+        )
     }
 }
 
@@ -75,12 +95,7 @@ actor PhotoCompressionService {
             .appendingPathExtension("heic")
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        try encodeHEIC(
-            from: imageData,
-            to: tempURL,
-            maxDimension: preset.maxDimension,
-            quality: preset.quality
-        )
+        try encode(imageData, preset: preset, to: tempURL)
         await onProgress(0.8)
 
         // Respect batch cancellation: stop before replacing anything so no
@@ -158,7 +173,61 @@ actor PhotoCompressionService {
         )
     }
 
+    /// Encodes the photo exactly as `compressPhoto` would, but saves nothing.
+    /// Returns the real output size, so the user can review it first.
+    func measureCompressedSize(assetId: String, preset: PhotoCompressionPreset) async throws -> Int64 {
+        guard let phAsset = photoService.getPHAsset(for: assetId) else {
+            throw PhotoCompressionError.assetNotFound
+        }
+        guard let imageData = await photoService.loadFullImageData(for: phAsset) else {
+            throw PhotoCompressionError.imageDataLoadFailed
+        }
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("heic")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+        return try encode(imageData, preset: preset, to: tempURL)
+    }
+
     // MARK: - Encoding
+
+    /// Writes the HEIC for `preset` to `url` and returns its size in bytes.
+    @discardableResult
+    private func encode(_ data: Data, preset: PhotoCompressionPreset, to url: URL) throws -> Int64 {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+            throw PhotoCompressionError.encodeFailed
+        }
+        guard let target = preset.targetBytes else {
+            let image = try makeImage(from: source, maxDimension: preset.maxDimension)
+            return try writeHEIC(image, to: url, quality: preset.quality)
+        }
+        return try encode(source, toMaxBytes: target, at: url)
+    }
+
+    /// Steps down through these longest-edge caps (nil = full resolution)
+    /// when even the lowest quality is too big.
+    private static let targetDimensionSteps: [CGFloat?] = [nil, 4032, 3024, 2048, 1536, 1024]
+    private static let targetQualityRange: ClosedRange<CGFloat> = 0.3...0.9
+
+    /// Finds the highest quality (at the highest resolution) whose output is
+    /// at or under `maxBytes`, and leaves that file at `url`.
+    // ponytail: up to ~6 encodes per resolution step; make the search adaptive if large images feel slow.
+    private func encode(_ source: CGImageSource, toMaxBytes maxBytes: Int64, at url: URL) throws -> Int64 {
+        let range = Self.targetQualityRange
+        for dimension in Self.targetDimensionSteps {
+            let image = try makeImage(from: source, maxDimension: dimension)
+            let best = try writeHEIC(image, to: url, quality: range.upperBound)
+            if best <= maxBytes { return best }
+            guard try writeHEIC(image, to: url, quality: range.lowerBound) <= maxBytes else { continue }
+            var low = range.lowerBound, high = range.upperBound
+            for _ in 0..<4 {
+                let mid = (low + high) / 2
+                if try writeHEIC(image, to: url, quality: mid) <= maxBytes { low = mid } else { high = mid }
+            }
+            return try writeHEIC(image, to: url, quality: low)
+        }
+        throw PhotoCompressionError.cannotReachTarget
+    }
 
     /// Longest-edge cap for the "High Quality" (full-resolution) path. Without
     /// a cap, a 48MP capture (8064×6048) decodes into a ~195 MB RGBA bitmap
@@ -179,16 +248,7 @@ actor PhotoCompressionService {
     /// (creation date, location, favorite, hidden) is restored on the new
     /// asset by the caller via `PHAssetCreationRequest`, so nothing important
     /// is lost.
-    private func encodeHEIC(
-        from data: Data,
-        to url: URL,
-        maxDimension: CGFloat?,
-        quality: CGFloat
-    ) throws {
-        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
-            throw PhotoCompressionError.encodeFailed
-        }
-
+    private func makeImage(from source: CGImageSource, maxDimension: CGFloat?) throws -> CGImage {
         var thumbOptions: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true
@@ -208,7 +268,12 @@ actor PhotoCompressionService {
         guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbOptions as CFDictionary) else {
             throw PhotoCompressionError.encodeFailed
         }
+        return cgImage
+    }
 
+    /// Writes `image` as HEIC at `quality` (replacing `url`) and returns the file size.
+    private func writeHEIC(_ image: CGImage, to url: URL, quality: CGFloat) throws -> Int64 {
+        try? FileManager.default.removeItem(at: url)
         guard let destination = CGImageDestinationCreateWithURL(
             url as CFURL,
             UTType.heic.identifier as CFString,
@@ -219,10 +284,13 @@ actor PhotoCompressionService {
         }
 
         let properties: [CFString: Any] = [kCGImageDestinationLossyCompressionQuality: quality]
-        CGImageDestinationAddImage(destination, cgImage, properties as CFDictionary)
+        CGImageDestinationAddImage(destination, image, properties as CFDictionary)
         guard CGImageDestinationFinalize(destination) else {
             throw PhotoCompressionError.encodeFailed
         }
+        let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64) ?? nil
+        guard let size, size > 0 else { throw PhotoCompressionError.fileSizeReadFailed }
+        return size
     }
 
     // MARK: - Helpers
@@ -254,6 +322,7 @@ enum PhotoCompressionError: LocalizedError {
     case encodeFailed
     case fileSizeReadFailed
     case saveFailed(String)
+    case cannotReachTarget
 
     var errorDescription: String? {
         // Surfaced to the user in the compression tool's error banner, so these
@@ -267,6 +336,7 @@ enum PhotoCompressionError: LocalizedError {
         case .encodeFailed: L10n.string("Failed to re-encode the photo.")
         case .fileSizeReadFailed: L10n.string("Failed to read file size.")
         case .saveFailed(let msg): L10n.format("Save failed: %@", msg)
+        case .cannotReachTarget: L10n.string("Can't reach the size limit — kept original")
         }
     }
 }

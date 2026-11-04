@@ -149,7 +149,7 @@ for (const file of htmlFiles()) {
     if (!existsSync(join(DIST, "assets/img/og", ogCard[1]))) {
       fail(`og:image card not built: ${ogCard[1]}`);
     }
-    if (!html.includes('"@id": "https://tidybyte.360ghar.com/#app"')) {
+    if (!html.includes('"@id": "https://tidybyte.yord.si/#app"')) {
       fail("tool page does not reference the #app entity");
     }
   }
@@ -271,12 +271,12 @@ if (!existsSync(sitemap)) {
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   if (locs.length < 60) problems.push(`sitemap has only ${locs.length} URLs`);
   for (const loc of locs) {
-    if (!loc.startsWith("https://tidybyte.360ghar.com/")) {
+    if (!loc.startsWith("https://tidybyte.yord.si/")) {
       problems.push(`sitemap URL on unexpected host: ${loc}`);
     }
   }
   const toolUrls = locs.filter((u) =>
-    /tidybyte\.360ghar\.com\/(storage-cleaner|photo-cleaner|video-compression|image-compression)/.test(u),
+    /tidybyte\.yord\.si\/(storage-cleaner|photo-cleaner|video-compression|image-compression)/.test(u),
   );
   if (toolUrls.length < 4) problems.push("tool landing pages missing from sitemap");
 
@@ -285,7 +285,7 @@ if (!existsSync(sitemap)) {
   //    astro.config.mjs (the config cannot import src/data/languages.ts); a
   //    language added there without updating it would silently drop to 0.3.
   for (const path of landingPaths) {
-    const url = `https://tidybyte.360ghar.com${path}`;
+    const url = `https://tidybyte.yord.si${path}`;
     const entry = xml.match(
       new RegExp(`<url>\\s*<loc>${url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</loc>\\s*<changefreq>([^<]+)</changefreq>\\s*<priority>([^<]+)</priority>`),
     );
@@ -300,7 +300,7 @@ if (!existsSync(sitemap)) {
   for (const f of readdirSync(DIST)) {
     if (!f.endsWith(".html")) continue;
     if (f === "index.html" || f === "404.html") continue;
-    const url = `https://tidybyte.360ghar.com/${f.replace(/\.html$/, "")}`;
+    const url = `https://tidybyte.yord.si/${f.replace(/\.html$/, "")}`;
     if (!locSet.has(url)) problems.push(`not in sitemap: ${url}`);
   }
   // Tool landing pages carry commercial intent, so they must keep priority
@@ -310,7 +310,7 @@ if (!existsSync(sitemap)) {
     if (!f.endsWith(".html")) continue;
     const html = readFileSync(join(DIST, f), "utf8");
     if (!/\/assets\/img\/og\//.test(html)) continue; // not a tool page
-    const url = `https://tidybyte.360ghar.com/${f.replace(/\.html$/, "")}`;
+    const url = `https://tidybyte.yord.si/${f.replace(/\.html$/, "")}`;
     const entry = xml.match(
       new RegExp(`<url>\\s*<loc>${url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</loc>\\s*<changefreq>([^<]+)</changefreq>\\s*<priority>([^<]+)</priority>`),
     );
@@ -326,7 +326,7 @@ if (!existsSync(sitemap)) {
   // sitemap URL must resolve to a generated .md file.
   const missingMd = [];
   for (const loc of locs) {
-    const rel = loc.replace("https://tidybyte.360ghar.com/", "").replace(/\/$/, "");
+    const rel = loc.replace("https://tidybyte.yord.si/", "").replace(/\/$/, "");
     const md = rel === "" ? "index.md" : `${rel}.md`;
     if (!existsSync(join(DIST, md))) missingMd.push(md);
   }

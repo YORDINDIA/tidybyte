@@ -65,10 +65,11 @@ struct PhotoCompressionView: View {
                 viewModel.startBatchCompression(modelContext: modelContext)
             }
         } message: {
-            Text(ReplaceOriginalsNotice.explainer(
-                copies: L10n.string("a new, smaller copy of each photo"),
-                originals: L10n.string("the original photos")
-            ))
+            Text(viewModel.deleteOriginals
+                 ? ReplaceOriginalsNotice.explainer(
+                    copies: L10n.string("a new, smaller copy of each photo"),
+                    originals: L10n.string("the original photos"))
+                 : L10n.string("TidyByte saves a new, smaller copy of each photo and keeps the originals. You get both versions in your library."))
         }
         // Non-modal error surface. Also covers the batch summary
         // ("Compressed 8 of 10. 2 failed."), which is a report rather than a
@@ -120,7 +121,8 @@ struct PhotoCompressionView: View {
             // VM-owned and the preview gate is local — so a constant binding.
             isPresented: .constant(!viewModel.keptOriginals.isEmpty && previewStart == nil),
             onTryAgain: { viewModel.retryRemovingOriginals() },
-            onRemoveCopies: { viewModel.removeCopies() }
+            onRemoveCopies: { viewModel.removeCopies() },
+            onKeepBoth: { viewModel.keepBoth() }
         )
         .fullScreenCover(item: $previewStart) { start in
             // COMP-05: resolve the pager's assets live from the VM (via the
@@ -134,7 +136,8 @@ struct PhotoCompressionView: View {
                 onDelete: { await viewModel.deletePhoto(id: $0.id) },
                 showOriginalsKept: { !viewModel.keptOriginals.isEmpty },
                 onRetryRemovingOriginals: { viewModel.retryRemovingOriginals() },
-                onRemoveCopies: { viewModel.removeCopies() }
+                onRemoveCopies: { viewModel.removeCopies() },
+                onKeepBoth: { viewModel.keepBoth() }
             )
         }
         .onChange(of: viewModel.batchSummary) { _, summary in
@@ -205,6 +208,18 @@ struct PhotoCompressionView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()
+            Menu {
+                Picker("Sort", selection: $viewModel.sortOrder) {
+                    ForEach(PhotoCompressionSortOrder.allCases) { order in
+                        Text(order.label).tag(order)
+                    }
+                }
+            } label: {
+                Label("Sort", systemImage: "arrow.up.arrow.down")
+                    .font(.caption.bold())
+                    .frame(minHeight: 44)
+            }
+            .accessibilityLabel("Sort photos")
             Button(viewModel.showAllPhotos ? "Show Large Only" : "Show All") {
                 viewModel.showAllPhotos.toggle()
             }
@@ -249,6 +264,12 @@ struct PhotoCompressionView: View {
                             viewModel.setPreset(preset, for: photo.id)
                         }
                     }
+                    Section("Max File Size") {
+                        ForEach(PhotoCompressionPreset.maxSizeChoicesMB, id: \.self) { mb in
+                            let preset = PhotoCompressionPreset.maxSize(megabytes: mb)
+                            Button(preset.label) { viewModel.setPreset(preset, for: photo.id) }
+                        }
+                    }
                 } label: {
                     Text(photo.selectedPreset.label)
                         .font(.caption.bold())
@@ -272,7 +293,16 @@ struct PhotoCompressionView: View {
                 // efficient: a guess there would promise savings that rarely
                 // happen.
                 let estimated = viewModel.estimateSize(for: photo)
-                if estimated < photo.asset.fileSize, !photo.asset.isHEIC {
+                if let measured = viewModel.measuredSize(for: photo) {
+                    // Real size from "Check Sizes"; 0 means the limit can't be reached.
+                    Text(measured > 0 ? "→ \(measured.formattedFileSize)" : "Can't fit")
+                        .font(.caption.bold())
+                        .foregroundStyle(measured > 0 && measured < photo.asset.fileSize ? Color.success : .secondary)
+                } else if PhotoCompressionViewModel.isAlreadyUnderTarget(photo.asset, preset: photo.selectedPreset) {
+                    Text("Already under limit")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if estimated < photo.asset.fileSize, !photo.asset.isHEIC || photo.selectedPreset.targetBytes != nil {
                     Text("est. ~\(estimated.formattedFileSize)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -333,6 +363,14 @@ struct PhotoCompressionView: View {
 
     // MARK: - Bottom Bar
 
+    /// Copy-only batches have one step, so "Step 1 of 2" would mislead.
+    private var phaseText: String {
+        if !viewModel.deleteOriginals, case .savingCopies(let done, let total) = viewModel.phase {
+            return L10n.format("Saving copy %lld of %lld", min(done + 1, total), total)
+        }
+        return ReplaceOriginalsNotice.phaseText(viewModel.phase)
+    }
+
     private var bottomBar: some View {
         ActionBarView {
             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -347,11 +385,31 @@ struct PhotoCompressionView: View {
                         ForEach(PhotoCompressionPreset.presets) { preset in
                             Button(preset.label) { viewModel.setPresetForSelected(preset) }
                         }
+                        Section("Max File Size") {
+                            ForEach(PhotoCompressionPreset.maxSizeChoicesMB, id: \.self) { mb in
+                                Button(PhotoCompressionPreset.maxSize(megabytes: mb).label) {
+                                    viewModel.setMaxSizeForSelected(megabytes: mb)
+                                }
+                            }
+                        }
+                        Section {
+                            Toggle("Delete Originals", isOn: $viewModel.deleteOriginals)
+                        } footer: {
+                            Text("Off: keep both versions.")
+                        }
+                        Button {
+                            viewModel.measureSelected()
+                        } label: {
+                            Label("Check Result Sizes", systemImage: "scalemass")
+                        }
+                        .disabled(viewModel.isMeasuring)
                     } label: {
                         // See VideoCompressionView: the preset label is a
                         // technical name, "Mixed" is a word.
-                        Text(L10n.format("Quality: %@",
-                                         viewModel.selectedPreset?.label ?? L10n.string("Mixed")))
+                        Text(viewModel.isMeasuring
+                             ? L10n.string("Checking sizes…")
+                             : L10n.format(viewModel.deleteOriginals ? "Quality: %@" : "Quality: %@ · keep originals",
+                                           viewModel.selectedPreset?.label ?? L10n.string("Mixed")))
                             .font(.caption.bold())
                             .frame(minHeight: 32)
                     }
@@ -364,7 +422,7 @@ struct PhotoCompressionView: View {
             if viewModel.isCompressing {
                 HStack(spacing: Spacing.md) {
                     ProgressView()
-                    Text(ReplaceOriginalsNotice.phaseText(viewModel.phase))
+                    Text(phaseText)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)

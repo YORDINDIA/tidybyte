@@ -37,9 +37,8 @@ if (!raw._limits) {
 /**
  * Fields that must be non-empty for a listing to be submittable.
  *
- * `name` is exempt from the translation requirement: it is the brand, and
- * "TidyByte" is the same word in every storefront. Requiring a translation of
- * it would force 20 pointless copies.
+ * `name` is exempt from the translation requirement: it stays identical across
+ * storefronts so the brand and its shared English search phrase remain stable.
  */
 const REQUIRED = ['subtitle', 'promotionalText', 'description', 'keywords', 'whatsNew'];
 
@@ -109,7 +108,7 @@ function checkKeywords(language, listing) {
   }
 
   // Apple indexes name + subtitle + keywords together, so a word already in
-  // the subtitle earns nothing in the keyword field.
+  // either app-info field earns nothing in the keyword field.
   //
   // `\p{M}` (combining marks) has to be in the character class. Splitting on
   // `\p{L}` and `\p{N}` alone tears a Malayalam, Gujarati or Punjabi word apart
@@ -117,8 +116,8 @@ function checkKeywords(language, listing) {
   // filter, the word set comes out empty, and this check can never fire. Tamil
   // produced fragments above that filter instead, which is worse: it could fail
   // a correct listing.
-  const subtitleWords = new Set(
-    (listing.subtitle ?? '')
+  const indexedWords = new Set(
+    `${listing.name ?? ''} ${listing.subtitle ?? ''}`
       .toLowerCase()
       .split(/[^\p{L}\p{N}\p{M}]+/u)
       .filter((w) => w.length > 2),
@@ -126,8 +125,8 @@ function checkKeywords(language, listing) {
   for (const term of terms) {
     const single = term.trim().toLowerCase();
     if (single.includes(' ')) continue;
-    if (subtitleWords.has(single)) {
-      fail(`${language}.keywords repeats the subtitle word ${JSON.stringify(term)}`);
+    if (indexedWords.has(single)) {
+      fail(`${language}.keywords repeats an app-name or subtitle word ${JSON.stringify(term)}`);
     }
   }
 }

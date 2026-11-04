@@ -4,7 +4,7 @@ This file provides guidance to coding agents working on the iOS app. The app liv
 
 ## Project Overview
 
-TidyByte is a native iOS app (Swift/SwiftUI, iOS 17+) that helps users clean up their photo library. Core UX is a Tinder-style swipe interface for reviewing media. The app is free, has no backend, and all processing is on-device. **No third-party dependencies** — Apple frameworks only.
+TidyByte is a native iOS app (Swift/SwiftUI, iOS 17+) that helps users clean up their photo library. Core UX is a Tinder-style swipe interface for reviewing media. The app is free, has no backend, and all processing is on-device. The app makes no network connections unless the user signs in to the optional Google Photos source (`Services/Google/`). Only then does it connect, and only to Google APIs. **No third-party dependencies** — Apple frameworks only.
 
 ## Build & Run
 

@@ -11,7 +11,7 @@
 import { PAGES } from "../data/pages";
 import { TOOLS, toolBySlug, plain, SCREENSHOT_SIZE, type Tool } from "../data/tools";
 
-const APP_STORE = "https://apps.apple.com/in/app/tidybyte/id6775769763";
+const APP_STORE = "https://apps.apple.com/app/id6775769763";
 
 const contentFiles = import.meta.glob("../content/pages/*.html", {
   query: "?raw",
@@ -85,7 +85,7 @@ function hero(t: Tool): string {
     `      <p class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">\n` +
     `        <span class="inline-flex items-center gap-1.5">${CHECK}Free forever</span>\n` +
     `        <span class="inline-flex items-center gap-1.5">${CHECK}No ads, no subscription</span>\n` +
-    `        <span class="inline-flex items-center gap-1.5">${CHECK}100% on-device</span>\n` +
+    `        <span class="inline-flex items-center gap-1.5">${CHECK}Core cleanup runs on-device</span>\n` +
     `      </p>\n` +
     `    </div>\n` +
     `    <figure class="mx-auto w-full max-w-[280px]">\n` +
@@ -152,8 +152,8 @@ function compareTable(t: Tool): string {
 function trustStrip(): string {
   const facts = [
     ["Free forever", "No subscription, no in-app purchases, no ads."],
-    ["Private by design", "No account, no analytics SDK, no network requests at all."],
-    ["On-device only", "Apple Vision and Photos do the work; nothing is uploaded."],
+    ["Private by design", "No TidyByte account, backend, analytics SDK, ads, or tracking."],
+    ["On-device only", "iPhone-library cleanup runs locally; optional Google Photos connects directly to Google."],
     ["Open source", "MIT licensed on GitHub, so every claim is auditable."],
   ];
   return (

@@ -132,6 +132,48 @@ final class CompressionRegressionTests: XCTestCase {
         XCTAssertEqual(all.map(\.id), ["big-jpg", "small-jpg", "big-heic"], "a compressed copy and a Live Photo are never listed")
     }
 
+    func testPhotoCompressionSortOrders() {
+        func photo(_ id: String, size: Int64, taken: TimeInterval?) -> AssetSummary {
+            AssetSummary(
+                id: id, mediaType: .photo, creationDate: taken.map { Date(timeIntervalSince1970: $0) },
+                modificationDate: nil, pixelWidth: 4000, pixelHeight: 3000, duration: 0, fileSize: size,
+                filename: "\(id).JPG", isFavorite: false, isBurst: false, burstIdentifier: nil,
+                isLivePhoto: false, isScreenshot: false, isLocallyAvailable: true
+            )
+        }
+        // Library (added) order: a, b, c. "b" is an old photo added later.
+        let assets = [photo("a", size: 3, taken: 200), photo("b", size: 9, taken: 100), photo("c", size: 5, taken: 300)]
+        XCTAssertEqual(PhotoCompressionSortOrder.ordered(assets, by: .recentlyAdded), ["c", "b", "a"])
+        XCTAssertEqual(PhotoCompressionSortOrder.ordered(assets, by: .dateTaken), ["c", "a", "b"])
+        XCTAssertEqual(PhotoCompressionSortOrder.ordered(assets, by: .largestFirst), ["b", "c", "a"])
+    }
+
+    func testMaxSizePresetSkipsPhotosAlreadyUnderTheLimit() {
+        func photo(size: Int64) -> AssetSummary {
+            AssetSummary(
+                id: "p", mediaType: .photo, creationDate: nil, modificationDate: nil,
+                pixelWidth: 4000, pixelHeight: 3000, duration: 0, fileSize: size,
+                filename: "p.JPG", isFavorite: false, isBurst: false, burstIdentifier: nil,
+                isLivePhoto: false, isScreenshot: false, isLocallyAvailable: true
+            )
+        }
+        let preset = PhotoCompressionPreset.maxSize(megabytes: 4.5)
+        XCTAssertEqual(preset.targetBytes, 4_500_000)
+        XCTAssertTrue(PhotoCompressionViewModel.isAlreadyUnderTarget(photo(size: 4_500_000), preset: preset))
+        XCTAssertFalse(PhotoCompressionViewModel.isAlreadyUnderTarget(photo(size: 4_500_001), preset: preset))
+        XCTAssertFalse(PhotoCompressionViewModel.isAlreadyUnderTarget(photo(size: 1),
+                                                                      preset: PhotoCompressionPreset.presets[0]),
+                       "quality presets never skip on size")
+    }
+
+    func testDeletePhotoOriginalsPreferenceDefaultsOn() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: #function))
+        defaults.removePersistentDomain(forName: #function)
+        XCTAssertTrue(AppPreferences.deletePhotoOriginalsAfterCompression(in: defaults))
+        AppPreferences.saveDeletePhotoOriginalsAfterCompression(false, in: defaults)
+        XCTAssertFalse(AppPreferences.deletePhotoOriginalsAfterCompression(in: defaults))
+    }
+
     func testIsUserDeclinedMatchesPhotoKitCancelOnly() {
         let declined = NSError(domain: PHPhotosErrorDomain, code: PHPhotosError.Code.userCancelled.rawValue)
         let other = NSError(domain: PHPhotosErrorDomain, code: PHPhotosError.Code.accessUserDenied.rawValue)

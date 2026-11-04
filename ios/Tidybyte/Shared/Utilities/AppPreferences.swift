@@ -32,6 +32,8 @@ enum AppPreferences {
         static let hasSeenZoomHint = "hasSeenZoomHint"
         static let defaultCompressionPreset = "defaultCompressionPreset"
         static let defaultPhotoCompressionPreset = "defaultPhotoCompressionPreset"
+        static let deletePhotoOriginalsAfterCompression = "deletePhotoOriginalsAfterCompression"
+        static let photoCompressionSortOrder = "photoCompressionSortOrder"
         static let cleanupRemindersEnabled = "cleanupRemindersEnabled"
         static let reminderWeekday = "reminderWeekday"
         static let recentAlbumIds = "recentAlbumIds"
@@ -107,6 +109,15 @@ enum AppPreferences {
 
     static func saveDefaultPhotoCompressionPresetID(_ presetID: String, in defaults: UserDefaults = .standard) {
         defaults.set(presetID, forKey: Key.defaultPhotoCompressionPreset)
+    }
+
+    /// Default true: replace the original. False keeps both versions.
+    static func deletePhotoOriginalsAfterCompression(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.object(forKey: Key.deletePhotoOriginalsAfterCompression) as? Bool ?? true
+    }
+
+    static func saveDeletePhotoOriginalsAfterCompression(_ value: Bool, in defaults: UserDefaults = .standard) {
+        defaults.set(value, forKey: Key.deletePhotoOriginalsAfterCompression)
     }
 
     static func remindersEnabled(in defaults: UserDefaults = .standard) -> Bool {

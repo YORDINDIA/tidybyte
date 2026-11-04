@@ -22,6 +22,7 @@ const CORE_SLUGS = [
   "activity-monitor-alternative",
   "support",
   "privacy",
+  "terms",
   "changelog",
 ];
 

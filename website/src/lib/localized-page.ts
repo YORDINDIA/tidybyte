@@ -12,7 +12,7 @@ import { PAGES } from "../data/pages";
 import { BASE_LANGUAGE, SITE_LANGUAGES, type SiteLanguage } from "../data/languages";
 import { decodeEntities } from "./llms";
 
-const SITE = "https://tidybyte.360ghar.com";
+const SITE = "https://tidybyte.yord.si";
 
 // Budgets scripts/seo-audit.mjs enforces: past them a search engine
 // truncates the title and drops the description.
@@ -96,7 +96,7 @@ function withLocalizedFaq(headTail: string, body: string): string {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "@id": "https://tidybyte.360ghar.com/#faq",
+      "@id": "https://tidybyte.yord.si/#faq",
       mainEntity: pairs.map(({ question, answer }) => ({
         "@type": "Question",
         name: question,
