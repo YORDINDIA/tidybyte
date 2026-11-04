@@ -215,10 +215,13 @@ final class CrawlerRollupTests: XCTestCase {
     }
 
     func testLargeFilesKeepTheirRecordInsideSummarizedFoldersAndPastTheBudget() async throws {
+        // One tree, so the crawl is sequential: sibling tier-0 folders race
+        // for the shared record budget in parallel, which made the fold
+        // outcome scheduling-dependent (a 1-in-5 CI flake).
         try write("App/package.json", bytes: 2)
         try write("App/build/small.o", bytes: 10)
-        try write("Dump/note.txt", bytes: 5)
-        for name in ["App/build/render.mov", "Dump/big.bin"] {
+        try write("App/Dump/note.txt", bytes: 5)
+        for name in ["App/build/render.mov", "App/Dump/big.bin"] {
             let url = root.appendingPathComponent(name)
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             FileManager.default.createFile(atPath: url.path, contents: nil)
@@ -230,7 +233,7 @@ final class CrawlerRollupTests: XCTestCase {
         let files = await crawl(maxRecords: 3)
 
         XCTAssertEqual(record(files, at: "App/build/render.mov")?.sizeBytes, FileCrawler.largeFileBytes)
-        XCTAssertEqual(record(files, at: "Dump/big.bin")?.sizeBytes, FileCrawler.largeFileBytes)
+        XCTAssertEqual(record(files, at: "App/Dump/big.bin")?.sizeBytes, FileCrawler.largeFileBytes)
         XCTAssertEqual(record(files, at: "App/build")?.sizeBytes, 10, "The large file is not counted twice")
     }
 
