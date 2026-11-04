@@ -163,6 +163,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if Bundle.main.bundleURL.pathExtension == "app" {
             UNUserNotificationCenter.current().delegate = self
         }
+        // O-01: SwiftUI sheets run as modal sessions on macOS 26, and a modal
+        // session answers the quit Apple event with userCancelled before
+        // applicationShouldTerminate is ever consulted. Intercept the quit
+        // event itself: end the sheets, then run the normal terminate path.
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleQuitAppleEvent(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kCoreEventClass),
+            andEventID: AEEventID(kAEQuitApplication))
+    }
+
+    /// Intercepts the quit Apple event (⌘Q, Dock, `quit app`, system shutdown).
+    @objc func handleQuitAppleEvent(_ event: NSAppleEventDescriptor, withReplyEvent reply: NSAppleEventDescriptor) {
+        endSheetsAndQuit()
+    }
+
+    /// O-01: SwiftUI sheets run as modal sessions on macOS 26 and answer the
+    /// quit Apple event with userCancelled before any delegate hook runs —
+    /// and `NSApplication.terminate:` never reaches
+    /// `applicationShouldTerminate` under SwiftUI's delegate wrapper at all.
+    /// The handler therefore owns the quit sequence: end every presented
+    /// sheet, run the will-terminate cleanup, and exit.
+    private func endSheetsAndQuit() {
+        // End presented sheets for visual cleanup. Their isPresented bindings
+        // may still read true (onboarding is step-driven), so SwiftUI can
+        // re-present them — irrelevant: the process exits below, and the
+        // untouched step means onboarding resumes on the next launch (ON-09).
+        for sheet in NSApp.windows where sheet.sheetParent != nil {
+            sheet.sheetParent?.endSheet(sheet)
+        }
+        NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: NSApp)
+        applicationWillTerminate(Notification(name: NSApplication.willTerminateNotification, object: NSApp))
+        exit(0)
     }
 
     func setModel(_ model: AppViewModel, openMainWindow: @escaping () -> Void) {
@@ -241,6 +274,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     /// End any open sheets, then terminate once the dismissal has landed.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let sheets = sender.windows.flatMap(\.sheets)
+        try? "AST sheets=\(sheets.count)\n"
+            .write(to: URL(fileURLWithPath: "/tmp/tidybyte-quit-ast.txt"), atomically: true, encoding: .utf8)
         guard !sheets.isEmpty else { return .terminateNow }
         for sheet in sheets { sheet.sheetParent?.endSheet(sheet) }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {

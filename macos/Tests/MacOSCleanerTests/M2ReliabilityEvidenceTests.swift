@@ -166,6 +166,84 @@ final class M2ReliabilityEvidenceTests: XCTestCase {
         }
     }
 
+    // MARK: - CP-01/AIApps-01: badge bytes are subtree-correct and deduped
+
+    // Crawler shape for the badge fixture: the outer Caches dir is an
+    // ordinary directory (~0 entry bytes); the inner App dir is rolled up
+    // with the subtree total.
+    private func directory(_ url: URL, sizeBytes: Int64, rolledUp: Bool) -> FileRecord {
+        var record = FileRecord(
+            id: url.lastPathComponent, scanSessionID: "badge", source: .local, url: url,
+            displayPath: url.path, fileName: url.lastPathComponent,
+            fileExtension: nil, utiDescription: nil,
+            kind: .directory, sizeBytes: sizeBytes,
+            createdAt: Date(), modifiedAt: Date(), lastOpenedAt: nil,
+            owner: nil, permissions: nil, isSymlink: false, symlinkTarget: nil,
+            isPackage: false, isCloudPlaceholder: false, cloudProvider: nil,
+            finderTags: [], spotlightMetadata: [:], riskFlags: [],
+            identity: FileIdentity(
+                deviceIdentifier: 1, inodeIdentifier: 1, resourceIdentifier: nil,
+                sizeBytes: sizeBytes, modifiedAt: Date()),
+            capabilities: [])
+        if rolledUp { record.rolledUpItemCount = 1 }
+        return record
+    }
+
+    private func badgePlan(parent: FileRecord, child: FileRecord) -> Plan {
+        func action(_ id: String, findingID: String, targets: [String]) -> PlannedAction {
+            PlannedAction(
+                id: id, planID: "badge-plan", actionType: .moveToTrash, targets: targets, destination: nil,
+                status: .proposed, risk: .low, confidence: 0.9, reason: "badge", userDecision: .undecided,
+                executedAt: nil, findingID: findingID)
+        }
+        return Plan(
+            id: "badge-plan", scanSessionID: "badge", createdAt: Date(), status: .proposed,
+            summary: "badge", estimatedReclaimableBytes: 0, estimatedFilesAffected: 2,
+            riskBreakdown: [.low: 2],
+            actions: [
+                action("a-parent", findingID: "f-parent", targets: [parent.id]),
+                action("a-child", findingID: "f-child", targets: [child.id])
+            ])
+    }
+
+    /// Nested directory actions (Caches + Caches/App) must badge the union,
+    /// not the sum: approving either alone reclaims the child's bytes once.
+    /// Records ride the real `outcome` pipeline; rolled-up directory records
+    /// carry their subtree total in `sizeBytes` (crawler semantics).
+    func testBadgeBytesDeduplicateNestedDirectoryTargets() throws {
+        let harness = try makeModel()
+        let model = harness.model
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("M2-badge-\(UUID().uuidString)", isDirectory: true)
+        let child = root.appendingPathComponent("Caches/App", isDirectory: true)
+        try FileManager.default.createDirectory(at: child, withIntermediateDirectories: true)
+        try Data(repeating: 7, count: 2_000_000).write(to: child.appendingPathComponent("cache.bin"))
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let parent = directory(root.appendingPathComponent("Caches"), sizeBytes: 0, rolledUp: false)
+        let childRecord = directory(child, sizeBytes: 2_000_000, rolledUp: true)
+        func cacheFinding(_ id: String, target: FileRecord) -> Finding {
+            Finding(
+                id: id, scanSessionID: "badge", category: .cache, severity: .low, confidence: 0.9,
+                bytesReclaimable: 2_000_000, summary: "badge fixture", evidence: [:],
+                targetFileIDs: [target.id])
+        }
+        model.outcome = ScanOutcome(
+            session: ScanSession(scanType: .selectedFolders, rootURLs: [root], permissionsSnapshot: "test"),
+            files: [parent, childRecord], fingerprints: [], contentSummaries: [],
+            projects: [], edges: [],
+            findings: [cacheFinding("f-parent", target: parent), cacheFinding("f-child", target: childRecord)],
+            recommendations: [],
+            snapshot: StorageSnapshot(
+                id: "badge-snap", createdAt: Date(), totalBytes: 0, bytesByCategory: [:],
+                bytesByRootPath: [:], bytesByProject: [:], removedBytesThroughApp: 0),
+            packageCandidates: [])
+        model.plan = badgePlan(parent: parent, child: childRecord)
+
+        let bytes = model.pendingBytesByDestination[.systemJunk] ?? -1
+        XCTAssertEqual(bytes, 2_000_000, "nested directory actions must badge once, not twice")
+    }
+
     // MARK: - DP-04/05/06: the store-fallback ladder
 
     func testStoreSelectionUsesPrimaryWhenItWorks() async throws {

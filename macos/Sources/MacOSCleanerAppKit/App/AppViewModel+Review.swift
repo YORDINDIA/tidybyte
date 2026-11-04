@@ -37,16 +37,27 @@ extension AppViewModel {
             targets[row, default: []].formUnion(action.targets)
         }
         // CP-01: directory targets show their subtree total, not the ~0
-        // directory-entry allocation.
+        // directory-entry allocation. AIApps-01: within a row, a target
+        // inside an already-counted directory adds nothing — the badge must
+        // match the execution estimate's counting rule, not double-count
+        // nested caches (Caches + Caches/App showed 4.2 MB for 2.1 real).
         let subtree = subtreeTotals
         return targets.mapValues { ids in
-            ids.reduce(Int64(0)) { total, id in
-                guard let record = files[id] else { return total }
+            let ordered = ids.compactMap { files[$0] }
+                .sorted { $0.url.standardizedFileURL.path.count < $1.url.standardizedFileURL.path.count }
+            var coveredDirs: [String] = []
+            var total: Int64 = 0
+            for record in ordered {
+                let path = record.url.standardizedFileURL.path
+                guard !coveredDirs.contains(where: { path.hasPrefix($0 + "/") }) else { continue }
                 if record.kind == .directory || record.kind == .package {
-                    return total + max(record.sizeBytes, subtree[record.displayPath] ?? 0)
+                    coveredDirs.append(path)
+                    total += max(record.sizeBytes, subtree[record.displayPath] ?? 0)
+                } else {
+                    total += ReclaimableBytes.size(of: record, checkClones: false)
                 }
-                return total + ReclaimableBytes.size(of: record, checkClones: false)
             }
+            return total
         }
     }
 

@@ -228,59 +228,23 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
-        // SSA-01: every slot below is identity-stable — the item stays in the
-        // toolbar and only its content mutates. Items that entered and left
-        // the toolbar on destination changes raced AppKit's layout pass and
-        // threw NSException inside NSToolbar item insertion (crash reports).
+        // SSA-01: exactly four toolbar slots, constant for the app's whole
+        // lifetime — destination changes only mutate content in place. Items
+        // that entered and left the toolbar (and content that swapped view
+        // types) raced AppKit's layout pass and threw NSException during
+        // NSToolbar insertion (crash reports + a live repro on a ⌘2 switch).
+        // Hidden controls collapse via width and are disabled + hidden from
+        // accessibility, never removed from the tree.
         ToolbarItem {
-            switch model.destination {
-            case .monitor:
-                Button {
-                    Task { await exportMonitorSnapshot() }
-                } label: {
-                    Label(
-                        String(localized: "Export…", comment: "Monitor toolbar action"),
-                        systemImage: "square.and.arrow.up")
-                }
-                .help(String(localized: "Save a snapshot image of the monitor", comment: "Monitor export help"))
-                .disabled(model.monitor.snapshot == nil)
-            case .explorer:
-                Menu {
-                    Picker(String(localized: "View"), selection: $model.exploreViewKindRaw) {
-                        ForEach(ExploreViewKind.allCases) { kind in Text(kind.title).tag(kind.rawValue) }
-                    }
-                    .pickerStyle(.inline)
-                } label: {
-                    Label(String(localized: "View"), systemImage: "rectangle.3.group")
-                }
-                .help(String(localized: "Choose how to show files"))
-            case let destination where destination.isReview:
-                HStack(spacing: Spacing.elementTight) {
-                    Picker(String(localized: "Risk"), selection: $model.reviewRiskFilter) {
-                        Text(String(localized: "All Risks")).tag(nil as RiskLevel?)
-                        ForEach([RiskLevel.low, .medium, .high, .forbidden], id: \.self) { risk in
-                            Text(risk.displayName).tag(Optional(risk))
-                        }
-                    }
-                    .help(String(localized: "Show actions of one risk level"))
-                    Button {
-                        model.showsPlanner = true
-                    } label: {
-                        Label(String(localized: "Ask Tidybyte"), systemImage: "text.bubble")
-                    }
-                    .help(String(localized: "Describe what to clean in your own words"))
-                    .disabled(model.plan == nil || isBusy)
-                }
-            default:
-                EmptyView()
+            HStack(spacing: Spacing.elementTight) {
+                monitorControls.modifier(HideUnless(shown: model.destination == .monitor))
+                explorerControls.modifier(HideUnless(shown: model.destination == .explorer))
+                reviewControls.modifier(HideUnless(shown: model.destination.isReview))
             }
         }
         ToolbarSpacer(.fixed, placement: .primaryAction)
         ToolbarItem(placement: .primaryAction) {
             // One identity-stable item that adapts, instead of two branches.
-            // Swapping the item's view tree while AppKit laid out the toolbar
-            // threw NSException during scans (crash reports); mutating one
-            // button's label/action avoids the insert/remove path entirely.
             Button {
                 if isBusy { stop() } else { model.scanAll() }
             } label: {
@@ -299,16 +263,76 @@ struct ContentView: View {
         }
         ToolbarSpacer(.fixed, placement: .primaryAction)
         ToolbarItem(placement: .primaryAction) {
-            if model.destination.supportsInspector {
-                Button {
-                    model.showsInspector.toggle()
-                } label: {
-                    Label(String(localized: "Inspector"), systemImage: "sidebar.trailing")
-                }
-                .help(String(localized: "Show or hide details"))
-            } else {
-                EmptyView()
-            }
+            inspectorToggle.modifier(HideUnless(shown: model.destination.supportsInspector))
         }
     }
+
+    /// Marks a contextual control hidden without removing it from the tree:
+    /// collapsed, inert, and invisible to accessibility.
+    private struct HideUnless: ViewModifier {
+        let shown: Bool
+        func body(content: Content) -> some View {
+            content
+                .opacity(shown ? 1 : 0)
+                .frame(width: shown ? nil : 0, height: shown ? nil : 0)
+                .clipped()
+                .disabled(!shown)
+                .accessibilityHidden(!shown)
+        }
+    }
+
+    /// The Monitor destination's Export… control, always mounted.
+    private var monitorControls: some View {
+        Button {
+            Task { await exportMonitorSnapshot() }
+        } label: {
+            Label(
+                String(localized: "Export…", comment: "Monitor toolbar action"),
+                systemImage: "square.and.arrow.up")
+        }
+        .help(String(localized: "Save a snapshot image of the monitor", comment: "Monitor export help"))
+    }
+
+    /// The Space Explorer's View-kind menu, always mounted.
+    private var explorerControls: some View {
+        Menu {
+            Picker(String(localized: "View"), selection: $model.exploreViewKindRaw) {
+                ForEach(ExploreViewKind.allCases) { kind in Text(kind.title).tag(kind.rawValue) }
+            }
+            .pickerStyle(.inline)
+        } label: {
+            Label(String(localized: "View"), systemImage: "rectangle.3.group")
+        }
+        .help(String(localized: "Choose how to show files"))
+    }
+
+    /// The review destinations' Risk filter and Ask Tidybyte, always mounted.
+    private var reviewControls: some View {
+        HStack(spacing: Spacing.elementTight) {
+            Picker(String(localized: "Risk"), selection: $model.reviewRiskFilter) {
+                Text(String(localized: "All Risks")).tag(nil as RiskLevel?)
+                ForEach([RiskLevel.low, .medium, .high, .forbidden], id: \.self) { risk in
+                    Text(risk.displayName).tag(Optional(risk))
+                }
+            }
+            .help(String(localized: "Show actions of one risk level"))
+            Button {
+                model.showsPlanner = true
+            } label: {
+                Label(String(localized: "Ask Tidybyte"), systemImage: "text.bubble")
+            }
+            .help(String(localized: "Describe what to clean in your own words"))
+            .disabled(model.plan == nil || isBusy)
+        }
+    }
+
+    private var inspectorToggle: some View {
+        Button {
+            model.showsInspector.toggle()
+        } label: {
+            Label(String(localized: "Inspector"), systemImage: "sidebar.trailing")
+        }
+        .help(String(localized: "Show or hide details"))
+    }
+
 }
