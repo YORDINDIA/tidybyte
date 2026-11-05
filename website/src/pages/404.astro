@@ -1,0 +1,10 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { PAGES } from "../data/pages";
+import { bodyFor, withQuickAnswer } from "../lib/content";
+
+const meta = PAGES.find((p) => p.route === "/404")!;
+---
+<SiteLayout meta={meta}>
+  <Fragment set:html={withQuickAnswer(bodyFor(meta.contentFile), meta)} />
+</SiteLayout>

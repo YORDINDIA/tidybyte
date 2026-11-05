@@ -1,0 +1,16 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { PAGES } from "../../data/pages";
+import { bodyFor, withQuickAnswer } from "../../lib/content";
+
+export function getStaticPaths() {
+  return PAGES.filter((p) => p.route.startsWith("/blog/")).map((p) => ({
+    params: { slug: p.route.slice("/blog/".length) },
+  }));
+}
+
+const meta = PAGES.find((p) => p.route === `/blog/${Astro.params.slug}`)!;
+---
+<SiteLayout meta={meta}>
+  <Fragment set:html={withQuickAnswer(bodyFor(meta.contentFile), meta)} />
+</SiteLayout>

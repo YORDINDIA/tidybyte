@@ -1,0 +1,82 @@
+  <main id="main">
+    <div class="container-prose">
+      <header class="mx-auto max-w-prose">
+        <p class="badge mb-5">Privacy</p>
+        <h1 class="h-display">Privacy Policy</h1>
+        <p class="lede mt-5">TidyByte&rsquo;s iPhone cleanup tools process your local photo library on-device. The app has no TidyByte account or developer-operated server. In builds with the optional Google Photos source, the app connects directly to Google after you sign in, check storage quota, or select items. Google sends previews to your device for local scanning; photos are not sent to TidyByte.</p>
+        <p class="muted mt-6 text-xs">Effective date: January 1, 2026 &middot; Last updated: November 5, 2026</p>
+      </header>
+
+      <article class="prose-section mt-12 space-y-12">
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">1. Overview</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte&rsquo;s iPhone photo-library tools use Apple&rsquo;s Photos, Vision, and AVFoundation frameworks on your device. TidyByte has no account system or developer-operated server. The optional Google Photos source, when enabled in your build, communicates directly with Google and is described below.</p>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Learn more about <a href="/#features" class="link hover:underline">all cleanup features</a> or <a href="https://apps.apple.com/app/id6775769763" class="link hover:underline" target="_blank" rel="noopener">download TidyByte</a>.</p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">2. Data we collect</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte does not collect app-usage analytics or advertising data and does not operate a server that receives photos. Local iPhone photo cleanup does not send your library to TidyByte. In builds with Google Photos enabled, the app sends requests directly to Google for sign-in, storage quota, and only the media items you pick. Google returns selected previews to your device for on-device scanning. The App Store privacy label currently reads &ldquo;Data Not Collected&rdquo;; this policy also explains the optional requests made directly to Google.</p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">3. How the app works</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">All processing happens on-device using Apple&rsquo;s system frameworks:</p>
+          <ul class="muted mt-4 space-y-2 text-base sm:text-lg">
+            <li><strong class="font-semibold text-ink">Photos framework</strong> &mdash; reads from and writes to your local photo library.</li>
+            <li><strong class="font-semibold text-ink">Vision framework</strong> &mdash; generates feature prints for near-duplicate detection and analyzes image quality (blur, exposure).</li>
+            <li><strong class="font-semibold text-ink">AVFoundation</strong> &mdash; compresses videos and re-encodes photos on-device.</li>
+            <li><strong class="font-semibold text-ink">SwiftData</strong> &mdash; stores local app records (swipe decisions, compression history) in a sandboxed database on your phone.</li>
+          </ul>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte ships no third-party SDKs. Every line that touches your local library is auditable in the public source repository.</p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">4. Permissions the app requests</h2>
+
+          <h3 class="mt-6 text-lg font-semibold text-ink">Photo Library (read &amp; write)</h3>
+          <p class="muted mt-2 text-base leading-relaxed sm:text-lg">Required for the iPhone cleanup tools. TidyByte uses Apple&rsquo;s Photos framework to read your local library and write compressed videos or converted Live Photos back to it. Those local-library photos are not sent to TidyByte.</p>
+
+          <h3 class="mt-6 text-lg font-semibold text-ink">Google Photos (optional)</h3>
+          <p class="muted mt-2 text-base leading-relaxed sm:text-lg">This source is available only in builds configured for Google Photos. If you choose to connect it, Google handles sign-in and the app calls Google directly to read your storage quota and the media items you select in Google Photos Picker. TidyByte requests file-size information and downloads small previews from Google to your device for local scanning; it does not upload photos to TidyByte or delete items from your Google Photos account. Google processes the account and API requests under its own <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="link hover:underline">privacy policy</a>. OAuth tokens are stored in this device&rsquo;s Keychain. Signing out asks Google to revoke the token and removes it from the device.</p>
+
+          <h3 class="mt-6 text-lg font-semibold text-ink">Notifications</h3>
+          <p class="muted mt-2 text-base leading-relaxed sm:text-lg">Optional. Requested only if you enable &ldquo;Cleanup Reminders&rdquo; in Settings. Used solely to schedule local reminders via the iOS notification system.</p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">5. Data storage on your device</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte stores a small amount of local data using SwiftData to power features and history:</p>
+          <ul class="muted mt-4 space-y-2 text-base sm:text-lg">
+            <li><code class="rounded bg-surface-card px-1.5 py-0.5 text-sm text-ink">SwipeRecord</code> &mdash; asset local identifiers and your keep/delete decisions. The actual photo data is never copied.</li>
+            <li><code class="rounded bg-surface-card px-1.5 py-0.5 text-sm text-ink">CompressionRecord</code> &mdash; bookkeeping for video and photo compression jobs.</li>
+            <li><code class="rounded bg-surface-card px-1.5 py-0.5 text-sm text-ink">StorageSnapshot</code> &mdash; cached storage breakdown used by the dashboard.</li>
+          </ul>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">This data never leaves your device and can be cleared at any time via <strong class="font-semibold text-ink">Settings &rarr; Reset Swipe History</strong> inside the app.</p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">6. Children&rsquo;s privacy</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte is not directed at children under 13. We do not knowingly collect app-usage or advertising data. If a build with Google Photos enabled is connected to a Google account, the direct Google requests described above apply.</p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">7. Open source</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte&rsquo;s source code is publicly available under the MIT License. Anyone can audit the claims on this page. If you find something that contradicts this policy, please open an issue.</p>
+          <p class="mt-4">
+            <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="link hover:underline">View the source on GitHub &rarr;</a>
+          </p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">8. Changes to this policy</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">If we change anything material on this page, we&rsquo;ll update the date above and note it in the <a href="/changelog" class="link hover:underline">changelog</a>. We do not operate a server that receives your photos or app activity.</p>
+        </section>
+
+        <section>
+          <h2 class="h-section text-2xl sm:text-3xl">9. Contact</h2>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">Questions? Email <!--email_off--><a href="mailto:contact@sakshammittal.com" class="link hover:underline">contact@sakshammittal.com</a><!--/email_off--> or open an issue on <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="link hover:underline">GitHub</a>.</p>
+        </section>
+      </article>
+    </div>
+    </main>

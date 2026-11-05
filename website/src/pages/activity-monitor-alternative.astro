@@ -1,0 +1,13 @@
+---
+// The Monitor feature page. It lives at a top-level slug because that is the
+// query people actually type; hierarchically it is the live half of the Mac
+// app, and /mac links here from its teaser section.
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { PAGES } from "../data/pages";
+import { bodyFor, withQuickAnswer } from "../lib/content";
+
+const meta = PAGES.find((p) => p.route === "/activity-monitor-alternative")!;
+---
+<SiteLayout meta={meta}>
+  <Fragment set:html={withQuickAnswer(bodyFor(meta.contentFile), meta)} />
+</SiteLayout>

@@ -1,4 +1,10 @@
+# TidyByte for macOS — Product Requirements
 
+Tech-agnostic feature spec. Describes **what** the Mac app does and how it
+behaves, not how it is built. Source: the shipped iOS app in `Tidybyte/`
+plus `docs/prd.md`.
+
+Locked decisions for v1:
 
 1. Folder Mode **and** Full Mac Mode both ship in v1.
 2. Deletes move files to the **Trash** (recoverable until emptied).
@@ -124,7 +130,9 @@ Each tool shows a live item-count badge; tools needing a full scan show
    copy verifies. Per-file progress, max two concurrent jobs, history log
    with before/after sizes.
 2. **Image Compression** — quality presets with estimated savings, same
-   verify-then-trash flow and history as video.
+   verify-then-trash flow and history as video. Follow-up from iOS user
+   feedback (2026-11-04): keep-both option, delete-originals choice, sort by
+   date added, and a max-file-size mode. See `macos/FEATURE_TRACKER.md` IC-01..IC-04.
 3. **Duplicate-Format Pairs** — RAW+JPEG, HEIC+JPEG, and Live-Photo-style
    still/video pairs (Mac photo libraries and camera imports); convert or
    keep-one-side with savings shown first.
@@ -181,19 +189,16 @@ History** with a confirm dialog, and an About section (version, build,
 ## 8. Safety contract
 
 1. Every delete moves to the **Trash**. Nothing is permanently deleted
-   by the app, ever. The single exception is the user-invoked **Empty
-   Trash** action on the Storage dashboard (§5.6), which is item 6 below.
+   by the app, ever.
 2. Destructive batch actions confirm once, stating exactly what happens.
 3. System and app-bundle paths can never appear in any review list.
 4. After any trash batch, a dismissible notice states the count and size
    moved to Trash and how to empty it. Cancelled or failed runs show nothing.
-5. The app holds no accounts and sends no data anywhere; all scanning and
-   analysis runs on the device.
-6. **Empty Trash is the one exception, and it sits outside this
-   guarantee.** The user asks for it explicitly from the dashboard card,
-   it carries its own confirmation, and the app never empties the Trash
-   on its own. Every other permanent deletion stays out of scope for v1
-   (§10 item 4).
+5. The app holds no accounts; every scan, analysis, and delete runs on the
+   device. The **Mac App Store build** sends nothing anywhere. The **direct
+   download** additionally checks for updates (Sparkle) and offers opt-in AI
+   classification, off by default and sent only to the provider the user
+   configures.
 
 ---
 
@@ -222,7 +227,4 @@ History** with a confirm dialog, and an About section (version, build,
    optimization tips) — file-level cleanup only.
 3. Syncing review state between Macs.
 4. Anything that permanently deletes, encrypts, or modifies file contents
-   outside the two compression tools and the confirmed, user-invoked
-   **Empty Trash** action (§5.6, §8.6). That action is the single
-   exception §8.1 names, and it is in scope; every other permanent
-   deletion is not.
+   outside the two compression tools.

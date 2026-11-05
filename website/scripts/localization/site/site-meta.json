@@ -1,0 +1,11 @@
+{
+  "source": "src/data/pages.ts",
+  "limits": {
+    "title": 65,
+    "description": 165
+  },
+  "meta": {
+    "title": "TidyByte &mdash; Free iPhone &amp; Mac Storage Cleaner",
+    "description": "Free iPhone and Mac storage cleaner. Clean photos, videos, and junk files on-device &mdash; nothing is sent to TidyByte. No ads, no subscription, no account."
+  }
+}

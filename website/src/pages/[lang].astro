@@ -1,0 +1,28 @@
+---
+// Localized landing pages — one route per language in src/data/languages.ts.
+//
+// English has no prefix, so `/` stays the only English URL and this route
+// emits only the translations: /de, /ja, /pt-br, /zh-hans …
+//
+// Each language renders its own generated copy of the landing page body —
+// build-site-translations.mjs writes src/content/pages/index.<slug>.astro
+// from the English HomeMain.astro component plus the language's string map —
+// so the localized pages are Astro components too, not injected HTML.
+// SiteLayout derives the head (canonical, og:locale, hreflang, lang/dir)
+// from the language.
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { SITE_LANGUAGES } from "../data/languages";
+import { localizedHomeComponent, localizedHomeMeta } from "../lib/localized-page";
+import { quickAnswerBox } from "../lib/content";
+
+export function getStaticPaths() {
+  return SITE_LANGUAGES.map((l) => ({ params: { lang: l.slug } }));
+}
+
+const lang = SITE_LANGUAGES.find((l) => l.slug === Astro.params.lang)!;
+const meta = localizedHomeMeta(lang);
+const LocalizedHome = localizedHomeComponent(lang);
+---
+<SiteLayout meta={meta} lang={lang} home>
+  <LocalizedHome quickAnswer={quickAnswerBox(meta.description)} />
+</SiteLayout>

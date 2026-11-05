@@ -1,0 +1,19 @@
+---
+// Tool landing pages: one route per entry in src/data/tools.ts. The body is
+// assembled from data by renderToolMain; SiteLayout supplies the shared
+// head, chrome, and JSON-LD.
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { TOOLS } from "../data/tools";
+import { PAGES } from "../data/pages";
+import { renderToolMain } from "../lib/tool-page";
+
+export function getStaticPaths() {
+  return TOOLS.map((t) => ({ params: { page: t.slug } }));
+}
+
+const { page } = Astro.params;
+const meta = PAGES.find((p) => p.route === `/${page}`)!;
+---
+<SiteLayout meta={meta}>
+  <Fragment set:html={renderToolMain(page!)} />
+</SiteLayout>

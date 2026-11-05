@@ -1,0 +1,429 @@
+  <main id="main">
+<!-- Hero. Copy-first: the monitor has no screenshot assets on the site yet,
+     so the page leans on text and tables the way the FAQ and permissions
+     sections on /mac do. Add a figure + screen switcher when renders exist
+     (see the comment on mac.html for the radio-input pattern). -->
+<section class="pb-12 pt-14 sm:pb-16 sm:pt-20">
+  <div class="container-prose">
+    <header class="mx-auto max-w-4xl text-center">
+      <h1 class="h-display">The Activity Monitor alternative for Mac.</h1>
+      <p class="lede mx-auto mt-5 max-w-2xl">TidyByte Monitor is a free Mac system monitor that shows apps, not processes: per-app CPU, memory, disk, network, and energy, a year of history stored on your Mac, alerts, and dashboards for dev servers, coding agents, and Docker containers. Nothing it records ever leaves your Mac.</p>
+      <div class="mt-8 flex flex-col items-center gap-3">
+        <a href="https://github.com/YORDINDIA/tidybyte/releases/download/mac-v1.0.0/Tidybyte-1.0.0.dmg" class="btn-primary px-6 py-3 text-base">
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.46 2.23-1.21 3.05-.81.87-2.14 1.55-3.23 1.46-.14-1.1.4-2.25 1.16-3.04.85-.89 2.29-1.55 3.28-1.47Zm3.61 16.04c-.6 1.39-1.31 2.62-2.18 3.66-1.13 1.39-2.46 3.05-4.25 3.07-1.7.02-2.14-.99-4.46-.99-2.32 0-2.8 1.01-4.5.99-1.79-.02-3.15-1.6-4.28-2.99-2.6-3.2-4.59-9.05-1.92-12.99 1.32-1.95 3.69-3.18 6.25-3.22 1.78-.04 3.46 1.05 4.55 1.05 1.08 0 3.13-1.3 5.28-1.11.9.04 3.43.36 5.05 2.71-.13.08-3.02 1.76-2.99 5.25.04 4.17 3.66 5.55 3.45 5.57Z"/></svg>
+          Download for Mac
+        </a>
+        <p class="text-sm text-muted">Free &middot; MIT open source &middot; macOS 26 or later &middot; Apple silicon &middot; Part of <a href="/mac" class="link">TidyByte for Mac</a></p>
+      </div>
+    </header>
+
+    <div class="mx-auto max-w-3xl">
+      <!-- quick-answer -->
+    </div>
+  </div>
+</section>
+
+<!-- Apps, not processes: the core differentiator, with the inspector as the
+     escape hatch when process detail is genuinely needed. -->
+<section class="section pt-4 sm:pt-8" aria-labelledby="monitor-apps">
+  <div class="container-prose">
+    <h2 id="monitor-apps" class="h-section max-w-2xl">One row per app, not one row per process.</h2>
+    <p class="lede mt-4 max-w-2xl">A busy Mac runs hundreds of processes for the few dozen apps you actually opened. The Monitor groups helpers under the app that started them, so the flat process list becomes app rows you can judge, with the apps you opened at the top.</p>
+
+    <div class="mt-12 grid gap-12 lg:grid-cols-3 lg:gap-10">
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">The whole app, summed</h3>
+        <p class="muted mt-3">CPU, memory, disk, network, and energy for each app, counted across everything it runs — helpers, services, and extensions included. Chrome costs what Chrome costs, all of it on one row.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">The process view stays one click away</h3>
+        <p class="muted mt-3">The Process Inspector opens a process and shows its code signature and Team ID, sandbox status, parent and child processes, command line, open files, and listening ports.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">Actions ask first</h3>
+        <p class="muted mt-3">Quit and Force Quit live in the Inspector, and each confirms before it runs. The Monitor watches everything and changes nothing on its own.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Dashboards: the 10 hardware/system boards. Projects, Agents, and
+     Containers have their own sections below. -->
+<section class="section pt-0" aria-labelledby="monitor-dashboards">
+  <div class="container-prose">
+    <h2 id="monitor-dashboards" class="h-section max-w-2xl">Thirteen dashboards cover the whole machine.</h2>
+    <p class="lede mt-4 max-w-2xl">Each dashboard answers one question in plain numbers. Ten of them watch the hardware; Projects, Agents, and Containers get their own sections below.</p>
+
+    <dl class="mt-12 grid gap-x-12 gap-y-8 md:grid-cols-2 lg:grid-cols-3">
+      <div>
+        <dt class="font-semibold text-ink">Overview</dt>
+        <dd class="muted mt-1">The state of the Mac on one screen: the big numbers and the busiest apps.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">CPU</dt>
+        <dd class="muted mt-1">Per-app and total utilization, so a runaway tab cannot hide.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Memory</dt>
+        <dd class="muted mt-1">What each app holds and how hard the system is working to keep up.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Disk</dt>
+        <dd class="muted mt-1">Reads and writes per app, not just one total for the whole machine.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Network</dt>
+        <dd class="muted mt-1">Traffic per app, so you can see what is moving and when.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">GPU</dt>
+        <dd class="muted mt-1">Utilization for whatever is drawing, rendering, or computing.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Neural</dt>
+        <dd class="muted mt-1">Neural Engine activity, where the Mac exposes it.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Battery</dt>
+        <dd class="muted mt-1">Level, wattage in and out, battery health, and what is keeping the Mac awake.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Sound</dt>
+        <dd class="muted mt-1">Output volume and mute, a live badge when an app uses the microphone, and which apps are audible right now.</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Bluetooth</dt>
+        <dd class="muted mt-1">Battery levels for the accessories that report them.</dd>
+      </div>
+    </dl>
+    <p class="muted mt-8 max-w-2xl">Temperature and fan readings appear alongside the hardware dashboards where macOS lets an app read the sensors — TidyByte shows what macOS reports and invents nothing where it does not.</p>
+  </div>
+</section>
+
+<!-- Menu bar + history + alerts: the "keep an eye on it" pillar. -->
+<section class="section pt-0" aria-labelledby="monitor-menubar">
+  <div class="container-prose">
+    <h2 id="monitor-menubar" class="h-section max-w-2xl">Live from the menu bar, remembered for a year.</h2>
+    <p class="lede mt-4 max-w-2xl">Watching should not mean keeping a window open, and noticing a problem should not require having stared at the right graph at the right moment.</p>
+
+    <div class="mt-12 grid gap-12 lg:grid-cols-3 lg:gap-10">
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">One item per metric</h3>
+        <p class="muted mt-3">CPU, memory, network, disk, and energy each get a live menu bar item, plus a combined panel that lists the busiest apps. Read the number; open the panel when the number looks wrong.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">History you can query</h3>
+        <p class="muted mt-3">Every metric, per app, is recorded for up to a year — raw samples plus hourly rollups in a local SQLite database. Next Tuesday&rsquo;s slowdown can be compared against last Tuesday&rsquo;s baseline.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">Alerts for what stays wrong</h3>
+        <p class="muted mt-3">The Monitor can watch for sustained high CPU, unusually fast memory growth, and heavy disk or network use, and send a macOS notification when a condition holds. It notifies; it never acts for you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Projects: dev servers and ports. -->
+<section class="section pt-0" aria-labelledby="monitor-projects">
+  <div class="container-prose">
+    <div class="rounded-[2rem] bg-surface-dark p-8 sm:p-12">
+      <h2 id="monitor-projects" class="h-section-on-dark max-w-2xl">Built for people who run things on purpose.</h2>
+      <p class="mt-4 max-w-2xl text-base text-clay-cream/75 sm:text-lg">A development Mac is not just apps — it is servers, agents, and containers. The Monitor gives each its own view instead of burying them in a process list.</p>
+      <dl class="mt-10 grid gap-x-12 gap-y-8 md:grid-cols-3">
+        <div>
+          <dt class="font-display text-lg font-medium text-clay-cream">Projects</dt>
+          <dd class="mt-1.5 text-clay-cream/75">Dev servers and the ports they hold, grouped by project folder. Servers that have gone idle are flagged, so port 3000 stops being a mystery.</dd>
+        </div>
+        <div>
+          <dt class="font-display text-lg font-medium text-clay-cream">Agents</dt>
+          <dd class="mt-1.5 text-clay-cream/75">Command-line coding assistants — Claude Code, Codex, Gemini CLI, Cursor Agent, Copilot, Aider, and others — as first-class rows with their project, their child processes, and the plan usage known locally.</dd>
+        </div>
+        <div>
+          <dt class="font-display text-lg font-medium text-clay-cream">Containers</dt>
+          <dd class="mt-1.5 text-clay-cream/75">Docker containers with CPU, memory, network, and ports, side by side with the apps and agents on the same machine.</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison with Activity Monitor. Deliberately fair: it is free,
+     built in, and good at what it does. The table states what each is for. -->
+<section class="section pt-0" aria-labelledby="monitor-compare">
+  <div class="container-prose">
+    <h2 id="monitor-compare" class="h-section max-w-2xl">Activity Monitor and TidyByte Monitor</h2>
+    <p class="lede mt-4 max-w-2xl">Activity Monitor is free, built into macOS, and good at what it shows: every process, live. Keep it. The Monitor starts where it stops — it groups those processes by app, remembers what it saw, and adds views for the things developers run.</p>
+    <div class="mt-10 overflow-x-auto">
+      <table class="w-full min-w-[40rem] text-start text-sm sm:text-base">
+        <thead>
+          <tr class="border-b border-hairline-strong text-ink">
+            <th scope="col" class="py-3 pe-6 text-start font-semibold">What you want to know</th>
+            <th scope="col" class="py-3 pe-6 text-start font-semibold">Activity Monitor (built in)</th>
+            <th scope="col" class="py-3 text-start font-semibold">TidyByte Monitor</th>
+          </tr>
+        </thead>
+        <tbody class="text-body">
+          <tr class="border-b border-hairline">
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Processes</th>
+            <td class="py-4 pe-6 align-top">Every process, live.</td>
+            <td class="py-4 align-top">Apps first: helpers grouped under the parent app, with the full process list one click away.</td>
+          </tr>
+          <tr class="border-b border-hairline">
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">History</th>
+            <td class="py-4 pe-6 align-top">None — what you see is now.</td>
+            <td class="py-4 align-top">Every metric, per app, up to a year, in a local database.</td>
+          </tr>
+          <tr class="border-b border-hairline">
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Alerts</th>
+            <td class="py-4 pe-6 align-top">None.</td>
+            <td class="py-4 align-top">Notifications for sustained CPU, memory growth, and heavy disk or network use.</td>
+          </tr>
+          <tr class="border-b border-hairline">
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Menu bar</th>
+            <td class="py-4 pe-6 align-top">Not a menu bar item.</td>
+            <td class="py-4 align-top">One live item per metric, plus a combined panel with the busiest apps.</td>
+          </tr>
+          <tr class="border-b border-hairline">
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Dev servers and ports</th>
+            <td class="py-4 pe-6 align-top">Ports, via the command line.</td>
+            <td class="py-4 align-top">A Projects view: servers and ports grouped by project folder, idle servers flagged.</td>
+          </tr>
+          <tr class="border-b border-hairline">
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Coding agents</th>
+            <td class="py-4 pe-6 align-top">Shown as anonymous processes.</td>
+            <td class="py-4 align-top">Claude Code, Codex, Gemini CLI, Cursor Agent, Copilot, Aider and more, with project and plan usage.</td>
+          </tr>
+          <tr class="border-b border-hairline">
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Docker containers</th>
+            <td class="py-4 pe-6 align-top">Shown as processes.</td>
+            <td class="py-4 align-top">A Containers view with CPU, memory, network, and ports.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Price</th>
+            <td class="py-4 pe-6 align-top">Free, included with macOS.</td>
+            <td class="py-4 align-top">Free, MIT licensed, part of TidyByte for Mac.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- How to use: same numbered clay-step pattern as the home page's
+     "How it works" (rounded tiles, big numeral, ink/soft text tokens).
+     Four colors because this grid runs four wide on lg. Mirrors the HowTo
+     JSON-LD in src/data/pages.ts — keep step names and text in step. -->
+<section class="section pt-0" aria-labelledby="monitor-how-to">
+  <div class="container-prose">
+    <h2 id="monitor-how-to" class="h-section max-w-2xl">How to use TidyByte Monitor.</h2>
+    <p class="lede mt-4 max-w-2xl">Four steps from download to a live number in your menu bar.</p>
+    <ol role="list" class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4" data-reveal-group>
+      <li class="rounded-2xl bg-clay-pink p-6" data-reveal>
+        <div class="flex items-center gap-3">
+          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-pink-ink"><path d="M20 7v17m0 0l-7-7m7 7l7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 31h22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-pink-ink">1</p>
+        </div>
+        <h3 class="mt-4 font-display text-lg font-semibold text-clay-pink-ink">Download and open TidyByte</h3>
+        <p class="mt-1.5 text-sm text-clay-pink-soft">Get the disk image from GitHub and drag TidyByte to Applications. It is signed and notarized, and it updates itself.</p>
+      </li>
+      <li class="rounded-2xl bg-clay-lav p-6" data-reveal>
+        <div class="flex items-center gap-3">
+          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-lav-ink"><rect x="6" y="8" width="28" height="24" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 8v24" stroke="currentColor" stroke-width="2"/><path d="M21 17h8M21 23h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-lav-ink">2</p>
+        </div>
+        <h3 class="mt-4 font-display text-lg font-semibold text-clay-lav-ink">Click Monitor in the sidebar</h3>
+        <p class="mt-1.5 text-sm text-clay-lav-soft">The cleaner and the monitor share one app. Monitor opens on Overview, with the busiest apps on top.</p>
+      </li>
+      <li class="rounded-2xl bg-clay-mint p-6" data-reveal>
+        <div class="flex items-center gap-3">
+          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-mint-ink"><path d="M7 27a13 13 0 1 1 26 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M20 27l6-9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="27" r="2.5" fill="currentColor"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-mint-ink">3</p>
+        </div>
+        <h3 class="mt-4 font-display text-lg font-semibold text-clay-mint-ink">Read the dashboards</h3>
+        <p class="mt-1.5 text-sm text-clay-mint-soft">Thirteen views, from CPU to Containers. Each row is an app, so the overview number drills down to the process causing it.</p>
+      </li>
+      <li class="rounded-2xl bg-clay-peach p-6" data-reveal>
+        <div class="flex items-center gap-3">
+          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-peach-ink"><rect x="5" y="9" width="30" height="22" rx="4" stroke="currentColor" stroke-width="2"/><path d="M5 16h30" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="12.5" r="1.5" fill="currentColor"/><circle cx="15" cy="12.5" r="1.5" fill="currentColor"/><path d="M11 25h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-peach-ink">4</p>
+        </div>
+        <h3 class="mt-4 font-display text-lg font-semibold text-clay-peach-ink">Watch it from the menu bar</h3>
+        <p class="mt-1.5 text-sm text-clay-peach-soft">Give each metric a live menu bar item — CPU, memory, network, disk, energy — and let alerts flag whatever stays wrong.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- Export, CLI, MCP: the "take it with you" pillar. -->
+<section class="section pt-0" aria-labelledby="monitor-cli">
+  <div class="container-prose">
+    <h2 id="monitor-cli" class="h-section max-w-2xl">Export any view, script anything, ask an assistant.</h2>
+    <p class="lede mt-4 max-w-2xl">The same readings work in three registers: a picture for a bug report, a command for a script, and tools for a local AI assistant.</p>
+
+    <dl class="mt-12 grid gap-12 lg:grid-cols-3 lg:gap-10">
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">PNG export</h3>
+        <p class="muted mt-3">Any view exports as a PNG — attach it to an issue, send it to a colleague, or keep the before-and-after.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">A CLI for the terminal</h3>
+        <p class="muted mt-3"><code>tidybyte monitor status|top|ports|agents|limits</code> answers the common questions straight from the shell, printing a table or JSON.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">MCP tools for assistants</h3>
+        <p class="muted mt-3">The app ships MCP tools, so a local AI assistant can query live readings on your behalf. The queries run on your Mac, like everything else.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ. These exact strings mirror the FAQPage JSON-LD in src/data/pages.ts
+     (the way mac.html and the tool pages keep schema and visible text in
+     step). Plain ASCII apostrophes so the two cannot drift on entities. -->
+<section id="questions" class="section scroll-mt-24 pt-0" aria-labelledby="monitor-faq">
+  <div class="container-prose">
+    <h2 id="monitor-faq" class="h-section max-w-2xl">Questions</h2>
+    <div data-faq-accordion class="mt-10 max-w-3xl space-y-3">
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Is TidyByte's monitor free?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Yes. The monitor ships inside TidyByte for Mac, which is free and open source under the MIT license — no ads, no accounts, no subscriptions.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>How is this different from Activity Monitor?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Activity Monitor is free, built into macOS, and lists every process live. TidyByte's monitor groups helpers under the app that owns them, keeps per-app history for up to a year, sends alerts, adds menu bar items, and tracks dev servers, coding agents, and Docker containers.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Does the monitor slow my Mac down?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">It reads the standard measurements macOS exposes to any app, and history is written to a local SQLite database on your Mac. Nothing is uploaded. The menu bar items mean you can keep an eye on one number without keeping the window open.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Where is the history stored?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">On your Mac, in a local SQLite database: raw samples plus hourly rollups, per app, for up to a year. Nothing syncs anywhere — there is no account and no server.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Does it work on Intel Macs?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">No. TidyByte for Mac requires macOS 26 or later on a Mac with Apple silicon, and the monitor is part of that app.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Can AI assistants read my system stats?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Only assistants you connect yourself. On its own, the monitor talks to nothing — no cloud, no analytics, no network. An assistant connected through MCP reads live readings locally, on your machine.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>What do the alerts cover?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Sustained high CPU, unusually fast memory growth, and heavy disk or network activity. Alerts arrive as normal macOS notifications; the Monitor never acts on them for you.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Which coding agents can TidyByte Monitor see?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">The common command-line assistants: Claude Code, Codex, Gemini CLI, Cursor Agent, GitHub Copilot, Aider, and others. Each shows up as a row with its project, its child processes, and its resource use.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Does it show AI plan usage?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Where an agent reports its plan locally, yes — the Monitor shows the usage the agent itself exposes on your Mac. Nothing is fetched from an account or over the network to get it.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>How does it know which project a dev server belongs to?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Dev servers are grouped by the project folder they were started from, and each server&rsquo;s open ports are listed with it. Servers that have gone idle are flagged rather than dropped.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Can I query it from the terminal or an AI assistant (CLI/MCP)?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Yes, both. The <code>tidybyte</code> CLI answers from the shell — <code>monitor status</code>, <code>top</code>, <code>ports</code>, <code>agents</code>, <code>limits</code> — as a table or JSON, and MCP tools let a local AI assistant query live readings. Both run on your Mac.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Does anything about my projects leave my Mac?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">No. Projects, agents, and containers are read and recorded locally, in the same on-disk database as every other metric. There is no account, no sync, and no telemetry.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Can it change anything on my Mac?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Only what you ask. The Monitor watches and records; the one place it takes an action is the Process Inspector, where Quit and Force Quit each confirm before they run.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Can I export or share what I see?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">Any view exports as a PNG — ready to drop into a bug report, an issue, or a message.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>How do I get it?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">TidyByte for Mac is a direct download: a signed and notarized disk image from the <a href="https://github.com/YORDINDIA/tidybyte/releases" target="_blank" rel="noopener" class="link">GitHub releases page</a>. Install it once and it updates itself.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- Ask AI: prefilled, neutral prompts. The link only hands the assistant a
+     summary request and the page URL; it does not instruct it to cite or
+     favor anything. The URL is hardcoded so the built page carries absolute
+     links even before canonical resolution. -->
+<section class="section-tight pt-0" aria-labelledby="monitor-ask-ai">
+  <div class="container-prose">
+    <div class="rounded-[2rem] bg-surface-soft p-8 sm:p-10">
+      <h2 id="monitor-ask-ai" class="font-display text-xl font-medium text-ink sm:text-2xl">Read it with an assistant.</h2>
+      <p class="muted mt-2 max-w-2xl">Each link opens your AI assistant with one prefilled request — summarize this page. What comes back is the assistant&rsquo;s own reading, so check it against the page.</p>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="https://chatgpt.com/?q=Summarize%20this%20page%3A%20https%3A%2F%2Ftidybyte.yord.si%2Factivity-monitor-alternative" target="_blank" rel="noopener" class="btn-ghost">Ask ChatGPT</a>
+        <a href="https://claude.ai/new?q=Summarize%20this%20page%3A%20https%3A%2F%2Ftidybyte.yord.si%2Factivity-monitor-alternative" target="_blank" rel="noopener" class="btn-ghost">Ask Claude</a>
+        <a href="https://www.perplexity.ai/search/?q=Summarize%20this%20page%3A%20https%3A%2F%2Ftidybyte.yord.si%2Factivity-monitor-alternative" target="_blank" rel="noopener" class="btn-ghost">Ask Perplexity</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Closing: back to the parent product, plus the privacy story and the
+     changelog, so every promise on this page has a place to verify itself. -->
+<section class="section-tight pt-0">
+  <div class="container-prose">
+    <div class="flex flex-col items-start gap-5 rounded-[2rem] bg-surface-soft p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
+      <div class="max-w-xl">
+        <h2 class="font-display text-2xl font-medium text-ink sm:text-3xl">Part of TidyByte for Mac.</h2>
+        <p class="muted mt-2">The monitor ships alongside the cleaner — caches, developer files, duplicates, and app leftovers, under the same ask-first rules. Nothing recorded ever leaves your Mac, as the <a href="/privacy" class="link">privacy policy</a> spells out, and every release is listed in the <a href="/changelog" class="link">changelog</a>.</p>
+      </div>
+      <a href="/mac" class="btn-primary shrink-0">
+        About TidyByte for Mac
+      </a>
+    </div>
+  </div>
+</section>
+  </main>

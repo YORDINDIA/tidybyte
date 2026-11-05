@@ -1,0 +1,261 @@
+---
+// The site-wide Astro layout: <html>/<head> assembly, skip link, and the
+// shared chrome (Header / Footer components). This replaces the former
+// src/layouts/build-page.ts string assembler — the head rules it applied
+// at render time are ported one-for-one below:
+//
+// - /404 is never indexed.
+// - og:image dimensions match the real file (the 1024px app icon is square).
+// - og:image:alt + twitter:image:alt on every page.
+// - article:published_time / article:modified_time on blog posts.
+// - LCP image preload matches the file the page actually renders (AVIF-first
+//   heroes on blog posts and /mac; the home page has no LCP image — its hero
+//   devices are the HTML/CSS app replicas in src/components/HomeMain.astro,
+//   so the LCP element is the h1).
+// - Speakable JSON-LD on every indexable page that does not already declare
+//   it (tool pages carry their own WebPage block).
+// - A BreadcrumbList on any route whose data file does not define one.
+// - Localized landing pages (/de, /ja …) get `lang`/`dir`, og:locale, and the
+//   full hreflang alternate set from the language passed in.
+//
+// Page bodies arrive through the slot: content-file pages inject their
+// assembled HTML with <Fragment set:html>, and the home page renders
+// <HomeMain /> as a component.
+import type { PageMeta } from "../data/page-meta";
+import { ALL_LANGUAGES, BASE_LANGUAGE, TRANSLATED_ROUTES, type SiteLanguage } from "../data/languages";
+import { baseRoute, urlForRoute } from "../lib/localized-page";
+import Header from "../components/chrome/Header.astro";
+import Footer from "../components/chrome/Footer.astro";
+
+interface Props {
+  meta: PageMeta;
+  lang?: SiteLanguage;
+  home?: boolean;
+}
+
+const { meta, lang = BASE_LANGUAGE, home = false } = Astro.props;
+
+const SITE = "https://tidybyte.yord.si";
+const ICON_OG = "https://tidybyte.yord.si/assets/img/icon-1024.png";
+
+/** Decode the small set of entities used in titles/descriptions. */
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&mdash;/g, " — ")
+    .replace(/&ndash;/g, " – ")
+    .replace(/&rsquo;/g, "'")
+    .replace(/&lsquo;/g, "'")
+    .replace(/&rdquo;/g, '"')
+    .replace(/&ldquo;/g, '"')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Pull datePublished/dateModified out of the Article JSON-LD block. */
+const pub = meta.headTail.match(/"datePublished":\s*"([^"]+)"/)?.[1] ?? null;
+const mod = meta.headTail.match(/"dateModified":\s*"([^"]+)"/)?.[1] ?? null;
+
+// /404 must never appear in search results.
+const robots = meta.route === "/404" ? "noindex, follow" : meta.robots;
+// The app icon is square; several pages declared it as 1024x630.
+const ogWidth = meta.ogImage === ICON_OG ? "1024" : meta.ogWidth;
+const ogHeight = meta.ogImage === ICON_OG ? "1024" : meta.ogHeight;
+const ogAlt = decodeEntities(meta.title);
+
+/**
+ * LCP preload for the page's hero image, if it has one. Must match the file
+ * the rendered <img>/<picture> actually fetches, otherwise the preload is
+ * wasted. The home page renders nothing here by design.
+ */
+function heroPreload(): { href?: string; imagesrcset?: string; imagesizes?: string } | null {
+  if (meta.route === "/mac") {
+    // The first screen of the Mac page's screen switcher is its LCP image.
+    // Same srcset and sizes as the <source>, so the preload fetches the file
+    // the browser picks.
+    return {
+      imagesrcset: "/assets/img/mac/01-overview-1200.avif 1200w, /assets/img/mac/01-overview.avif 2400w",
+      imagesizes: "(max-width: 1120px) 94vw, 1060px",
+    };
+  }
+  if (meta.route.startsWith("/blog/")) {
+    // Blog heroes are AVIF-first <picture> blocks; AVIF is supported by all
+    // evergreen browsers, so it is the LCP resource in practice.
+    return { href: `/assets/img/blog/${meta.route.slice("/blog/".length)}.avif` };
+  }
+  return null;
+}
+const preload = heroPreload();
+
+/** Speakable block for answer engines: TL;DR + quick-answer selectors. */
+function speakableScript(): string {
+  return (
+    `\n  <!-- Structured Data: Speakable -->\n` +
+    `  <script type="application/ld+json">\n` +
+    `  {\n` +
+    `    "@context": "https://schema.org",\n` +
+    `    "@type": "WebPage",\n` +
+    `    "@id": "${meta.canonical}#webpage",\n` +
+    `    "url": "${meta.canonical}",\n` +
+    `    "speakableSpecification": {\n` +
+    `      "@type": "SpeakableSpecification",\n` +
+    `      "cssSelector": ["[data-quick-answer]", ".lede"]\n` +
+    `    }\n` +
+    `  }\n` +
+    `  </script>\n`
+  );
+}
+
+/**
+ * BreadcrumbList for routes whose data file does not define one (blog posts
+ * and the tool pages already do). The trail matches the visible breadcrumbs
+ * the pages render.
+ */
+function breadcrumbScript(): string {
+  const name =
+    decodeEntities(meta.title)
+      .replace(/\s*[—–|-]\s*TidyByte\s*$/i, "")
+      .trim() || "TidyByte";
+  const items: { name: string; url: string }[] = [
+    { name: "Home", url: `${SITE}/` },
+  ];
+  if (meta.route.startsWith("/blog/")) {
+    items.push({ name: "Blog", url: `${SITE}/blog` });
+  }
+  items.push({ name, url: meta.canonical });
+  const body = items
+    .map(
+      (it, i) =>
+        `      {\n        "@type": "ListItem",\n        "position": ${i + 1},\n        "name": ${JSON.stringify(it.name)},\n        "item": "${it.url}"\n      }`,
+    )
+    .join(",\n");
+  return (
+    `\n  <!-- Structured Data: BreadcrumbList -->\n` +
+    `  <script type="application/ld+json">\n` +
+    `  {\n` +
+    `    "@context": "https://schema.org",\n` +
+    `    "@type": "BreadcrumbList",\n` +
+    `    "itemListElement": [\n${body}\n    ]\n` +
+    `  }\n` +
+    `  </script>\n`
+  );
+}
+
+// JSON-LD region from the data file, plus Speakable for articles and a
+// BreadcrumbList for any route that does not already define one.
+let jsonLdTail =
+  meta.ogType === "article" ? meta.headTail + speakableScript() : meta.headTail;
+// Speakable for the remaining content pages (home, support, privacy,
+// changelog, blog hub). Blog posts get it above; tool pages declare their
+// own inside the WebPage block, so they are skipped here to avoid a second
+// WebPage entity with the same @id.
+if (
+  meta.route !== "/404" &&
+  meta.ogType !== "article" &&
+  !meta.headTail.includes("SpeakableSpecification")
+) {
+  jsonLdTail += speakableScript();
+}
+// A localized landing page (/de) is the home page of that language, so it
+// gets no breadcrumb either: a trail leading back to an English page the
+// visitor cannot read is worse than no trail.
+if (
+  !TRANSLATED_ROUTES.includes(baseRoute(meta.route)) &&
+  meta.route !== "/404" &&
+  !meta.headTail.includes("BreadcrumbList")
+) {
+  jsonLdTail += breadcrumbScript();
+}
+
+// og:locale for the page plus og:locale:alternate for the other languages
+// it exists in. Social cards have no hreflang, so the locale pair is the
+// only thing telling a crawler these pages are the same page in another
+// language.
+const localeAlternates = TRANSLATED_ROUTES.includes(baseRoute(meta.route))
+  ? ALL_LANGUAGES.filter((l) => l.code !== lang.code)
+  : [];
+
+// Ported from rebuild_site.py SKIP_LINK. The inset is logical (`start-3`) so
+// the skip link stays in the reading-start corner on the RTL pages.
+const skipLink =
+  '<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:start-3 ' +
+  "focus:top-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-3 " +
+  "focus:py-1.5 focus:text-sm focus:font-semibold focus:text-on-primary\">" +
+  "Skip to content</a>";
+---
+
+<!doctype html>
+<html lang={lang.htmlLang} {...(lang.rtl ? { dir: "rtl" } : {})}>
+  <head>
+    <meta charset="utf-8" />
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fffaf0" />
+    <meta name="robots" content={robots} />
+    <meta name="author" content="TidyByte" />
+
+    <meta property="og:type" content={meta.ogType} />
+    <meta property="og:site_name" content="TidyByte" />
+    <meta property="og:locale" content={lang.ogLocale} />
+    {localeAlternates.map((l) => <meta property="og:locale:alternate" content={l.ogLocale} />)}
+    <meta property="og:title" content={meta.title} />
+    <meta property="og:description" content={meta.description} />
+    <meta property="og:image" content={meta.ogImage} />
+    <meta property="og:image:width" content={ogWidth} />
+    <meta property="og:image:height" content={ogHeight} />
+    <meta property="og:image:alt" content={ogAlt} />
+    <meta property="og:url" content={meta.ogUrl} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={meta.title} />
+    <meta name="twitter:description" content={meta.description} />
+    <meta name="twitter:image" content={meta.ogImage} />
+    <meta name="twitter:image:alt" content={ogAlt} />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+    <link rel="canonical" href={meta.canonical} />
+    {TRANSLATED_ROUTES.includes(baseRoute(meta.route)) && (
+      <>
+        {ALL_LANGUAGES.map((l) => (
+          <link rel="alternate" hreflang={l.htmlLang} href={urlForRoute(l, baseRoute(meta.route))} />
+        ))}
+        <link rel="alternate" hreflang="x-default" href={urlForRoute(BASE_LANGUAGE, baseRoute(meta.route))} />
+      </>
+    )}
+    {pub && <meta property="article:published_time" content={pub} />}
+    {mod && <meta property="article:modified_time" content={mod} />}
+    {meta.fontPreload && (
+      <link rel="preload" href={meta.fontPreload} as="font" type="font/woff2" crossorigin />
+    )}
+    {preload && (
+      <link
+        rel="preload"
+        as="image"
+        href={preload.href}
+        imagesrcset={preload.imagesrcset}
+        imagesizes={preload.imagesizes}
+        type={preload.href ? "image/avif" : undefined}
+        fetchpriority="high"
+      />
+    )}
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <script is:inline src="/assets/js/theme.js"></script>
+    <script is:inline src="/assets/js/nav.js" defer></script>
+    <script is:inline src="/assets/js/site.js" defer></script>
+    {meta.extraScripts.map((s) => (
+      <script is:inline src={s} defer></script>
+    ))}
+    <Fragment set:html={jsonLdTail} />
+  </head>
+  <body>
+    <Fragment set:html={skipLink} />
+    <Header home={home} lang={lang} />
+    <slot />
+    <Footer />
+  </body>
+</html>
