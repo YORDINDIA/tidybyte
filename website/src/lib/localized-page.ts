@@ -7,6 +7,13 @@
 // single source for the entity graph; this module overrides only what
 // belongs to the URL: canonical, og:url, the language the page declares,
 // and (until real translations land) the title and description.
+//
+// The landing page body is a real Astro component,
+// src/components/HomeMain.astro. build-site-translations.mjs reads that file
+// and writes one translated component per language to
+// src/content/pages/index.<slug>.astro; this module loads those generated
+// components (for rendering) and their raw text (for the FAQ JSON-LD rebuild
+// and the .md alternates).
 import type { PageMeta } from "../data/page-meta";
 import { PAGES } from "../data/pages";
 import { BASE_LANGUAGE, SITE_LANGUAGES, type SiteLanguage } from "../data/languages";
@@ -19,11 +26,20 @@ const SITE = "https://tidybyte.yord.si";
 const TITLE_MAX = 65;
 const DESCRIPTION_MAX = 165;
 
-const contentFiles = import.meta.glob("../content/pages/*.html", {
+/** The generated localized landing components, ready to render. */
+const localizedComponents = import.meta.glob("../content/pages/index.*.astro", {
+  eager: true,
+}) as Record<string, any>;
+
+/** The same files as raw text, for the FAQ rebuild and .md alternates. */
+const localizedSources = import.meta.glob("../content/pages/index.*.astro", {
   query: "?raw",
   import: "default",
   eager: true,
 }) as Record<string, string>;
+
+/** The component frontmatter, which the raw-text consumers must not see. */
+const FRONTMATTER = /^---[\s\S]*?---\s*\n/;
 
 /**
  * Translated `<title>` and `<meta name="description">`, one file per language.
@@ -145,7 +161,8 @@ export function languageForRoute(route: string): SiteLanguage | undefined {
 /**
  * The route as it exists in the base language, so `/de` maps back to `/`.
  * Used to key TRANSLATED_ROUTES and to recognise a localized home page as
- * a home page (it gets no breadcrumb, and it preloads the home hero).
+ * a home page (it gets no breadcrumb, and it declares the same section
+ * anchors).
  */
 export function baseRoute(route: string): string {
   const lang = languageForRoute(route);
@@ -192,6 +209,7 @@ export function localizedHomeMeta(lang: SiteLanguage): PageMeta {
     description: meta?.description ?? withLanguageTag(base.description, lang, DESCRIPTION_MAX),
     ogUrl: `${SITE}${route}`,
     canonical: `${SITE}${route}`,
+    // The generated component this page renders (see localizedHomeComponent).
     contentFile: `index.${lang.slug}`,
     // The JSON-LD entity graph is language-neutral apart from the language
     // each block declares, so only that field is rewritten. The @ids stay
@@ -209,18 +227,32 @@ export function localizedHomeMeta(lang: SiteLanguage): PageMeta {
 }
 
 /**
- * `<main>` body for a localized landing page: the language's own copy of
- * src/content/pages/index.html. Falls back to nothing and throws loudly —
- * a missing file would otherwise render an English body under a `lang`
- * attribute that claims otherwise, which is worse than a failed build.
+ * `<main>` body text for a localized landing page: the language's own copy of
+ * src/components/HomeMain.astro with its frontmatter stripped. Used by the
+ * FAQ JSON-LD rebuild and the .md alternates. Falls back to nothing and
+ * throws loudly — a missing file would otherwise render an English body under
+ * a `lang` attribute that claims otherwise, which is worse than a failed
+ * build.
  */
 export function localizedHomeContent(lang: SiteLanguage): string {
-  const key = `../content/pages/index.${lang.slug}.html`;
-  const raw = contentFiles[key];
+  const key = `../content/pages/index.${lang.slug}.astro`;
+  const raw = localizedSources[key];
   if (!raw) {
     throw new Error(
-      `missing content file ${key} — copy src/content/pages/index.html to it and translate`,
+      `missing generated component ${key} — run scripts/localization/site/build-site-translations.mjs`,
     );
   }
-  return raw;
+  return raw.replace(FRONTMATTER, "");
+}
+
+/** The generated Astro component for a localized landing page. */
+export function localizedHomeComponent(lang: SiteLanguage): any {
+  const key = `../content/pages/index.${lang.slug}.astro`;
+  const mod = localizedComponents[key];
+  if (!mod) {
+    throw new Error(
+      `missing generated component ${key} — run scripts/localization/site/build-site-translations.mjs`,
+    );
+  }
+  return mod.default;
 }

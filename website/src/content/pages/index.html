@@ -1,4 +1,4 @@
-  <main id="main">
+<main id="main">
 <!-- Announcement bar: pill + link. Semantic tokens only — flips with theme. -->
 <div class="border-b border-hairline bg-surface-soft">
   <div class="container-prose flex items-center justify-center py-2">
@@ -118,7 +118,7 @@
      The wrapper supplies the container width the injected box expects. -->
 <section class="section-tight pt-0 sm:pt-0">
   <div class="container-prose">
-    <!-- quick-answer -->
+    <Fragment set:html={quickAnswer} />
   </div>
 </section>
 
@@ -168,7 +168,7 @@
     </div>
 
     <fieldset class="ios-demo mx-auto mt-12 w-fit" data-reveal>
-      <legend class="sr-only">TidyByte on iPhone — screens</legend>
+      <legend class="sr-only">TidyByte on iPhone &mdash; screens</legend>
       <input type="radio" name="tidy-ios" id="tidy-ios-swipe" class="sr-only" checked>
       <input type="radio" name="tidy-ios" id="tidy-ios-cleanup" class="sr-only">
       <input type="radio" name="tidy-ios" id="tidy-ios-storage" class="sr-only">
@@ -287,7 +287,7 @@
     </div>
 
     <fieldset class="mac-home-demo mx-auto mt-12 w-full max-w-3xl" data-reveal>
-      <legend class="sr-only">TidyByte for Mac — screens</legend>
+      <legend class="sr-only">TidyByte for Mac &mdash; screens</legend>
       <input type="radio" name="tidy-mac-home" id="tidy-mac-home-overview" class="sr-only" checked>
       <input type="radio" name="tidy-mac-home" id="tidy-mac-home-duplicates" class="sr-only">
       <input type="radio" name="tidy-mac-home" id="tidy-mac-home-explorer" class="sr-only">
@@ -747,7 +747,7 @@
   <div class="container-prose">
     <div class="relative overflow-hidden rounded-[2rem] bg-surface-soft p-8 text-center sm:p-12" data-reveal>
       <div class="relative z-10 mx-auto max-w-xl">
-        <p class="eyebrow">08 &mdash; Get the apps</p>
+        <p class="eyebrow">08 &mdash; Get the app</p>
         <h2 class="h-display mt-3">Clean your library in minutes.</h2>
         <p class="lede mt-4">No account to create. No subscription to manage. Just one swipe at a time.</p>
         <div class="mt-7 flex flex-wrap items-center justify-center gap-3">

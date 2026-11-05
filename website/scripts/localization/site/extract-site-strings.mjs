@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // Extracts the translatable strings from the English landing page.
 //
-// The landing page is HTML, so most of the file is markup: Tailwind classes,
-// SVG paths, data attributes. Only text nodes and a handful of text-bearing
-// attributes change between languages. Translating by hand-editing 20 copies of
-// a 47 KB file invites structural drift, so this script pulls out the strings
-// that actually need translating and `build-site-translations.mjs` puts them
-// back into a copy of the English file.
+// The landing page body is the Astro component
+// src/components/HomeMain.astro, so most of the file is markup: Tailwind
+// classes, SVG paths, data attributes. Only text nodes and a handful of
+// text-bearing attributes change between languages. Translating by
+// hand-editing 20 copies of a component this size invites structural drift,
+// so this script pulls out the strings that actually need translating and
+// `build-site-translations.mjs` puts them back into one generated copy of
+// the component per language.
 //
 // Run: node scripts/localization/site/extract-site-strings.mjs
 // Out: scripts/localization/site/site-strings.json  { source, strings: [...] }
@@ -18,7 +20,7 @@ import { KEEP_LITERAL } from "./keep-literal.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..", "..");
-const SOURCE = join(root, "src", "content", "pages", "index.html");
+const SOURCE = join(root, "src", "components", "HomeMain.astro");
 
 /// Attributes whose value is prose and must be translated.
 const TEXT_ATTRIBUTES = ["alt", "title", "aria-label", "placeholder"];
@@ -35,8 +37,10 @@ function isTranslatable(text) {
 
 const html = readFileSync(SOURCE, "utf8");
 
-// Comments hold notes for maintainers, not user-visible copy.
+// Comments hold notes for maintainers, not user-visible copy, and the
+// component's frontmatter is code, not markup.
 const body = html
+  .replace(/^---[\s\S]*?---/, "")
   .replace(/<script[\s\S]*?<\/script>/g, "")
   .replace(/<style[\s\S]*?<\/style>/g, "")
   .replace(/<!--[\s\S]*?-->/g, "");
@@ -74,7 +78,7 @@ const strings = [...found].filter((text) => !KEEP_LITERAL.has(text)).sort();
 mkdirSync(here, { recursive: true });
 writeFileSync(
   join(here, "site-strings.json"),
-  `${JSON.stringify({ source: "src/content/pages/index.html", strings }, null, 2)}\n`,
+  `${JSON.stringify({ source: "src/components/HomeMain.astro", strings }, null, 2)}\n`,
 );
 
 console.log(`site-strings.json: ${strings.length} strings`);

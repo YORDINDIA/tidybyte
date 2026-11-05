@@ -1,5 +1,14 @@
 ---
-import { renderRoute } from "../layouts/build-page";
-const html = renderRoute("/", true);
+// The English landing page. The body is a real Astro component
+// (src/components/HomeMain.astro — the app replicas, stats, toolkit, FAQ);
+// SiteLayout assembles the head, chrome, and JSON-LD around it.
+import SiteLayout from "../layouts/SiteLayout.astro";
+import HomeMain from "../components/HomeMain.astro";
+import { homeMeta } from "../lib/localized-page";
+import { quickAnswerBox } from "../lib/content";
+
+const meta = homeMeta();
 ---
-<Fragment set:html={html} />
+<SiteLayout meta={meta} home>
+  <HomeMain quickAnswer={quickAnswerBox(meta.description)} />
+</SiteLayout>

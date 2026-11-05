@@ -2,16 +2,23 @@
 // Builds the 20 localized landing pages from the English original plus the
 // per-language string maps produced by the translation batches.
 //
-// Translating by hand-editing 20 copies of a 47 KB HTML file invites structural
-// drift — a dropped `class`, a mangled SVG path, a stray `</div>`. This script
-// takes the English file as the structural source of truth and replaces only
-// the text that differs, so every localized page is guaranteed to have the same
-// markup as the page the design was built and reviewed against.
+// Translating by hand-editing 20 copies of a component this size invites
+// structural drift — a dropped `class`, a mangled SVG path, a stray `</div>`.
+// This script takes the English component (src/components/HomeMain.astro) as
+// the structural source of truth and replaces only the text that differs, so
+// every localized page is guaranteed to have the same markup as the page the
+// design was built and reviewed against.
+//
+// It also rewrites the English snapshot src/content/pages/index.html — the
+// component with its frontmatter stripped — because the llms.txt and *.md
+// endpoints read that file as plain HTML and it must always match what the
+// page renders.
 //
 // Run: node scripts/localization/site/build-site-translations.mjs
-// In:  src/content/pages/index.html
+// In:  src/components/HomeMain.astro
 //      scripts/localization/site/site-translations/<slug>.json
-// Out: src/content/pages/index.<slug>.html
+// Out: src/content/pages/index.<slug>.astro  (one per language)
+//      src/content/pages/index.html          (English snapshot)
 
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -20,16 +27,18 @@ import { isKeepLiteral } from "./keep-literal.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..", "..");
-const SOURCE = join(root, "src", "content", "pages", "index.html");
+const SOURCE = join(root, "src", "components", "HomeMain.astro");
+const SNAPSHOT = join(root, "src", "content", "pages", "index.html");
 const TRANSLATIONS = join(here, "site-translations");
 
 /// Attributes whose value is prose. Mirrors extract-site-strings.mjs.
 const TEXT_ATTRIBUTES = ["alt", "title", "aria-label", "placeholder"];
 
-/// Regions that must pass through untouched: a translation map can contain a
-/// string that also appears inside a script or a comment, and replacing there
-/// would corrupt code or a maintainer note.
-const OPAQUE = /(<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->)/g;
+/// Regions that must pass through untouched: the component's frontmatter is
+/// code, and a translation map can contain a string that also appears inside
+/// a script or a comment — replacing there would corrupt code or a
+/// maintainer note.
+const OPAQUE = /(^---[\s\S]*?---\n|<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->)/g;
 
 const PLACEHOLDER_MARKER = /^<!-- PLACEHOLDER COPY[\s\S]*?-->\s*\n?/m;
 
@@ -98,10 +107,14 @@ function buildOne(file) {
   // usually a copy that was reworded on one side only.
   const unused = Object.keys(map).filter((key) => !stats.replaced.has(key));
 
-  writeFileSync(join(root, "src", "content", "pages", `index.${slug}.html`), body);
+  writeFileSync(join(root, "src", "content", "pages", `index.${slug}.astro`), body);
 
   return { slug, replaced: stats.replaced.size, unused, unmatched: [...stats.unmatched] };
 }
+
+// The English snapshot: the component with its frontmatter stripped, so the
+// llms.txt / *.md endpoints keep reading plain HTML that matches the page.
+writeFileSync(SNAPSHOT, readFileSync(SOURCE, "utf8").replace(/^---[\s\S]*?---\s*\n/, ""));
 
 if (!existsSync(TRANSLATIONS)) {
   console.error(`no translations directory: ${TRANSLATIONS}`);
@@ -129,7 +142,7 @@ for (const file of files) {
   if (result.unmatched.length) notes.push(`${result.unmatched.length} untranslated string(s)`);
 
   const status = notes.length ? `  ${notes.join(", ")}` : "";
-  console.log(`index.${result.slug}.html: ${result.replaced} strings replaced${status}`);
+  console.log(`index.${result.slug}.astro: ${result.replaced} strings replaced${status}`);
 
   for (const key of result.unused) console.log(`    unused:      ${key.slice(0, 78)}`);
   for (const key of result.unmatched) console.log(`    untranslated: ${key.slice(0, 78)}`);

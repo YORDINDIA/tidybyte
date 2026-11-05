@@ -1,5 +1,6 @@
-Astro marketing site for the TidyByte iOS app. Astro renders `src/` to
-static HTML in `dist/`; Tailwind CSS for styling; no client-side framework.
+Astro marketing site for TidyByte (iPhone, iPad and Mac). Astro renders
+`src/` to static HTML in `dist/`; Tailwind CSS for styling; no client-side
+framework.
 
 ## Structure
 
@@ -28,6 +29,21 @@ public/
 └── serve.py          # Local server for the built site (serves dist/)
 dist/                 # Build output (never committed)
 ```
+
+## The landing page's app replicas
+
+The home page (`src/content/pages/index.html`) shows both apps without a
+screenshot: the iPhone (Swipe session, Cleanup grid, Storage dashboard,
+Settings) and the TidyByte for Mac window (Overview, Duplicates, Space
+Explorer) are rebuilt in HTML/CSS. The switches are radio inputs and CSS
+only — the `.ios-demo` / `.mac-home-demo` blocks at the bottom of
+`src/input.css` — so the demos work with JavaScript disabled and arrow keys
+move between screens, exactly like the Mac page's `.mac-views` switcher.
+Because they are text nodes, every label flows through the localization
+pipeline: a replica label that is not in
+`scripts/localization/site/site-translations/<lang>.json` fails the build.
+Unit symbols, disk/file names and glyph entities that read the same in every
+language stay English via `keep-literal.mjs`.
 
 ## Tool landing pages (SEO / GEO / AEO)
 

@@ -1601,7 +1601,7 @@ export function toolCanonical(slug: string): string {
  *   WebPage  — ties the page to the app entity defined on the home page
  *              (#app) so answer engines resolve one product, not thirteen
  *   FAQPage  — mirrors the visible <details> list exactly
- * BreadcrumbList is added at render time by src/layouts/build-page.ts.
+ * BreadcrumbList is added at render time by src/layouts/SiteLayout.astro.
  */
 export function toolPageMeta(t: Tool): PageMeta {
   const url = toolCanonical(t.slug);

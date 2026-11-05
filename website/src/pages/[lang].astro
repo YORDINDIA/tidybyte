@@ -4,17 +4,25 @@
 // English has no prefix, so `/` stays the only English URL and this route
 // emits only the translations: /de, /ja, /pt-br, /zh-hans …
 //
-// The path is all renderRoute() needs: it resolves the language, derives the
-// head metadata (canonical, og:locale, hreflang, lang/dir) and loads that
-// language's copy of the landing page body. Nothing about the head, chrome,
-// or JSON-LD is assembled here.
+// Each language renders its own generated copy of the landing page body —
+// build-site-translations.mjs writes src/content/pages/index.<slug>.astro
+// from the English HomeMain.astro component plus the language's string map —
+// so the localized pages are Astro components too, not injected HTML.
+// SiteLayout derives the head (canonical, og:locale, hreflang, lang/dir)
+// from the language.
+import SiteLayout from "../layouts/SiteLayout.astro";
 import { SITE_LANGUAGES } from "../data/languages";
-import { renderRoute } from "../layouts/build-page";
+import { localizedHomeComponent, localizedHomeMeta } from "../lib/localized-page";
+import { quickAnswerBox } from "../lib/content";
 
 export function getStaticPaths() {
   return SITE_LANGUAGES.map((l) => ({ params: { lang: l.slug } }));
 }
 
-const html = renderRoute(`/${Astro.params.lang}`, true);
+const lang = SITE_LANGUAGES.find((l) => l.slug === Astro.params.lang)!;
+const meta = localizedHomeMeta(lang);
+const LocalizedHome = localizedHomeComponent(lang);
 ---
-<Fragment set:html={html} />
+<SiteLayout meta={meta} lang={lang} home>
+  <LocalizedHome quickAnswer={quickAnswerBox(meta.description)} />
+</SiteLayout>

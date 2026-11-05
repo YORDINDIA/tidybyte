@@ -10,7 +10,8 @@ The site is an Astro static build with Tailwind + vanilla JS (no framework runti
 
 - `src/pages/` — routes (`index`, `404`, `privacy`, `support`, `changelog`, `mac`, `activity-monitor-alternative`, `[page]` + `[page].md` for the 16 tool landing pages, `blog/index`, `blog/[slug]` + `blog/[slug].md`, plus generated `llms.txt`, `llms-full.txt`). Each renders an assembled document string.
 - `src/layouts/build-page.ts` — the page assembler: `<head>` template (SEO/OG/article meta, LCP preloads, Speakable schema), header/footer chrome, and the visible "Quick answer" box injected on every indexable page (at the `<!-- quick-answer -->` marker, or under the hero figure/header if the content file has no marker).
-- `src/content/pages/*.html` — page body content (the file you edit to change page copy).
+- `src/content/pages/*.html` — page body content (the file you edit to change page copy). The home page also carries interactive HTML/CSS replicas of the iPhone and Mac apps (radio-and-CSS switchers styled by `.ios-demo` / `.mac-home-demo` in `src/input.css`) — every replica label is a translated string, so a label added without a translation in all 20 `site-translations/*.json` files fails `build-site-translations.mjs`.
+- The home page has no LCP image preload: its hero devices are HTML/CSS, so the LCP element is the `<h1>`. (Blog posts and `/mac` still preload their AVIF heroes.)
 - `src/chrome/{header,footer}.html` — single-source header/footer shared by all pages.
 - `src/data/pages.ts` — per-page `<head>` metadata + JSON-LD (add an entry + a content file when publishing a new post).
 - `src/data/tools.ts` — copy, comparison tables and FAQs for the tool landing pages. Adding a tool page means one entry here plus one `tool-<slug>.html` content file; the sitemap priority list in `astro.config.mjs` is the one thing that must be updated by hand.
@@ -101,7 +102,7 @@ Tick each:
 - [ ] A URL that does not exist (e.g. `/no-such-page`) returns a real 404 status, not 200
 - [ ] Support email link opens the user's configured mail client with the TidyByte support address
 - [ ] Lighthouse (Chrome DevTools → Lighthouse) on `/`: Performance ≥ 95, Accessibility ≥ 95, SEO ≥ 95, Best Practices ≥ 95
-- [ ] Open `/` on a real iPhone in Safari — hero and screenshots look right
+- [ ] Open `/` on a real iPhone in Safari — the hero and the app-replica demos look right (tap through all four iPhone tabs and the three Mac screens)
 - [ ] From `ios/`, `node scripts/growth/shoot-screenshots.mjs --duo` captures both iPhone Duo displays (outer 1398 × 2034, inner 2007 × 2853) into `docs/screenshots/duo-outer/` and `docs/screenshots/duo-inner/` with alpha stripped — needs the iOS 27.1 simulator runtime, and it is what earns the App Store's "optimized for iPhone Duo" badge. App-side, not site-side: see `docs/duo-readiness.md`
 - [ ] Test from a private/incognito window — no stale CDN cache
 
