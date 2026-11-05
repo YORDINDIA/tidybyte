@@ -845,6 +845,28 @@ final class AppViewModelTests: XCTestCase {
         XCTAssertTrue(model.statusMessage.contains("All data cleared"))
     }
 
+    func testClearAllDataRefusesWhileCleanupRunsAndResetsCleanupState() async throws {
+        // Given a media cleanup pass in flight, clearing must refuse and change nothing
+        let defaults = makeDefaultsSuite()
+        let model = try makeModel(defaults: defaults)
+        model.cleanup.isBusy = true
+        await model.clearAllData()
+        XCTAssertNotNil(model.errorMessage)
+        XCTAssertFalse(model.statusMessage.contains("All data cleared"))
+
+        // When the pass ends and the user clears all data
+        model.cleanup.isBusy = false
+        model.cleanup.selection = ["item-1"]
+        model.cleanup.notice = "stale notice"
+        await model.clearAllData()
+
+        // Then in-memory cleanup state resets with the store
+        XCTAssertTrue(model.cleanup.selection.isEmpty)
+        XCTAssertNil(model.cleanup.notice)
+        XCTAssertNil(model.cleanup.error)
+        XCTAssertTrue(model.statusMessage.contains("All data cleared"))
+    }
+
     func testClearAllDataClearsAllPersistedPreferences() async throws {
         // Given a model with every preference customized and persisted (ST-18)
         let defaults = makeDefaultsSuite()

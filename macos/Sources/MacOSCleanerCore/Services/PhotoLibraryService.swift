@@ -292,12 +292,6 @@ public actor PhotoLibraryService: PhotoMutationService {
         return id
     }
 
-    public func clearPreviewCache() {
-        // This directory contains only exports created by this service, never user originals.
-        try? FileManager.default.removeItem(at: cacheRoot)
-        exportCache.removeAll()
-    }
-
     /// Resolves the analysisPreview continuation exactly once: the first
     /// final (non-degraded) delivery wins, and task cancellation cancels the
     /// underlying Photos request and resumes the continuation with a

@@ -9,15 +9,10 @@
 // and the FAQPage JSON-LD emitted by toolPageMeta() are always the same
 // strings, which is what Google requires for FAQ rich results.
 import { PAGES } from "../data/pages";
+import { bodyFor } from "./content";
 import { TOOLS, toolBySlug, plain, SCREENSHOT_SIZE, type Tool } from "../data/tools";
 
 const APP_STORE = "https://apps.apple.com/app/id6775769763";
-
-const contentFiles = import.meta.glob("../content/pages/*.html", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
 
 const CHECK =
   '<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path d="M5 12l5 5 9-11"/></svg>';
@@ -295,10 +290,7 @@ function finalCta(t: Tool): string {
 function toolProse(slug: string): string {
   const tool = toolBySlug(slug);
   if (!tool) throw new Error(`unknown tool slug ${slug}`);
-  const key = `../content/pages/tool-${slug}.html`;
-  const raw = contentFiles[key];
-  if (!raw) throw new Error(`missing content file ${key}`);
-  return raw.trimEnd();
+  return bodyFor(`tool-${slug}`).trimEnd();
 }
 
 /** Full <main> body for a tool route. */

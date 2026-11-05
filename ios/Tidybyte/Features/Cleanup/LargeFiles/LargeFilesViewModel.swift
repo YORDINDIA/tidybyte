@@ -75,6 +75,12 @@ final class LargeFilesViewModel {
     /// (LF-09).
     private(set) var shareExportFolder: URL?
     private var shareTask: Task<Void, Never>?
+    /// Names of export folders a presented share sheet still reads. Static
+    /// because the orphan sweep is static and must see every instance's folders.
+    private static var liveShareExportFolderNames = Set<String>()
+    /// Exports running in any instance. Their folder is not known until the
+    /// export returns, so the sweep must not run while this is non-zero.
+    private static var activeShareExports = 0
 
     /// Live view of the persisted preference (LF-06): never diverges from what
     /// Settings wrote, and any write goes straight to `AppPreferences`.
@@ -352,9 +358,12 @@ final class LargeFilesViewModel {
         shareProgress = (0, ids.count)
         // D10 (LF-09 residual): sweep leftovers from previous sessions FIRST —
         // e.g. an export that finished after the user navigated back, whose
-        // payload was set on a VM whose sheet never appeared. Serialized with
-        // the new export by `isPreparingShare`, so nothing live is removed.
-        Self.removeOrphanedShareExportFolders()
+        // payload was set on a VM whose sheet never appeared. The sweep skips
+        // folders a share sheet still holds, and waits while any export runs.
+        if Self.activeShareExports == 0 {
+            Self.removeOrphanedShareExportFolders(keeping: Self.liveShareExportFolderNames)
+        }
+        Self.activeShareExports += 1
         // Strong capture (LF-09): the VM stays alive for the whole export so the
         // cleanup below always runs, even if the owning view is torn down while
         // the export is in flight.
@@ -362,18 +371,22 @@ final class LargeFilesViewModel {
             let urls = await self.photoService.exportAssetsForSharing(identifiers: ids) { [weak self] completed, total in
                 self?.shareProgress = (completed, total)
             }
+            Self.activeShareExports -= 1
             let folder = urls.first?.deletingLastPathComponent()
             self.shareExportFolder = folder
             if urls.isEmpty {
                 // Every resource failed to write. The temp folder's name is only
-                // known inside the service, so sweep the app's export folders
-                // (this VM is the only ShareExport-* user and exports are
-                // serialized by `isPreparingShare`).
-                Self.removeOrphanedShareExportFolders()
+                // known inside the service, so sweep the app's export folders.
+                // Skipped while another instance's export is still running.
+                if Self.activeShareExports == 0 {
+                    Self.removeOrphanedShareExportFolders(keeping: Self.liveShareExportFolderNames)
+                }
                 self.shareExportFolder = nil
                 self.errorMessage = L10n.string("Couldn't prepare the selected items to share.")
             } else if !Task.isCancelled {
-                // Folder stays on disk until the share sheet is dismissed.
+                // Folder stays on disk until the share sheet is dismissed, and
+                // is protected from the sweep until then.
+                if let folder { Self.liveShareExportFolderNames.insert(folder.lastPathComponent) }
                 self.sharePayload = SharePayload(urls: urls)
             } else {
                 if let folder { Self.removeExportFolder(at: folder) }
@@ -393,6 +406,7 @@ final class LargeFilesViewModel {
     func cleanupShareExport() {
         if let folder = shareExportFolder {
             Self.removeExportFolder(at: folder)
+            Self.liveShareExportFolderNames.remove(folder.lastPathComponent)
         }
         shareExportFolder = nil
         sharePayload = nil
@@ -404,12 +418,16 @@ final class LargeFilesViewModel {
     }
 
     /// Removes leftover `ShareExport-*` temp folders (used on the all-fail path
-    /// where the exact folder name is unknowable from the VM).
-    static func removeOrphanedShareExportFolders(in directory: URL = FileManager.default.temporaryDirectory) {
+    /// where the exact folder name is unknowable from the VM). Folders whose
+    /// name is in `live` are kept: a share sheet still reads them.
+    static func removeOrphanedShareExportFolders(
+        in directory: URL = FileManager.default.temporaryDirectory,
+        keeping live: Set<String> = []
+    ) {
         guard let contents = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else {
             return
         }
-        for url in contents where url.lastPathComponent.hasPrefix("ShareExport-") {
+        for url in contents where url.lastPathComponent.hasPrefix("ShareExport-") && !live.contains(url.lastPathComponent) {
             try? FileManager.default.removeItem(at: url)
         }
     }

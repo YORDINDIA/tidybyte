@@ -51,6 +51,8 @@ public actor MemoryEngine {
                         break
                     }
                 case .preferArchive:
+                    // Inspect-only findings stay review-only; archiving them would make them actionable.
+                    guard adjusted.actionType != .inspectOnly else { break }
                     adjusted.actionType = .archive
                     adjusted.reason += String(localized: " Memory rule applied: \(rule.rule)", comment: "Suffix appended to reason when a memory rule is applied")
                 case .always:

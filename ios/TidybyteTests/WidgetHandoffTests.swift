@@ -24,7 +24,7 @@ final class WidgetHandoffTests: XCTestCase {
     // MARK: - Route handoff
 
     func testPendingRouteRoundTripsForEveryCase() {
-        for route in [WidgetRoute.swipe, .screenshots, .activity] {
+        for route in [WidgetRoute.activity] {
             AppGroupStore.savePendingRoute(route)
             XCTAssertEqual(AppGroupStore.consumePendingRoute(), route)
         }
@@ -40,6 +40,17 @@ final class WidgetHandoffTests: XCTestCase {
     func testConsumeReturnsNilWhenNothingIsQueued() {
         AppGroupStore.consumePendingRoute()
         XCTAssertNil(AppGroupStore.consumePendingRoute())
+    }
+
+    /// Older widget builds queued "swipe" and "screenshots". Those routes are
+    /// gone; a value left in the App Group by an old build must be dropped and
+    /// cleared, not crash or replay.
+    func testRetiredRouteFromAnOldBuildIsDroppedAndCleared() {
+        for retired in ["swipe", "screenshots"] {
+            AppGroupStore.defaults.set(retired, forKey: AppGroupStore.pendingRouteKey)
+            XCTAssertNil(AppGroupStore.consumePendingRoute())
+            XCTAssertNil(AppGroupStore.defaults.string(forKey: AppGroupStore.pendingRouteKey))
+        }
     }
 
     // MARK: - Snapshot compatibility

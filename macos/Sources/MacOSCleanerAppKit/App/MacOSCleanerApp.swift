@@ -291,14 +291,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     /// End any open sheets, then terminate once the dismissal has landed.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let sheets = sender.windows.flatMap(\.sheets)
-        try? "AST sheets=\(sheets.count)\n"
-            .write(to: URL(fileURLWithPath: "/tmp/tidybyte-quit-ast.txt"), atomically: true, encoding: .utf8)
         guard !sheets.isEmpty else { return .terminateNow }
         for sheet in sheets { sheet.sheetParent?.endSheet(sheet) }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            MainActor.assumeIsolated {
-                NSApp.reply(toApplicationShouldTerminate: true)
-            }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            NSApp.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
     }

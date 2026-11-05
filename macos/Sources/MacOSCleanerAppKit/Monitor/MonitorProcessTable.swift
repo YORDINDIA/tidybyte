@@ -56,13 +56,6 @@ struct ProcessTableView: View {
             case .quit(let sample), .forceQuit(let sample): sample
             }
         }
-
-        var isForce: Bool {
-            switch self {
-            case .quit: false
-            case .forceQuit: true
-            }
-        }
     }
 
     /// Row cap: past this the table shows a footer instead of the tail.

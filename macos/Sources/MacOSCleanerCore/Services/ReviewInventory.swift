@@ -202,14 +202,14 @@ public actor ReviewInventory {
                 // Media inside node_modules, a build folder, or a cache entry is not the
                 // person's media; the crawler summarizes those folders for the same reason.
                 guard ReviewSafety.isAllowed(url),
-                    case let values = try url.resourceValues(forKeys: [.volumeIsLocalKey, .isDirectoryKey]),
+                    let values = try? url.resourceValues(forKeys: [.volumeIsLocalKey, .isDirectoryKey]),
                     values.volumeIsLocal == true, !(values.isDirectory == true && FileCrawler.rollsUp(url))
                 else {
                     entries.skipDescendants()
                     continue
                 }
                 visited += 1
-                if var item = try Self.record(url, root: root), paths.insert(url.standardizedFileURL.path).inserted {
+                if var item = try? Self.record(url, root: root), paths.insert(url.standardizedFileURL.path).inserted {
                     if let chatFolder = scope.exportedChatFolder, ReviewSafety.contains(url, in: chatFolder) {
                         item.facts.isExportedChatMedia = true
                     }

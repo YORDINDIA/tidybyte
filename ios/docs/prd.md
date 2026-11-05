@@ -690,7 +690,7 @@ The website has its own pair under `scripts/localization/site/`:
 
 | Script | Role |
 |---|---|
-| `extract-site-strings.mjs` | Pulls translatable text out of `src/content/pages/index.html`, plus the title and description from `src/data/pages.ts`. |
+| `extract-site-strings.mjs` | Pulls translatable text out of `src/components/HomeMain.astro`, plus the title and description from `src/data/pages.ts`. |
 | `build-site-translations.mjs` | Regenerates the 20 localized landing pages from the English page plus `site-translations/<slug>.json`. |
 | `keep-literal.mjs` | The strings that stay English on the site (product and framework names). Shared by both scripts, so a keep-literal string is neither asked for nor reported missing. |
 

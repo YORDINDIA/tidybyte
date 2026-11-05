@@ -150,10 +150,15 @@ final class SwipeFlowRegressionTests: XCTestCase {
         vm.swipeLeft()
         XCTAssertTrue(vm.hasPendingDeletions)
 
+        // A successful commit sets the flag and clears the pending ids.
         vm.deletionCommitted = true
+        vm.pendingDeletionIds.removeAll()
         XCTAssertFalse(vm.hasPendingDeletions, "Committed deletions are no longer pending")
 
-        vm.deletionCommitted = false
+        // The flag stays true after a commit; a later swipe must still gate exits.
+        vm.swipeLeft()
+        XCTAssertTrue(vm.hasPendingDeletions, "A swipe after a commit is pending again")
+
         vm.discardPendingDeletions()
         XCTAssertFalse(vm.hasPendingDeletions, "Discarded deletions are no longer pending")
     }

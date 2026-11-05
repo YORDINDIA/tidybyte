@@ -1153,6 +1153,11 @@ const INTENTIONAL_LITERALS = new Set([
   // reports harder to read.
   'Persistent ModelContainer failed',
 
+  // Filename substrings matched against Google Photos media names to classify a
+  // screenshot or a screen recording. Data, not copy: translating one would stop
+  // the match and misclassify every such file.
+  'screen recording',
+
   // SwiftData save contexts. Passed to `save(context:)`, which only writes them
   // into a `Logger` message; the user sees the localized error string instead.
   'upsert swipe record',

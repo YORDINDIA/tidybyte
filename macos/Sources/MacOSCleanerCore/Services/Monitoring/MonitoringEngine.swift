@@ -60,11 +60,6 @@ public final class MonitoringSettings {
         set { defaults.set(newValue, forKey: MonitoringKeys.density) }
     }
 
-    public var usesColorblindPalette: Bool {
-        get { defaults.bool(forKey: MonitoringKeys.colorblindPalette) }
-        set { defaults.set(newValue, forKey: MonitoringKeys.colorblindPalette) }
-    }
-
     /// Whether the combined menu bar panel extra is inserted. Unset mirrors
     /// the scenes' `true` default.
     public var isMenuBarPanelEnabled: Bool {

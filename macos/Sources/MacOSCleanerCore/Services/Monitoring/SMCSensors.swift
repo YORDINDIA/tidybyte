@@ -45,7 +45,8 @@ public actor SMCSensors {
     }
 
     /// Explicitly sets a fan's minimum speed. The previous minimum is kept so
-    /// `restoreFanControl` can put the machine back the way it was.
+    /// `restoreFanControl` can put the machine back the way it was. No UI calls
+    /// this yet; it stays paired with the restore path below.
     public func setFanMinimum(fanIndex: Int, minimumRPM: Double) -> Bool {
         guard open() else { return false }
         let key = Self.fanKey(index: fanIndex, suffix: "Mn")

@@ -48,7 +48,10 @@ final class CleanupFeaturesUITests: XCTestCase {
         let tool = app.descendants(matching: .any).matching(identifier: "cleanup.\(id)").firstMatch
         for _ in 0..<8 {
             if tool.waitForExistence(timeout: 1) && tool.isHittable { break }
-            app.scrollViews.firstMatch.swipeUp()
+            // Gesture on the app: the Cleanup tab hosts several scroll views
+            // (the Google Photos pane has its own), and scrollViews.firstMatch
+            // can pick one that does not scroll the tool grid.
+            app.swipeUp()
         }
         XCTAssertTrue(tool.exists, app.debugDescription)
         XCTAssertTrue(tool.isHittable)

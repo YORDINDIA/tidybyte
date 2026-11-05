@@ -151,7 +151,7 @@ export function homeMeta(): PageMeta {
  * `/` is the base language; `/de` and `/pt-br` are its localized copies.
  * Anything deeper (`/blog/x`) is never translated today.
  */
-export function languageForRoute(route: string): SiteLanguage | undefined {
+function languageForRoute(route: string): SiteLanguage | undefined {
   if (route === "/") return BASE_LANGUAGE;
   const slug = route.slice(1);
   if (!slug || slug.includes("/")) return undefined;

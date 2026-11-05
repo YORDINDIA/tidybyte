@@ -65,11 +65,6 @@ public actor SnapshotService {
         self.store = store
     }
 
-    /// Newest-first snapshot history for the Snapshots tab picker.
-    public func listSnapshots(limit: Int = 30) async throws -> [StorageSnapshot] {
-        try await store.recentSnapshots(limit: limit)
-    }
-
     /// Diffs two snapshots by ID: folder growth ranked from `bytesByRootPath`
     /// (union of old and new paths, missing side counts as zero), category
     /// shifts from `bytesByCategory`, and the headline total delta. Pure and

@@ -349,6 +349,18 @@ public actor MoCleanScanner {
         url.lastPathComponent.lowercased() == "caches"
     }
 
+    /// Roots that are never proposed for trashing, even inside a cache section.
+    /// Xcode Archives hold dSYMs for shipped builds; the Bun folder is a global
+    /// package store. Both are surfaced as inspect-only findings.
+    private static func isReviewOnlyRoot(_ rootPath: String, home: URL) -> Bool {
+        let lib = home.appendingPathComponent("Library", isDirectory: true)
+        let reviewOnlyPaths = [
+            lib.appendingPathComponent("Developer/Xcode/Archives", isDirectory: true),
+            home.appendingPathComponent(".bun", isDirectory: true)
+        ].map { $0.standardizedFileURL.path }
+        return reviewOnlyPaths.contains(rootPath)
+    }
+
     /// Drops any root fully contained inside another root, keeping the outermost.
     /// Nested entries (e.g. Chrome + Chrome/GPUCache) must never be scanned twice:
     /// their bytes would be double-counted across overlapping findings.
@@ -464,7 +476,8 @@ public actor MoCleanScanner {
             // correctly (the planner sums target `sizeBytes`).
             rootRecord.sizeBytes = subtreeBytes
             let findingID = UUID().uuidString
-            let actionType: ActionType = section.isInspectOnly ? .inspectOnly : .moveToTrash
+            let reviewOnly = Self.isReviewOnlyRoot(rootPath, home: home)
+            let actionType: ActionType = section.isInspectOnly || reviewOnly ? .inspectOnly : .moveToTrash
             let risk = section.risk
             let finding = Finding(
                 id: findingID,
@@ -485,7 +498,7 @@ public actor MoCleanScanner {
                 risk: risk,
                 actionType: actionType,
                 bytes: subtreeBytes,
-                reason: reason(for: section, rootPath: rootPath)
+                reason: reason(for: section, rootPath: rootPath, reviewOnly: reviewOnly)
             ))
             relevantFiles.append(rootRecord)
         }
@@ -763,7 +776,16 @@ public actor MoCleanScanner {
         )
     }
 
-    private func reason(for section: SystemCleanSection, rootPath: String) -> String {
+    private func reason(for section: SystemCleanSection, rootPath: String, reviewOnly: Bool = false) -> String {
+        if reviewOnly {
+            let message = String(
+                localized: """
+                Review only: \(rootPath) may hold data you still need, such as dSYMs for shipped builds or a \
+                global package store. Remove it yourself if you no longer need it.
+                """,
+                comment: "Mo clean review-only root recommendation reason")
+            return message
+        }
         if section.isInspectOnly {
             return String(localized: "\(section.summaryPrefix) at \(rootPath) is high-risk or cloud-managed. Review manually before removing.", comment: "Mo clean inspect-only recommendation reason")
         }

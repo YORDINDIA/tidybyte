@@ -10,8 +10,8 @@
 	  signed in and no network. Uploading is a separate, deliberate step:
 	  `npm run publish:build`.
 
-	  Do not change `destination` to `upload` here. That is what
-	  ExportOptions.plist does, and it fails with "Failed to Use Accounts"
+	  Do not change `destination` to `upload` here. That is what the removed
+	  ExportOptions.plist did, and it fails with "Failed to Use Accounts"
 	  unless Xcode has a signed-in Apple ID — which is exactly the dependency
 	  the API-key path exists to remove.
 	-->

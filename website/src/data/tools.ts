@@ -1552,9 +1552,6 @@ export function toolBySlug(slug: string): Tool | undefined {
   return TOOLS.find((t) => t.slug === slug);
 }
 
-/** Every generated route, in render order. */
-export const TOOL_ROUTES: string[] = TOOLS.map((t) => `/${t.slug}`);
-
 // A typo in relatedTools would silently drop an internal link (the renderer
 // filters unresolvable slugs), so fail the build instead.
 for (const t of TOOLS) {

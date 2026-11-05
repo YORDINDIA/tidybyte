@@ -65,7 +65,12 @@ final class GoogleAuthService: NSObject {
             URLQueryItem(name: "scope", value: Self.scopes.joined(separator: " ")),
             URLQueryItem(name: "code_challenge", value: PKCE.challenge(for: verifier)),
             URLQueryItem(name: "code_challenge_method", value: "S256"),
-            URLQueryItem(name: "state", value: state)
+            URLQueryItem(name: "state", value: state),
+            // Without offline access Google issues no refresh token, so the session
+            // lapses after about an hour. Consent re-prompts so a refresh token is
+            // issued even when the account approved the app before.
+            URLQueryItem(name: "access_type", value: "offline"),
+            URLQueryItem(name: "prompt", value: "consent")
         ]
 
         let callback: URL = try await withCheckedThrowingContinuation { continuation in
@@ -77,14 +82,14 @@ final class GoogleAuthService: NSObject {
             }
             session.presentationContextProvider = self
             self.session = session
-            if !session.start() { continuation.resume(throwing: GoogleAuthError.failed("Could not open the sign-in page.")) }
+            if !session.start() { continuation.resume(throwing: GoogleAuthError.failed(L10n.string("Could not open the sign-in page."))) }
         }
         session = nil
 
         let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems ?? []
         guard items.first(where: { $0.name == "state" })?.value == state,
               let code = items.first(where: { $0.name == "code" })?.value else {
-            throw GoogleAuthError.failed(items.first(where: { $0.name == "error" })?.value ?? "No authorization code.")
+            throw GoogleAuthError.failed(items.first(where: { $0.name == "error" })?.value ?? L10n.string("No authorization code."))
         }
         let response = try await tokenRequest([
             "code": code,
@@ -116,16 +121,24 @@ final class GoogleAuthService: NSObject {
         }
     }
 
-    /// Revokes the grant at Google and deletes the tokens on this device.
-    func signOut() async {
-        if let token = tokens?.refreshToken ?? tokens?.accessToken {
-            var request = URLRequest(url: URL(string: "https://oauth2.googleapis.com/revoke")!)
-            request.httpMethod = "POST"
-            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-            request.httpBody = Self.formBody(["token": token])
-            _ = try? await URLSession.shared.data(for: request)
+    /// Revokes the grant at Google, then deletes the tokens on this device.
+    /// Tokens stay when revocation fails, so the user can retry. Google answers
+    /// 400 for a grant it already dropped, and that still counts as signed out.
+    @discardableResult
+    func signOut() async -> Bool {
+        guard let token = tokens?.refreshToken ?? tokens?.accessToken else {
+            clearTokens()
+            return true
         }
+        var request = URLRequest(url: URL(string: "https://oauth2.googleapis.com/revoke")!)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Self.formBody(["token": token])
+        guard let (_, response) = try? await URLSession.shared.data(for: request) else { return false }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard status == 200 || status == 400 else { return false }
         clearTokens()
+        return true
     }
 
     // MARK: - Helpers

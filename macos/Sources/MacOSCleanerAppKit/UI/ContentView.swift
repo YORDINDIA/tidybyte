@@ -140,14 +140,6 @@ struct ContentView: View {
         }
     }
 
-    /// The Monitor tab owns its inspector (process details), so the shared
-    /// inspector column stands down there.
-    private var showsSharedInspector: Binding<Bool> {
-        Binding(
-            get: { model.destination != .monitor && model.showsInspector },
-            set: { model.showsInspector = $0 })
-    }
-
     @ViewBuilder
     private var inspectorContent: some View {
         switch model.destination {

@@ -7,8 +7,6 @@ import Foundation
 /// Group and the app drains it on activation. Works whether the launch is cold
 /// or warm.
 enum WidgetRoute: String {
-    case swipe
-    case screenshots
     case activity
 }
 

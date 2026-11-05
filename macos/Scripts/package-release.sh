@@ -26,6 +26,16 @@ fi
 
 Scripts/build-app.sh "$CHANNEL"
 
+# `sign_update` is a build artifact, so it cannot be checked before the build —
+# but it can be checked before the signing and notarizing below, which are the
+# slow, network-bound steps. Failing after notarization wastes an upload and
+# leaves a notarized DMG with no feed.
+SIGN_UPDATE=".build/artifacts/sparkle/Sparkle/bin/sign_update"
+if [ "$CHANNEL" = direct ] && [ -z "${NO_SPARKLE:-}" ] && [ ! -x "$SIGN_UPDATE" ]; then
+    echo "Error: sign_update not found or not executable at $SIGN_UPDATE. Build with Sparkle first (build-app.sh direct), or set NO_SPARKLE=1 for a local build with no feed." >&2
+    exit 1
+fi
+
 TIMESTAMP=(--timestamp)
 if [ "$SIGNING_IDENTITY" = "-" ]; then TIMESTAMP=(); fi
 sign() { codesign --force --options runtime ${TIMESTAMP[@]+"${TIMESTAMP[@]}"} --sign "$SIGNING_IDENTITY" "$@"; }
@@ -85,8 +95,8 @@ if [ -z "${SKIP_NOTARIZE:-}" ]; then
     spctl --assess --type open --context context:primary-signature --verbose "$DMG"
 fi
 
-# One-item Sparkle appcast for this release (inputs validated at the top).
-SIGN_UPDATE=".build/artifacts/sparkle/Sparkle/bin/sign_update"
+# One-item Sparkle appcast for this release (inputs validated at the top,
+# `sign_update` right after the build).
 if [ -n "${NO_SPARKLE:-}" ]; then
     :
 elif [ -n "${SPARKLE_PRIVATE_KEY_FILE:-}" ] && [ -x "$SIGN_UPDATE" ]; then
@@ -110,5 +120,8 @@ elif [ -n "${SPARKLE_PRIVATE_KEY_FILE:-}" ] && [ -x "$SIGN_UPDATE" ]; then
 </rss>
 XML
     echo "Wrote $OUT/appcast.xml"
+else
+    echo "Error: no appcast written. sign_update not found or executable at $SIGN_UPDATE, or SPARKLE_PRIVATE_KEY_FILE is unset. A direct release without an appcast ships with no update feed. Set NO_SPARKLE=1 only for local testing." >&2
+    exit 1
 fi
 echo "Release artifact: $DMG"

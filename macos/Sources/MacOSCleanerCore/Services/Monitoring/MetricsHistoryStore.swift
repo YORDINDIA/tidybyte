@@ -172,7 +172,10 @@ public actor MetricsHistoryStore {
     /// every 30 minutes; retention pruning is the caller's decision.
     private func rollupAndPruneIfNeeded(now: Date) async {
         if let last = lastRollupAt, now.timeIntervalSince(last) < 1800 { return }
-        let cutoff = now.addingTimeInterval(-Self.rawSampleWindow).timeIntervalSince1970
+        // Cut on a whole hour. A mid-hour cut rolls up part of an hour, and the
+        // next pass's INSERT OR REPLACE then keeps only the later part.
+        let windowStart = now.addingTimeInterval(-Self.rawSampleWindow).timeIntervalSince1970
+        let cutoff = (windowStart / 3600).rounded(.down) * 3600
         exec("BEGIN IMMEDIATE")
         let rollupsOK = runWithParameter(
             """
@@ -250,28 +253,6 @@ public actor MetricsHistoryStore {
             WHERE metric = ? AND app_name = ? AND hour BETWEEN ? AND ? ORDER BY hour;
             """,
             window: SeriesWindow(metric: metric.rawValue, appName: appName, start: start, end: end))
-    }
-
-    /// The apps that led one metric over a range — "what used my memory this week".
-    public func topApps(metric: UsageMetric, from start: Date, to end: Date, limit: Int = 10) -> [(name: String, peak: Double)] {
-        var statement: OpaquePointer?
-        let sql = """
-            SELECT app_name, MAX(value) FROM app_samples
-            WHERE metric = ? AND timestamp BETWEEN ? AND ?
-            GROUP BY app_name ORDER BY 2 DESC LIMIT ?;
-            """
-        guard sqlite3_prepare_v2(database, sql, -1, &statement, nil) == SQLITE_OK else { return [] }
-        defer { sqlite3_finalize(statement) }
-        sqlite3_bind_text(statement, 1, metric.rawValue, -1, sqliteTransient)
-        sqlite3_bind_double(statement, 2, start.timeIntervalSince1970)
-        sqlite3_bind_double(statement, 3, end.timeIntervalSince1970)
-        sqlite3_bind_int(statement, 4, Int32(limit))
-        var result: [(String, Double)] = []
-        while sqlite3_step(statement) == SQLITE_ROW {
-            let name = sqlite3_column_text(statement, 0).map { String(cString: $0) } ?? ""
-            result.append((name, sqlite3_column_double(statement, 1)))
-        }
-        return result
     }
 
     private func query(sql: String, rollupSQL: String, window: SeriesWindow) -> [SeriesPoint] {

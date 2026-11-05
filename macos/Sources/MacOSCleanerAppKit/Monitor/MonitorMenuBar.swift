@@ -109,10 +109,6 @@ extension MonitorModel {
             return String(localized: "Energy \(Int(total))", comment: "Menu bar energy index")
         }
     }
-
-    func metricTitle(_ metric: UsageMetric) -> String {
-        metric.monitorTitle
-    }
 }
 
 extension UsageMetric {

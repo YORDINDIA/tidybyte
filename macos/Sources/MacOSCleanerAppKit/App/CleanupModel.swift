@@ -50,7 +50,9 @@ final class CleanupModel {
     private var loaded = false
     /// Phase 3: false until the first `load()` finished reading stored state.
     private(set) var hasLoaded = false
-    private var monitoredGrants: [URL] = []
+    // Internal, not private: Clear All Data stops these grants in
+    // CleanupModel+Clear.swift.
+    var monitoredGrants: [URL] = []
     // Freshness state is wired in CleanupModel+Freshness.swift, so these are
     // internal rather than file-private.
     var freshness: CleanupFreshnessMonitor?
@@ -496,7 +498,8 @@ extension CleanupModel {
         self.error = error.localizedDescription
     }
 
-    private func updateReminder() async throws {
+    // Internal, not private: Clear All Data refreshes it in CleanupModel+Clear.swift.
+    func updateReminder() async throws {
         guard Bundle.main.bundleURL.pathExtension == "app" else { return }
         let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: ["cleanup-weekly"])

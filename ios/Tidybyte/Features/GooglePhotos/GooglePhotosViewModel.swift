@@ -37,6 +37,10 @@ final class GooglePhotosViewModel {
     private(set) var doneIds: Set<String> = []
     var errorMessage: String?
     private var pickTask: Task<Void, Never>?
+    /// Bumped on sign-out. A pick or scan keeps the value it started with and
+    /// writes no state once it no longer matches, so an old account's results
+    /// cannot land after sign-out.
+    private var sessionGeneration = 0
 
     var isConfigured: Bool { GoogleAuthService.isConfigured }
 
@@ -53,14 +57,22 @@ final class GooglePhotosViewModel {
     }
 
     func signOut() async {
+        // Before the first await: the in-flight pick/scan must see the new
+        // generation before it can write anything.
+        sessionGeneration += 1
         pickTask?.cancel()
-        await auth.signOut()
-        isSignedIn = false
-        quota = nil
+        pickTask = nil
+        phase = .idle
+        guard await auth.signOut() else {
+            // The tokens stay on this device, so the account is still signed in.
+            errorMessage = L10n.string("Couldn't sign out of Google. Check your connection and try again.")
+            return
+        }
         result = nil
         selectedIds = []
         doneIds = []
-        phase = .idle
+        isSignedIn = false
+        quota = nil
     }
 
     func loadQuota() async {
@@ -76,13 +88,22 @@ final class GooglePhotosViewModel {
     func pickAndScan(openURL: @escaping (URL) -> Void) {
         guard pickTask == nil else { return }
         errorMessage = nil
+        let generation = sessionGeneration
         pickTask = Task {
-            defer { pickTask = nil; if case .waitingForPick = phase { phase = .idle } }
+            // Only the current session may clear shared pick state: after a
+            // sign-out, `pickTask` may already belong to a newer pick.
+            defer {
+                if generation == sessionGeneration {
+                    pickTask = nil
+                    if case .waitingForPick = phase { phase = .idle }
+                }
+            }
             do {
                 let session = try await api.createSession()
                 guard let uri = session.pickerUri, let url = URL(string: uri + "/autoclose") else {
                     throw GoogleAuthError.failed(L10n.string("Google did not return a picker link."))
                 }
+                guard generation == sessionGeneration else { return }
                 phase = .waitingForPick
                 openURL(url)
                 let interval = GooglePhotosAPI.PickerSession.seconds(session.pollingConfig?.pollInterval) ?? 3
@@ -96,16 +117,23 @@ final class GooglePhotosViewModel {
                 guard picked else { await api.deleteSession(id: session.id); return }
                 let items = try await api.mediaItems(sessionId: session.id)
                 await api.deleteSession(id: session.id)
+                guard generation == sessionGeneration else { return }
                 phase = .scanning(0)
-                let scan = await scanner.scan(items) { [weak self] value in self?.phase = .scanning(value) }
+                let scan = await scanner.scan(items) { [weak self] value in
+                    if self?.sessionGeneration == generation { self?.phase = .scanning(value) }
+                }
+                // Signed out during the scan: these results belong to the old account.
+                guard generation == sessionGeneration else { return }
                 result = scan
                 selectedIds = []
                 doneIds = []
                 phase = .idle
                 await loadQuota()
             } catch is CancellationError {
-                phase = .idle
+                if generation == sessionGeneration { phase = .idle }
             } catch {
+                // An error from a cancelled, signed-out session is not news to the user.
+                guard generation == sessionGeneration else { return }
                 phase = .idle
                 handle(error)
             }

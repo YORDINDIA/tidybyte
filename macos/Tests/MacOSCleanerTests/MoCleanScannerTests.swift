@@ -50,7 +50,14 @@ final class MoCleanScannerTests: XCTestCase {
 
         XCTAssertFalse(result.findings.isEmpty)
         XCTAssertTrue(result.findings.allSatisfy { $0.category == .developerToolCache })
-        XCTAssertTrue(result.recommendations.allSatisfy { $0.actionType == .moveToTrash })
+        // The Bun folder is a global package store: review-only, never trashed.
+        let bunPath = home.appendingPathComponent(".bun").standardizedFileURL.path
+        let bunFindingIDs = Set(result.findings.filter { $0.evidence["path"] == bunPath }.map(\.id))
+        XCTAssertEqual(bunFindingIDs.count, 1)
+        for recommendation in result.recommendations {
+            let expected: ActionType = bunFindingIDs.contains(recommendation.findingID) ? .inspectOnly : .moveToTrash
+            XCTAssertEqual(recommendation.actionType, expected)
+        }
     }
 
     func testUserEssentialsSectionSurfacesUserAppCacheAndLogs() async throws {

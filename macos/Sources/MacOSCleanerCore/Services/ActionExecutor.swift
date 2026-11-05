@@ -251,34 +251,45 @@ public actor ActionExecutor {
                 errors.append(error.localizedDescription)
                 continue
             }
+            let trashURL: URL?
             do {
                 // TOCTOU closure: re-verify identity NOW, with nothing but the
                 // unavoidable syscall gap between this check and trashItem.
                 try await auditor.verifyTargetUnchanged(record)
-                let trashURL = try trash.trashItem(at: record.url)
-                // Finalize the trail with the real outcome: trash location plus the
-                // captured identity restore later verifies against.
-                var finalizedLog = log
-                finalizedLog.result = "moved_to_trash"
-                finalizedLog.afterState = ["trash_path": trashURL?.path ?? ""]
-                if let trashURL {
-                    finalizedLog.afterState["trash_identity"] = FileArtifactIdentity.capture(at: trashURL)?.encodedString
-                }
-                var finalizedUndo = undo
-                finalizedUndo.trashURL = trashURL
-                finalizedUndo.status = .available
-                try await store.saveOperationLog(finalizedLog)
-                try await store.saveUndoRecord(finalizedUndo)
-                logs.append(finalizedLog)
-                undoRecords.append(finalizedUndo)
+                trashURL = try trash.trashItem(at: record.url)
             } catch {
                 // The trash failed — downgrade the pending trail so the startup
                 // sweep does not report a phantom interrupted operation forever.
                 await downgradePendingTrail(undo)
                 errors.append(error.localizedDescription)
+                continue
             }
+            let finalized = await finalizeTrashTrail(log: log, undo: undo, trashURL: trashURL)
+            logs.append(finalized.log)
+            undoRecords.append(finalized.undo)
         }
         return ExecutionSummary(logs: logs, undoRecords: undoRecords, failures: errors, failedActionIDs: [])
+    }
+
+    /// The file is in the Trash now. A failed save must not report the move as
+    /// failed, because that would drop the trash location Undo needs. Finalizes
+    /// the trail with the real outcome: trash location plus the captured
+    /// identity restore later verifies against.
+    private func finalizeTrashTrail(
+        log: OperationLog, undo: UndoRecord, trashURL: URL?
+    ) async -> (log: OperationLog, undo: UndoRecord) {
+        var finalizedLog = log
+        finalizedLog.result = "moved_to_trash"
+        finalizedLog.afterState = ["trash_path": trashURL?.path ?? ""]
+        if let trashURL {
+            finalizedLog.afterState["trash_identity"] = FileArtifactIdentity.capture(at: trashURL)?.encodedString
+        }
+        var finalizedUndo = undo
+        finalizedUndo.trashURL = trashURL
+        finalizedUndo.status = .available
+        try? await store.saveOperationLog(finalizedLog)
+        try? await store.saveUndoRecord(finalizedUndo)
+        return (finalizedLog, finalizedUndo)
     }
 
     /// Folds each approved duplicate onto its keeper as an APFS clone: the
@@ -493,8 +504,8 @@ public actor ActionExecutor {
                 try await auditor.verifyTargetUnchanged(record)
                 // Read live tags from a fresh URL: the crawl does not record them, and
                 // resource values cached on record.url would go stale after the write.
-                let oldTags = (try? URL(fileURLWithPath: record.url.path).resourceValues(forKeys: [.tagNamesKey]))?
-                    .tagNames ?? []
+                // A failed read must not look like "no tags", or the write below erases them.
+                let oldTags = try URL(fileURLWithPath: record.url.path).resourceValues(forKeys: [.tagNamesKey]).tagNames ?? []
                 var newTags = Set(oldTags)
                 let tagName = taxonomyTagName(for: record, risk: action.risk)
                 newTags.insert(tagName)
@@ -700,13 +711,6 @@ public actor ActionExecutor {
                 errors.append(error.localizedDescription)
                 continue
             }
-            /// Downgrades the pending trail after a failed archive step so the
-            /// startup sweep never reports a phantom interrupted operation.
-            func downgradePendingToFailed() async {
-                var failedUndo = undo
-                failedUndo.status = .failed
-                try? await store.saveUndoRecord(failedUndo)
-            }
             do {
                 // TOCTOU closure: re-verify identity immediately before mutating.
                 try await auditor.verifyTargetUnchanged(record)
@@ -722,7 +726,7 @@ public actor ActionExecutor {
                 if fileManager.fileExists(atPath: archiveURL.path) {
                     try? fileManager.removeItem(at: archiveURL)
                 }
-                await await downgradePendingTrail(undo)
+                await downgradePendingTrail(undo)
                 errors.append(ActionExecutorError.processFailed(result.stderr).localizedDescription)
                 continue
             }

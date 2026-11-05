@@ -121,8 +121,10 @@ struct BurstCleanerView: View {
                     // and `Text` would apply Markdown to it.
                     message: .runtimeText(message),
                     onRetry: {
+                        // Retry re-arms the same confirmation as the first
+                        // attempt; a delete never runs without it.
                         viewModel.errorMessage = nil
-                        Task { await viewModel.deleteSelected() }
+                        showDeleteConfirm = true
                     },
                     onDismiss: { viewModel.errorMessage = nil }
                 )

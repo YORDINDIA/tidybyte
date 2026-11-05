@@ -41,7 +41,7 @@ final class DuoLayoutUITests: XCTestCase {
     /// Launches the shell, optionally granting photo access. Mirrors
     /// `CleanupFeaturesUITests`: the system Photos prompt is reset and answered
     /// so the cleanup tools can be driven. Pinned to English for the labels.
-    private func launch(grantPhotos: Bool) -> XCUIApplication {
+    private func launch(grantPhotos: Bool, openingTool: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         if grantPhotos {
             app.resetAuthorizationStatus(for: .photos)
@@ -58,6 +58,11 @@ final class DuoLayoutUITests: XCTestCase {
         // run, which outranks the English pin below. The argument-domain
         // `-hasCompletedOnboarding YES` still keeps the cover down.
         app.launchArguments = ["-uitest-reset-onboarding", "-hasCompletedOnboarding", "YES"]
+        // `-uitest-open-cleanup <rawValue>` pushes a cleanup tool directly, so a
+        // test that starts deep skips the tab-and-scroll walk: a card below the
+        // fold of the LazyVGrid may not exist in the accessibility tree for any
+        // swipe loop to find.
+        if let openingTool { app.launchArguments += ["-uitest-open-cleanup", openingTool] }
         app.launchArguments += DynamicTypeUITests.englishLaunchArguments
         app.launch()
 
@@ -203,20 +208,15 @@ final class DuoLayoutUITests: XCTestCase {
 
     /// A presented sheet must stay inside the window on every display size.
     func testChatAlbumSheetStaysInsideTheWindow() {
-        let app = launch(grantPhotos: true)
+        let app = launch(grantPhotos: true, openingTool: "chatMedia")
         let win = window(of: app)
 
+        // The launch argument pushed the tool before the grant landed, and the
+        // grant flow's taps land on the Swipe tab; returning to Cleanup reopens
+        // the pushed tool because the tab tap never pops the cleanup stack.
         let cleanup = app.buttons["Cleanup"].firstMatch
-        XCTAssertTrue(cleanup.waitForExistence(timeout: timeout))
+        XCTAssertTrue(cleanup.waitForExistence(timeout: timeout), "the tab bar must render")
         cleanup.tap()
-
-        let tool = app.descendants(matching: .any).matching(identifier: "cleanup.chatMedia").firstMatch
-        for _ in 0..<8 {
-            if tool.waitForExistence(timeout: 1) && tool.isHittable { break }
-            app.scrollViews.firstMatch.swipeUp()
-        }
-        XCTAssertTrue(tool.exists && tool.isHittable, app.debugDescription)
-        tool.tap()
 
         let albums = app.buttons["Albums"].firstMatch
         XCTAssertTrue(albums.waitForExistence(timeout: 15), "the Albums toolbar button must exist")

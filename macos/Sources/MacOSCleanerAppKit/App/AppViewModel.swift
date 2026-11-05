@@ -433,10 +433,6 @@ final class AppViewModel {
         addScanFolder(downloads)
     }
 
-    func addHomeFolderToSelection() {
-        addScanFolder(FileManager.default.homeDirectoryForCurrentUser)
-    }
-
     func addScanFolder(_ folder: URL) {
         guard !isScanning, !isExecuting else {
             errorMessage = String(localized: "Wait until scan or execution completes to change scan folders.")
@@ -1046,12 +1042,6 @@ final class AppViewModel {
         }
     }
 
-    func estimatedAffectedFileCount(for actions: [PlannedAction]) -> Int {
-        actions.reduce(0) { total, action in
-            total + action.targets.count
-        }
-    }
-
     func executionLabel(forRiskLimit maximumRisk: RiskLevel) -> String {
         switch maximumRisk {
         case .low:
@@ -1290,13 +1280,14 @@ final class AppViewModel {
     }
 
     func clearAllData() async {
-        guard !isScanning, !isExecuting else {
-            errorMessage = String(localized: "Cannot clear data while a scan or execution is in progress.")
+        guard !isScanning, !isExecuting, !cleanup.isBusy, !cleanup.isSaving else {
+            errorMessage = String(localized: "Cannot clear data while a scan, media cleanup, or execution is in progress.")
             return
         }
         do {
             try await keychain.deleteAllAPIKeys()
             try await store.deleteAllData()
+            await cleanup.resetAfterClear()
             outcome = nil
             plan = nil
             undoRecords = []

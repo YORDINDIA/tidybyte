@@ -34,6 +34,8 @@ Run these from inside each folder:
 
 - Apple frameworks only; no third-party dependencies, network calls,
   analytics, or accounts in the apps.
+- The Mac app's exceptions (Sparkle updates, the opt-in AI gateway) are listed
+  in `macos/AGENTS.md` under "Network and dependencies".
 - Strict concurrency everywhere — fix warnings, don't silence them. macOS
   targets are Swift 6: services are actors, state is `@Observable`.
 - All user-facing strings go through the String Catalogs. iOS ships 21

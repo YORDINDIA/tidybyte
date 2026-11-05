@@ -228,9 +228,8 @@ final class LivePhotosConverterViewModel {
             // its still, so stop listing it instead of offering another convert.
             let doneIds = Set(outcome.completed.map(\.assetId))
             items.removeAll { doneIds.contains($0.id) }
-            for item in pending where !doneIds.contains(item.assetId) {
-                setState(.idle, for: item.assetId)
-            }
+            // Rows that still hold both versions stay `.copySaved`. Resetting them
+            // to `.idle` would let Convert save a second still beside the first.
             isBusy = false
         }
     }

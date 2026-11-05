@@ -62,5 +62,4 @@ public enum Spacing {
     public static let elementTight: CGFloat = 8
     public static let elementNormal: CGFloat = 12
     public static let elementSection: CGFloat = 24
-    public static let sidebarInternal: CGFloat = 12
 }

@@ -3,11 +3,21 @@ import SwiftUI
 struct DuplicateFinderView: View {
     @State private var viewModel = DuplicateFinderViewModel()
     @State private var showDeleteConfirm = false
+    // Set by a row's swipe-to-delete so the shared confirmation deletes only
+    // that group's checked copies. nil means the bottom bar's selection.
+    @State private var pendingGroup: DuplicateGroup?
     @State private var selectedGroup: DuplicateGroup?
     @State private var preview: GroupPreviewContext?
     @State private var isCelebrating = false
     private let photoService = PhotoLibraryService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// How many items the shared confirmation will delete: the swiped group's
+    /// checked copies, or the whole bottom-bar selection.
+    private var pendingDeleteCount: Int {
+        if let pendingGroup { return viewModel.checkedIds(in: pendingGroup).count }
+        return viewModel.selectedForDeletion.count
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -92,11 +102,17 @@ struct DuplicateFinderView: View {
             .localizedNavigationTitle("Compare")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .alert("Delete \(viewModel.selectedForDeletion.count) Items", isPresented: $showDeleteConfirm) {
+        .alert("Delete \(pendingDeleteCount) Items", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.selectedForDeletion.count) Items", role: .destructive) {
+            Button("Delete \(pendingDeleteCount) Items", role: .destructive) {
+                let group = pendingGroup
+                pendingGroup = nil
                 Task {
-                    await viewModel.deleteSelected()
+                    if let group {
+                        await viewModel.delete(group: group)
+                    } else {
+                        await viewModel.deleteSelected()
+                    }
                     // DUP-04d: only celebrate an actual deletion (the guard can
                     // still return early on an empty selection).
                     if viewModel.errorMessage == nil && viewModel.deletedCount > 0 {
@@ -105,7 +121,7 @@ struct DuplicateFinderView: View {
                 }
             }
         } message: {
-            Text("This will delete \(viewModel.selectedForDeletion.count) duplicate items. \(CleanupDeletion.recoverableNote)")
+            Text("This will delete \(pendingDeleteCount) duplicate items. \(CleanupDeletion.recoverableNote)")
         }
         // DUP-02: leaving the screen must stop the scan (it would otherwise run
         // to completion in the background and re-enter on return).
@@ -209,7 +225,8 @@ struct DuplicateFinderView: View {
                                 if checked > 0 {
                                     Button(role: .destructive) {
                                         HapticHelper.impact(.light)
-                                        Task { await viewModel.delete(group: group) }
+                                        pendingGroup = group
+                                        showDeleteConfirm = true
                                     } label: {
                                         Label("Delete \(checked)", systemImage: "trash")
                                     }
@@ -241,6 +258,7 @@ struct DuplicateFinderView: View {
                             } else {
                                 Button {
                                     HapticHelper.impact(.light)
+                                    pendingGroup = nil
                                     showDeleteConfirm = true
                                 } label: {
                                     Text("Delete Selected (\(viewModel.selectedForDeletion.count))")

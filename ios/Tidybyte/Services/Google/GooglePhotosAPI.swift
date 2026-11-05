@@ -104,7 +104,7 @@ struct GooglePhotosAPI {
     }
 
     func thumbnailData(of item: CloudMediaItem, size: Int) async throws -> Data {
-        guard let url = item.thumbnailURL(size: size) else { throw GoogleAuthError.failed("Bad image URL.") }
+        guard let url = item.thumbnailURL(size: size) else { throw GoogleAuthError.failed(L10n.string("Bad image URL.")) }
         return try await send(authorized(URLRequest(url: url)))
     }
 

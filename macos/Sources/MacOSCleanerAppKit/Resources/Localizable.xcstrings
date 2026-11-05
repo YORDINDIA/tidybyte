@@ -1737,14 +1737,14 @@
         }
       }
     },
-    "Cannot clear data while a scan or execution is in progress." : {
+    "Cannot clear data while a scan, media cleanup, or execution is in progress." : {
       "extractionState" : "manual",
       "generatesSymbol" : false,
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cannot clear data while a scan or execution is in progress."
+            "value" : "Cannot clear data while a scan, media cleanup, or execution is in progress."
           }
         }
       }
@@ -6207,6 +6207,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Review only"
+          }
+        }
+      }
+    },
+    "Review only: %@ may hold data you still need, such as dSYMs for shipped builds or a global package store. Remove it yourself if you no longer need it." : {
+      "extractionState" : "manual",
+      "generatesSymbol" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review only: %@ may hold data you still need, such as dSYMs for shipped builds or a global package store. Remove it yourself if you no longer need it."
           }
         }
       }

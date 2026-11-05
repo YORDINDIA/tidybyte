@@ -117,7 +117,7 @@ Run each command from the folder in the first column.
 | `ios/` | No fixed-size layout | `npm run check:duo` | layout code |
 | `ios/` | App Store creatives render (separate workflow, runs only when its inputs change) | `npx playwright install chromium`, then `npm run growth && npm run check:growth` | `docs/growth/`, `scripts/growth/`, the String Catalogs, `docs/appstore/listings.json` |
 | `website/` | Site builds and passes the audit | `npm run build && npm run check` | `src/`, `public/` |
-| `website/` | Localized home pages are current | `node scripts/localization/site/extract-site-strings.mjs && node scripts/localization/site/build-site-translations.mjs`, then `git diff` must show no change | `src/content/pages/index.html` |
+| `website/` | Localized home pages are current | `node scripts/localization/site/extract-site-strings.mjs && node scripts/localization/site/build-site-translations.mjs`, then `git status --porcelain` must show nothing for the generated pages (tracked or untracked) | `src/components/HomeMain.astro` |
 | `macos/` | Lint, build, test, MCP end-to-end, app bundle | see [Mac app](#mac-app-from-macos) | Mac code |
 
 `refresh.sh` uses the simulator in the `DESTINATION` environment variable, for

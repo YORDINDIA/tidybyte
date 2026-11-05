@@ -6,21 +6,14 @@
 // it can never go stale. Header/footer chrome is excluded by construction
 // (chrome lives outside the content files), keeping AI context clean.
 import { PAGES, type PageMeta } from "../data/pages";
-
-const contentFiles = import.meta.glob("../content/pages/*.html", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
+import { bodyFor } from "./content";
 
 const SITE = "https://tidybyte.yord.si";
 
 export function contentFor(route: string): string {
   const meta = PAGES.find((p) => p.route === route);
   if (!meta) throw new Error(`no page meta for route ${route}`);
-  const raw = contentFiles[`../content/pages/${meta.contentFile}.html`];
-  if (!raw) throw new Error(`missing content file ${meta.contentFile}`);
-  return raw;
+  return bodyFor(meta.contentFile);
 }
 
 export function decodeEntities(s: string): string {

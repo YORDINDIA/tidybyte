@@ -54,6 +54,16 @@ Monitor hazards — each of these has bitten or would bite:
 - `ActionExecutor` only processes `.approved` or `.alwaysDoThis` actions
 - AI recommendations capped at 0.85 confidence to ensure human review
 
+### Network and dependencies
+
+The Mac app has two exceptions to the root rule (no third-party dependencies, network calls, or accounts):
+
+- **Sparkle** (direct builds only): SwiftPM dependency in `Package.swift`, not linked when `APP_STORE=1`. Fetches the appcast from `SUFeedURL` (`https://tidybyte.yord.si/mac/appcast.xml` unless `SPARKLE_FEED_URL` is set at build time). Updates are verified with `SUPublicEDKey`, which is set only when `SPARKLE_PUBLIC_KEY` is given at build time.
+- **AI gateway** (`Sources/MacOSCleanerCore/Services/AIGateway.swift`, direct builds only). Opt-in and off by default: AI runs only when "Allowed data" in Settings is not Local Only and "Enable AI during scans" (`includeAI`, default off) is on. The App Store build makes `classify` throw `localOnly`.
+  - Key: entered in Settings, stored in the macOS Keychain via `KeychainStore` (generic password, service = bundle identifier, account = provider name). Sent only as the `Authorization: Bearer` header to the endpoint.
+  - Endpoint: `<apiBaseURL>/chat/completions`, default `https://api.openai.com/v1`. HTTPS is required.
+  - Leaves the device: model, temperature, token limit, a fixed system prompt, and up to 30 findings with up to 5 files each. Per file: ID, path (home folder replaced with `/~`), name, extension, size, kind, and risk flags. In Snippets, Vision, and Full Document modes, also up to 500 characters of text preview and 500 of OCR text, plus image and video labels. Full Document AI is extracted at Snippets level. Metadata Only AI sends no file contents.
+
 ### Dependency Injection
 
 No DI framework. Services are created with sensible defaults via default parameter values. `AppViewModel.bootstrap()` is a static factory that constructs the full graph, with fallback to a temporary database if the primary store fails.

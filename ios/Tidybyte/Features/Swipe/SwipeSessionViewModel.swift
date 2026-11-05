@@ -86,8 +86,10 @@ final class SwipeSessionViewModel {
 
     /// True when deletions are awaiting commit. Gates exits from the session and
     /// completion flow so pending deletions are never dropped silently (SWIPE-02).
+    /// Keyed on the pending ids alone: `deletionCommitted` stays true after a
+    /// batch commits, so swipes made after that commit must still count as pending.
     var hasPendingDeletions: Bool {
-        !pendingDeletionIds.isEmpty && !deletionCommitted
+        !pendingDeletionIds.isEmpty
     }
 
     /// Set when an external launch (deep link / widget / intent) asked for a new

@@ -200,6 +200,17 @@ struct RootView: View {
             }
             // Same for a widget button tapped while the app was not running.
             applyPendingWidgetRoute()
+            #if DEBUG
+            // UI tests that need a deep screen skip the tab-and-scroll walk:
+            // `-uitest-open-cleanup <rawValue>` pushes the tool directly.
+            // Scrolling to a card in the LazyVGrid is exactly the flakiness
+            // this replaces — a card below the fold may not exist in the
+            // accessibility tree for the swipe loop to find at all.
+            if let raw = UserDefaults.standard.string(forKey: "uitest-open-cleanup"),
+               let tool = CleanupTool(rawValue: raw) {
+                appNavigation.showCleanup(tool: tool)
+            }
+            #endif
             // Registering the library observer before access is decided can
             // raise the one-time iOS photo prompt over onboarding. Start it
             // only once access exists (the onChange below covers a grant).
@@ -278,10 +289,6 @@ struct RootView: View {
     private func applyPendingWidgetRoute() {
         guard let route = AppGroupStore.consumePendingRoute() else { return }
         switch route {
-        case .swipe:
-            appNavigation.handle(.swipe)
-        case .screenshots:
-            appNavigation.handle(.cleanupTool(.screenshots))
         case .activity:
             appNavigation.handle(.activity)
         }

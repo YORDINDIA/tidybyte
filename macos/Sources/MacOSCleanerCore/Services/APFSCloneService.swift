@@ -408,11 +408,6 @@ public enum APFSCloneService {
     static func isOpenForWriting(_ path: String) -> Bool {
         OpenFilesSnapshot.shared.contains(path)
     }
-
-    /// Invalidates the open-files cache. Tests call this to force a fresh scan.
-    public static func invalidateOpenFilesCache() {
-        OpenFilesSnapshot.shared.invalidate()
-    }
 }
 
 /// Process-wide snapshot of every file descriptor open for writing, refreshed
@@ -433,12 +428,6 @@ private final class OpenFilesSnapshot: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         return paths.contains(path)
-    }
-
-    func invalidate() {
-        lock.lock()
-        refreshedAt = .distantPast
-        lock.unlock()
     }
 
     private func refresh() {

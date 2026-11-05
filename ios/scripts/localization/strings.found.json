@@ -432,6 +432,10 @@
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
+      "key": "Bad image URL.",
+      "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
+    },
+    {
       "key": "Balanced",
       "file": "Tidybyte/Services/PhotoCompressionService.swift"
     },
@@ -738,6 +742,10 @@
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterViewModel.swift"
     },
     {
+      "key": "Could not open the sign-in page.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
       "key": "Couldn't download this photo from iCloud.",
       "file": "Tidybyte/Features/Swipe/CardView.swift"
     },
@@ -772,6 +780,10 @@
     {
       "key": "Couldn't Send Feedback",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
+      "key": "Couldn't sign out of Google. Check your connection and try again.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosViewModel.swift"
     },
     {
       "key": "Create",
@@ -1523,6 +1535,10 @@
       "file": "Tidybyte/Shared/Utilities/PhotoAccessRecovery.swift"
     },
     {
+      "key": "No authorization code.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
       "key": "No change %@",
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     },
@@ -1836,7 +1852,11 @@
     },
     {
       "key": "Quality: %@",
-      "file": "Tidybyte/Features/Cleanup/VideoCompression/VideoCompressionView.swift"
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
+      "key": "Quality: %@ · keep originals",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "Rate on the App Store",
@@ -2703,5 +2723,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 668
+  "total": 673
 }

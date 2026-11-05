@@ -87,8 +87,8 @@ function translateChunk(chunk, map, stats) {
 /// filesystem. The OUTPUT name is the lowercased slug, and that is
 /// load-bearing rather than cosmetic: every consumer of the generated page is
 /// lowercase. `src/data/languages.ts` keys the routes `pt-br` / `zh-hans`,
-/// `src/lib/localized-page.ts` imports `index.${lang.slug}.html`, and the
-/// tracked files are lowercase. Writing `index.pt-BR.html` happens to read
+/// `src/lib/localized-page.ts` imports `index.${lang.slug}.astro`, and the
+/// tracked files are lowercase. Writing `index.pt-BR.astro` happens to read
 /// correctly on macOS/APFS (case-insensitive, so the write lands on the tracked
 /// inode) and silently creates a duplicate on Linux CI, where the tracked page
 /// then goes stale. `git diff` cannot see the duplicate because it is untracked.

@@ -40,8 +40,6 @@ public struct AppProcessGroup: Sendable, Equatable, Identifiable {
     public var energyIndex: Double { members.reduce(0) { $0 + $1.energyDelta } + wakeupsPerSecond }
     public var wakeupsPerSecond: Double { members.reduce(0) { $0 + $1.wakeupsPerSecond } }
     public var cpuTimeSeconds: Double { members.reduce(0) { $0 + $1.cpuTimeSeconds } }
-    public var processCount: Int { members.count }
-    public var oldestStartedAt: Date? { members.compactMap(\.startedAt).min() }
 
     public var isIdle: Bool { cpuPercent < 1 && wakeupsPerSecond < 2 }
 

@@ -405,10 +405,16 @@ struct PhotoCompressionView: View {
                         .disabled(viewModel.isMeasuring)
                     } label: {
                         // See VideoCompressionView: the preset label is a
-                        // technical name, "Mixed" is a word.
+                        // technical name, "Mixed" is a word. The two quality
+                        // keys are separate `L10n.format` calls rather than one
+                        // with a ternary: a key held in a variable is invisible
+                        // to the localization scan and would ship untranslated.
                         Text(viewModel.isMeasuring
                              ? L10n.string("Checking sizes…")
-                             : L10n.format(viewModel.deleteOriginals ? "Quality: %@" : "Quality: %@ · keep originals",
+                             : viewModel.deleteOriginals
+                             ? L10n.format("Quality: %@",
+                                           viewModel.selectedPreset?.label ?? L10n.string("Mixed"))
+                             : L10n.format("Quality: %@ · keep originals",
                                            viewModel.selectedPreset?.label ?? L10n.string("Mixed")))
                             .font(.caption.bold())
                             .frame(minHeight: 32)

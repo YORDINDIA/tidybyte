@@ -28,21 +28,80 @@ do {
     kit = try MCPKit(store: SQLiteStore(databaseURL: temporary))
 }
 
+/// The request the loop is running, so a cancellation can reach it while the
+/// loop is still inside that request.
+actor InFlightRequest {
+    private var id: String?
+    private var task: Task<Data?, Never>?
+    /// The reader runs ahead of the loop, so a cancellation can arrive before
+    /// its request is registered. Those ids are kept here and applied by
+    /// `start`; dropping them would let a cancelled request run to completion.
+    /// Bounded, because an id that never starts (a client typo) must not grow
+    /// this set for the life of the process.
+    private var earlyCancels: [String] = []
+    private static let earlyCancelLimit = 16
+
+    func start(id: String, task: Task<Data?, Never>) {
+        self.id = id
+        self.task = task
+        if let index = earlyCancels.firstIndex(of: id) {
+            earlyCancels.remove(at: index)
+            task.cancel()
+        }
+    }
+
+    func finish() {
+        id = nil
+        task = nil
+    }
+
+    /// Cancels only the request the client named, so a late cancellation cannot
+    /// hit the request that started after it.
+    func cancel(requestID: String) {
+        if id == requestID {
+            task?.cancel()
+            return
+        }
+        guard !earlyCancels.contains(requestID) else { return }
+        earlyCancels.append(requestID)
+        if earlyCancels.count > Self.earlyCancelLimit { earlyCancels.removeFirst() }
+    }
+}
+
+/// Identity that matches a cancellation to its request: the JSON-RPC id as text.
+func requestKey(_ id: Any?) -> String {
+    String(describing: id ?? NSNull())
+}
+
+/// The request id a `notifications/cancelled` line names, or nil for any other line.
+func cancelledRequestID(in line: String) -> String? {
+    guard let data = line.data(using: .utf8),
+          let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          object["id"] == nil, (object["method"] as? String) == "notifications/cancelled",
+          let requestID = (object["params"] as? [String: Any])?["requestId"], !(requestID is NSNull)
+    else { return nil }
+    return requestKey(requestID)
+}
+
+let inFlight = InFlightRequest()
+
 // readLine blocks, so it runs on its own thread and feeds the request loop
 // through a stream. The loop still processes ONE request at a time (MCPKit's
-// state stays serial), but input keeps flowing while a long scan runs, so a
-// `notifications/cancelled` can abort the in-flight request instead of
-// head-of-line-blocking until it finishes.
+// state stays serial). The reader applies cancellations as they arrive, so a
+// `notifications/cancelled` aborts the in-flight request instead of waiting for
+// it to finish.
 let lines = AsyncStream<String> { continuation in
     Task.detached(priority: .userInitiated) {
         while let line = readLine(strippingNewline: true) {
+            if let requestID = cancelledRequestID(in: line) {
+                await inFlight.cancel(requestID: requestID)
+            }
             continuation.yield(line)
         }
         continuation.finish()
     }
 }
 
-var inFlight: Task<Data?, Never>?
 for await line in lines {
     guard !line.isEmpty else { continue }
     guard let data = line.data(using: .utf8),
@@ -59,11 +118,7 @@ for await line in lines {
         continue
     }
     if object["id"] == nil {
-        // Notifications get no reply. The one that matters: cancel the
-        // in-flight request so a stuck scan does not block the session.
-        if (object["method"] as? String) == "notifications/cancelled" {
-            inFlight?.cancel()
-        }
+        // Notifications get no reply. Cancellations were applied by the reader.
         continue
     }
     // Serialize the response inside the task so only Sendable Data crosses
@@ -75,13 +130,11 @@ for await line in lines {
         guard let response = await kit.handle(request: requestObject) else { return nil }
         return MCPKit.dataForPayload(response.payload)
     }
-    inFlight = task
+    await inFlight.start(id: requestKey(object["id"]), task: task)
+    // MCP: the receiver of a cancellation stops processing and sends no
+    // response for that request, so a cancelled task writes nothing.
     if let responseData = await task.value, !task.isCancelled {
         MCPKit.emitRaw(responseData)
-    } else if task.isCancelled {
-        // The client cancelled this id: reply with the JSON-RPC cancellation
-        // error instead of a result it is no longer waiting to act on.
-        MCPKit.emit(MCPKit.errorPayload(id: object["id"] as Any, code: -32800, message: "Request cancelled"))
     }
-    inFlight = nil
+    await inFlight.finish()
 }

@@ -103,13 +103,6 @@ extension ApplicationFootprintService {
         }
     }
 
-    /// Conservative footprint match for a direct child entry name. Never
-    /// substring-matches: a folder merely containing the app's name belongs to
-    /// someone else until proven otherwise.
-    public static func matchesFootprint(entryName: String, app: InstalledApplication) -> Bool {
-        footprintMatch(entryName: entryName, app: app) != nil
-    }
-
     /// Exact bundle-ID names are certain; bundle-ID prefixes and the exact
     /// normalized app name are likely.
     static func footprintMatch(entryName: String, app: InstalledApplication) -> (FootprintConfidence, String)? {

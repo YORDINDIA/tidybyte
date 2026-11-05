@@ -10,28 +10,6 @@ import Foundation
 /// `Button(intent:)` resolves the intent inside its own process without the app
 /// needing to be running.
 
-struct StartSwipeWidgetIntent: AppIntent {
-    static let title: LocalizedStringResource = "Start a Swipe Session"
-    static let description = IntentDescription("Open TidyByte and review photos.")
-    static let openAppWhenRun = true
-
-    func perform() async throws -> some IntentResult {
-        AppGroupStore.savePendingRoute(.swipe)
-        return .result()
-    }
-}
-
-struct CleanScreenshotsWidgetIntent: AppIntent {
-    static let title: LocalizedStringResource = "Clean Screenshots"
-    static let description = IntentDescription("Open TidyByte's screenshot cleaner.")
-    static let openAppWhenRun = true
-
-    func perform() async throws -> some IntentResult {
-        AppGroupStore.savePendingRoute(.screenshots)
-        return .result()
-    }
-}
-
 struct ShowSavingsWidgetIntent: AppIntent {
     static let title: LocalizedStringResource = "Show Savings"
     static let description = IntentDescription("Open TidyByte's savings summary.")

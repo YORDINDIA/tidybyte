@@ -167,7 +167,10 @@ jobs:
       # The localized landing pages are generated from the English page, so a
       # translation edit that nobody rebuilt is a page still showing English
       # under a `lang` attribute that claims otherwise. Regenerating and
-      # diffing catches it the same way the iOS catalog gate does.
+      # checking git status catches it the same way the iOS catalog gate does.
+      # Status, not diff: diff ignores untracked files, so a page generated
+      # but never committed would pass here, and Netlify builds committed
+      # files only.
       #
       # The builder also fails outright when an English string has no
       # translation, which is the stronger check of the two.
@@ -175,10 +178,15 @@ jobs:
         run: |
           node scripts/localization/site/extract-site-strings.mjs
           node scripts/localization/site/build-site-translations.mjs
-          git diff --exit-code -- \
+          drift="$(git status --porcelain --untracked-files=all -- \
             src/content/pages/ \
             scripts/localization/site/site-strings.json \
-            scripts/localization/site/site-meta.json
+            scripts/localization/site/site-meta.json)"
+          if [ -n "$drift" ]; then
+            echo "$drift"
+            echo "Generated pages must be regenerated and committed."
+            exit 1
+          fi
 
       # Builds all 87 pages, then audits them: title and description budgets,
       # duplicate titles, hreflang parity, per-page `lang` and `dir`, sitemap
