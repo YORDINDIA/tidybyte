@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-storage" class="badge">Storage</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Check Your iPhone Storage Breakdown</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Your iPhone has finite storage, and once it fills up you can no longer take photos, download apps, or install updates. Learning how to check your iPhone storage breakdown is the first step toward reclaiming space and keeping your device running smoothly. In this guide you will learn exactly where to find the storage screen, what every category means, and how a free tool like TidyByte gives you a deeper view than iOS alone.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>9 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-check-iphone-storage-breakdown.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-check-iphone-storage-breakdown.webp" alt="Clay illustration: a clay smartphone whose screen is a colorful round donut chart with chunky segments" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-check-iphone-storage-breakdown.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -51,7 +51,7 @@
         <li aria-hidden="true">/</li>
         <li><a href="/blog" class="text-muted hover:text-ink hover:underline">Blog</a></li>
         <li aria-hidden="true">/</li>
-        <li aria-current="page" class="text-body">How to Check Your iPhone Storage Breakdown</li>
+        <li aria-current="page" class="text-body">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 

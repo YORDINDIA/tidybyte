@@ -38,6 +38,13 @@ final class AppPreferencesTests: XCTestCase {
         XCTAssertEqual(AppPreferences.recentAlbumIds(in: defaults), [])
     }
 
+    func testZeroThresholdsUseDefaults() {
+        defaults.set(0, forKey: AppPreferences.Key.similarPhotoTimeWindow)
+        defaults.set(0, forKey: AppPreferences.Key.largeFileThresholdMB)
+        XCTAssertEqual(AppPreferences.similarPhotoTimeWindow(in: defaults), 5.0)
+        XCTAssertEqual(AppPreferences.largeFileThresholdMB(in: defaults), 10.0)
+    }
+
     func testTypedPreferenceRoundTrip() {
         // The default-filter pref is written by Settings' @AppStorage directly
         // (the typed saver was dead code, A9) — mirror that write path here.

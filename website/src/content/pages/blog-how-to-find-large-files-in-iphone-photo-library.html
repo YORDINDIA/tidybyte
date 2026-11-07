@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-storage" class="badge">Storage</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Find Large Files in Your iPhone Photo Library</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">If your iPhone keeps showing the dreaded "Storage Almost Full" notification, the culprit is almost always hiding in your photo library. A single 4K video can swallow 400 MB per minute, and years of recording add up fast. Learning how to find large files in your iPhone photo library is the single fastest way to reclaim gigabytes of space without losing the memories that matter.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>9 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-find-large-files-in-iphone-photo-library.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-find-large-files-in-iphone-photo-library.webp" alt="Clay illustration: a giant clay photograph on a seesaw outweighing a pile of tiny photographs on the other end" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-find-large-files-in-iphone-photo-library.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -51,14 +51,14 @@
         <li aria-hidden="true">/</li>
         <li><a href="/blog" class="hover:text-ink">Blog</a></li>
         <li aria-hidden="true">/</li>
-        <li aria-current="page" class="text-body">How to Find Large Files in Your iPhone Photo Library</li>
+        <li aria-current="page" class="text-body">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 
     <!-- Article -->
     <article class="container-prose mx-auto max-w-prose">
       
-      <p class="muted mt-2 text-sm">Published June 13, 2026 &middot; 8 min read</p>
+      <p class="muted mt-2 text-sm">Published {{BLOG_DATE_LABEL}} &middot; {{BLOG_READING_MINUTES}} min read</p>
 
       
 

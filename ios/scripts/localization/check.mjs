@@ -20,6 +20,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LANGUAGES, pluralCategories, pluralCategoriesDisagree } from './plural-categories.mjs';
+import { argumentsMatch } from './format-placeholders.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CATALOG_PATH = join(ROOT, 'Tidybyte/Resources/Localizable.xcstrings');
@@ -67,71 +68,6 @@ let failures = 0;
 function fail(message) {
   console.error(`FAIL: ${message}`);
   failures += 1;
-}
-
-/** Every format specifier in a string, in order, normalized to its type. */
-function placeholders(text) {
-  const found = [];
-  const pattern = /%(?:(\d+)\$)?(?:\.(\d+))?(?:ll|l|h|hh|z|q)?([@difsuxXeEgGcCpaA]|%)/g;
-  let match;
-  while ((match = pattern.exec(text)) !== null) {
-    // `%%` is a literal percent sign, not a placeholder.
-    found.push(match[3] === '%' ? '%%' : match[3]);
-  }
-  return found;
-}
-
-/**
- * `{ position, type }` for each specifier, where `position` is the explicit
- * `%N$` index when the string uses positional specifiers, and the specifier's
- * own ordinal otherwise.
- */
-function positionalPlaceholders(text) {
-  const pattern = /%(?:(\d+)\$)?(?:\.(\d+))?(?:ll|l|h|hh|z|q)?([@difsuxXeEgGcCpaA]|%)/g;
-  const found = [];
-  let match;
-  let ordinal = 0;
-  while ((match = pattern.exec(text)) !== null) {
-    const type = match[3] === '%' ? '%%' : match[3];
-    if (type === '%%') continue;
-    ordinal += 1;
-    found.push({ position: match[1] ? Number(match[1]) : ordinal, type });
-  }
-  return found;
-}
-
-/**
- * Whether a translation consumes the English source's arguments correctly.
- *
- * Two shapes pass:
- *
- * 1. Same specifiers in the same order — the ordinary case.
- * 2. Positional specifiers (`%2$lld … %1$@`) that map each English argument to
- *    a specifier of the matching type. This is how a language that naturally
- *    orders a count before a noun stays correct, and it is what
- *    `build-catalog.mjs` emits for reordered translations.
- */
-function argumentsMatch(english, translated) {
-  const englishTokens = positionalPlaceholders(english);
-  const translatedTokens = positionalPlaceholders(translated);
-
-  if (englishTokens.length !== translatedTokens.length) return false;
-
-  const englishByPosition = new Map(englishTokens.map((token) => [token.position, token.type]));
-  const usesPositional = translatedTokens.some((token, index) => token.position !== index + 1);
-
-  if (!usesPositional) {
-    return englishTokens.every((token, index) => token.type === translatedTokens[index].type);
-  }
-
-  // Every English argument must be consumed exactly once, with its own type.
-  const seen = new Set();
-  for (const token of translatedTokens) {
-    if (seen.has(token.position)) return false;
-    seen.add(token.position);
-    if (englishByPosition.get(token.position) !== token.type) return false;
-  }
-  return seen.size === englishTokens.length;
 }
 
 /**

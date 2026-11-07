@@ -1,11 +1,5 @@
 import SwiftUI
 
-struct BurstGroup: Identifiable {
-    let id: String
-    let assets: [AssetSummary]
-    var bestAssetId: String
-}
-
 @Observable
 @MainActor
 final class BurstCleanerViewModel {
@@ -96,7 +90,7 @@ final class BurstCleanerViewModel {
     private func updateDerivedTotals() {
         var suggested = Set<String>(), nonBest = Set<String>(), bytes: Int64 = 0
         for group in groups {
-            let groupSuggested = Self.suggestedIds(in: group)
+            let groupSuggested = BurstSelectionPolicy.suggestedIds(in: group)
             suggested.formUnion(groupSuggested)
             nonBest.formUnion(Self.nonBestAssetIds(in: group))
             bytes += group.assets.filter { groupSuggested.contains($0.id) }.reduce(0) { $0 + $1.fileSize }
@@ -127,7 +121,7 @@ final class BurstCleanerViewModel {
         errorMessage = nil
 
         let burstGroups = await photoService.fetchBurstPhotos()
-        apply(Self.rebuildGroups(from: burstGroups), preservingUserState: false)
+        apply(BurstSelectionPolicy.rebuildGroups(from: burstGroups), preservingUserState: false)
 
         hasLoadedGroups = true
         isLoading = false
@@ -139,7 +133,7 @@ final class BurstCleanerViewModel {
         errorMessage = nil
 
         let burstGroups = await photoService.fetchBurstPhotos()
-        apply(Self.rebuildGroups(from: burstGroups), preservingUserState: true)
+        apply(BurstSelectionPolicy.rebuildGroups(from: burstGroups), preservingUserState: true)
 
         hasLoadedGroups = true
     }
@@ -283,7 +277,7 @@ final class BurstCleanerViewModel {
             if touchedGroups.contains(group.id) {
                 armed.formUnion(selection.intersection(group.assets.map(\.id)))
             } else {
-                armed.formUnion(Self.suggestedIds(in: group))
+                armed.formUnion(BurstSelectionPolicy.suggestedIds(in: group))
             }
         }
     }
@@ -370,7 +364,7 @@ final class BurstCleanerViewModel {
 
     private func selectNonBestFrames() {
         selectedForDeletion = groups.reduce(into: Set<String>()) { result, group in
-            result.formUnion(Self.suggestedIds(in: group))
+            result.formUnion(BurstSelectionPolicy.suggestedIds(in: group))
         }
     }
 
@@ -385,7 +379,7 @@ final class BurstCleanerViewModel {
     ) -> Set<String> {
         var merged = oldSelection.intersection(survivingIds)
         for group in groups where !touchedGroups.contains(group.id) {
-            merged.formUnion(suggestedIds(in: group))
+            merged.formUnion(BurstSelectionPolicy.suggestedIds(in: group))
         }
         return merged
     }
@@ -404,28 +398,6 @@ final class BurstCleanerViewModel {
             else { return group }
             return BurstGroup(id: group.id, assets: group.assets, bestAssetId: oldBest)
         }
-    }
-
-    /// Sorts each burst bin by capture time and computes the best frame
-    /// (via the shared `BestAssetSelector` ladder — D14: the previous local
-    /// duplicate used a different, non-deterministic-on-ties order), skipping
-    /// empty bins (LF-13).
-    static func rebuildGroups(from burstGroups: [String: [AssetSummary]]) -> [BurstGroup] {
-        var result: [BurstGroup] = []
-        for (burstId, assets) in burstGroups {
-            let sorted = assets.sorted { ($0.creationDate ?? .distantPast) < ($1.creationDate ?? .distantPast) }
-            guard let best = BestAssetSelector.bestByMetadata(from: sorted) else { continue }
-            result.append(BurstGroup(id: burstId, assets: sorted, bestAssetId: best.id))
-        }
-        return result.sorted { $0.assets.count > $1.assets.count }
-    }
-
-    /// What the tool arms by itself: every frame but the keeper, except
-    /// favorites. A favorite is only deleted when the user marks it.
-    static func suggestedIds(in group: BurstGroup) -> Set<String> {
-        var selection = SelectionState()
-        selection.selectNonBest(assets: group.assets, bestAssetId: group.bestAssetId)
-        return selection.ids
     }
 
     private static func nonBestAssetIds(in group: BurstGroup) -> Set<String> {

@@ -3,26 +3,17 @@ import Foundation
 import XCTest
 
 final class PackageManagerScannerTests: XCTestCase {
-    func testPackageManagerScannerScanReturnsResults() async {
-        let scanner = PackageManagerScanner()
-        let (findings, recommendations, candidates) = await scanner.scan(sessionID: "test")
-
-        // Should return arrays (may be empty if no package managers are installed)
-        XCTAssertNotNil(findings)
-        XCTAssertNotNil(recommendations)
-        XCTAssertNotNil(candidates)
-    }
-
-    func testPackageManagerScannerHandlesMissingTools() async {
-        let scanner = PackageManagerScanner()
-        // This should handle missing tools gracefully (e.g., Homebrew not installed)
-        let (findings, recommendations, candidates) = await scanner.scan(sessionID: "test")
-
-        // Should not crash even if tools are missing
-        // Results depend on what's actually installed on the system
-        XCTAssertNotNil(findings)
-        XCTAssertNotNil(recommendations)
-        XCTAssertNotNil(candidates)
+    func testScannerLinksEachCandidateToItsFindingAndRecommendation() async {
+        let (findings, recommendations, candidates) = await PackageManagerScanner().scan(sessionID: "test")
+        XCTAssertEqual(findings.count, candidates.count)
+        XCTAssertEqual(recommendations.count, candidates.count)
+        for (finding, candidate) in zip(findings, candidates) {
+            XCTAssertEqual(finding.targetFileIDs, [candidate.id])
+        }
+        for (recommendation, finding) in zip(recommendations, findings) {
+            XCTAssertEqual(recommendation.findingID, finding.id)
+            XCTAssertTrue(recommendation.requiresConfirmation)
+        }
     }
 
     func testPackageCleanupCandidateHasRequiredFields() {

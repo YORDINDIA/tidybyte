@@ -4,9 +4,6 @@
 (function () {
   'use strict';
 
-  // Keep in sync with src/input.css: the drawer-out keyframe duration.
-  var DRAWER_EXIT = 160;
-
   function prefersReduced() {
     return Boolean(window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -63,8 +60,13 @@
 
       closing = true;
       menu.classList.add('is-closing');
-      closeTimer = window.setTimeout(finishClose, DRAWER_EXIT + 120);
+      // Fallback if the animation is interrupted or unavailable.
+      closeTimer = window.setTimeout(finishClose, 280);
     }
+
+    menu.addEventListener('animationend', function (event) {
+      if (closing && event.target.matches('[data-drawer]') && event.animationName === 'drawer-out') finishClose();
+    });
 
     toggle.addEventListener('click', function () {
       var isOpen = toggle.getAttribute('aria-expanded') === 'true';

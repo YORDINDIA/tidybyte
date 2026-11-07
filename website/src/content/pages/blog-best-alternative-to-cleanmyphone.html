@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-reviews" class="badge">Reviews</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">Best Free Alternative to CleanMyPhone for iPhone</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">CleanMyPhone is one of the better-known photo cleanup apps on the App Store. It finds duplicates, flags blurry shots, and helps you reclaim storage. But it costs $30 to $45 per year &mdash; and every feature it offers is available for free. TidyByte is a free alternative to CleanMyPhone that does the same job without a subscription, without an account, and without ever touching your photos on a remote server.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>8 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/best-alternative-to-cleanmyphone.avif" type="image/avif">
-      <img src="/assets/img/blog/best-alternative-to-cleanmyphone.webp" alt="Clay illustration: two rounded clay smartphones side by side on a small podium" width="1400" height="933"
+      <img src="/assets/img/blog/best-alternative-to-cleanmyphone.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -52,7 +52,7 @@
         <li aria-hidden="true" class="select-none">/</li>
         <li><a href="/blog" class="hover:text-ink transition">Blog</a></li>
         <li aria-hidden="true" class="select-none">/</li>
-        <li aria-current="page" class="text-ink">Best Free Alternative to CleanMyPhone</li>
+        <li aria-current="page" class="text-ink">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 

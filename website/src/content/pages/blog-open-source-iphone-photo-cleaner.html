@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-privacy" class="badge">Privacy</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">Why Open Source Photo Apps Are Safer (And TidyByte Is One)</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Your photo library is a digital autobiography. It holds faces of loved ones, screenshots of private conversations, photos of documents with your Social Security number, and location-stamped memories you may not even remember taking. Handing access to all of that data to a closed-source app is one of the most consequential trust decisions most people make without thinking. An open source photo cleaner changes that equation entirely &mdash; and this post explains how.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>10 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/open-source-iphone-photo-cleaner.avif" type="image/avif">
-      <img src="/assets/img/blog/open-source-iphone-photo-cleaner.webp" alt="Clay illustration: a clay smartphone with a small hinged lid flipped open" width="1400" height="933"
+      <img src="/assets/img/blog/open-source-iphone-photo-cleaner.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -52,7 +52,7 @@
         <li aria-hidden="true">/</li>
         <li><a href="/blog" class="hover:text-ink">Blog</a></li>
         <li aria-hidden="true">/</li>
-        <li aria-current="page" class="text-muted">Why Open Source Photo Apps Are Safer</li>
+        <li aria-current="page" class="text-muted">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 

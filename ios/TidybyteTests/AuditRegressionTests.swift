@@ -473,6 +473,31 @@ final class AuditRegressionTests: XCTestCase {
         XCTAssertTrue(released, "a finished run releases its own slot (C1)")
     }
 
+    func testAwaitedScanWaitsForTheActiveScan() async {
+        let runner = ScanRunner()
+        let started = expectation(description: "first scan started")
+        var resumeFirst: CheckedContinuation<Void, Never>?
+        var events: [String] = []
+        runner.start { _ in
+            events.append("first started")
+            await withCheckedContinuation { continuation in
+                resumeFirst = continuation
+                started.fulfill()
+            }
+            events.append("first finished")
+        }
+        await fulfillment(of: [started], timeout: 5)
+        let refresh = Task {
+            await runner.run { _ in events.append("refresh") }
+        }
+        await Task.yield()
+        XCTAssertEqual(events, ["first started"])
+        resumeFirst?.resume()
+        await refresh.value
+        XCTAssertEqual(events, ["first started", "first finished", "refresh"])
+        XCTAssertFalse(runner.isRunning)
+    }
+
     // MARK: - Launch offer: waiting for a dismissing cover
 
     /// The launch offer is triggered the instant `hasCompletedOnboarding` flips,

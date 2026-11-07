@@ -40,11 +40,23 @@ public enum MonitoringKeys {
         }
     }
 
+    public static let menuBarCPU = MenuBarMetric(metric: .cpu, key: "monitor.metric.cpu", defaultEnabled: true)
+    public static let menuBarMemory = MenuBarMetric(metric: .memory, key: "monitor.metric.memory", defaultEnabled: true)
+    public static let menuBarNetwork = MenuBarMetric(metric: .network, key: "monitor.metric.network", defaultEnabled: true)
+    public static let menuBarDisk = MenuBarMetric(metric: .disk, key: "monitor.metric.disk", defaultEnabled: false)
+    public static let menuBarEnergy = MenuBarMetric(metric: .energy, key: "monitor.metric.energy", defaultEnabled: false)
+
     public static let menuBarMetrics: [MenuBarMetric] = [
-        MenuBarMetric(metric: .cpu, key: "monitor.metric.cpu", defaultEnabled: true),
-        MenuBarMetric(metric: .memory, key: "monitor.metric.memory", defaultEnabled: true),
-        MenuBarMetric(metric: .network, key: "monitor.metric.network", defaultEnabled: true),
-        MenuBarMetric(metric: .disk, key: "monitor.metric.disk", defaultEnabled: false),
-        MenuBarMetric(metric: .energy, key: "monitor.metric.energy", defaultEnabled: false)
+        menuBarCPU, menuBarMemory, menuBarNetwork, menuBarDisk, menuBarEnergy
     ]
+
+    public static func menuBarMetric(for metric: UsageMetric) -> MenuBarMetric {
+        switch metric {
+        case .cpu: menuBarCPU
+        case .memory: menuBarMemory
+        case .network: menuBarNetwork
+        case .disk: menuBarDisk
+        case .energy: menuBarEnergy
+        }
+    }
 }

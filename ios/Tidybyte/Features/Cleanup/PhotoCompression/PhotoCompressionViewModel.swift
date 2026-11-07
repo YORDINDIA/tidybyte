@@ -136,23 +136,6 @@ final class PhotoCompressionViewModel {
     /// then kept current by `removePhotos`.
     private var eligibleCount = 0
 
-    nonisolated static func candidates(
-        from assets: [AssetSummary],
-        excluding compressedCopies: Set<String>,
-        showAll: Bool
-    ) -> [AssetSummary] {
-        assets.filter { isCandidate($0, excluding: compressedCopies, showAll: showAll) }
-    }
-
-    /// The list rule, shared with the Cleanup home badge.
-    nonisolated static func isCandidate(_ asset: AssetSummary, excluding compressedCopies: Set<String>, showAll: Bool) -> Bool {
-        // Live Photos have their own tool; re-encoding only their still
-        // would silently drop the motion.
-        guard !asset.isLivePhoto, !compressedCopies.contains(asset.id) else { return false }
-        return showAll
-            || (asset.fileSize >= CleanupLibraryRollup.photoCompressionMinBytes && !asset.isHEIC)
-    }
-
     func loadIfNeeded(modelContext: ModelContext) async {
         guard !hasLoadedPhotos else { return }
         isLoading = true
@@ -174,7 +157,7 @@ final class PhotoCompressionViewModel {
         compressedCopyIds = CompressionJournal.savedCopyIds(modelContext: modelContext)
         // Library (date added) order: `sortOrder` derives every display order from it.
         allPhotoAssets = await photoService.fetchAllPhotos(sortByCreationDate: false)
-        eligibleCount = Self.candidates(from: allPhotoAssets, excluding: compressedCopyIds, showAll: true).count
+        eligibleCount = PhotoCompressionPolicy.candidates(from: allPhotoAssets, excluding: compressedCopyIds, showAll: true).count
         applyFilter()
         hasLoadedPhotos = true
     }
@@ -186,7 +169,7 @@ final class PhotoCompressionViewModel {
         guard !ids.isEmpty else { return }
         photos.removeAll { ids.contains($0.id) }
         eligibleCount -= allPhotoAssets
-            .filter { ids.contains($0.id) && Self.isCandidate($0, excluding: compressedCopyIds, showAll: true) }
+            .filter { ids.contains($0.id) && PhotoCompressionPolicy.isCandidate($0, excluding: compressedCopyIds, showAll: true) }
             .count
         allPhotoAssets.removeAll { ids.contains($0.id) }
         updateFilterHidesPhotos()
@@ -201,7 +184,7 @@ final class PhotoCompressionViewModel {
     private func applyFilter() {
         guard !isCompressing else { return }
         let previous = Dictionary(photos.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        photos = Self.candidates(from: allPhotoAssets, excluding: compressedCopyIds, showAll: showAllPhotos)
+        photos = PhotoCompressionPolicy.candidates(from: allPhotoAssets, excluding: compressedCopyIds, showAll: showAllPhotos)
             .map { asset in
                 var item = PhotoItem(id: asset.id, asset: asset, selectedPreset: previous[asset.id]?.selectedPreset ?? defaultPreset)
                 if let state = previous[asset.id]?.compressionState { item.compressionState = state }
@@ -561,13 +544,13 @@ final class PhotoCompressionViewModel {
                     if self.isCancelled || error is CancellationError {
                         // A cancel is not a failure: History must not render a red
                         // badge for something the batch summary reports as cancelled.
-                        await swap.markSkipped(assetId: id)
+                        await swap.markSkipped()
                         throw error
                     }
                     if let compressionError = error as? PhotoCompressionError,
                        case .cannotReachTarget = compressionError {
                         // Max size mode could not fit: nothing was saved.
-                        await swap.markSkipped(assetId: id)
+                        await swap.markSkipped()
                         self.photos[index].compressionState = .keptOriginal(reason: compressionError.localizedDescription)
                         return .skipped
                     }
@@ -575,10 +558,10 @@ final class PhotoCompressionViewModel {
                        case .sizeUnknown = compressionError {
                         // COMP-07: iCloud-only / unknown size — leave the original
                         // alone. An intentional skip, not a failure.
-                        await swap.markSkipped(assetId: id)
+                        await swap.markSkipped()
                         throw error
                     }
-                    await swap.markFailed(assetId: id)
+                    await swap.markFailed()
                     throw error
                 }
             }

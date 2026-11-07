@@ -98,10 +98,10 @@
   }
 
   /* Scroll-reveal (see assets/js/site.js). Reduced motion is honored in JS.
-     Gated behind html.js (set by theme.js) so a script failure never leaves
-     content invisible. --reveal-delay is stamped per element by site.js, so
+     The reveal script adds reveal-ready after it can show the content.
+     --reveal-delay is stamped per element by site.js, so
      elements sharing a [data-reveal-group] cascade in reading order. */
-  html.js [data-reveal] {
+  html.reveal-ready [data-reveal] {
     opacity: 0;
     transform: translateY(14px);
     transition-property: opacity, transform;
@@ -109,12 +109,12 @@
     transition-timing-function: var(--ease-out-quart);
     transition-delay: var(--reveal-delay, 0ms);
   }
-  html.js [data-reveal].is-revealed {
+  html.reveal-ready [data-reveal].is-revealed {
     opacity: 1;
     transform: none;
   }
   @media (prefers-reduced-motion: reduce) {
-    html.js [data-reveal] {
+    html.reveal-ready [data-reveal] {
       opacity: 1;
       transform: none;
       transition: none;
@@ -124,19 +124,19 @@
   /* Storage donut segments (landing page): draw in when the section
      reveals. Each circle carries --seg-len (its arc length of the
      251.33 circumference) inline; reduced motion shows the full ring. */
-  html.js [data-reveal] .donut-seg {
+  html.reveal-ready [data-reveal] .donut-seg {
     stroke-dasharray: 0 251.33;
     transition: stroke-dasharray 900ms var(--ease-out-quart);
   }
-  html.js [data-reveal].is-revealed .donut-seg {
+  html.reveal-ready [data-reveal].is-revealed .donut-seg {
     stroke-dasharray: var(--seg-len, 0) 251.33;
   }
-  html.js [data-reveal].is-revealed .donut-seg:nth-of-type(3) { transition-delay: 100ms; }
-  html.js [data-reveal].is-revealed .donut-seg:nth-of-type(4) { transition-delay: 200ms; }
-  html.js [data-reveal].is-revealed .donut-seg:nth-of-type(5) { transition-delay: 300ms; }
-  html.js [data-reveal].is-revealed .donut-seg:nth-of-type(6) { transition-delay: 400ms; }
+  html.reveal-ready [data-reveal].is-revealed .donut-seg:nth-of-type(3) { transition-delay: 100ms; }
+  html.reveal-ready [data-reveal].is-revealed .donut-seg:nth-of-type(4) { transition-delay: 200ms; }
+  html.reveal-ready [data-reveal].is-revealed .donut-seg:nth-of-type(5) { transition-delay: 300ms; }
+  html.reveal-ready [data-reveal].is-revealed .donut-seg:nth-of-type(6) { transition-delay: 400ms; }
   @media (prefers-reduced-motion: reduce) {
-    html.js [data-reveal] .donut-seg {
+    html.reveal-ready [data-reveal] .donut-seg {
       stroke-dasharray: var(--seg-len, 0) 251.33;
       transition: none;
     }
@@ -257,9 +257,8 @@
    rules already outrank the utilities layer, so this is the one place where
    motion can be authored without fighting either constraint.
 
-   Everything that hides an element is scoped to `html.js` (set by theme.js in
-   <head>), so a script failure degrades to the static page rather than a
-   blank one. Every animation is gated on `prefers-reduced-motion:
+   Reveal elements are hidden only after their observer is ready. Every
+   animation is gated on `prefers-reduced-motion:
    no-preference`; the kill switch at the bottom is the backstop for the
    transitions that are not.
    =========================================================================== */

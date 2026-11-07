@@ -26,25 +26,6 @@ public enum ScanMode: String, CaseIterable, Codable, Identifiable, Sendable {
 
     public var id: String { rawValue }
 
-    /// True for the mo clean known-path sections that delegate to `MoCleanScanner`.
-    public var isSystemCleanSection: Bool {
-        switch self {
-        case .selectedFolders, .homeFolder, .developerCleanup:
-            return false
-        case .deepSystem, .userEssentials, .finderMetadata, .macOSSystemCaches,
-             .sandboxedAppCaches, .browsers, .cloudStorage, .officeApps,
-             .developerTools, .devApplications, .vmTools, .applicationSupport,
-             .uninstalledAppData, .appleSiliconUpdates, .iosBackups,
-             .timeMachineBackups, .largeFiles:
-            return true
-        }
-    }
-
-    /// Maps a system-clean section to its `SystemCleanSection` registry case.
-    public var systemCleanSection: MoCleanScanner.SystemCleanSection? {
-        guard isSystemCleanSection else { return nil }
-        return MoCleanScanner.SystemCleanSection(rawValue: rawValue)
-    }
 }
 
 public enum PrivacyMode: String, CaseIterable, Codable, Identifiable, Sendable {

@@ -32,19 +32,14 @@ public actor CleanerRuleEngine {
     private let policy: PathSafetyPolicy
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "CleanerRuleEngine")
 
-    private static let lowRiskDeveloperArtifacts: Set<String> = [
-        "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".next", ".nuxt",
-        ".turbo", ".parcel-cache", ".vite", "coverage", ".dart_tool"
-    ]
+    private static let lowRiskDeveloperArtifacts = ProjectArtifactFolders.lowRisk
 
     /// Build-output directories that only make sense inside a detected project
     /// root (a directory containing a manifest such as package.json, Package.swift
     /// or *.xcodeproj). Matching these outside a project would risk deleting
     /// unrelated folders named "build", "dist" or "target" in a user's home or
     /// Documents folder, so a project root is required.
-    private static let projectBoundBuildOutputs: Set<String> = [
-        "node_modules", ".venv", "venv", ".tox", "dist", "build", "target", ".build", ".gradle"
-    ]
+    private static let projectBoundBuildOutputs = ProjectArtifactFolders.projectBound
 
     /// Xcode's global build cache (~/Library/Developer/Xcode/DerivedData). It
     /// lives outside project roots by definition, so the project-containment
@@ -344,8 +339,8 @@ public actor CleanerRuleEngine {
         sessionID: String,
         directorySizes: [String: Int64]
     ) -> (finding: Finding, recommendation: Recommendation)? {
-        let components = record.url.pathComponents
-        let agentRoots: Set<String> = [".claude", ".codex", ".opencode", ".factory", ".openclaw", ".hermes", ".cursor", ".vscode"]
+        let components = record.url.pathComponents.map { $0.lowercased() }
+        let agentRoots = PathSafetyPolicy.codingAgentFolders
         guard components.contains(where: { agentRoots.contains($0) }) else {
             return nil
         }

@@ -250,6 +250,22 @@ final class PrivacyForecastTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(unwrapped.daysUntil80PercentFull ?? Int.max, 0)
     }
 
+    func testSpaceForecasterReturnsNilForMissingVolume() async throws {
+        let store = try SQLiteStore.inMemory()
+        // Two snapshots with growth, so the snapshot-count guard passes and only
+        // the missing volume can make forecast return nil.
+        for (id, date, bytes) in [("s1", Date().addingTimeInterval(-86_400), Int64(1_000_000_000)), ("s2", Date(), Int64(2_000_000_000))] {
+            try await store.saveStorageSnapshot(StorageSnapshot(
+                id: id, createdAt: date, totalBytes: bytes, bytesByCategory: [:],
+                bytesByRootPath: [:], bytesByProject: [:], removedBytesThroughApp: 0
+            ))
+        }
+        let forecaster = SpaceForecaster(store: store)
+        let missing = URL(fileURLWithPath: "/tidybyte-missing-volume-" + UUID().uuidString)
+        let forecast = try await forecaster.forecast(volumeURL: missing)
+        XCTAssertNil(forecast)
+    }
+
     // MARK: - Fix 4: DuplicateDetector excludes cloud placeholders
 
     func testDuplicateDetectorExcludesCloudPlaceholders() async throws {

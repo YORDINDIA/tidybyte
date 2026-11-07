@@ -22,6 +22,7 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LANGUAGES, pluralCategories } from './plural-categories.mjs';
+import { positionalize } from './format-placeholders.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CATALOG_PATH = join(ROOT, 'Tidybyte/Resources/Localizable.xcstrings');
@@ -94,78 +95,6 @@ function loadPlurals() {
 
 function stringUnit(value, state = 'translated') {
   return { stringUnit: { state, value } };
-}
-
-/** Every format specifier in a string, in order, as `{ token, index }`. */
-function scanPlaceholders(text) {
-  const pattern = /%(?:(\d+)\$)?(?:\.(\d+))?(?:ll|l|h|hh|z|q)?([@difsuxXeEgGcCpaA]|%)/g;
-  const found = [];
-  let match;
-  while ((match = pattern.exec(text)) !== null) {
-    found.push({ token: match[3] === '%' ? '%%' : match[3], positional: match[1], raw: match[0] });
-  }
-  return found;
-}
-
-/**
- * Rewrites a translation's placeholders as positional specifiers when the
- * translator reordered them.
- *
- * This is not cosmetic. `String.localizedStringWithFormat` substitutes
- * arguments *positionally*, so a Chinese string that puts the count before the
- * text ("%lld 中的 %@") would feed the count into `%@` and the text into
- * `%lld` — a crash or garbage output. Writing `%2$lld 中的 %1$@` pins each
- * specifier to the argument the English source intended, which is exactly what
- * Xcode does when you reorder specifiers in the String Catalog editor.
- *
- * Reordering is only resolvable when the types are distinguishable. With two
- * `%@`s in one string there is no way to tell which moved, so the translation
- * is returned unchanged and `check.mjs` reports it.
- */
-function positionalize(english, translated) {
-  const englishTokens = scanPlaceholders(english);
-  const translatedTokens = scanPlaceholders(translated);
-
-  // Nothing to do when the order already matches, or the shapes differ (the
-  // validator reports shape mismatches separately).
-  if (englishTokens.length !== translatedTokens.length) return translated;
-  if (englishTokens.every((token, index) => token.token === translatedTokens[index].token)) {
-    return translated;
-  }
-  // Ambiguous when a type repeats: cannot map one occurrence onto another.
-  //
-  // `%%` is a literal percent, not an argument, so it is excluded from the base
-  // the index is looked up in. Leaving it in shifted every placeholder after a
-  // `%%` by one: "100%% of %@ saved by %lld MB" gave `%3$lld` and `%2$@` for a
-  // translation that had swapped only the two real arguments.
-  const englishTypes = englishTokens
-    .filter((token) => token.token !== '%%')
-    .map((token) => token.token);
-  if (new Set(englishTypes).size !== englishTypes.length) return translated;
-
-  // Walk the translated string, replacing each placeholder with the positional
-  // form of the English argument it corresponds to.
-  let result = '';
-  let cursor = 0;
-  const pattern = /%(?:(\d+)\$)?(?:\.(\d+))?(?:ll|l|h|hh|z|q)?([@difsuxXeEgGcCpaA]|%)/g;
-  let match;
-  while ((match = pattern.exec(translated)) !== null) {
-    const type = match[3] === '%' ? '%%' : match[3];
-    result += translated.slice(cursor, match.index);
-    if (type === '%%') {
-      result += '%%';
-    } else {
-      const englishIndex = englishTypes.indexOf(type);
-      // Strip any leading `%` (and a positional prefix if one is already
-      // there), then rebuild as `%N$<length modifiers><type>` — the `%` in
-      // the output is the one from the prefix, not from the original.
-      const bare = match[0].replace(/^%\d+\$/, '').slice(1);
-      result += `%${englishIndex + 1}$${bare}`;
-    }
-    cursor = match.index + match[0].length;
-  }
-  result += translated.slice(cursor);
-  return result;
 }
 
 /**

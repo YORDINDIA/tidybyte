@@ -5,12 +5,9 @@ import Observation
 import os
 import SwiftUI
 
-/// Persisted UserDefaults keys. Single source of truth: saveSettings,
-/// loadSettings, and clearAllData all derive their key lists from this enum,
-/// so adding a setting automatically extends the clear-all behavior.
+/// App-only UserDefaults keys. Autoscan keys are shared with Core.
 private enum SettingsKey: String, CaseIterable {
     case selectedMode
-    case selectedFolderPaths
     case cleanupPosture
     case includeAI
     case providerName
@@ -23,7 +20,6 @@ private enum SettingsKey: String, CaseIterable {
     case exploreGrouping
     case exploreDepth
     case duplicateStrategy
-    case autoscanEnabled
     case inboxRootPath
     case lastDestination
     case dismissedNoticeSession
@@ -1093,11 +1089,7 @@ final class AppViewModel {
     func loadStorageTimeline() async {
         do {
             let forecaster = SpaceForecaster(store: store)
-            // Use the home volume capacity as the disk capacity for forecasting.
-            let homeURL = FileManager.default.homeDirectoryForCurrentUser
-            if let capacity = SpaceForecaster.volumeCapacity(for: homeURL) {
-                spaceForecast = try await forecaster.forecast(diskCapacity: capacity)
-            }
+            spaceForecast = try await forecaster.forecast(volumeURL: FileManager.default.homeDirectoryForCurrentUser)
             storageSnapshots = try await store.recentSnapshots(limit: 30)
             if olderSnapshotID == nil || newerSnapshotID == nil {
                 olderSnapshotID = storageSnapshots.dropFirst().first?.id
@@ -1308,10 +1300,9 @@ final class AppViewModel {
             resetWorkspaceState()
             // Clear every persisted preference so loadSettings() cannot restore them
             // on the next launch and onboarding stays visible (ST-18). The key list
-            // is derived from SettingsKey.allCases, so newly added settings are
-            // cleared automatically.
-            for key in SettingsKey.allCases {
-                defaults.removeObject(forKey: key.rawValue)
+            // comes from both the app-only and shared autoscan keys.
+            for key in SettingsKey.allCases.map(\.rawValue) + AutoScanSettingsKey.allCases.map(\.rawValue) {
+                defaults.removeObject(forKey: key)
             }
             statusMessage = String(localized: "All data cleared.")
         } catch {
@@ -1417,10 +1408,10 @@ final class AppViewModel {
     func saveSettings() {
         let defaults = self.defaults
         defaults.set(selectedMode.rawValue, forKey: SettingsKey.selectedMode.rawValue)
-        defaults.set(selectedFolders.map(\.path), forKey: SettingsKey.selectedFolderPaths.rawValue)
+        defaults.set(selectedFolders.map(\.path), forKey: AutoScanSettingsKey.selectedFolderPaths.rawValue)
         defaults.set(cleanupPosture.rawValue, forKey: SettingsKey.cleanupPosture.rawValue)
         defaults.set(duplicateStrategy.rawValue, forKey: SettingsKey.duplicateStrategy.rawValue)
-        defaults.set(autoscanEnabled, forKey: SettingsKey.autoscanEnabled.rawValue)
+        defaults.set(autoscanEnabled, forKey: AutoScanSettingsKey.enabled.rawValue)
         defaults.set(includeAI, forKey: SettingsKey.includeAI.rawValue)
         defaults.set(providerSettings.providerName, forKey: SettingsKey.providerName.rawValue)
         defaults.set(providerSettings.apiBaseURL.absoluteString, forKey: SettingsKey.apiBaseURL.rawValue)
@@ -1447,7 +1438,7 @@ final class AppViewModel {
         if let modeRaw = defaults.string(forKey: SettingsKey.selectedMode.rawValue), let mode = ScanMode(rawValue: modeRaw) {
             selectedMode = mode
         }
-        if let paths = defaults.stringArray(forKey: SettingsKey.selectedFolderPaths.rawValue) {
+        if let paths = defaults.stringArray(forKey: AutoScanSettingsKey.selectedFolderPaths.rawValue) {
             selectedFolders = paths.map { URL(fileURLWithPath: $0) }
         }
         if let postureRaw = defaults.string(forKey: SettingsKey.cleanupPosture.rawValue), let posture = CleanupPosture(rawValue: postureRaw) {
@@ -1456,7 +1447,7 @@ final class AppViewModel {
         if let strategyRaw = defaults.string(forKey: SettingsKey.duplicateStrategy.rawValue), let strategy = DuplicateStrategy(rawValue: strategyRaw) {
             duplicateStrategy = strategy
         }
-        autoscanEnabled = defaults.bool(forKey: SettingsKey.autoscanEnabled.rawValue)
+        autoscanEnabled = defaults.bool(forKey: AutoScanSettingsKey.enabled.rawValue)
         includeAI = defaults.bool(forKey: SettingsKey.includeAI.rawValue)
         if let name = defaults.string(forKey: SettingsKey.providerName.rawValue) {
             providerSettings.providerName = name

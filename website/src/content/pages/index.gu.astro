@@ -20,8 +20,9 @@
 interface Props {
   /** The rendered "Quick answer" box, built from the page description. */
   quickAnswer?: string;
+  iosVersion: string;
 }
-const { quickAnswer = "" } = Astro.props;
+const { quickAnswer = "", iosVersion } = Astro.props;
 ---
 <main id="main">
 <!-- Announcement bar: pill + link. Semantic tokens only — flips with theme. -->
@@ -30,7 +31,7 @@ const { quickAnswer = "" } = Astro.props;
     <p class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center text-xs text-body sm:text-sm">
       <span class="badge">
         <svg aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-clay-pink"><circle cx="12" cy="12" r="5"/></svg>
-        1.1.3
+        {iosVersion}
       </span>
       <a href="/changelog" class="link whitespace-nowrap">શું બદલાયું તે જુઓ &rarr;</a>
     </p>
@@ -281,7 +282,7 @@ const { quickAnswer = "" } = Astro.props;
               <div class="rounded-xl bg-[#1c1c1e] p-3">
                 <div class="flex items-center justify-between text-[11px]"><span class="text-white">દેખાવ</span><span class="font-medium text-[#0a84ff]">ડાર્ક</span></div>
               </div>
-              <div class="flex items-center justify-between rounded-xl bg-[#1c1c1e] p-3 text-[11px]"><span class="text-white">આવૃત્તિ</span><span class="text-white/55"><span>1.1.3</span></span></div>
+              <div class="flex items-center justify-between rounded-xl bg-[#1c1c1e] p-3 text-[11px]"><span class="text-white">આવૃત્તિ</span><span class="text-white/55"><span>{iosVersion}</span></span></div>
             </div>
           </div>
         </div>

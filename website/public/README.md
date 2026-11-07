@@ -69,9 +69,9 @@ same strings are emitted twice — once as visible `<details>` markup and once
 inside the `FAQPage` JSON-LD — and Google requires the two to match. Adding a
 tool page means adding one entry to `TOOLS` and one prose file; `llms.txt`,
 the Markdown alternate, the OG card and the sitemap all follow. The sitemap's
-priority list is the one thing that cannot follow automatically — the Astro
-config cannot import `tools.ts` — so `seo-audit.mjs` fails if a tool page is
-listed at the wrong priority.
+priority list is built from `TOOLS` and the language list in `astro.config.mjs`,
+so it follows automatically. `seo-audit.mjs` still fails if a tool page is listed
+at the wrong priority.
 
 Tool pages reference the app entity defined on the home page (`#app`, `#website`,
 `#org`) rather than restating it, so answer engines resolve one product rather
@@ -110,8 +110,9 @@ Dark, and System; Dark is remembered in `localStorage` under
 - Text on saturated `clay-*` cards uses the on-colour tokens
   (`text-clay-pink-ink`, `text-clay-peach-soft`, ...) instead of white or
   `text-ink`.
-- `data-reveal` scroll animations only hide content under `html.js`
-  (class set by `theme.js`), so a script failure can never blank a page.
+- `data-reveal` scroll animations only hide content under `html.reveal-ready`
+  (class set by `site.js` once it can show the content), so a script failure
+  can never blank a page.
 - Display face: Fredoka variable font, self-hosted in `assets/fonts/`
   (licensed under the SIL Open Font License, `assets/fonts/OFL.txt`).
 

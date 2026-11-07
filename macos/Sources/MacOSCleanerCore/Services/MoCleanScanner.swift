@@ -9,8 +9,7 @@ import os
 /// scanner enumerates fixed system/user locations directly — fast and precise,
 /// at the cost of requiring Full Disk Access for some protected system paths.
 public actor MoCleanScanner {
-    /// Registry of the 17 mo clean sections. Raw values match the corresponding
-    /// `ScanMode` cases so `ScanMode.systemCleanSection` can bridge between them.
+    /// Registry of the 17 mo clean sections.
     public enum SystemCleanSection: String, CaseIterable, Codable, Sendable {
         case deepSystem
         case userEssentials

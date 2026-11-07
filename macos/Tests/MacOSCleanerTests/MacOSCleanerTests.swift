@@ -635,7 +635,7 @@ final class MacOSCleanerTests: XCTestCase {
         let forecaster = SpaceForecaster(store: store)
 
         // With no snapshots, should return nil
-        let forecast = try await forecaster.forecast(diskCapacity: 500_000_000_000)
+        let forecast = try await forecaster.forecast(capacity: 500_000_000_000, availableBytes: 200_000_000_000)
         XCTAssertNil(forecast)
     }
 
@@ -2386,7 +2386,7 @@ final class MacOSCleanerTests: XCTestCase {
             let snapshot = StorageSnapshot(
                 id: "snap-\(i)",
                 createdAt: Calendar.current.date(byAdding: .day, value: -i, to: Date()) ?? Date(),
-                totalBytes: Int64(500_000_000_000 + i * 1_000_000_000), // 500GB + 1GB/day
+                totalBytes: Int64(500_000_000_000 - i * 1_000_000_000), // 500GB + 1GB/day
                 bytesByCategory: [:],
                 bytesByRootPath: [:],
                 bytesByProject: [:],
@@ -2397,10 +2397,10 @@ final class MacOSCleanerTests: XCTestCase {
 
         let forecaster = SpaceForecaster(store: store)
         let capacity: Int64 = 1_000_000_000_000 // 1TB
-        let forecast = try await forecaster.forecast(diskCapacity: capacity)
+        let forecast = try await forecaster.forecast(capacity: capacity, availableBytes: 400_000_000_000)
         XCTAssertNotNil(forecast, "Should produce a forecast with sufficient data")
-        XCTAssertNotNil(forecast?.dailyGrowthRate)
-        XCTAssertNotNil(forecast?.message)
+        XCTAssertGreaterThan(forecast?.dailyGrowthRate ?? 0, 0)
+        XCTAssertFalse(forecast?.message.isEmpty ?? true)
     }
 
     func testSpaceForecasterWithNoGrowth() async throws {
@@ -2424,7 +2424,7 @@ final class MacOSCleanerTests: XCTestCase {
 
         let forecaster = SpaceForecaster(store: store)
         let capacity: Int64 = 1_000_000_000_000
-        let forecast = try await forecaster.forecast(diskCapacity: capacity)
+        let forecast = try await forecaster.forecast(capacity: capacity, availableBytes: 400_000_000_000)
         // Flat snapshots produce a zero-growth forecast with a stable message,
         // never a nil result (the nil case needs fewer than 2 snapshots).
         let unwrapped = try XCTUnwrap(forecast, "Flat history should still yield a forecast")

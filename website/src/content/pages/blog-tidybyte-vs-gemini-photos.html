@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-comparisons" class="badge">Comparisons</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">TidyByte vs Gemini Photos: Free vs Subscription Compared</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Gemini Photos was once one of the most popular iPhone photo cleanup apps on the App Store, developed by MacPaw &mdash; the same team behind CleanMyMac. But in 2024, MacPaw discontinued the app entirely, leaving millions of users without their go-to tool for cleaning up duplicate and blurry photos. If you are searching for a replacement, this TidyByte vs Gemini Photos comparison covers everything you need to know: features, pricing, privacy, and which app comes out ahead.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>11 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/tidybyte-vs-gemini-photos.avif" type="image/avif">
-      <img src="/assets/img/blog/tidybyte-vs-gemini-photos.webp" alt="Clay illustration: two clay smartphones facing off on a background split into a pink half and a teal half" width="1400" height="933"
+      <img src="/assets/img/blog/tidybyte-vs-gemini-photos.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -52,7 +52,7 @@
         <li aria-hidden="true">/</li>
         <li><a href="/blog" class="text-muted hover:text-ink hover:underline">Blog</a></li>
         <li aria-hidden="true">/</li>
-        <li aria-current="page" class="text-body">TidyByte vs Gemini Photos</li>
+        <li aria-current="page" class="text-body">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 

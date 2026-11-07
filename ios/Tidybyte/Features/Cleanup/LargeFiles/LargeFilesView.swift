@@ -10,7 +10,7 @@ struct LargeFilesView: View {
     @State private var toast: ToastMessage?
     /// Mirrors SettingsView's control so the threshold never diverges between
     /// screens while the tool is open (LF-06).
-    @AppStorage(AppPreferences.Key.largeFileThresholdMB) private var thresholdMB: Double = 10.0
+    @AppStorage(AppPreferences.Key.largeFileThresholdMB) private var thresholdMB: Double = AppPreferences.Default.largeFileThresholdMB
     private let photoService = PhotoLibraryService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -35,7 +35,7 @@ struct LargeFilesView: View {
                         Slider(value: $thresholdMB, in: 5...500, step: 5)
 
                         Picker("Filter", selection: $viewModel.mediaFilter) {
-                            ForEach(LargeFileFilter.allCases, id: \.self) { filter in
+                            ForEach(MediaFilter.allCases, id: \.self) { filter in
                                 // Keys, not rendered `String`s, so both control
                                 // labels follow a language switch. See `RootView`.
                                 Text(LocalizedStringKey(filter.displayName)).tag(filter)
@@ -44,7 +44,7 @@ struct LargeFilesView: View {
                         .pickerStyle(.segmented)
 
                         Picker("Sort", selection: $viewModel.sortOrder) {
-                            ForEach(LargeFileSortOrder.allCases, id: \.self) { order in
+                            ForEach(MediaSortOrder.allCases, id: \.self) { order in
                                 Text(LocalizedStringKey(order.displayName)).tag(order)
                             }
                         }

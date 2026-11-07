@@ -22,6 +22,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync, unlinkSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findHtmlFiles } from "./lib/html-files.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = join(ROOT, "dist");
@@ -40,16 +41,7 @@ function hashFile(path) {
   return createHash("sha256").update(readFileSync(path)).digest("hex").slice(0, 8);
 }
 
-function htmlFiles() {
-  const out = [];
-  for (const dir of [SITE, join(SITE, "blog")]) {
-    if (!existsSync(dir)) continue;
-    for (const f of readdirSync(dir)) {
-      if (f.endsWith(".html")) out.push(join(dir, f));
-    }
-  }
-  return out;
-}
+const htmlFiles = () => findHtmlFiles(SITE);
 
 let failed = false;
 

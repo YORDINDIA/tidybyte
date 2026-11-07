@@ -131,7 +131,6 @@ public actor ReportGenerator {
             let path = CGPath(rect: CGRect(x: 0, y: 0, width: pageRect.width, height: pageRect.height), transform: nil)
             let frame = CTFramesetterCreateFrame(framesetter, currentRange, path, nil)
 
-            // Get the visible range to advance
             let visibleRange = CTFrameGetVisibleStringRange(frame)
             // Zero-glyph pages (path too small for even one line) never advance
             // the range and would loop forever.

@@ -30,8 +30,6 @@ struct CleanupLibraryRollup: Equatable {
     var largeVideos = 0
     var photoCompressionCandidates = 0
 
-    static let photoCompressionMinBytes: Int64 = 2 * 1_000_000
-
     /// The app-wide "up to X you could free" total. Same `ReclaimBucketer`
     /// figure as the Storage tab and the widget, so the number never differs
     /// between screens.
@@ -51,7 +49,7 @@ struct CleanupLibraryRollup: Equatable {
             } else if asset.mediaType == .photo {
                 rollup.compressiblePhotos += 1
                 // Same rule as the tool's list, so the badge matches it.
-                if PhotoCompressionViewModel.isCandidate(asset, excluding: excludingCompressedCopies, showAll: false) {
+                if PhotoCompressionPolicy.isCandidate(asset, excluding: excludingCompressedCopies, showAll: false) {
                     rollup.photoCompressionCandidates += 1
                 }
             }
@@ -172,8 +170,8 @@ final class CleanupHomeViewModel {
             .filter { $0.value.count > 1 }
         // Same set the tool's Auto-Clean uses: all but the keeper, never a
         // favorite.
-        let removableFrames = BurstCleanerViewModel.rebuildGroups(from: burstGroups)
-            .reduce(0) { $0 + BurstCleanerViewModel.suggestedIds(in: $1).count }
+        let removableFrames = BurstSelectionPolicy.rebuildGroups(from: burstGroups)
+            .reduce(0) { $0 + BurstSelectionPolicy.suggestedIds(in: $1).count }
         updateTool(.bursts, count: removableFrames)
 
         applyScanResults()

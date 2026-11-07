@@ -9,8 +9,6 @@
 (function () {
   'use strict';
 
-  // Marks that JS is running. Scroll-reveal CSS only hides [data-reveal]
-  // under html.js, so a script failure can never blank the page.
   document.documentElement.classList.add('js');
 
   var STORAGE_KEY = 'tidybyte-theme';

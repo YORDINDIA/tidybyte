@@ -34,14 +34,14 @@ final class ConfigWaveTests: XCTestCase {
         )
     }
 
-    /// Mirrors the persisted keys; keep in sync with `SettingsKey` in
-    /// AppViewModel.swift (the app derives its lists from that enum, so adding
-    /// a key there without clearing it here fails this test).
+    /// App keys mirror `SettingsKey` in AppViewModel.swift (private there, so
+    /// they are listed here). Autoscan keys come from `AutoScanSettingsKey`,
+    /// so new cases in that enum are covered automatically.
     private let persistedKeys = [
         "selectedMode", "selectedFolderPaths", "cleanupPosture", "includeAI",
         "providerName", "apiBaseURL", "textModel", "maxTokens", "temperature", "privacyMode",
         "exploreViewKind", "exploreGrouping", "exploreDepth"
-    ]
+    ] + AutoScanSettingsKey.allCases.map(\.rawValue)
 
     func testProviderSettingsDefaultsToLocalOnlyPrivacy() {
         let settings = ProviderSettings()
@@ -67,5 +67,15 @@ final class ConfigWaveTests: XCTestCase {
         for key in persistedKeys {
             XCTAssertNil(defaults.object(forKey: key), "Key \(key) must be cleared by clearAllData")
         }
+    }
+
+    func testSavedFoldersUseTheAutoscanSettingsKey() throws {
+        let defaults = makeDefaultsSuite()
+        let model = try makeModel(defaults: defaults)
+        model.selectedFolders = [URL(fileURLWithPath: "/tmp/tidybyte-selected")]
+        model.saveSettings()
+        XCTAssertEqual(defaults.stringArray(forKey: AutoScanSettingsKey.selectedFolderPaths.rawValue), ["/tmp/tidybyte-selected"])
+        XCTAssertEqual(AutoScanSettingsKey.enabled.rawValue, "autoscanEnabled")
+        XCTAssertEqual(AutoScanSettingsKey.selectedFolderPaths.rawValue, "selectedFolderPaths")
     }
 }

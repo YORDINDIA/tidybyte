@@ -14,12 +14,12 @@ struct MonitorMenuBarExtras: Scene {
     // which invalidates the scene graph and re-queues the update — a 100% CPU
     // loop. The guarded bindings below (and the panel's) write only on a real
     // change, starving that cycle while keeping Settings toggles live.
-    @AppStorage(MonitoringKeys.menuBarMetrics[0].key) private var cpuEnabled = MonitoringKeys.menuBarMetrics[0].defaultEnabled
-    @AppStorage(MonitoringKeys.menuBarMetrics[1].key) private var memoryEnabled = MonitoringKeys.menuBarMetrics[1].defaultEnabled
-    @AppStorage(MonitoringKeys.menuBarMetrics[2].key) private var networkEnabled = MonitoringKeys.menuBarMetrics[2].defaultEnabled
-    @AppStorage(MonitoringKeys.menuBarMetrics[3].key) private var diskEnabled = MonitoringKeys.menuBarMetrics[3].defaultEnabled
-    @AppStorage(MonitoringKeys.menuBarMetrics[4].key) private var energyEnabled = MonitoringKeys.menuBarMetrics[4].defaultEnabled
-    @AppStorage(MonitoringKeys.menuBarPanelEnabled) private var panelEnabled = true
+    @AppStorage(MonitoringKeys.menuBarCPU.key) private var cpuEnabled = MonitoringKeys.menuBarCPU.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarMemory.key) private var memoryEnabled = MonitoringKeys.menuBarMemory.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarNetwork.key) private var networkEnabled = MonitoringKeys.menuBarNetwork.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarDisk.key) private var diskEnabled = MonitoringKeys.menuBarDisk.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarEnergy.key) private var energyEnabled = MonitoringKeys.menuBarEnergy.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarPanelEnabled) private var panelEnabled = MonitoringDefaults.menuBarPanelEnabled
 
     var body: some Scene {
         // The combined panel is the home base: tiles, busiest apps, actions.
