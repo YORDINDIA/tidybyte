@@ -23,6 +23,14 @@ enum DefaultSwipeFilterPreference: String, CaseIterable, Sendable {
 }
 
 enum AppPreferences {
+    enum Default {
+        static let similarPhotoTimeWindow = 5.0
+        static let largeFileThresholdMB = 10.0
+        static let videoCompressionPreset = "1080p"
+        static let photoCompressionPreset = "high"
+        static let deletePhotoOriginals = true
+    }
+
     enum Key {
         static let defaultSwipeFilter = "defaultSwipeFilter"
         static let similarPhotoTimeWindow = "similarPhotoTimeWindow"
@@ -60,7 +68,7 @@ enum AppPreferences {
     }
 
     static func similarPhotoTimeWindow(in defaults: UserDefaults = .standard) -> Double {
-        defaults.double(forKey: Key.similarPhotoTimeWindow).nonZeroOr(5.0)
+        defaults.double(forKey: Key.similarPhotoTimeWindow).nonZeroOr(Default.similarPhotoTimeWindow)
     }
 
     static func saveSimilarPhotoTimeWindow(_ value: Double, in defaults: UserDefaults = .standard) {
@@ -82,7 +90,7 @@ enum AppPreferences {
     }
 
     static func largeFileThresholdMB(in defaults: UserDefaults = .standard) -> Double {
-        defaults.double(forKey: Key.largeFileThresholdMB).nonZeroOr(10.0)
+        defaults.double(forKey: Key.largeFileThresholdMB).nonZeroOr(Default.largeFileThresholdMB)
     }
 
     static func saveLargeFileThresholdMB(_ value: Double, in defaults: UserDefaults = .standard) {
@@ -96,7 +104,7 @@ enum AppPreferences {
     }
 
     static func defaultCompressionPresetID(in defaults: UserDefaults = .standard) -> String {
-        defaults.string(forKey: Key.defaultCompressionPreset) ?? "1080p"
+        defaults.string(forKey: Key.defaultCompressionPreset) ?? Default.videoCompressionPreset
     }
 
     static func saveDefaultCompressionPresetID(_ presetID: String, in defaults: UserDefaults = .standard) {
@@ -104,7 +112,7 @@ enum AppPreferences {
     }
 
     static func defaultPhotoCompressionPresetID(in defaults: UserDefaults = .standard) -> String {
-        defaults.string(forKey: Key.defaultPhotoCompressionPreset) ?? "high"
+        defaults.string(forKey: Key.defaultPhotoCompressionPreset) ?? Default.photoCompressionPreset
     }
 
     static func saveDefaultPhotoCompressionPresetID(_ presetID: String, in defaults: UserDefaults = .standard) {
@@ -113,7 +121,7 @@ enum AppPreferences {
 
     /// Default true: replace the original. False keeps both versions.
     static func deletePhotoOriginalsAfterCompression(in defaults: UserDefaults = .standard) -> Bool {
-        defaults.object(forKey: Key.deletePhotoOriginalsAfterCompression) as? Bool ?? true
+        defaults.object(forKey: Key.deletePhotoOriginalsAfterCompression) as? Bool ?? Default.deletePhotoOriginals
     }
 
     static func saveDeletePhotoOriginalsAfterCompression(_ value: Bool, in defaults: UserDefaults = .standard) {

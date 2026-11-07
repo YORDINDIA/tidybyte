@@ -40,7 +40,7 @@ final class ConfigWaveTests: XCTestCase {
     private let persistedKeys = [
         "selectedMode", "selectedFolderPaths", "cleanupPosture", "includeAI",
         "providerName", "apiBaseURL", "textModel", "maxTokens", "temperature", "privacyMode",
-        "exploreViewKind", "exploreGrouping", "exploreDepth"
+        "exploreViewKind", "exploreGrouping", "exploreDepth", "autoscanEnabled"
     ]
 
     func testProviderSettingsDefaultsToLocalOnlyPrivacy() {
@@ -67,5 +67,15 @@ final class ConfigWaveTests: XCTestCase {
         for key in persistedKeys {
             XCTAssertNil(defaults.object(forKey: key), "Key \(key) must be cleared by clearAllData")
         }
+    }
+
+    func testSavedFoldersUseTheAutoscanSettingsKey() throws {
+        let defaults = makeDefaultsSuite()
+        let model = try makeModel(defaults: defaults)
+        model.selectedFolders = [URL(fileURLWithPath: "/tmp/tidybyte-selected")]
+        model.saveSettings()
+        XCTAssertEqual(defaults.stringArray(forKey: AutoScanSettingsKey.selectedFolderPaths.rawValue), ["/tmp/tidybyte-selected"])
+        XCTAssertEqual(AutoScanSettingsKey.enabled.rawValue, "autoscanEnabled")
+        XCTAssertEqual(AutoScanSettingsKey.selectedFolderPaths.rawValue, "selectedFolderPaths")
     }
 }

@@ -42,9 +42,7 @@ public actor CleanerRuleEngine {
     /// or *.xcodeproj). Matching these outside a project would risk deleting
     /// unrelated folders named "build", "dist" or "target" in a user's home or
     /// Documents folder, so a project root is required.
-    private static let projectBoundBuildOutputs: Set<String> = [
-        "node_modules", ".venv", "venv", ".tox", "dist", "build", "target", ".build", ".gradle"
-    ]
+    private static let projectBoundBuildOutputs = ProjectArtifactFolders.projectBound
 
     /// Xcode's global build cache (~/Library/Developer/Xcode/DerivedData). It
     /// lives outside project roots by definition, so the project-containment
@@ -344,8 +342,8 @@ public actor CleanerRuleEngine {
         sessionID: String,
         directorySizes: [String: Int64]
     ) -> (finding: Finding, recommendation: Recommendation)? {
-        let components = record.url.pathComponents
-        let agentRoots: Set<String> = [".claude", ".codex", ".opencode", ".factory", ".openclaw", ".hermes", ".cursor", ".vscode"]
+        let components = record.url.pathComponents.map { $0.lowercased() }
+        let agentRoots = PathSafetyPolicy.codingAgentFolders
         guard components.contains(where: { agentRoots.contains($0) }) else {
             return nil
         }

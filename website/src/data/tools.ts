@@ -1678,6 +1678,7 @@ export function toolPageMeta(t: Tool): PageMeta {
     canonical: url,
     fontPreload: null,
     extraScripts: [],
+    dateModified: webPage.dateModified,
     headTail:
       `\n\n  <!-- Structured Data: WebPage -->\n  <script type="application/ld+json">\n${json(webPage)}\n  </script>\n` +
       (itemList

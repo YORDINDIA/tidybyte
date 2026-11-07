@@ -225,7 +225,6 @@ final class MoCleanScannerTests: XCTestCase {
             let mode = ScanMode(rawValue: section.rawValue)
             XCTAssertNotNil(mode, "Section \(section.rawValue) has no matching ScanMode case.")
             XCTAssertEqual(mode?.systemCleanSection, section)
-            XCTAssertNotNil(section.findingCategory)
         }
     }
 

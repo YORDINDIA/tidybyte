@@ -36,7 +36,7 @@ function formatDate(iso: string): string {
 function postCard(route: string): { title: string; date: string; image: string } | null {
   const meta = PAGES.find((p) => p.route === route);
   if (!meta) return null;
-  const iso = meta.headTail.match(/"datePublished":\s*"([^"]+)"/)?.[1] ?? "";
+  const iso = meta.datePublished ?? "";
   return {
     title: plain(meta.title.replace(/\s*\|\s*TidyByte\s*$/, "")),
     date: formatDate(iso),

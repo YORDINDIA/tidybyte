@@ -19,7 +19,7 @@ struct MonitorMenuBarExtras: Scene {
     @AppStorage(MonitoringKeys.menuBarMetrics[2].key) private var networkEnabled = MonitoringKeys.menuBarMetrics[2].defaultEnabled
     @AppStorage(MonitoringKeys.menuBarMetrics[3].key) private var diskEnabled = MonitoringKeys.menuBarMetrics[3].defaultEnabled
     @AppStorage(MonitoringKeys.menuBarMetrics[4].key) private var energyEnabled = MonitoringKeys.menuBarMetrics[4].defaultEnabled
-    @AppStorage(MonitoringKeys.menuBarPanelEnabled) private var panelEnabled = true
+    @AppStorage(MonitoringKeys.menuBarPanelEnabled) private var panelEnabled = MonitoringDefaults.menuBarPanelEnabled
 
     var body: some Scene {
         // The combined panel is the home base: tiles, busiest apps, actions.

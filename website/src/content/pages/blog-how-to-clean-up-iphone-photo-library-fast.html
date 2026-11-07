@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-tutorials" class="badge">Tutorials</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Clean Up Your iPhone Photo Library in 15 Minutes</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Your iPhone probably holds thousands of photos you will never look at again. Duplicates, blurry shots, screenshots you forgot about, and near-identical bursts of the same sunset. The average iPhone user has over 2,000 photos in their library, and studies suggest that fewer than 10% are ever revisited. Cleaning them up does not have to take an entire weekend. With the right approach, you can clear iPhone photos fast and reclaim gigabytes of storage in a single 15-minute session.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>10 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-clean-up-iphone-photo-library-fast.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-clean-up-iphone-photo-library-fast.webp" alt="Clay illustration: a chunky clay stopwatch next to a tall stack of photographs with the top few photos sliding off into a tray" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-clean-up-iphone-photo-library-fast.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>

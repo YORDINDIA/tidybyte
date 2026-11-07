@@ -9,6 +9,18 @@ struct CompressionPreset: Identifiable, Sendable {
     let label: String
     let preset: String
     let description: String
+    let targetLongestEdge: Int
+    let estimatedBitrate: Int64
+
+    init(id: String, label: String, preset: String, description: String,
+         targetLongestEdge: Int = 640, estimatedBitrate: Int64 = 6_000_000) {
+        self.id = id
+        self.label = label
+        self.preset = preset
+        self.description = description
+        self.targetLongestEdge = targetLongestEdge
+        self.estimatedBitrate = estimatedBitrate
+    }
 
     /// A computed property, not a `static let`.
     ///
@@ -19,23 +31,18 @@ struct CompressionPreset: Identifiable, Sendable {
     static var presets: [CompressionPreset] {
         [
             CompressionPreset(id: "1080p", label: "1080p HD", preset: AVAssetExportPreset1920x1080,
-                              description: L10n.string("Good quality, moderate savings")),
+                              description: L10n.string("Good quality, moderate savings"),
+                              targetLongestEdge: 1920, estimatedBitrate: 8_000_000),
             CompressionPreset(id: "720p", label: "720p", preset: AVAssetExportPreset1280x720,
-                              description: L10n.string("Decent quality, major savings")),
+                              description: L10n.string("Decent quality, major savings"),
+                              targetLongestEdge: 1280, estimatedBitrate: 4_000_000),
             CompressionPreset(id: "480p", label: "480p", preset: AVAssetExportPreset640x480,
-                              description: L10n.string("Lower quality, maximum savings"))
+                              description: L10n.string("Lower quality, maximum savings"),
+                              targetLongestEdge: 640, estimatedBitrate: 2_000_000)
         ]
     }
 
-    /// Longest-edge target (in pixels) of the export preset: 1080p exports at
-    /// 1920×1080, 720p at 1280×720, 480p at 640×480.
-    var targetLongestEdge: Int {
-        switch id {
-        case "1080p": return 1920
-        case "720p": return 1280
-        default: return 640
-        }
-    }
+
 }
 
 struct CompressionResult: Sendable {

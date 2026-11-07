@@ -19,7 +19,7 @@ struct SettingsView: View {
     @AppStorage(AppPreferences.Key.hapticsEnabled) private var hapticsEnabled: Bool = true
 
     // Similar Photos
-    @AppStorage(AppPreferences.Key.similarPhotoTimeWindow) private var timeWindow: Double = 5.0
+    @AppStorage(AppPreferences.Key.similarPhotoTimeWindow) private var timeWindow: Double = AppPreferences.Default.similarPhotoTimeWindow
 
     // Blur Detection
     @AppStorage(AppPreferences.Key.blurSensitivity) private var blurSensitivity: String = BlurSensitivity.medium.rawValue
@@ -28,14 +28,14 @@ struct SettingsView: View {
     @AppStorage(AppPreferences.Key.smartCategorySensitivity) private var smartCategorySensitivity: String = CategorySensitivity.balanced.rawValue
 
     // Large Files
-    @AppStorage(AppPreferences.Key.largeFileThresholdMB) private var largeFileThreshold: Double = 10.0
+    @AppStorage(AppPreferences.Key.largeFileThresholdMB) private var largeFileThreshold: Double = AppPreferences.Default.largeFileThresholdMB
 
     // Video Compression
-    @AppStorage(AppPreferences.Key.defaultCompressionPreset) private var compressionPreset: String = "1080p"
+    @AppStorage(AppPreferences.Key.defaultCompressionPreset) private var compressionPreset: String = AppPreferences.Default.videoCompressionPreset
 
     // Photo Compression
-    @AppStorage(AppPreferences.Key.defaultPhotoCompressionPreset) private var photoCompressionPreset: String = "high"
-    @AppStorage(AppPreferences.Key.deletePhotoOriginalsAfterCompression) private var deletePhotoOriginals = true
+    @AppStorage(AppPreferences.Key.defaultPhotoCompressionPreset) private var photoCompressionPreset: String = AppPreferences.Default.photoCompressionPreset
+    @AppStorage(AppPreferences.Key.deletePhotoOriginalsAfterCompression) private var deletePhotoOriginals = AppPreferences.Default.deletePhotoOriginals
 
     // Notifications
     @AppStorage(AppPreferences.Key.cleanupRemindersEnabled) private var remindersEnabled: Bool = false

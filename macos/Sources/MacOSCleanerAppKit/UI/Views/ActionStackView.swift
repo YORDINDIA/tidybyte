@@ -139,7 +139,7 @@ struct ActionStackView: View {
 
     private func canReview(_ action: PlannedAction) -> Bool {
         action.executedAt == nil && action.risk != .forbidden
-            && AppViewModel.isSupportedOperation(action.actionType)
+            && action.actionType.isExecutable
             && !model.isScanning && !model.isExecuting && !model.isPlanning
     }
 
@@ -221,7 +221,7 @@ struct ActionRow: View {
                     Button(String(localized: "Approve")) { model.approve(action) }
                         .disabled(
                             action.risk == .forbidden || action.executedAt != nil
-                                || !AppViewModel.isSupportedOperation(action.actionType))
+                                || !action.actionType.isExecutable)
                 }
                 .buttonStyle(.borderless).controlSize(.small)
             }
@@ -233,7 +233,7 @@ struct ActionRow: View {
 
     private var stateLabel: String {
         if action.risk == .forbidden { return String(localized: "Blocked") }
-        if !AppViewModel.isSupportedOperation(action.actionType) { return String(localized: "Review only") }
+        if !action.actionType.isExecutable { return String(localized: "Review only") }
         return action.status.displayName
     }
     private var targetDescription: String {

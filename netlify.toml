@@ -14,59 +14,8 @@
   # Astro 7 requires Node >= 22.12 (build-time only; the site is static).
   NODE_VERSION = "22"
 
-# llms.txt content-type for AI crawlers.
-[[headers]]
-  for = "/llms*.txt"
-  [headers.values]
-    Content-Type = "text/plain; charset=utf-8"
-    Cache-Control = "public, max-age=86400"
-
-# Per-post Markdown alternates for AI citation fetchers.
-[[headers]]
-  for = "/blog/*.md"
-  [headers.values]
-    Content-Type = "text/markdown; charset=utf-8"
-    Cache-Control = "public, max-age=86400"
-
-# Markdown alternates for the tool landing pages (/storage-cleaner.md, ...).
-[[headers]]
-  for = "/*.md"
-  [headers.values]
-    Content-Type = "text/markdown; charset=utf-8"
-    Cache-Control = "public, max-age=86400"
-
-# Cache and security headers.
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    X-Frame-Options = "SAMEORIGIN"
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'self'"
-
-# Long cache for fingerprinted/static assets.
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# Never cache HTML.
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-
-# Short cache for crawler files (regenerated every deploy).
-[[headers]]
-  for = "/robots.txt"
-  [headers.values]
-    Cache-Control = "public, max-age=3600"
-
-[[headers]]
-  for = "/sitemap*.xml"
-  [headers.values]
-    Cache-Control = "public, max-age=3600"
+# Shared security and cache headers live in website/public/_headers.
+# Shared legacy redirects live in website/public/_redirects.
 
 # Custom 404.
 [[redirects]]
@@ -286,53 +235,6 @@
   from = "/he"
   to = "/he.html"
   status = 200
-
-# Consolidated posts (F8): overlapping keyword clusters merged into their
-# strongest keeper; old URLs 301 to it so inbound links and SEO carry over.
-[[redirects]]
-  from = "/blog/how-to-clean-up-blurry-shaky-photos"
-  to = "/blog/find-blurry-photos-iphone"
-  status = 301
-
-[[redirects]]
-  from = "/blog/how-to-find-blurry-photos-in-camera-roll"
-  to = "/blog/find-blurry-photos-iphone"
-  status = 301
-
-[[redirects]]
-  from = "/blog/how-to-remove-blurry-photos-iphone"
-  to = "/blog/find-blurry-photos-iphone"
-  status = 301
-
-[[redirects]]
-  from = "/blog/how-to-free-up-iphone-storage-without-deleting"
-  to = "/blog/how-to-clean-iphone-storage-without-deleting-photos"
-  status = 301
-
-[[redirects]]
-  from = "/blog/how-to-reduce-photo-library-size-iphone"
-  to = "/blog/how-to-clean-iphone-storage-without-deleting-photos"
-  status = 301
-
-[[redirects]]
-  from = "/blog/photo-cleaner-app-no-subscription"
-  to = "/blog/best-iphone-cleaner-app-no-subscription"
-  status = 301
-
-[[redirects]]
-  from = "/blog/photo-cleaner-app-no-ads-no-in-app-purchase"
-  to = "/blog/best-iphone-cleaner-app-no-subscription"
-  status = 301
-
-[[redirects]]
-  from = "/blog/how-to-free-up-icloud-storage-photos"
-  to = "/blog/free-up-icloud-storage-without-deleting-photos"
-  status = 301
-
-[[redirects]]
-  from = "/blog/swipe-to-clean-photos-iphone"
-  to = "/blog/how-to-organize-thousands-of-photos-iphone"
-  status = 301
 
 # Pretty URLs — serve /blog/<slug> from /blog/<slug>.html.
 # NOTE: this rule must come BEFORE the exact /blog rule below; Netlify

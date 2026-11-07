@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-tutorials" class="badge">Tutorials</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Stop Getting Duplicate Photos on Your iPhone</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Duplicate photos silently eat gigabytes of storage. They creep in through HDR camera settings, iCloud sync quirks, messaging app auto-saves, and backup restores. This guide walks you through every source of duplicates on your iPhone and shows you exactly how to stop duplicate photos iPhone users deal with every day &mdash; so your library stays clean going forward, not just today.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>11 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-stop-duplicate-photos-iphone.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-stop-duplicate-photos-iphone.webp" alt="Clay illustration: a rounded stop sign on a short post with two identical clay photographs bouncing off it in mid-air" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-stop-duplicate-photos-iphone.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>

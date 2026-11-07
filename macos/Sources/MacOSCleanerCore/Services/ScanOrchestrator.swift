@@ -1,20 +1,6 @@
 import Foundation
 import os
 
-public enum ScanOrchestratorError: Error, LocalizedError, Sendable {
-    /// A scan mode is marked as a system-clean section but has no matching
-    /// `MoCleanScanner.SystemCleanSection`. The two enums must stay in sync;
-    /// failing loudly here beats silently producing an empty scan.
-    case unsupportedSection(ScanMode)
-
-    public var errorDescription: String? {
-        switch self {
-        case .unsupportedSection(let mode):
-            "Scan mode \(mode.rawValue) has no matching system-clean section. This is an internal configuration error; please reinstall the app."
-        }
-    }
-}
-
 public actor ScanOrchestrator {
     private let store: SQLiteStore
     private let permissionManager: PermissionManager
@@ -144,12 +130,6 @@ public actor ScanOrchestrator {
         }
         await notifyProgress(1, String(localized: "Resolving scan scope"))
         let roots = try await permissionManager.roots(for: mode, selectedFolders: selectedFolders)
-        // Guard the section bridge BEFORE any persistence: a system-clean mode
-        // without a matching section (enum drift) must fail loudly without
-        // leaving a session stuck in .running forever.
-        if mode.isSystemCleanSection, mode.systemCleanSection == nil {
-            throw ScanOrchestratorError.unsupportedSection(mode)
-        }
         let permissions = await permissionManager.permissionsSnapshot(for: roots, mode: mode)
         var session = ScanSession(scanType: mode, rootURLs: roots, permissionsSnapshot: permissions)
         try await store.saveScanSession(session)

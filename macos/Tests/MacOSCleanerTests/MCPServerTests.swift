@@ -120,6 +120,20 @@ final class MCPServerTests: XCTestCase {
         return (kit, root)
     }
 
+    func testShowPlanAllowsAnOmittedFindingID() async throws {
+        let (kit, root) = try await scanTrashStrategyFixture()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let listed = try await handle(kit, ["jsonrpc": "2.0", "id": 1, "method": "tools/list"])
+        let tools = try XCTUnwrap((listed["result"] as? [String: Any])?["tools"] as? [[String: Any]])
+        let descriptor = try XCTUnwrap(tools.first { $0["name"] as? String == "show_plan" })
+        let schema = try XCTUnwrap(descriptor["inputSchema"] as? [String: Any])
+        XCTAssertFalse((schema["required"] as? [String] ?? []).contains("finding_id"))
+
+        let response = try await handle(kit, Self.toolCall(id: "plan", name: "show_plan"))
+        XCTAssertEqual((response["result"] as? [String: Any])?["isError"] as? Bool, false)
+        XCTAssertTrue(try textResult(of: response).contains("proposed actions"))
+    }
+
     func testConfirmedExecuteRefusesDestructiveActions() async throws {
         // The client-supplied confirm flag is the agent's say-so, never proof
         // a human approved: destructive actions are refused by code, and the

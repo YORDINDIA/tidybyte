@@ -45,7 +45,7 @@ struct StorageWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .widgetURL(URL(string: "tidybyte://storage"))
+        .widgetURL(WidgetLinks.storage)
     }
 
     // MARK: - Medium
@@ -60,13 +60,13 @@ struct StorageWidgetView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
 
-                Link(destination: URL(string: "tidybyte://cleanup/screenshots")!) {
+                Link(destination: WidgetLinks.screenshots) {
                     statRow(icon: "camera.viewfinder",
                             text: L10n.format("%lld screenshot", snapshot.screenshotCount),
                             detail: fmt(snapshot.screenshotBytes))
                 }
 
-                Link(destination: URL(string: "tidybyte://cleanup/largeFiles")!) {
+                Link(destination: WidgetLinks.largeFiles) {
                     statRow(icon: "externaldrive",
                             text: L10n.format("%lld large file", snapshot.largeFileCount),
                             detail: fmt(snapshot.largeFileBytes))
@@ -91,7 +91,7 @@ struct StorageWidgetView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .widgetURL(URL(string: "tidybyte://storage"))
+        .widgetURL(WidgetLinks.storage)
     }
 
     /// The total counts only items on this iPhone; the rows below count the
@@ -172,7 +172,7 @@ struct StorageWidgetView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .widgetURL(URL(string: "tidybyte://storage"))
+        .widgetURL(WidgetLinks.storage)
     }
 
     /// Locale-aware, and shared with the app so the widget and the Storage tab

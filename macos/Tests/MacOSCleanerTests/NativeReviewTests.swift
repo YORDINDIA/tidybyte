@@ -58,6 +58,15 @@ final class NativeReviewTests: XCTestCase {
         XCTAssertEqual(model.pendingExecutableActions().count, 3)
     }
 
+    func testReviewIncludesOnlyExecutableActionTypes() throws {
+        let model = try makeModel(ActionType.allCases.map { action($0.rawValue, type: $0) })
+        let request = try XCTUnwrap(ExecutionRequest(model: model, maximumRisk: .high))
+        XCTAssertEqual(Set(request.actionIDs), Set([
+            "moveToTrash", "move", "rename", "tag", "createAlias", "createSymlink", "archive",
+            "runPackageManagerCleanup", "cloneDeduplicate"
+        ]))
+    }
+
     func testChangedDestinationOrApprovalInvalidatesConfirmation() throws {
         let model = try makeModel([action("one")])
         let request = try XCTUnwrap(ExecutionRequest(model: model, maximumRisk: .high))

@@ -5,6 +5,12 @@ final class DeepLinkAndCompressionTests: XCTestCase {
 
     // MARK: - DeepLink parsing
 
+    func testWidgetLinksReachTheirDestinations() {
+        XCTAssertEqual(DeepLink.from(url: WidgetLinks.storage), .storage)
+        XCTAssertEqual(DeepLink.from(url: WidgetLinks.screenshots), .cleanupTool(.screenshots))
+        XCTAssertEqual(DeepLink.from(url: WidgetLinks.largeFiles), .cleanupTool(.largeFiles))
+    }
+
     func testDeepLinkStorage() {
         XCTAssertEqual(DeepLink.from(url: URL(string: "tidybyte://storage")!), .storage)
     }

@@ -4,9 +4,7 @@
 (function () {
   'use strict';
 
-  // Keep these in sync with src/input.css: the pop-out keyframe duration and
-  // the theme-switching crossfade window.
-  var POPOVER_EXIT = 130;
+  // Keep in sync with the theme-switching crossfade window in src/input.css.
   var THEME_FADE = 300;
 
   function prefersReduced() {
@@ -72,8 +70,13 @@
 
       closing = true;
       menu.classList.add('is-closing');
-      closeTimer = window.setTimeout(finishClose, POPOVER_EXIT + 80);
+      // Fallback if the animation is interrupted or unavailable.
+      closeTimer = window.setTimeout(finishClose, 1000);
     }
+
+    menu.addEventListener('animationend', function (event) {
+      if (closing && event.target === menu && event.animationName === 'pop-out') finishClose();
+    });
 
     btn.addEventListener('click', function () {
       setOpen(btn.getAttribute('aria-expanded') !== 'true');
@@ -124,6 +127,7 @@
 
     if (reduced || !('IntersectionObserver' in window)) {
       for (var i = 0; i < els.length; i++) els[i].classList.add('is-revealed');
+      document.documentElement.classList.add('reveal-ready');
       return;
     }
 
@@ -151,6 +155,7 @@
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
 
     for (var j = 0; j < els.length; j++) observer.observe(els[j]);
+    document.documentElement.classList.add('reveal-ready');
   }
 
   // 3) Lazy images fade in as they decode instead of popping in mid-scroll.

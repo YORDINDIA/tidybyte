@@ -150,14 +150,7 @@ final class VideoCompressionViewModel {
         // selected exports at 720p, so estimating at 1080p's bitrate showed
         // ~2× the real result).
         let effective = VideoCompressionService.effectivePreset(for: video.asset, selected: video.selectedPreset)
-        let bitrate: Int64
-        switch effective.id {
-        case "1080p": bitrate = 8_000_000
-        case "720p": bitrate = 4_000_000
-        case "480p": bitrate = 2_000_000
-        default: bitrate = 6_000_000
-        }
-        return (bitrate / 8) * Int64(max(video.asset.duration, 1))
+        return (effective.estimatedBitrate / 8) * Int64(max(video.asset.duration, 1))
     }
 
     var insufficientDiskSpace = false
@@ -296,7 +289,6 @@ final class VideoCompressionViewModel {
         errorMessage = nil
         batchSummary = nil
 
-        // Check available disk space before starting
         insufficientDiskSpace = false
         let totalSelectedSize = selectedSize
         if let freeSpace = try? URL(fileURLWithPath: NSHomeDirectory())
@@ -427,17 +419,17 @@ final class VideoCompressionViewModel {
                         // User cancelled mid-item: reset the row and stop the loop. A
                         // cancel is not a failure — History must not render a red
                         // badge for something the summary reports as cancelled.
-                        await swap.markSkipped(assetId: id)
+                        await swap.markSkipped()
                         throw error
                     }
                     if let compressionError = error as? CompressionError,
                        case .sizeUnknown = compressionError {
                         // COMP-07: iCloud-only / unknown size — leave the original
                         // alone. An intentional skip, not a failure.
-                        await swap.markSkipped(assetId: id)
+                        await swap.markSkipped()
                         throw error
                     }
-                    await swap.markFailed(assetId: id)
+                    await swap.markFailed()
                     throw error
                 }
             }

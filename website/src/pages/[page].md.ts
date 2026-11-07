@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { TOOLS, toolBySlug, plain } from "../data/tools";
+import { toolBySlug, plain } from "../data/tools";
 import { PAGES } from "../data/pages";
 import {
   contentFor,
@@ -15,22 +15,9 @@ import { renderToolMarkdown } from "../lib/tool-page";
 // /index.md for the home page. Same purpose as the blog alternates: an AI
 // citation fetcher can read one page without parsing HTML.
 // llms.txt promises this for every URL it lists, and seo-audit.mjs checks it.
-const CORE_SLUGS = [
-  "index",
-  "blog",
-  "mac",
-  "activity-monitor-alternative",
-  "support",
-  "privacy",
-  "terms",
-  "changelog",
-];
-
 export function getStaticPaths() {
-  return [
-    ...TOOLS.map((t) => ({ params: { page: t.slug } })),
-    ...CORE_SLUGS.map((page) => ({ params: { page } })),
-  ];
+  return PAGES.filter((page) => page.route !== "/404" && (page.route === "/" || /^\/[^/]+$/.test(page.route)))
+    .map((page) => ({ params: { page: page.route === "/" ? "index" : page.route.slice(1) } }));
 }
 
 export const GET: APIRoute = ({ params }) => {

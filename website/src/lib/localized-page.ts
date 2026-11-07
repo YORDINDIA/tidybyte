@@ -16,6 +16,7 @@
 // and the .md alternates).
 import type { PageMeta } from "../data/page-meta";
 import { PAGES } from "../data/pages";
+import { IOS_VERSION } from "../data/releases";
 import { BASE_LANGUAGE, SITE_LANGUAGES, type SiteLanguage } from "../data/languages";
 import { decodeEntities } from "./llms";
 
@@ -242,7 +243,7 @@ export function localizedHomeContent(lang: SiteLanguage): string {
       `missing generated component ${key} — run scripts/localization/site/build-site-translations.mjs`,
     );
   }
-  return raw.replace(FRONTMATTER, "");
+  return raw.replace(FRONTMATTER, "").replaceAll("{iosVersion}", IOS_VERSION);
 }
 
 /** The generated Astro component for a localized landing page. */
