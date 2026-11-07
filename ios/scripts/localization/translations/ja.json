@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "アルバムに追加する写真がありません。閉じて、もう一度お試しください。",
     "No photos in this category.": "このカテゴリには写真がありません。",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "サイズが%lld MBを超える写真はありません。しきい値を下げるか、「すべて」/「ビデオ」に切り替えてください。",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "圧縮できる2 MBを超える写真はもうありません。HEICの写真はすでに小さいサイズです。",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "圧縮できる%lld MBを超える写真はもうありません。HEICの写真はすでに小さいサイズです。",
     "No savings": "節約なし",
     "No savings — kept original": "節約なし — 元のまま残しました",
     "No screen recordings were found.": "画面収録が見つかりませんでした。",
@@ -854,8 +854,8 @@
     "%lld photos · %@": {
       "other": "%lld枚の写真 · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "other": "%lld枚の2 MBを超える縮小可能な写真"
+    "%lld photos over %lld MB that can shrink": {
+      "other": "%1$lld枚の%2$lld MBを超える縮小可能な写真"
     },
     "%lld Live Photos": {
       "other": "%lld枚のLive Photo"

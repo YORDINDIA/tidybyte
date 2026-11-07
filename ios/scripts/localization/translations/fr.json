@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "Aucune photo n'attend d'être classée. Fermez et réessayez.",
     "No photos in this category.": "Aucune photo dans cette catégorie.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "Aucune photo de plus de %lld MB. Abaissez le seuil ou passez à Tout/Vidéos.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "Il ne reste aucune photo de plus de 2 MB à compresser. Les photos HEIC sont déjà légères.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "Il ne reste aucune photo de plus de %lld MB à compresser. Les photos HEIC sont déjà légères.",
     "No savings": "Aucune économie",
     "No savings — kept original": "Aucune économie — original conservé",
     "No screen recordings were found.": "Aucun enregistrement d'écran n'a été trouvé.",
@@ -892,10 +892,10 @@
       "many": "%lld photos · %@",
       "other": "%lld photos · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld photo de plus de 2 MB qui peut être réduite",
-      "many": "%lld photos de plus de 2 MB qui peuvent être réduites",
-      "other": "%lld photos de plus de 2 MB qui peuvent être réduites"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld photo de plus de %2$lld MB qui peut être réduite",
+      "many": "%1$lld photos de plus de %2$lld MB qui peuvent être réduites",
+      "other": "%1$lld photos de plus de %2$lld MB qui peuvent être réduites"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

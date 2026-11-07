@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "אין תמונה שממתינה לשיוך לאלבום. סגור ונסה שוב.",
     "No photos in this category.": "אין תמונות בקטגוריה הזו.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "אין תמונות גדולות מ-%lld MB. הורד את הסף או עבור אל \"הכול\"/\"סרטונים\".",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "לא נותרו תמונות מעל 2 MB לכיווץ. תמונות HEIC כבר קטנות.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "לא נותרו תמונות מעל %lld MB לכיווץ. תמונות HEIC כבר קטנות.",
     "No savings": "אין חיסכון",
     "No savings — kept original": "אין חיסכון — נשמר המקורי",
     "No screen recordings were found.": "לא נמצאו הקלטות מסך.",
@@ -892,10 +892,10 @@
       "two": "%lld תמונות · %@",
       "other": "%lld תמונות · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld תמונה מעל 2 MB שניתן לקמט",
-      "two": "%lld תמונות מעל 2 MB שניתן לקמט",
-      "other": "%lld תמונות מעל 2 MB שניתן לקמט"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld תמונה מעל %2$lld MB שניתן לקמט",
+      "two": "%1$lld תמונות מעל %2$lld MB שניתן לקמט",
+      "other": "%1$lld תמונות מעל %2$lld MB שניתן לקמט"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

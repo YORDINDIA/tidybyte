@@ -1,6 +1,6 @@
 /** Every format specifier in a string, in order, as `{ token, index }`. */
 export function scanPlaceholders(text) {
-  const pattern = /%(?:(\d+)\$)?(?:\.(\d+))?(?:ll|l|h|hh|z|q)?([@difsuxXeEgGcCpaA]|%)/g;
+  const pattern = /%(?:(\d+)\$)?[-+ #0\x27]*(?:\d+)?(?:\.(\d+))?(?:ll|hh|l|h|z|q|j|t|L)?([@diufsxXoOeEgGcCpaA]|%)/g;
   const found = [];
   let match;
   while ((match = pattern.exec(text)) !== null) {
@@ -31,7 +31,7 @@ export function positionalize(english, translated) {
   // Nothing to do when the order already matches, or the shapes differ (the
   // validator reports shape mismatches separately).
   if (englishTokens.length !== translatedTokens.length) return translated;
-  if (englishTokens.every((token, index) => token.token === translatedTokens[index].token)) {
+  if (argumentsMatch(english, translated)) {
     return translated;
   }
   // Ambiguous when a type repeats: cannot map one occurrence onto another.
@@ -40,9 +40,8 @@ export function positionalize(english, translated) {
   // the index is looked up in. Leaving it in shifted every placeholder after a
   // `%%` by one: "100%% of %@ saved by %lld MB" gave `%3$lld` and `%2$@` for a
   // translation that had swapped only the two real arguments.
-  const englishTypes = englishTokens
-    .filter((token) => token.token !== '%%')
-    .map((token) => token.token);
+  const englishArguments = positionalPlaceholders(english);
+  const englishTypes = englishArguments.map((token) => token.type);
   if (new Set(englishTypes).size !== englishTypes.length) return translated;
 
   // Walk the translated string, replacing each placeholder with the positional
@@ -58,7 +57,7 @@ export function positionalize(english, translated) {
       const englishIndex = englishTypes.indexOf(type);
       if (englishIndex < 0) return translated;
       const bare = match.raw.replace(/^%(?:\d+\$)?/, '');
-      result += `%${englishIndex + 1}$${bare}`;
+      result += `%${englishArguments[englishIndex].position}$${bare}`;
     }
     cursor = match.index + match.raw.length;
   }
@@ -96,19 +95,8 @@ export function argumentsMatch(english, translated) {
 
   if (englishTokens.length !== translatedTokens.length) return false;
 
-  const englishByPosition = new Map(englishTokens.map((token) => [token.position, token.type]));
-  const usesPositional = translatedTokens.some((token, index) => token.position !== index + 1);
-
-  if (!usesPositional) {
-    return englishTokens.every((token, index) => token.type === translatedTokens[index].type);
-  }
-
-  // Every English argument must be consumed exactly once, with its own type.
-  const seen = new Set();
-  for (const token of translatedTokens) {
-    if (seen.has(token.position)) return false;
-    seen.add(token.position);
-    if (englishByPosition.get(token.position) !== token.type) return false;
-  }
-  return seen.size === englishTokens.length;
+  const signature = (tokens) => tokens.map((token) => `${token.position}:${token.type}`).sort();
+  const expected = signature(englishTokens);
+  const actual = signature(translatedTokens);
+  return expected.every((token, index) => token === actual[index]);
 }

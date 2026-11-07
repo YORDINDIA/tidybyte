@@ -7,7 +7,7 @@ final class ProjectArtifactFolderTests: XCTestCase {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let project = root.appendingPathComponent("project", isDirectory: true)
-        let artifact = project.appendingPathComponent(".gradle", isDirectory: true)
+        let artifact = project.appendingPathComponent(".Gradle", isDirectory: true)
         let outside = root.appendingPathComponent("outside/.gradle", isDirectory: true)
         try FileManager.default.createDirectory(at: artifact, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)

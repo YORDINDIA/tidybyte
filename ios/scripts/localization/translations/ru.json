@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "Нет фото, ожидающего помещения в альбом. Закройте и повторите попытку.",
     "No photos in this category.": "В этой категории нет фото.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "Нет фото больше %lld MB. Снизьте порог или переключитесь на «Все»/«Видео».",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "Не осталось фото больше 2 MB для сжатия. Фото HEIC и так небольшие.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "Не осталось фото больше %lld MB для сжатия. Фото HEIC и так небольшие.",
     "No savings": "Без экономии",
     "No savings — kept original": "Без экономии — оригинал сохранен",
     "No screen recordings were found.": "Записи экрана не найдены.",
@@ -911,11 +911,11 @@
       "many": "%lld снимков · %@",
       "other": "%lld снимка · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld снимок больше 2 MB, который можно сжать",
-      "few": "%lld снимка больше 2 MB, которые можно сжать",
-      "many": "%lld снимков больше 2 MB, которые можно сжать",
-      "other": "%lld снимка больше 2 MB, которые можно сжать"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld снимок больше %2$lld MB, который можно сжать",
+      "few": "%1$lld снимка больше %2$lld MB, которые можно сжать",
+      "many": "%1$lld снимков больше %2$lld MB, которые можно сжать",
+      "other": "%1$lld снимка больше %2$lld MB, которые можно сжать"
     },
     "%lld Live Photos": {
       "one": "%lld снимок Live Photo",

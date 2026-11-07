@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "ചേർക്കാൻ കാത്തിരിക്കുന്ന ഫോട്ടോ ഒന്നുമില്ല. അടച്ച് വീണ്ടും ശ്രമിക്കുക.",
     "No photos in this category.": "ഈ വിഭാഗത്തിൽ ഫോട്ടോകളില്ല.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB-യിൽ കൂടുതലുള്ള ഫോട്ടോകൾ ഇല്ല. പരിധി കുറയ്ക്കുക അല്ലെങ്കിൽ എല്ലാം/വീഡിയോകൾ എന്നതിലേക്ക് മാറുക.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "കംപ്രസ് ചെയ്യാൻ 2 MB-യിൽ കൂടുതലുള്ള ഫോട്ടോകൾ അവശേഷിക്കുന്നില്ല. HEIC ഫോട്ടോകൾ ഇതിനകം ചെറുതാണ്.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "കംപ്രസ് ചെയ്യാൻ %lld MB-യിൽ കൂടുതലുള്ള ഫോട്ടോകൾ അവശേഷിക്കുന്നില്ല. HEIC ഫോട്ടോകൾ ഇതിനകം ചെറുതാണ്.",
     "No savings": "ലാഭമില്ല",
     "No savings — kept original": "ലാഭമില്ല — ഒറിജിനൽ നിലനിർത്തി",
     "No screen recordings were found.": "സ്ക്രീൻ റെക്കോർഡിംഗുകൾ ഒന്നും കണ്ടെത്തിയില്ല.",
@@ -873,9 +873,9 @@
       "one": "%lld ഫോട്ടോ · %@",
       "other": "%lld ഫോട്ടോകൾ · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld ഫോട്ടോ 2 MB-ൽ കൂടുതലുള്ളതും ചെറുതാക്കാവുന്നതുമാണ്",
-      "other": "%lld ഫോട്ടോകൾ 2 MB-ൽ കൂടുതലുള്ളവയും ചെറുതാക്കാവുന്നവയുമാണ്"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld ഫോട്ടോ %2$lld MB-ൽ കൂടുതലുള്ളതും ചെറുതാക്കാവുന്നതുമാണ്",
+      "other": "%1$lld ഫോട്ടോകൾ %2$lld MB-ൽ കൂടുതലുള്ളവയും ചെറുതാക്കാവുന്നവയുമാണ്"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

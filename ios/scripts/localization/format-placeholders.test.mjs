@@ -19,3 +19,11 @@ test('reorders distinct arguments without counting literal percent', () => {
   assert.equal(argumentsMatch('%@ %lld', '%2$lld %1$@'), true);
   assert.equal(argumentsMatch('%@ %lld', '%2$@ %1$lld'), false);
 });
+
+test('maps explicit English positions and formatted widths', () => {
+  assert.equal(positionalize('%2$@ %1$lld', '%@ %lld'), '%2$@ %1$lld');
+  assert.equal(argumentsMatch('%2$@ %1$lld', '%@ %lld'), false);
+  assert.equal(argumentsMatch('%2$@ %1$lld', '%lld %@'), true);
+  assert.equal(argumentsMatch('%02d %5.1f %-10s %+d', '%02d %5.1f %-10s'), false);
+  assert.deepEqual(scanPlaceholders('%02d %5.1f %-10s %+d').map((x) => x.token), ['d', 'f', 's', 'd']);
+});

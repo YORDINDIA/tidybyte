@@ -58,7 +58,11 @@ console.log(`  skipped ${KEEP_LITERAL.size} keep-literal entries`);
 // --- Head metadata -------------------------------------------------------
 //
 // The landing page and this extractor read the same plain-text metadata.
-const meta = JSON.parse(readFileSync(join(root, "src", "data", "home-meta.json"), "utf8"));
+const metaPath = join(root, "src", "data", "home-meta.json");
+const meta = JSON.parse(readFileSync(metaPath, "utf8"));
+if (typeof meta.title !== "string" || typeof meta.description !== "string") {
+  throw new Error(`${metaPath}: title and description must be strings`);
+}
 
 writeFileSync(
   join(here, "site-meta.json"),

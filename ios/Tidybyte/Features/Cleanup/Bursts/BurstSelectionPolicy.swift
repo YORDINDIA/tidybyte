@@ -18,7 +18,10 @@ enum BurstSelectionPolicy {
             guard let best = BestAssetSelector.bestByMetadata(from: sorted) else { continue }
             result.append(BurstGroup(id: burstId, assets: sorted, bestAssetId: best.id))
         }
-        return result.sorted { $0.assets.count > $1.assets.count }
+        return result.sorted {
+            if $0.assets.count != $1.assets.count { return $0.assets.count > $1.assets.count }
+            return $0.id < $1.id
+        }
     }
 
     /// What the tool arms by itself: every frame but the keeper, except

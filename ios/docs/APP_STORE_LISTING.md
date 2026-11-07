@@ -378,7 +378,7 @@ The marketing site now has one landing page per cleanup tool, each targeting its
 
 **Shipping cleanup tools** (verified against `Tidybyte/Features/Cleanup/CleanupTool.swift` enum + view directories): Duplicates, Similar Photos, Screenshots, Screen Recordings, Chat Media, Blurry Photos, Smart Categories, Large Files, Burst Photos, Live Photos, Video Compression, Photo Compression — twelve tools, plus on-device AI photo search inside Smart Categories, the Swipe review flow, the Storage dashboard, and the Activity & Savings ledger. **RecentlyDeleted was removed and is intentionally NOT listed.**
 
-**Every claim in §3 maps to shipped functionality.** The "on-device AI search" line describes `Tidybyte/Services/LocalPhotoIntelligence.swift`: FoundationModels when available, keyword label matching otherwise, both local. The "chat media" line describes `ChatAlbumSelection` in `Tidybyte/Features/Cleanup/MediaCleanerViewModel.swift`. If a future release removes either, update §3 and the site's tool pages together.
+**Every claim in §3 maps to shipped functionality.** The "on-device AI search" line describes `Tidybyte/Services/LocalPhotoIntelligence.swift`: FoundationModels when available, keyword label matching otherwise, both local. The "chat media" line describes `ChatAlbumSelection` in `Tidybyte/Features/Cleanup/ChatAlbumSelection.swift`. If a future release removes either, update §3 and the site's tool pages together.
 
 ---
 

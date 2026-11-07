@@ -19,7 +19,7 @@ struct PhotoCompressionView: View {
                 EmptyStateView(
                     icon: CleanupTool.photoCompression.icon,
                     title: "No Large Photos",
-                    message: "No photos over 2 MB are left to compress. HEIC photos are already small.",
+                    message: "No photos over \(PhotoCompressionPolicy.minimumMegabytes) MB are left to compress. HEIC photos are already small.",
                     iconColor: CleanupTool.photoCompression.color,
                     actionTitle: "Show All Photos"
                 ) {
@@ -204,7 +204,7 @@ struct PhotoCompressionView: View {
         HStack(spacing: Spacing.sm) {
             Text(viewModel.showAllPhotos
                  ? "\(viewModel.photos.count) photos"
-                 : "\(viewModel.photos.count) photos over 2 MB that can shrink")
+                 : "\(viewModel.photos.count) photos over \(PhotoCompressionPolicy.minimumMegabytes) MB that can shrink")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()

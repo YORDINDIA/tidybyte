@@ -69,7 +69,7 @@ final class AppViewModel {
     private var suppressAutoscanObserver = false
     /// When the headless `--autoscan` last completed a run (nil = never).
     var lastAutoScanDate: Date? {
-        UserDefaults.standard.object(forKey: AutoScanRunner.lastRunKey) as? Date
+        defaults.object(forKey: AutoScanRunner.lastRunKey) as? Date
     }
     var providerSettings = ProviderSettings()
     var includeAI = false
@@ -929,14 +929,9 @@ final class AppViewModel {
             ($0.userDecision == .approved || $0.userDecision == .alwaysDoThis)
                 && (confirmedActionIDs?.contains($0.id) ?? true)
         }
-        let executableActionTypes: Set<ActionType> = [
-            .moveToTrash, .move, .rename, .tag, .createAlias, .createSymlink,
-            .archive, .runPackageManagerCleanup, .cloneDeduplicate
-        ]
         let executableActions = allApprovedActions
-            .filter { $0.risk <= maximumRisk }
-            .filter { executableActionTypes.contains($0.actionType) }
-        let reviewOnlyCount = allApprovedActions.filter { !executableActionTypes.contains($0.actionType) }.count
+            .filter { $0.risk <= maximumRisk && $0.actionType.isExecutable }
+        let reviewOnlyCount = allApprovedActions.filter { !$0.actionType.isExecutable }.count
         guard !executableActions.isEmpty else {
             isExecuting = false
             if reviewOnlyCount > 0 {
@@ -1304,6 +1299,7 @@ final class AppViewModel {
             for key in SettingsKey.allCases.map(\.rawValue) + AutoScanSettingsKey.allCases.map(\.rawValue) {
                 defaults.removeObject(forKey: key)
             }
+            defaults.removeObject(forKey: AutoScanRunner.lastRunKey)
             statusMessage = String(localized: "All data cleared.")
         } catch {
             errorMessage = error.localizedDescription

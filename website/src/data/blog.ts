@@ -1,7 +1,7 @@
 export interface BlogPostMeta {
   heading: string;
   imageAlt: string;
-  categories: string[];
+  categories: BlogCategory[];
   readingMinutes: number;
   summary?: string;
   // Editorial variants where the structured-data copy differs.
@@ -16,4 +16,6 @@ export const BLOG_CATEGORIES = [
   { id: "storage", label: "Storage" },
   { id: "privacy", label: "Privacy" },
   { id: "reviews", label: "Reviews" },
-];
+] as const;
+
+export type BlogCategory = (typeof BLOG_CATEGORIES)[number]["id"];

@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "没有等待归档的照片。请关闭后重试。",
     "No photos in this category.": "此类别中没有照片。",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "没有大于 %lld MB 的照片。降低阈值或切换到“全部”/“视频”。",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "没有超过 2 MB 的照片需要压缩。HEIC 照片本身已经很小。",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "没有超过 %lld MB 的照片需要压缩。HEIC 照片本身已经很小。",
     "No savings": "无节省",
     "No savings — kept original": "无节省 — 已保留原件",
     "No screen recordings were found.": "未找到屏幕录制。",
@@ -854,8 +854,8 @@
     "%lld photos · %@": {
       "other": "%lld 张照片 · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "other": "%lld 张超过 2 MB 且可缩小的照片"
+    "%lld photos over %lld MB that can shrink": {
+      "other": "%1$lld 张超过 %2$lld MB 且可缩小的照片"
     },
     "%lld Live Photos": {
       "other": "%lld 个 Live Photos"

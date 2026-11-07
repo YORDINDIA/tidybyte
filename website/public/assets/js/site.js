@@ -98,7 +98,7 @@
         document.documentElement.classList.add('theme-switching');
         window.clearTimeout(themeFadeTimer);
         // Fallback when the selected theme does not change the background.
-        themeFadeTimer = window.setTimeout(finishThemeFade, 1000);
+        themeFadeTimer = window.setTimeout(finishThemeFade, 300);
       }
       window.__tidybyteTheme.set(opt.getAttribute('data-theme-option'));
       sync();

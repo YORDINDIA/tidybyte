@@ -107,9 +107,9 @@
     "one": "%lld photo could not be indexed from a local image.",
     "other": "%lld photos could not be indexed from a local image."
   },
-  "%lld photos over 2 MB that can shrink": {
-    "one": "%lld photo over 2 MB that can shrink",
-    "other": "%lld photos over 2 MB that can shrink"
+  "%lld photos over %lld MB that can shrink": {
+    "one": "%1$lld photo over %2$lld MB that can shrink",
+    "other": "%1$lld photos over %2$lld MB that can shrink"
   },
   "%lld photos · %@": {
     "one": "%lld photo · %@",

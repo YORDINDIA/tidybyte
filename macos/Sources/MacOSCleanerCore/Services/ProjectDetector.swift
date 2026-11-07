@@ -59,7 +59,7 @@ public actor ProjectDetector {
         return grouped.map { root, manifestRecords in
             let projectFiles = filesInPrefix(sortedFiles: sortedFiles, sortedPaths: sortedPaths, root: root)
             let generatedFiles = projectFiles.filter { record in
-                record.url.pathComponents.contains(where: { ProjectArtifactFolders.reportable.contains($0) })
+                record.url.pathComponents.contains(where: { ProjectArtifactFolders.reportable.contains($0.lowercased()) })
             }
             let sourceFiles = projectFiles.filter { record in
                 guard record.kind == .regularFile, let fileExtension = record.fileExtension else {

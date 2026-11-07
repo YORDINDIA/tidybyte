@@ -12,6 +12,9 @@ if (!existsSync(home)) throw new Error('Build the site before syncing Netlify ro
 const html = readFileSync(home, 'utf8');
 const languages = [...html.matchAll(/<link rel="alternate" hreflang="[^"]+" href="([^"]+)"/g)]
   .map((match) => new URL(match[1]).pathname).filter((path) => path !== '/');
+if (!languages.length || languages.some((path) => !existsSync(join(dist, `${path.slice(1)}.html`)))) {
+  throw new Error('Built home page is missing valid language alternates');
+}
 const tools = readdirSync(dist).filter((file) => file.endsWith('.html'))
   .filter((file) => /\/assets\/img\/og\//.test(readFileSync(join(dist, file), 'utf8')))
   .map((file) => `/${file.slice(0, -5)}`);

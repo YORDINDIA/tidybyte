@@ -138,7 +138,7 @@ for (const file of htmlFiles()) {
         if (parsed.image !== image) fail("Article image does not match og:image");
       }
       for (const [field, property] of [["datePublished", "article:published_time"], ["dateModified", "article:modified_time"]]) {
-        if (parsed[field]) {
+        if (parsed["@type"] === "Article" && parsed[field]) {
           const tag = html.match(new RegExp(`<meta property="${property}" content="([^"]+)"`))?.[1];
           if (tag !== parsed[field]) fail(`${property} does not match JSON-LD ${field}`);
         }

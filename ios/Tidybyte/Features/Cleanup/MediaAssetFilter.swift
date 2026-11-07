@@ -5,9 +5,7 @@ enum MediaFilter: String, CaseIterable {
     case photos = "Photos"
     case videos = "Videos"
 
-    /// The raw value stays English because it is a stable identity that tests
-    /// match against; only this is shown to the user.
-    /// Literals, not `rawValue`, so the extractor can see them.
+    /// Literals let the localization extractor find the displayed names.
     var displayName: String {
         switch self {
         case .all: L10n.string("All")

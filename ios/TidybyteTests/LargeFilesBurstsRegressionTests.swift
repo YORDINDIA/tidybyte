@@ -264,6 +264,12 @@ final class LargeFilesBurstsRegressionTests: XCTestCase {
         XCTAssertEqual(twoFrame.first?.assets.count, 2)
     }
 
+    func testRebuildGroupsOrdersEqualCountsByIdentifier() {
+        let asset = makeAsset(id: "frame", fileSize: 1, filename: "frame.jpg", pixelWidth: 100, pixelHeight: 100)
+        let groups = BurstSelectionPolicy.rebuildGroups(from: ["z": [asset], "a": [asset]])
+        XCTAssertEqual(groups.map(\.id), ["a", "z"])
+    }
+
     // MARK: - Auto-Clean honors per-group curation (PR #2 finding 1)
 
     func testAutoCleanArmedIdsArmSuggestionsForUntouchedGroups() {

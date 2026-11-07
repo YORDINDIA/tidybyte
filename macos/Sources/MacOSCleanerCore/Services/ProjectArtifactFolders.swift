@@ -10,5 +10,5 @@ enum ProjectArtifactFolders {
         ".turbo", ".parcel-cache", ".vite", "coverage", ".dart_tool"
     ]
 
-    static let reportable = projectBound.union(lowRisk).union(["DerivedData"])
+    static let reportable = projectBound.union(lowRisk).union(["deriveddata"])
 }

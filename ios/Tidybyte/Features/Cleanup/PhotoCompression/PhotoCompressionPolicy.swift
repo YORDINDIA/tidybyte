@@ -1,5 +1,6 @@
 enum PhotoCompressionPolicy {
-    static let minimumBytes: Int64 = 2 * 1_000_000
+    static let minimumMegabytes: Int64 = 2
+    static let minimumBytes: Int64 = minimumMegabytes * 1_000_000
 
     static func candidates(from assets: [AssetSummary], excluding compressedCopies: Set<String>, showAll: Bool) -> [AssetSummary] {
         assets.filter { isCandidate($0, excluding: compressedCopies, showAll: showAll) }

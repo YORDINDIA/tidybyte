@@ -23,7 +23,7 @@ export function blogFilters(pages: PageMeta[]): string {
   const active = "inline-flex cursor-pointer items-center rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
   const inactive = "badge cursor-pointer px-4 py-1.5 text-sm font-medium transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
   return [{ id: "all", label: "All" }, ...BLOG_CATEGORIES].map((category) => {
-    const count = category.id === "all" ? posts.length : posts.filter((post) => post.blog!.categories.includes(category.id)).length;
+    const count = category.id === "all" ? posts.length : posts.filter((post) => post.blog!.categories.some((id) => id === category.id)).length;
     return `<button class="${category.id === "all" ? active : inactive}" data-filter="${category.id}" data-label="${category.label}" aria-pressed="${category.id === "all"}">${category.label} (${count})</button>`;
   }).join("\n          ");
 }

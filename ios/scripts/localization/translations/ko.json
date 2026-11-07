@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "앨범에 넣을 사진이 없습니다. 닫고 다시 시도하세요.",
     "No photos in this category.": "이 카테고리에는 사진이 없습니다.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB보다 큰 사진이 없습니다. 기준을 낮추거나 \"모두\"/\"동영상\"으로 전환하세요.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "압축할 2 MB 초과 사진이 남아 있지 않습니다. HEIC 사진은 이미 작습니다.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "압축할 %lld MB 초과 사진이 남아 있지 않습니다. HEIC 사진은 이미 작습니다.",
     "No savings": "절약 없음",
     "No savings — kept original": "절약 없음 — 원본 유지됨",
     "No screen recordings were found.": "화면 기록을 찾을 수 없습니다.",
@@ -854,8 +854,8 @@
     "%lld photos · %@": {
       "other": "%lld장의 사진 · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "other": "2 MB를 넘어 줄일 수 있는 %lld장의 사진"
+    "%lld photos over %lld MB that can shrink": {
+      "other": "%2$lld MB를 넘어 줄일 수 있는 %1$lld장의 사진"
     },
     "%lld Live Photos": {
       "other": "%lld장의 Live Photo"

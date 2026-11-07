@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "لا توجد صورة في انتظار الحفظ في ألبوم. أغلق وحاول مرة أخرى.",
     "No photos in this category.": "لا توجد صور في هذه الفئة.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "لا توجد صور أكبر من %lld MB. خفّض الحد أو بدّل إلى «الكل»/«الفيديوهات».",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "لم تبقَ صور أكبر من 2 MB لضغطها. صور HEIC صغيرة بالفعل.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "لم تبقَ صور أكبر من %lld MB لضغطها. صور HEIC صغيرة بالفعل.",
     "No savings": "بلا توفير",
     "No savings — kept original": "بلا توفير — تم الاحتفاظ بالأصل",
     "No screen recordings were found.": "لم يُعثر على تسجيلات شاشة.",
@@ -949,13 +949,13 @@
       "many": "%lld صورةً · %@",
       "other": "%lld صورة · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "zero": "%lld صور أكبر من 2 MB يمكن تصغيرها",
-      "one": "%lld صورة أكبر من 2 MB يمكن تصغيرها",
-      "two": "%lld صورتان أكبر من 2 MB يمكن تصغيرهما",
-      "few": "%lld صور أكبر من 2 MB يمكن تصغيرها",
-      "many": "%lld صورة أكبر من 2 MB يمكن تصغيرها",
-      "other": "%lld صورة أكبر من 2 MB يمكن تصغيرها"
+    "%lld photos over %lld MB that can shrink": {
+      "zero": "%1$lld صور أكبر من %2$lld MB يمكن تصغيرها",
+      "one": "%1$lld صورة أكبر من %2$lld MB يمكن تصغيرها",
+      "two": "%1$lld صورتان أكبر من %2$lld MB يمكن تصغيرهما",
+      "few": "%1$lld صور أكبر من %2$lld MB يمكن تصغيرها",
+      "many": "%1$lld صورة أكبر من %2$lld MB يمكن تصغيرها",
+      "other": "%1$lld صورة أكبر من %2$lld MB يمكن تصغيرها"
     },
     "%lld Live Photos": {
       "zero": "%lld Live Photo",

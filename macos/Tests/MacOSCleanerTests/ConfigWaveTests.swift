@@ -41,7 +41,7 @@ final class ConfigWaveTests: XCTestCase {
         "selectedMode", "selectedFolderPaths", "cleanupPosture", "includeAI",
         "providerName", "apiBaseURL", "textModel", "maxTokens", "temperature", "privacyMode",
         "exploreViewKind", "exploreGrouping", "exploreDepth"
-    ] + AutoScanSettingsKey.allCases.map(\.rawValue)
+    ] + AutoScanSettingsKey.allCases.map(\.rawValue) + [AutoScanRunner.lastRunKey]
 
     func testProviderSettingsDefaultsToLocalOnlyPrivacy() {
         let settings = ProviderSettings()
@@ -62,8 +62,12 @@ final class ConfigWaveTests: XCTestCase {
         for key in persistedKeys {
             defaults.set("value-\(key)", forKey: key)
         }
+        let lastRun = Date(timeIntervalSince1970: 1_700_000_000)
+        defaults.set(lastRun, forKey: AutoScanRunner.lastRunKey)
         let model = try makeModel(defaults: defaults)
+        XCTAssertEqual(model.lastAutoScanDate, lastRun)
         await model.clearAllData()
+        XCTAssertNil(model.lastAutoScanDate)
         for key in persistedKeys {
             XCTAssertNil(defaults.object(forKey: key), "Key \(key) must be cleared by clearAllData")
         }

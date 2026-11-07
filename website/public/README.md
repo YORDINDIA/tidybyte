@@ -165,7 +165,7 @@ check` only verifies that the generated cards exist and needs no browser.)
   resolve, and the sitemap lists every page at the right priority. Every
   sitemap URL must also resolve to a generated `.md` alternate, because
   `llms.txt` promises one.
-- **`og-cards.mjs --check`** — every tool page's `og:image` was actually built.
+- **`og-cards.mjs --check`** — validates each card's dimensions and manifest hashes. Run `npm run og` after changing card text, template, font, or render settings, and commit `assets/img/og/manifest.json` with the cards.
 
 The `og` script renders cards with Playwright (Chromium), reading titles from
 the built HTML so a card can never advertise a title the page no longer uses.

@@ -45,3 +45,9 @@ test("does not treat entity-only text as translatable", () => {
   assert.equal(isTranslatable("42 ·"), false);
   assert.equal(isTranslatable("Hello &middot; world"), true);
 });
+
+test("visits text containing a greater-than sign as one string", () => {
+  const seen = [];
+  mapMarkupStrings("<p>More > less</p>", (value) => { seen.push(value); return value; });
+  assert.deepEqual(seen, ["More > less"]);
+});

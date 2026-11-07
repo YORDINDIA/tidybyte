@@ -9,7 +9,7 @@ export function isTranslatable(text) {
 export function mapMarkupStrings(source, transform) {
   return source.split(OPAQUE).map((chunk, index) => {
     if (index % 2 === 1) return chunk;
-    const text = chunk.replace(/(^|>)([^<>]+)(?=<|$)/g, (_, prefix, value) => `${prefix}${transform(value, "text")}`);
+    const text = chunk.replace(/(^|>)([^<]+)(?=<|$)/g, (_, prefix, value) => `${prefix}${transform(value, "text")}`);
     const attributes = new RegExp(`\\b(${TEXT_ATTRIBUTES.join("|")})="([^"]*)"`, "g");
     return text.replace(attributes, (_, name, value) => `${name}="${transform(value, "attribute")}"`);
   }).join("");
