@@ -874,7 +874,7 @@
       "other": "%lld फ़ोटो · %@"
     },
     "%lld photos over %lld MB that can shrink": {
-      "one": "%1$lld फ़ोटो जो %2$lld MB से बड़ी हैं और घटाई जा सकती हैं",
+      "one": "%1$lld फ़ोटो जो %2$lld MB से बड़ी है और घटाई जा सकती है",
       "other": "%1$lld फ़ोटो जो %2$lld MB से बड़ी हैं और घटाई जा सकती हैं"
     },
     "%lld Live Photos": {
