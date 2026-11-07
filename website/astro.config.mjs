@@ -1,44 +1,16 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { TOOLS } from './src/data/tools.ts';
+import { SITE_LANGUAGES } from './src/data/languages.ts';
 
 // Static marketing site. HTML is minified at build time; pretty URLs use
 // build.format 'preserve' (blog/index.astro -> blog/index.html,
 // [slug].astro -> blog/<slug>.html) plus Netlify redirects.
 //
-// Tool landing pages (src/data/tools.ts, rendered by src/pages/[page].astro)
-// get their own sitemap priority: they carry the commercial intent, so they
-// rank above blog posts but below the home page. The slug list is duplicated
-// here because the Astro config cannot import the app's TypeScript data;
-// scripts/seo-audit.mjs fails the build check if a built page is missing
-// from the sitemap, which keeps the two in sync.
-const TOOL_ROUTES = [
-  "/photo-cleaner",
-  "/storage-cleaner",
-  "/duplicate-photo-cleaner",
-  "/similar-photo-cleaner",
-  "/screenshot-cleaner",
-  "/screen-recording-cleaner",
-  "/chat-media-cleaner",
-  "/blurry-photo-cleaner",
-  "/large-file-cleaner",
-  "/burst-photo-cleaner",
-  "/live-photo-converter",
-  "/video-compression",
-  "/image-compression",
-  "/photo-organizer",
-  "/on-device-ai-photo-search",
-  "/free-photo-cleaner-no-subscription",
-];
-
-// Language slugs, mirrored from src/data/languages.ts (the Astro config
-// cannot import the site's TypeScript data). Localized landing pages carry
-// the same commercial intent as "/", so they get the same priority.
-const LANG_ROUTES = [
-  '/hi', '/bn', '/ta', '/te', '/mr', '/gu', '/kn', '/ml', '/pa',
-  '/es', '/fr', '/de', '/pt-br', '/it', '/ja', '/ko', '/zh-hans',
-  '/ru', '/ar', '/he',
-];
+// Sitemap priority follows the same route data used to build the pages.
+const TOOL_ROUTES = new Set(TOOLS.map((tool) => `/${tool.slug}`));
+const LANG_ROUTES = new Set(SITE_LANGUAGES.map((language) => `/${language.slug}`));
 
 export default defineConfig({
   site: 'https://tidybyte.yord.si',
@@ -56,10 +28,10 @@ export default defineConfig({
         // language: same priority, and the hreflang block in the HTML is
         // what tells a crawler they are alternates rather than 21 pages
         // fighting for one query.
-        if (path === '/' || LANG_ROUTES.includes(path)) {
+        if (path === '/' || LANG_ROUTES.has(path)) {
           item.changefreq = 'weekly';
           item.priority = 1.0;
-        } else if (TOOL_ROUTES.includes(path)) {
+        } else if (TOOL_ROUTES.has(path)) {
           item.changefreq = 'monthly';
           item.priority = 0.9;
         } else if (path === '/blog') {

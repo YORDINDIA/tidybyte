@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-features" class="badge">Features</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Use TidyByte: Complete Beginner's Guide</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">TidyByte is a free, open-source iPhone app that helps you reclaim storage by swiping through your photos the same way you would on a dating app. This guide walks you through every step &mdash; from downloading the app to mastering advanced cleanup tools &mdash; so you can free up gigabytes of space in a single sitting.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>8 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-use-tidybyte.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-use-tidybyte.webp" alt="Clay illustration: a chunky clay hand flicking a photograph card off a smartphone screen" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-use-tidybyte.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>

@@ -1,38 +1,5 @@
 import SwiftUI
 
-enum LargeFileFilter: String, CaseIterable {
-    case all = "All"
-    case photos = "Photos"
-    case videos = "Videos"
-
-    /// The raw value stays English because it is a stable identity used in
-    /// tests and persisted selections; only this is shown to the user.
-    /// Literals, not `rawValue`, so the extractor can see them.
-    var displayName: String {
-        switch self {
-        case .all: L10n.string("All")
-        case .photos: L10n.string("Photos")
-        case .videos: L10n.string("Videos")
-        }
-    }
-}
-
-enum LargeFileSortOrder: String, CaseIterable {
-    case largest = "Largest"
-    case newest = "Newest"
-    case oldest = "Oldest"
-    case filename = "Filename"
-
-    var displayName: String {
-        switch self {
-        case .largest: L10n.string("Largest")
-        case .newest: L10n.string("Newest")
-        case .oldest: L10n.string("Oldest")
-        case .filename: L10n.string("Filename")
-        }
-    }
-}
-
 @Observable
 @MainActor
 final class LargeFilesViewModel {
@@ -44,10 +11,10 @@ final class LargeFilesViewModel {
     var selectedIds: Set<String> = [] {
         didSet { refreshTotals() }
     }
-    var mediaFilter: LargeFileFilter = .all {
+    var mediaFilter: MediaFilter = .all {
         didSet { invalidateFilterCache() }
     }
-    var sortOrder: LargeFileSortOrder = .largest {
+    var sortOrder: MediaSortOrder = .largest {
         didSet { invalidateFilterCache() }
     }
     var errorMessage: String?
@@ -75,11 +42,19 @@ final class LargeFilesViewModel {
     /// (LF-09).
     private(set) var shareExportFolder: URL?
     private var shareTask: Task<Void, Never>?
+    private var shareGeneration: UUID?
+    typealias ShareExporter = @MainActor ([String], @escaping @MainActor @Sendable (Int, Int) -> Void) async -> (folder: URL, urls: [URL])
+    private let shareExporter: ShareExporter
+
+    init(shareExporter: @escaping ShareExporter = { ids, progress in
+        await PhotoLibraryService.shared.exportAssetsForSharing(identifiers: ids, onProgress: progress)
+    }) {
+        self.shareExporter = shareExporter
+    }
     /// Names of export folders a presented share sheet still reads. Static
     /// because the orphan sweep is static and must see every instance's folders.
     private static var liveShareExportFolderNames = Set<String>()
-    /// Exports running in any instance. Their folder is not known until the
-    /// export returns, so the sweep must not run while this is non-zero.
+    /// The sweep must not remove folders belonging to an export in progress.
     private static var activeShareExports = 0
 
     /// Live view of the persisted preference (LF-06): never diverges from what
@@ -147,9 +122,8 @@ final class LargeFilesViewModel {
     }
 
     private func rebuildFiltered(threshold: Int64) {
-        let result = Self.computeFilteredAssets(
-            from: assets,
-            threshold: threshold,
+        let result = MediaAssetFilter.apply(
+            from: assets.filter { $0.fileSize >= threshold },
             mediaFilter: mediaFilter,
             sortOrder: sortOrder
         )
@@ -183,34 +157,6 @@ final class LargeFilesViewModel {
         // delete, control changes), and this keeps the cached totals exact on
         // the very next render instead of one pass behind.
         refreshTotals()
-    }
-
-    /// Pure filter+sort pipeline so the cached getter stays a thin wrapper and
-    /// ordering semantics are easy to pin down in tests.
-    static func computeFilteredAssets(
-        from assets: [AssetSummary],
-        threshold: Int64,
-        mediaFilter: LargeFileFilter,
-        sortOrder: LargeFileSortOrder
-    ) -> [AssetSummary] {
-        var result = assets.filter { $0.fileSize >= threshold }
-        switch mediaFilter {
-        case .all: break
-        case .photos: result = result.filter { $0.mediaType == .photo }
-        case .videos: result = result.filter { $0.mediaType == .video }
-        }
-        switch sortOrder {
-        case .largest:
-            return result.sorted { $0.fileSize > $1.fileSize }
-        case .newest:
-            return result.sorted { ($0.creationDate ?? .distantPast) > ($1.creationDate ?? .distantPast) }
-        case .oldest:
-            return result.sorted { ($0.creationDate ?? .distantPast) < ($1.creationDate ?? .distantPast) }
-        case .filename:
-            return result.sorted {
-                ($0.filename ?? "").localizedCaseInsensitiveCompare($1.filename ?? "") == .orderedAscending
-            }
-        }
     }
 
     var totalSize: Int64 {
@@ -355,6 +301,8 @@ final class LargeFilesViewModel {
         let ids = visibleSelectedIds
         guard !ids.isEmpty, !isPreparingShare else { return }
         isPreparingShare = true
+        let generation = UUID()
+        shareGeneration = generation
         shareProgress = (0, ids.count)
         // D10 (LF-09 residual): sweep leftovers from previous sessions FIRST —
         // e.g. an export that finished after the user navigated back, whose
@@ -368,35 +316,35 @@ final class LargeFilesViewModel {
         // cleanup below always runs, even if the owning view is torn down while
         // the export is in flight.
         shareTask = Task {
-            let urls = await self.photoService.exportAssetsForSharing(identifiers: ids) { [weak self] completed, total in
-                self?.shareProgress = (completed, total)
+            let export = await self.shareExporter(ids) { [weak model = self] completed, total in
+                guard model?.shareGeneration == generation else { return }
+                model?.shareProgress = (completed, total)
             }
             Self.activeShareExports -= 1
-            let folder = urls.first?.deletingLastPathComponent()
+            let (folder, urls) = export
+            guard self.shareGeneration == generation, !Task.isCancelled else {
+                Self.removeExportFolder(at: folder)
+                return
+            }
+            self.shareGeneration = nil
+            self.shareTask = nil
             self.shareExportFolder = folder
             if urls.isEmpty {
-                // Every resource failed to write. The temp folder's name is only
-                // known inside the service, so sweep the app's export folders.
-                // Skipped while another instance's export is still running.
-                if Self.activeShareExports == 0 {
-                    Self.removeOrphanedShareExportFolders(keeping: Self.liveShareExportFolderNames)
-                }
+                Self.removeExportFolder(at: folder)
                 self.shareExportFolder = nil
                 self.errorMessage = L10n.string("Couldn't prepare the selected items to share.")
-            } else if !Task.isCancelled {
+            } else {
                 // Folder stays on disk until the share sheet is dismissed, and
                 // is protected from the sweep until then.
-                if let folder { Self.liveShareExportFolderNames.insert(folder.lastPathComponent) }
+                Self.liveShareExportFolderNames.insert(folder.lastPathComponent)
                 self.sharePayload = SharePayload(urls: urls)
-            } else {
-                if let folder { Self.removeExportFolder(at: folder) }
-                self.shareExportFolder = nil
             }
             self.isPreparingShare = false
         }
     }
 
     func cancelShare() {
+        shareGeneration = nil
         shareTask?.cancel()
         shareTask = nil
         isPreparingShare = false
@@ -417,9 +365,7 @@ final class LargeFilesViewModel {
         try? FileManager.default.removeItem(at: folder)
     }
 
-    /// Removes leftover `ShareExport-*` temp folders (used on the all-fail path
-    /// where the exact folder name is unknowable from the VM). Folders whose
-    /// name is in `live` are kept: a share sheet still reads them.
+    /// Removes folders left by previous exports, except those in active sheets.
     static func removeOrphanedShareExportFolders(
         in directory: URL = FileManager.default.temporaryDirectory,
         keeping live: Set<String> = []
@@ -427,7 +373,7 @@ final class LargeFilesViewModel {
         guard let contents = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else {
             return
         }
-        for url in contents where url.lastPathComponent.hasPrefix("ShareExport-") && !live.contains(url.lastPathComponent) {
+        for url in contents where url.lastPathComponent.hasPrefix(PhotoLibraryService.shareExportFolderPrefix) && !live.contains(url.lastPathComponent) {
             try? FileManager.default.removeItem(at: url)
         }
     }

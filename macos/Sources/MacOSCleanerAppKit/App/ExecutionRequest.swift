@@ -82,17 +82,10 @@ extension AppViewModel {
         return try? encoder.encode(plan)
     }
 
-    static func isSupportedOperation(_ type: ActionType) -> Bool {
-        switch type {
-        case .moveToTrash, .move, .rename, .tag, .createAlias, .createSymlink, .archive, .runPackageManagerCleanup, .cloneDeduplicate: true
-        default: false
-        }
-    }
-
     func pendingExecutableActions(upTo maximumRisk: RiskLevel = .high) -> [PlannedAction] {
         approvedActions(for: maximumRisk).filter {
             $0.executedAt == nil && $0.status != .completed && $0.status != .failed
-                && $0.risk != .forbidden && Self.isSupportedOperation($0.actionType)
+                && $0.risk != .forbidden && $0.actionType.isExecutable
         }
     }
 

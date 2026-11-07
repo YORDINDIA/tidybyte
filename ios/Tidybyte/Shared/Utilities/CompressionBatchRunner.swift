@@ -173,7 +173,7 @@ final class CompressionSwap {
     /// Pass `replacementAbsent: true` when the caller already proved the
     /// journaled copy is gone: the journal then settles the row instead of
     /// asking PhotoKit to delete an asset it knows is absent.
-    func markFailed(assetId: String, replacementAbsent: Bool = false) async {
+    func markFailed(replacementAbsent: Bool = false) async {
         guard beginFinish() else { return }
         await CompressionJournal.markPendingFailed(
             assetId: assetId,
@@ -183,7 +183,7 @@ final class CompressionSwap {
         endFinish()
     }
 
-    func markSkipped(assetId: String) async {
+    func markSkipped() async {
         guard beginFinish() else { return }
         await CompressionJournal.markPendingSkipped(assetId: assetId, modelContext: modelContext)
         endFinish()
@@ -414,7 +414,7 @@ enum OriginalsCommit {
                 // asking it to delete an asset we just proved absent — that
                 // delete reports not-gone and would leave the row pending
                 // forever, retried by every later reconcile.
-                await item.swap.markFailed(assetId: item.assetId, replacementAbsent: true)
+                await item.swap.markFailed(replacementAbsent: true)
                 failed.append(item)
                 continue
             }

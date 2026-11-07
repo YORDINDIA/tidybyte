@@ -5,6 +5,9 @@
 // loader for them; routes import it and inject the result with
 // <Fragment set:html> inside src/layouts/SiteLayout.astro.
 import type { PageMeta } from "../data/page-meta";
+import { PAGES } from "../data/pages";
+import { IOS_VERSION, MAC_DOWNLOAD_URL, MAC_VERSION } from "../data/releases";
+import { blogCards, blogFilters, blogPosts, categoryLabel, dateLabel } from "./blog-index";
 
 const contentFiles = import.meta.glob("../content/pages/*.html", {
   query: "?raw",
@@ -17,7 +20,27 @@ export function bodyFor(contentFile: string): string {
   const key = `../content/pages/${contentFile}.html`;
   const raw = contentFiles[key];
   if (!raw) throw new Error(`missing content file ${key}`);
-  return raw;
+  let body = raw.replaceAll("{{MAC_DOWNLOAD_URL}}", MAC_DOWNLOAD_URL).replaceAll("{{MAC_VERSION}}", MAC_VERSION)
+    .replaceAll("{iosVersion}", IOS_VERSION);
+  const meta = PAGES.find((page) => page.contentFile === contentFile);
+  if (meta?.blog) {
+    if (!meta.datePublished) throw new Error(`missing publication date for ${meta.route}`);
+    const date = meta.datePublished.slice(0, 10);
+    const category = meta.blog.categories[0];
+    body = body.replaceAll("{{BLOG_HEADING}}", meta.blog.heading)
+      .replaceAll("{{BLOG_IMAGE_ALT}}", meta.blog.imageAlt)
+      .replaceAll("{{BLOG_DATE}}", date)
+      .replaceAll("{{BLOG_DATE_LABEL}}", dateLabel(date))
+      .replaceAll("{{BLOG_READING_MINUTES}}", String(meta.blog.readingMinutes))
+      .replaceAll("{{BLOG_PRIMARY_CATEGORY}}", category)
+      .replaceAll("{{BLOG_PRIMARY_LABEL}}", categoryLabel(category));
+  }
+  if (contentFile === "blog-index") {
+    body = body.replaceAll("{{BLOG_COUNT}}", String(blogPosts(PAGES).length))
+      .replace("<!-- BLOG_FILTERS -->", blogFilters(PAGES))
+      .replace("<!-- BLOG_CARDS -->", blogCards(PAGES));
+  }
+  return body;
 }
 
 /**

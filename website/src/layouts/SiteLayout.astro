@@ -55,9 +55,8 @@ function decodeEntities(s: string): string {
     .trim();
 }
 
-/** Pull datePublished/dateModified out of the Article JSON-LD block. */
-const pub = meta.headTail.match(/"datePublished":\s*"([^"]+)"/)?.[1] ?? null;
-const mod = meta.headTail.match(/"dateModified":\s*"([^"]+)"/)?.[1] ?? null;
+const pub = meta.datePublished ?? null;
+const mod = meta.dateModified ?? null;
 
 // /404 must never appear in search results.
 const robots = meta.route === "/404" ? "noindex, follow" : meta.robots;

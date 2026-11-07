@@ -95,11 +95,7 @@ final class CompressionRegressionTests: XCTestCase {
         swap.finalizeKeptBoth()
         XCTAssertEqual(CompressionJournal.savedCopyIds(modelContext: context), ["copy-1"])
 
-        await CompressionJournal.markPendingFailed(
-            assetId: "kept-gone",
-            replacementAbsent: true,
-            modelContext: context
-        )
+        await swap.markFailed(replacementAbsent: true)
 
         XCTAssertNil(CompressionJournal.savedCopyIds(modelContext: context).first, "the absent copy must leave `savedCopyIds`")
         let record = try XCTUnwrap(
@@ -108,6 +104,22 @@ final class CompressionRegressionTests: XCTestCase {
         XCTAssertEqual(record.outcome, "failed")
         XCTAssertNil(record.replacementAssetLocalIdentifier)
         XCTAssertEqual(record.compressedSizeBytes, 0)
+    }
+
+    func testSwapSettlesOnlyItsOwnJournalRow() async throws {
+        let schema = Schema([CompressionRecord.self])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = container.mainContext
+        let first = try CompressionSwap(mediaType: .video, assetId: "first", originalSize: 100, exportPreset: "720p", modelContext: context)
+        let second = try CompressionSwap(mediaType: .video, assetId: "second", originalSize: 100, exportPreset: "720p", modelContext: context)
+
+        await first.markSkipped()
+        let records = try context.fetch(FetchDescriptor<CompressionRecord>())
+        XCTAssertEqual(records.first { $0.assetLocalIdentifier == "first" }?.outcome, "skipped")
+        XCTAssertEqual(records.first { $0.assetLocalIdentifier == "second" }?.outcome, "pending")
+        await second.markFailed()
+        XCTAssertEqual(records.first { $0.assetLocalIdentifier == "second" }?.outcome, "failed")
     }
 
     func testPhotoCompressionCandidatesSkipCopiesSmallAndHEIC() {
@@ -126,9 +138,9 @@ final class CompressionRegressionTests: XCTestCase {
             photo("copy", size: 5_000_000, file: "IMG_4.JPG"),
             photo("live", size: 5_000_000, file: "IMG_5.JPG", live: true)
         ]
-        let large = PhotoCompressionViewModel.candidates(from: assets, excluding: ["copy"], showAll: false)
+        let large = PhotoCompressionPolicy.candidates(from: assets, excluding: ["copy"], showAll: false)
         XCTAssertEqual(large.map(\.id), ["big-jpg"])
-        let all = PhotoCompressionViewModel.candidates(from: assets, excluding: ["copy"], showAll: true)
+        let all = PhotoCompressionPolicy.candidates(from: assets, excluding: ["copy"], showAll: true)
         XCTAssertEqual(all.map(\.id), ["big-jpg", "small-jpg", "big-heic"], "a compressed copy and a Live Photo are never listed")
     }
 
@@ -219,6 +231,17 @@ final class CompressionRegressionTests: XCTestCase {
         let asset = makeAsset(id: "a", pixelWidth: 0, pixelHeight: 0)
         let preset = VideoCompressionService.effectivePreset(for: asset, selected: CompressionPreset.presets[0])
         XCTAssertEqual(preset.id, "480p")
+    }
+
+    func testEstimateUsesEffectivePresetAndCustomFallback() {
+        let asset = makeAsset(id: "a", pixelWidth: 1280, pixelHeight: 720)
+        let model = VideoCompressionViewModel()
+        let standard = VideoItem(id: "a", asset: asset, selectedPreset: CompressionPreset.presets[0])
+        XCTAssertEqual(model.estimateSize(for: standard), 5_000_000)
+        let custom = CompressionPreset(id: "custom", label: "Custom", preset: "custom", description: "")
+        let customItem = VideoItem(id: "a", asset: asset, selectedPreset: custom)
+        XCTAssertEqual(VideoCompressionService.effectivePreset(for: asset, selected: custom).id, "custom")
+        XCTAssertEqual(model.estimateSize(for: customItem), 7_500_000)
     }
 
     // MARK: - COMP-12: deterministic batch order

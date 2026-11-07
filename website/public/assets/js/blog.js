@@ -8,16 +8,6 @@
 
   var PER_PAGE = 12;
 
-  var CATS = ['features', 'privacy', 'reviews', 'storage', 'tutorials', 'comparisons'];
-  var CAT_LABELS = {
-    features: 'Features',
-    privacy: 'Privacy',
-    reviews: 'Reviews',
-    storage: 'Storage',
-    tutorials: 'Tutorials',
-    comparisons: 'Comparisons'
-  };
-
   var FOCUS_RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40';
   var CHIP_ACTIVE = 'inline-flex cursor-pointer items-center rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-on-primary transition ' + FOCUS_RING;
   var CHIP_INACTIVE = 'badge cursor-pointer px-4 py-1.5 text-sm font-medium transition hover:text-ink ' + FOCUS_RING;
@@ -27,6 +17,9 @@
   var grid = document.getElementById('blog-list');
   var cards = grid ? Array.prototype.slice.call(grid.querySelectorAll('article[data-cats]')) : [];
   var chips = Array.prototype.slice.call(document.querySelectorAll('[data-filter]'));
+  var CATS = chips.map(function (chip) { return chip.getAttribute('data-filter'); }).filter(function (id) { return id !== 'all'; });
+  var CAT_LABELS = {};
+  chips.forEach(function (chip) { CAT_LABELS[chip.getAttribute('data-filter')] = chip.getAttribute('data-label'); });
   var gridHeading = document.getElementById('grid-heading');
   var resultCount = document.getElementById('result-count');
   var pagination = document.getElementById('pagination');

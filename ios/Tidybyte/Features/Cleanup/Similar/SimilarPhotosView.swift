@@ -9,7 +9,7 @@ struct SimilarPhotosView: View {
     // Shared with the Settings mirror on the same key — @AppStorage is the single
     // source of truth, so a change in either screen is observed by the other (the
     // value is invisible to @Observable if held on the VM, hence it lives here).
-    @AppStorage(AppPreferences.Key.similarPhotoTimeWindow) private var timeWindow: Double = 5.0
+    @AppStorage(AppPreferences.Key.similarPhotoTimeWindow) private var timeWindow: Double = AppPreferences.Default.similarPhotoTimeWindow
     private let photoService = PhotoLibraryService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 

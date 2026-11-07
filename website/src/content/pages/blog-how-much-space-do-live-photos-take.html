@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-storage" class="badge">Storage</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How Much Space Do Live Photos Take Up on iPhone?</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Live Photos are one of the iPhone's most charming features, but they silently consume far more storage than regular stills. If you have ever wondered how much space do Live Photos take and whether they are the reason your iPhone keeps running out of room, this guide breaks down the exact numbers, explains why the difference exists, and shows you practical ways to reclaim gigabytes without losing memories.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>10 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-much-space-do-live-photos-take.avif" type="image/avif">
-      <img src="/assets/img/blog/how-much-space-do-live-photos-take.webp" alt="Clay illustration: a yellow clay measuring tape wrapped around a thick stack of photographs" width="1400" height="933"
+      <img src="/assets/img/blog/how-much-space-do-live-photos-take.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>

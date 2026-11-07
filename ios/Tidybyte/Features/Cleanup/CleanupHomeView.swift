@@ -9,7 +9,7 @@ struct CleanupHomeView: View {
     @State private var viewModel = CleanupHomeViewModel()
 
     /// Replacement-copy ids persisted by the compression flows. The badge must
-    /// exclude them exactly like `PhotoCompressionViewModel.candidates` does,
+    /// exclude them exactly like `PhotoCompressionPolicy.candidates` does,
     /// or the home screen shows a stale nonzero badge after compression.
     private func savedReplacementIds() -> Set<String> {
         CompressionJournal.savedCopyIds(modelContext: modelContext)

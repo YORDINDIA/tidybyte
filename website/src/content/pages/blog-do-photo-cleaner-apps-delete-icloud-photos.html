@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-storage" class="badge">Storage</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">Do Photo Cleaner Apps Delete iCloud Photos Too?</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">If you have ever hesitated before tapping &ldquo;delete&rdquo; in a photo cleaner app, you are not alone. The fear of losing photos from iCloud is one of the top reasons people avoid cleaning up their libraries. The short answer is yes&mdash;deletions do sync to iCloud. But the full picture is more nuanced, and there are concrete steps you can take to clean your library without losing anything you care about.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>11 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/do-photo-cleaner-apps-delete-icloud-photos.avif" type="image/avif">
-      <img src="/assets/img/blog/do-photo-cleaner-apps-delete-icloud-photos.webp" alt="Clay illustration: a chubby clay cloud floating safely above a clay smartphone" width="1400" height="933"
+      <img src="/assets/img/blog/do-photo-cleaner-apps-delete-icloud-photos.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>

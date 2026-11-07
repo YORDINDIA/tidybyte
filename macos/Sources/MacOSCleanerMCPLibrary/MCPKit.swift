@@ -155,15 +155,15 @@ public actor MCPKit {
     private func callTool(name: String, arguments: [String: Any]) async throws -> String {
         if let monitorResult = await MonitorToolRouter.handle(name: name) { return monitorResult }
 
-        switch name {
-        case "scan": return try await toolScan(arguments)
-        case "list_findings": return try toolListFindings(arguments)
-        case "show_plan": return try toolShowPlan(arguments)
-        case "check_finding": return try await toolCheckFinding(arguments)
-        case "execute": return try await toolExecute(arguments)
-        case "history": return try await toolHistory()
-        case "undo": return try await toolUndo(arguments)
-        default: throw MCPError.unknownTool(name)
+        guard let tool = MCPCleanupTool(rawValue: name) else { throw MCPError.unknownTool(name) }
+        switch tool {
+        case .scan: return try await toolScan(arguments)
+        case .listFindings: return try toolListFindings(arguments)
+        case .showPlan: return try toolShowPlan(arguments)
+        case .checkFinding: return try await toolCheckFinding(arguments)
+        case .execute: return try await toolExecute(arguments)
+        case .history: return try await toolHistory()
+        case .undo: return try await toolUndo(arguments)
         }
     }
 

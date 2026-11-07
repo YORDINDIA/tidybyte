@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-tutorials" class="badge">Tutorials</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Manage Live Photos and Save Space on iPhone</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Live Photos turn every shutter press into a mini video, but most iPhone owners never asked for the feature and have no idea how much space those silent clips are eating up. This guide covers everything you need to manage Live Photos on iPhone &mdash; what they are, exactly how much storage they consume, how to turn off automatic capture, how to convert them to stills, and how TidyByte can handle the entire cleanup in minutes instead of hours.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>10 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-manage-live-photos-iphone.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-manage-live-photos-iphone.webp" alt="Clay illustration: a clay photograph with gentle ripple lines around it and a chunky pause button floating at its corner" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-manage-live-photos-iphone.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>

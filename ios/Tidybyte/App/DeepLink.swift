@@ -13,12 +13,12 @@ enum DeepLink: Sendable, Equatable {
 
     /// Parses `tidybyte://<host>[/<tool>]` URLs used by the widget.
     static func from(url: URL) -> DeepLink? {
-        guard url.scheme == "tidybyte" else { return nil }
+        guard url.scheme == WidgetLinks.storage.scheme else { return nil }
         switch url.host {
-        case "storage": return .storage
+        case WidgetLinks.storage.host: return .storage
         case "activity": return .activity
         case "swipe": return .swipe
-        case "cleanup":
+        case WidgetLinks.screenshots.host:
             if let segment = url.pathComponents.first(where: { $0 != "/" }),
                let tool = CleanupTool(rawValue: segment) {
                 return .cleanupTool(tool)

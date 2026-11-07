@@ -8,6 +8,13 @@ public enum PolicyDecision: Sendable, Equatable {
 }
 
 public struct PathSafetyPolicy: Sendable {
+    static let codingAgentFolders: Set<String> = [
+        ".claude", ".codex", ".opencode", ".factory", ".openclaw", ".hermes", ".cursor", ".vscode"
+    ]
+    private static let codingAgentProtectedDirectories: Set<String> = [
+        "memory", "skills", "commands", "agents", "plugins", "mcp"
+    ]
+
     /// Lowercased by contract: path components are compared case-insensitively
     /// (APFS is case-insensitive by default), so "Keychains" and "KEYCHAINS"
     /// must both match.
@@ -220,19 +227,13 @@ public struct PathSafetyPolicy: Sendable {
 
     private func isCodingAgentConfigPath(_ url: URL) -> Bool {
         let components = url.standardizedFileURL.pathComponents.map { $0.lowercased() }
-        let protectedAgentFolders: Set<String> = [".claude", ".codex", ".opencode", ".factory", ".openclaw", ".hermes", ".cursor", ".vscode"]
-        guard components.contains(where: { protectedAgentFolders.contains($0) }) else {
+        guard let root = components.firstIndex(where: { Self.codingAgentFolders.contains($0) }) else {
             return false
         }
         let name = url.lastPathComponent.lowercased()
-        return protectedAgentFolders.contains(name)
+        return Self.codingAgentFolders.contains(name)
             || protectedFileNames.contains(name)
-            || name == "memory"
-            || name == "skills"
-            || name == "commands"
-            || name == "agents"
-            || name == "plugins"
-            || name == "mcp"
+            || components.dropFirst(root + 1).contains(where: { Self.codingAgentProtectedDirectories.contains($0) })
             || name == "auth.json"
             || name == "config.toml"
     }

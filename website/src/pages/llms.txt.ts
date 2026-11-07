@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { PAGES } from "../data/pages";
+import { IOS_BUILD, IOS_VERSION, MAC_DOWNLOAD_URL, MAC_VERSION } from "../data/releases";
 import { TOOLS, plain } from "../data/tools";
 import { blogPosts, plainDescription, plainTitle, urlFor } from "../lib/llms";
 
@@ -69,9 +70,7 @@ export const GET: APIRoute = () => {
     "- Compression: video re-encoding with presets and post-export size verification; photo re-encoding with metadata preserved",
     "- Open source: MIT licensed at https://github.com/YORDINDIA/tidybyte",
     "- Platform: iPhone, iPad and iPhone Duo, iOS 17 or later",
-    // Keep in sync with MARKETING_VERSION / CURRENT_PROJECT_VERSION in
-    // ios/project.yml when the app ships a release.
-    "- Current version: 1.1.3 (build 10)",
+    `- Current version: ${IOS_VERSION} (build ${IOS_BUILD})`,
     `- This file last updated: ${new Date().toISOString().slice(0, 10)}`,
     "",
     "## TidyByte for Mac",
@@ -83,7 +82,7 @@ export const GET: APIRoute = () => {
     "- Platform: macOS 26 or later, Apple silicon",
     "- Monitor: https://tidybyte.yord.si/activity-monitor-alternative — a full system monitor inside the same app: apps instead of processes, 13 dashboards, one menu bar item per metric, per-app history up to a year in local SQLite, alerts, Projects (dev servers and ports), coding-agent CLIs with locally-known plan usage, Docker containers, PNG export, a CLI (tidybyte monitor status|top|ports|agents|limits), and MCP tools for local AI assistants",
     "- Network: none by default; update checks, and an AI provider only if you turn one on",
-    "- Download: https://github.com/YORDINDIA/tidybyte/releases/download/mac-v1.0.0/Tidybyte-1.0.0.dmg (version 1.0.0, signed and notarized)",
+    `- Download: ${MAC_DOWNLOAD_URL} (version ${MAC_VERSION}, signed and notarized)`,
     "",
     "Full site text: https://tidybyte.yord.si/llms-full.txt",
     "Every page listed below is also available as clean Markdown: append .md to",

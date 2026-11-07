@@ -17,34 +17,13 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { KEEP_LITERAL } from "./keep-literal.mjs";
+import { isTranslatable, mapMarkupStrings } from "./markup-strings.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..", "..");
 const SOURCE = join(root, "src", "components", "HomeMain.astro");
 
-/// Attributes whose value is prose and must be translated.
-const TEXT_ATTRIBUTES = ["alt", "title", "aria-label", "placeholder"];
-
-/// True when a string is prose a human should translate.
-function isTranslatable(text) {
-  if (!text) return false;
-  // A bare entity, punctuation or number carries no meaning to translate.
-  if (!/[A-Za-z]/.test(text)) return false;
-  // Every character is inside a tag-ish run, e.g. an inline SVG title.
-  if (/^[&;\s\d.,:;·—–-]+$/.test(text)) return false;
-  return true;
-}
-
 const html = readFileSync(SOURCE, "utf8");
-
-// Comments hold notes for maintainers, not user-visible copy, and the
-// component's frontmatter is code, not markup.
-const body = html
-  .replace(/^---[\s\S]*?---/, "")
-  .replace(/<script[\s\S]*?<\/script>/g, "")
-  .replace(/<style[\s\S]*?<\/style>/g, "")
-  .replace(/<!--[\s\S]*?-->/g, "");
-
 const found = new Set();
 
 // Every inline tag is a hard boundary: `>([^<>]+)<` cannot see across an `<a>`,
@@ -59,19 +38,11 @@ const found = new Set();
 // order and the sentence reads as translated English. Where word order matters,
 // write the sentence as one full sentence inside a single text node instead of
 // splitting it around a link.
-for (const match of body.matchAll(/>([^<>]+)</g)) {
-  const text = match[1].trim();
+mapMarkupStrings(html, (value) => {
+  const text = value.trim();
   if (isTranslatable(text)) found.add(text);
-}
-
-const attrPattern = new RegExp(
-  `\\b(${TEXT_ATTRIBUTES.join("|")})="([^"]*)"`,
-  "g",
-);
-for (const match of body.matchAll(attrPattern)) {
-  const text = match[2].trim();
-  if (isTranslatable(text)) found.add(text);
-}
+  return value;
+});
 
 const strings = [...found].filter((text) => !KEEP_LITERAL.has(text)).sort();
 

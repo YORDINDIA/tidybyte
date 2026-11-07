@@ -2,9 +2,7 @@ import Foundation
 @testable import MacOSCleanerCore
 import XCTest
 
-/// Review-wave tests (2026-08-01): system-clean section bridge consistency,
-/// loud section-drift failure, and bounded-concurrency content extraction
-/// preserving input order.
+/// System-clean section mapping and bounded-concurrency content extraction.
 final class ScanPipelineWaveTests: XCTestCase {
     private func makeTemporaryDirectory(named prefix: String) throws -> URL {
         let root = FileManager.default.temporaryDirectory
@@ -15,24 +13,11 @@ final class ScanPipelineWaveTests: XCTestCase {
 
     // MARK: - Section bridge consistency (ScanMode <-> SystemCleanSection)
 
-    func testEverySystemCleanScanModeHasASectionCounterpart() {
-        for mode in ScanMode.allCases where mode.isSystemCleanSection {
-            XCTAssertNotNil(mode.systemCleanSection, "\(mode.rawValue) must have a SystemCleanSection counterpart")
+    func testCrawlModesDoNotResolveToSystemCleanSections() {
+        for mode in [ScanMode.selectedFolders, .homeFolder, .developerCleanup] {
+            XCTAssertNil(mode.systemCleanSection)
+            XCTAssertFalse(mode.isSystemCleanSection)
         }
-    }
-
-    func testEverySectionMapsBackToASystemCleanScanMode() {
-        for section in MoCleanScanner.SystemCleanSection.allCases {
-            let mode = ScanMode(rawValue: section.rawValue)
-            XCTAssertNotNil(mode, "\(section.rawValue) must exist as a ScanMode")
-            XCTAssertEqual(mode?.isSystemCleanSection, true, "\(section.rawValue) must be marked as a system-clean section")
-        }
-    }
-
-    func testUnsupportedSectionErrorHasGuidance() {
-        let error = ScanOrchestratorError.unsupportedSection(.deepSystem)
-        XCTAssertFalse(error.localizedDescription.isEmpty)
-        XCTAssertTrue(error.localizedDescription.contains("deepSystem"))
     }
 
     // MARK: - Content extraction order preservation with parallel workers

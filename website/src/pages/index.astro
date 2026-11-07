@@ -6,9 +6,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 import HomeMain from "../components/HomeMain.astro";
 import { homeMeta } from "../lib/localized-page";
 import { quickAnswerBox } from "../lib/content";
+import { IOS_VERSION } from "../data/releases";
 
 const meta = homeMeta();
 ---
 <SiteLayout meta={meta} home>
-  <HomeMain quickAnswer={quickAnswerBox(meta.description)} />
+  <HomeMain quickAnswer={quickAnswerBox(meta.description)} iosVersion={IOS_VERSION} />
 </SiteLayout>

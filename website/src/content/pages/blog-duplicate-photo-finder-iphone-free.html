@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-features" class="badge">Features</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">Free Duplicate Photo Finder for iPhone</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Your iPhone is full of photos you have already seen &mdash; exact copies, near-identical shots, and burst sequences you never sorted. TidyByte is a free, open-source duplicate photo finder for iPhone that uses cryptographic hashing and machine vision to find every duplicate in your library, then lets you remove them in seconds.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>8 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/duplicate-photo-finder-iphone-free.avif" type="image/avif">
-      <img src="/assets/img/blog/duplicate-photo-finder-iphone-free.webp" alt="Clay illustration: two identical clay flowers in pots side by side" width="1400" height="933"
+      <img src="/assets/img/blog/duplicate-photo-finder-iphone-free.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>

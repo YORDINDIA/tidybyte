@@ -22,8 +22,8 @@ final class MediaCleanerViewModel {
     var albums: [AlbumInfo] = []
     var albumIDs: Set<String> = []
     var activeAlbumID: String? { didSet { refreshFilter() } }
-    var mediaFilter = LargeFileFilter.all { didSet { refreshFilter() } }
-    var sortOrder = LargeFileSortOrder.largest { didSet { refreshFilter() } }
+    var mediaFilter = MediaFilter.all { didSet { refreshFilter() } }
+    var sortOrder = MediaSortOrder.largest { didSet { refreshFilter() } }
     var selectedIDs: Set<String> = [] { didSet { refreshSelection() } }
     var isLoading = false
     var isDeleting = false
@@ -43,7 +43,7 @@ final class MediaCleanerViewModel {
 
     private func refreshFilter() {
         let visible = activeAlbumID.map { id in assets.filter { membership[id, default: []].contains($0.id) } } ?? assets
-        filteredAssets = LargeFilesViewModel.computeFilteredAssets(from: visible, threshold: 0, mediaFilter: mediaFilter, sortOrder: sortOrder)
+        filteredAssets = MediaAssetFilter.apply(from: visible.filter { $0.fileSize >= 0 }, mediaFilter: mediaFilter, sortOrder: sortOrder)
         visibleIDs = Set(filteredAssets.map(\.id))
         filteredSizeLabel = Self.sizeLabel(filteredAssets)
         refreshSelection()

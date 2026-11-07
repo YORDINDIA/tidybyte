@@ -203,6 +203,15 @@ final class LargeFilesBurstsRegressionTests: XCTestCase {
 
     // MARK: - LF-09: temp export folder cleanup
 
+    func testEmptyShareExportReturnsItsFolderForCleanup() async {
+        let export = await PhotoLibraryService.shared.exportAssetsForSharing(identifiers: []) { _, _ in }
+        defer { try? FileManager.default.removeItem(at: export.folder) }
+        XCTAssertTrue(export.urls.isEmpty)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: export.folder.path))
+        LargeFilesViewModel.removeExportFolder(at: export.folder)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: export.folder.path))
+    }
+
     func testRemoveExportFolderIsIdempotent() {
         let folder = FileManager.default.temporaryDirectory
             .appendingPathComponent("TestShareExport-\(UUID().uuidString)", isDirectory: true)
