@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "ಜೋಡಿಸಲು ಯಾವ ಫೋಟೋವೂ ಕಾಯುತ್ತಿಲ್ಲ. ಮುಚ್ಚಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
     "No photos in this category.": "ಈ ವರ್ಗದಲ್ಲಿ ಫೋಟೋಗಳಿಲ್ಲ.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB ಗಿಂತ ದೊಡ್ಡ ಫೋಟೋಗಳಿಲ್ಲ. ಮಿತಿ ಕಡಿಮೆ ಮಾಡಿ ಅಥವಾ ಎಲ್ಲಾ/ವೀಡಿಯೊಗಳು ಟ್ಯಾಬ್ಗೆ ಬದಲಿಸಿ.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "ಸಂಕುಚಿಸಲು 2 MB ಗಿಂತ ದೊಡ್ಡ ಫೋಟೋಗಳು ಉಳಿದಿಲ್ಲ. HEIC ಫೋಟೋಗಳು ಈಗಾಗಲೇ ಚಿಕ್ಕದಾಗಿವೆ.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "ಸಂಕುಚಿಸಲು %lld MB ಗಿಂತ ದೊಡ್ಡ ಫೋಟೋಗಳು ಉಳಿದಿಲ್ಲ. HEIC ಫೋಟೋಗಳು ಈಗಾಗಲೇ ಚಿಕ್ಕದಾಗಿವೆ.",
     "No savings": "ಉಳಿತಾಯ ಇಲ್ಲ",
     "No savings — kept original": "ಉಳಿತಾಯ ಇಲ್ಲ — ಮೂಲ ಇರಿಸಲಾಗಿದೆ",
     "No screen recordings were found.": "ಸ್ಕ್ರೀನ್ ರೆಕಾರ್ಡಿಂಗ್ಗಳು ಯಾವುವೂ ಕಂಡುಬಂದಿಲ್ಲ.",
@@ -873,9 +873,9 @@
       "one": "%lld ಫೋಟೋ · %@",
       "other": "%lld ಫೋಟೋಗಳು · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld ಫೋಟೋ 2 MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು",
-      "other": "%lld ಫೋಟೋಗಳು 2 MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld ಫೋಟೋ %2$lld MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು",
+      "other": "%1$lld ಫೋಟೋಗಳು %2$lld MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

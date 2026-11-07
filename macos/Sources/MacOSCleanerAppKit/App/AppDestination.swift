@@ -175,7 +175,7 @@ struct CleanerCommands: Commands {
                 .keyboardShortcut("a", modifiers: [.command, .shift])
                 .disabled(
                     !canReviewSelection || model.selectedAction?.risk == .forbidden
-                        || model.selectedAction.map { !AppViewModel.isSupportedOperation($0.actionType) } == true)
+                        || model.selectedAction.map { !$0.actionType.isExecutable } == true)
                 Button(String(localized: "Reject Selected Action")) {
                     if let action = model.selectedVisibleReviewAction { model.reject(action) }
                 }

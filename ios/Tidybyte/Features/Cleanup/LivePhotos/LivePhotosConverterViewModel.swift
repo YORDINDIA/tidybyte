@@ -408,7 +408,7 @@ final class LivePhotosConverterViewModel {
             }
 
             guard let replacementId = placeholder?.localIdentifier else {
-                await swap.markFailed(assetId: assetId)
+                await swap.markFailed()
                 throw LivePhotoError.invalidImageData
             }
             // D1: the durable new copy exists — record it in the journal at the
@@ -437,10 +437,10 @@ final class LivePhotosConverterViewModel {
             // for something the batch summary reports as cancelled. Mirrors the
             // photo and video batch loops.
             if isCancelled || error is CancellationError {
-                await swap.markSkipped(assetId: assetId)
+                await swap.markSkipped()
                 throw error
             }
-            await swap.markFailed(assetId: assetId)
+            await swap.markFailed()
             throw error
         }
     }

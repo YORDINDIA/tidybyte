@@ -203,6 +203,15 @@ final class LargeFilesBurstsRegressionTests: XCTestCase {
 
     // MARK: - LF-09: temp export folder cleanup
 
+    func testEmptyShareExportReturnsItsFolderForCleanup() async {
+        let export = await PhotoLibraryService.shared.exportAssetsForSharing(identifiers: []) { _, _ in }
+        defer { try? FileManager.default.removeItem(at: export.folder) }
+        XCTAssertTrue(export.urls.isEmpty)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: export.folder.path))
+        LargeFilesViewModel.removeExportFolder(at: export.folder)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: export.folder.path))
+    }
+
     func testRemoveExportFolderIsIdempotent() {
         let folder = FileManager.default.temporaryDirectory
             .appendingPathComponent("TestShareExport-\(UUID().uuidString)", isDirectory: true)
@@ -238,12 +247,12 @@ final class LargeFilesBurstsRegressionTests: XCTestCase {
     // MARK: - LF-13: empty burst bins are skipped
 
     func testRebuildGroupsSkipsEmptyBurstBins() {
-        let rebuilt = BurstCleanerViewModel.rebuildGroups(from: [:])
+        let rebuilt = BurstSelectionPolicy.rebuildGroups(from: [:])
         XCTAssertTrue(rebuilt.isEmpty)
     }
 
     func testRebuildGroupsSortsByCountAndPicksBest() {
-        let twoFrame = BurstCleanerViewModel.rebuildGroups(from: [
+        let twoFrame = BurstSelectionPolicy.rebuildGroups(from: [
             "burst-2": [
                 makeAsset(id: "2a", fileSize: 8_000_000, filename: "2a.jpg", pixelWidth: 3000, pixelHeight: 2000),
                 makeAsset(id: "2b", fileSize: 9_000_000, filename: "2b.jpg", pixelWidth: 4032, pixelHeight: 3024)
@@ -253,6 +262,12 @@ final class LargeFilesBurstsRegressionTests: XCTestCase {
         // No favorites: highest resolution wins.
         XCTAssertEqual(twoFrame.first?.bestAssetId, "2b")
         XCTAssertEqual(twoFrame.first?.assets.count, 2)
+    }
+
+    func testRebuildGroupsOrdersEqualCountsByIdentifier() {
+        let asset = makeAsset(id: "frame", fileSize: 1, filename: "frame.jpg", pixelWidth: 100, pixelHeight: 100)
+        let groups = BurstSelectionPolicy.rebuildGroups(from: ["z": [asset], "a": [asset]])
+        XCTAssertEqual(groups.map(\.id), ["a", "z"])
     }
 
     // MARK: - Auto-Clean honors per-group curation (PR #2 finding 1)

@@ -20,6 +20,8 @@
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findHtmlFiles } from "./lib/html-files.mjs";
+import { missingPageRewrites } from "./lib/netlify-routes.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -29,16 +31,7 @@ if (!existsSync(DIST)) {
   process.exit(1);
 }
 
-function htmlFiles() {
-  const out = [];
-  for (const dir of [DIST, join(DIST, "blog")]) {
-    if (!existsSync(dir)) continue;
-    for (const f of readdirSync(dir)) {
-      if (f.endsWith(".html")) out.push(join(dir, f));
-    }
-  }
-  return out.sort();
-}
+const htmlFiles = () => findHtmlFiles(DIST);
 
 const problems = [];
 const titles = new Map();
@@ -113,6 +106,10 @@ for (const file of htmlFiles()) {
     if (prev) fail(`duplicate title (also on ${prev})`);
     else titles.set(title, rel);
   }
+  // A literal entity in plain metadata is escaped a second time by Astro.
+  if (/&amp;(?:[a-zA-Z][a-zA-Z0-9]+|#(?:x[0-9a-fA-F]+|[0-9]+));/.test(title + desc)) {
+    fail("title or description contains a double-escaped HTML entity");
+  }
   if (!desc) fail("missing meta description");
   else if (!isNoIndex) {
     const len = decode(desc).length;
@@ -135,9 +132,24 @@ for (const file of htmlFiles()) {
     try {
       const parsed = JSON.parse(body);
       types.add(parsed["@type"]);
+      if (parsed["@type"] === "Article") {
+        const image = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
+        if (parsed.mainEntityOfPage?.url !== canonical) fail("Article URL does not match canonical");
+        if (parsed.image !== image) fail("Article image does not match og:image");
+      }
+      for (const [field, property] of [["datePublished", "article:published_time"], ["dateModified", "article:modified_time"]]) {
+        if (parsed["@type"] === "Article" && parsed[field]) {
+          const tag = html.match(new RegExp(`<meta property="${property}" content="([^"]+)"`))?.[1];
+          if (tag !== parsed[field]) fail(`${property} does not match JSON-LD ${field}`);
+        }
+      }
     } catch (e) {
       fail(`JSON-LD does not parse: ${String(e).slice(0, 80)}`);
     }
+  }
+
+  if (rel.startsWith("blog/") && rel !== "blog/index.html" && !types.has("Article")) {
+    fail("missing Article JSON-LD");
   }
 
   // 4b. tool pages reference the app entity and their OG card exists
@@ -177,6 +189,13 @@ for (const file of htmlFiles()) {
         }
         const name = decode(raw);
         if (!text.includes(name)) fail(`FAQ question not visible on page: "${name.slice(0, 60)}"`);
+        if (isTranslatedHome(rel)) {
+          const normalize = (value) => decode(value).replace(/\s+([.,!?])/g, "$1").trim();
+          const answer = normalize(String(q.acceptedAnswer?.text ?? ""));
+          if (!answer || !normalize(text).includes(answer)) {
+            fail(`FAQ answer not visible on page: "${name.slice(0, 60)}"`);
+          }
+        }
       }
     }
   }
@@ -280,10 +299,7 @@ if (!existsSync(sitemap)) {
   );
   if (toolUrls.length < 4) problems.push("tool landing pages missing from sitemap");
 
-  // 9. A localized landing page is the same page as "/" in another language,
-  //    so it carries the same priority. The slug list is duplicated in
-  //    astro.config.mjs (the config cannot import src/data/languages.ts); a
-  //    language added there without updating it would silently drop to 0.3.
+  // 9. Localized landing pages carry the same priority as the home page.
   for (const path of landingPaths) {
     const url = `https://tidybyte.yord.si${path}`;
     const entry = xml.match(
@@ -303,9 +319,7 @@ if (!existsSync(sitemap)) {
     const url = `https://tidybyte.yord.si/${f.replace(/\.html$/, "")}`;
     if (!locSet.has(url)) problems.push(`not in sitemap: ${url}`);
   }
-  // Tool landing pages carry commercial intent, so they must keep priority
-  // 0.9. The slug list lives in astro.config.mjs; a new tool page added
-  // without updating it would silently drop to 0.3, which this catches.
+  // Tool landing pages carry commercial intent, so they must keep priority 0.9.
   for (const f of readdirSync(DIST)) {
     if (!f.endsWith(".html")) continue;
     const html = readFileSync(join(DIST, f), "utf8");
@@ -332,6 +346,32 @@ if (!existsSync(sitemap)) {
   }
   if (missingMd.length) {
     problems.push(`llms.txt promises Markdown but these are missing: ${missingMd.join(", ")}`);
+  }
+}
+
+// Netlify's explicit pretty-URL rewrites must cover every built tool and
+// translated landing page. Cloudflare serves the generated pages separately.
+const netlifyPath = join(ROOT, "..", "netlify.toml");
+if (existsSync(netlifyPath)) {
+  const toolPaths = readdirSync(DIST).filter((file) => file.endsWith(".html"))
+    .filter((file) => /\/assets\/img\/og\//.test(readFileSync(join(DIST, file), "utf8")))
+    .map((file) => `/${file.slice(0, -5)}`);
+  const expected = [...landingPaths].filter((path) => path !== "/").concat(toolPaths);
+  const missing = missingPageRewrites(readFileSync(netlifyPath, "utf8"), expected);
+  if (missing.length) problems.push(`Netlify page rewrites missing: ${missing.join(", ")}`);
+}
+
+const blogIndex = join(DIST, "blog", "index.html");
+if (existsSync(blogIndex)) {
+  const html = readFileSync(blogIndex, "utf8");
+  const cards = [...html.matchAll(/<article data-cats="([^"]+)" data-date="[^"]+">\s*<a href="\/blog\/([^"]+)"/g)];
+  const articles = readdirSync(join(DIST, "blog")).filter((file) => file.endsWith(".html") && file !== "index.html")
+    .map((file) => file.slice(0, -5)).sort();
+  const cardSlugs = cards.map((card) => card[2]).sort();
+  if (JSON.stringify(cardSlugs) !== JSON.stringify(articles)) problems.push("blog cards do not match published articles");
+  for (const [, id, count] of html.matchAll(/data-filter="([^"]+)" data-label="[^"]+" aria-pressed="[^"]+">[^<]+ \((\d+)\)/g)) {
+    const actual = id === "all" ? cards.length : cards.filter((card) => card[1].split(" ").includes(id)).length;
+    if (Number(count) !== actual) problems.push(`blog filter ${id} count does not match its cards`);
   }
 }
 

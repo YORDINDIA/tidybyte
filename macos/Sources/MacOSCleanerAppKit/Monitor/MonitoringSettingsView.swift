@@ -4,15 +4,16 @@ import SwiftUI
 /// Settings › Monitoring: menu bar items, sampling, history retention,
 /// misbehaving-app alerts, and appearance (density, colorblind palette).
 struct MonitoringSettingsView: View {
-    @AppStorage(MonitoringKeys.menuBarPanelEnabled) private var showsMenuBarExtras = true
-    @AppStorage(MonitoringKeys.intervalSeconds) private var intervalSeconds = 2.0
-    @AppStorage(MonitoringKeys.historyRetentionDays) private var retentionDays = 365
-    @AppStorage(MonitoringKeys.alertsEnabled) private var alertsEnabled = false
-    @AppStorage(MonitoringKeys.alertCPUPercent) private var alertCPUPercent = 70.0
-    @AppStorage(MonitoringKeys.alertCPUWindowMinutes) private var alertCPUWindowMinutes = 10.0
-    @AppStorage(MonitoringKeys.alertMemoryGrowthBytes) private var alertMemoryGrowthBytes = 1_500_000_000
-    @AppStorage(MonitoringKeys.alertDiskBytesPerSecond) private var alertDiskBytesPerSecond = 80_000_000.0
-    @AppStorage(MonitoringKeys.alertNetworkBytesPerSecond) private var alertNetworkBytesPerSecond = 50_000_000.0
+    @AppStorage(MonitoringKeys.menuBarPanelEnabled) private var showsMenuBarExtras = MonitoringDefaults.menuBarPanelEnabled
+    @AppStorage(MonitoringKeys.intervalSeconds) private var intervalSeconds = MonitoringDefaults.intervalSeconds
+    @AppStorage(MonitoringKeys.historyRetentionDays) private var retentionDays = MonitoringDefaults.historyRetentionDays
+    @AppStorage(MonitoringKeys.alertsEnabled) private var alertsEnabled = MonitoringDefaults.alertsEnabled
+    @AppStorage(MonitoringKeys.alertCPUPercent) private var alertCPUPercent = MonitoringDefaults.alertCPUPercent
+    @AppStorage(MonitoringKeys.alertCPUWindowMinutes) private var alertCPUWindowMinutes = MonitoringDefaults.alertCPUWindowMinutes
+    @AppStorage(MonitoringKeys.alertMemoryGrowthBytes) private var alertMemoryGrowthBytes = MonitoringDefaults.alertMemoryGrowthBytes
+    @AppStorage(MonitoringKeys.alertDiskBytesPerSecond) private var alertDiskBytesPerSecond = MonitoringDefaults.alertDiskBytesPerSecond
+    @AppStorage(MonitoringKeys.alertNetworkBytesPerSecond) private var alertNetworkBytesPerSecond =
+        MonitoringDefaults.alertNetworkBytesPerSecond
     @AppStorage(MonitoringKeys.density) private var compactDensity = false
     @AppStorage(MonitoringKeys.colorblindPalette) private var colorblindPalette = false
     @AppStorage(MonitoringKeys.hiddenTabs) private var hiddenTabsRaw = ""
@@ -155,9 +156,7 @@ struct MonitoringSettingsView: View {
     private func metricBinding(_ metric: UsageMetric) -> Binding<Bool> {
         // Same per-metric keys and defaults the menu bar extras bind to, so
         // both surfaces stay in sync; the shared table is the one source.
-        let entry = MonitoringKeys.menuBarMetrics.first { $0.metric == metric }
-            ?? MonitoringKeys.MenuBarMetric(
-                metric: metric, key: "monitor.metric.\(metric.rawValue)", defaultEnabled: false)
+        let entry = MonitoringKeys.menuBarMetric(for: metric)
         return Binding(
             get: { UserDefaults.standard.object(forKey: entry.key) as? Bool ?? entry.defaultEnabled },
             set: { UserDefaults.standard.set($0, forKey: entry.key) })

@@ -263,7 +263,7 @@ struct SessionCompletionView: View {
         case .swipeHome:
             appNavigation.returnToSwipeHome()
         case .cleanupTools:
-            appNavigation.showCleanupHome()
+            appNavigation.showCleanup()
         }
     }
 

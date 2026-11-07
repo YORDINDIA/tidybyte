@@ -11,7 +11,7 @@ struct RootView: View {
     /// every other view gets the language through the environment below.
     @State private var languageStore = LanguageStore()
     @AppStorage(AppPreferences.Key.hasCompletedOnboarding) private var hasCompletedOnboarding = false
-    @AppStorage(AppPreferences.Key.largeFileThresholdMB) private var largeFileThreshold = 10.0
+    @AppStorage(AppPreferences.Key.largeFileThresholdMB) private var largeFileThreshold = AppPreferences.Default.largeFileThresholdMB
     /// Set once the limited-library picker has been offered automatically this
     /// launch, so a user who declines is not asked again on every foreground.
     /// Deliberately not persisted: a new launch with an empty selection is worth

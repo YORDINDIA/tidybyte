@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "Es wartet kein Foto zum Einsortieren. Schließe den Dialog und versuche es erneut.",
     "No photos in this category.": "In dieser Kategorie sind keine Fotos.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "Keine Fotos über %lld MB. Verringere den Schwellenwert oder wechsle zu Alle/Videos.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "Es sind keine Fotos über 2 MB zum Komprimieren übrig. HEIC-Fotos sind bereits klein.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "Es sind keine Fotos über %lld MB zum Komprimieren übrig. HEIC-Fotos sind bereits klein.",
     "No savings": "Keine Einsparung",
     "No savings — kept original": "Keine Einsparung — Original behalten",
     "No screen recordings were found.": "Es wurden keine Bildschirmaufnahmen gefunden.",
@@ -873,9 +873,9 @@
       "one": "%lld Foto · %@",
       "other": "%lld Fotos · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld Foto über 2 MB, das verkleinert werden kann",
-      "other": "%lld Fotos über 2 MB, die verkleinert werden können"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld Foto über %2$lld MB, das verkleinert werden kann",
+      "other": "%1$lld Fotos über %2$lld MB, die verkleinert werden können"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

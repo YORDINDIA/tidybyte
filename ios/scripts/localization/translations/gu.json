@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "આલ્બમમાં મૂકવા માટે કોઈ ફોટો બાકી નથી. બંધ કરો અને ફરી પ્રયાસ કરો.",
     "No photos in this category.": "આ શ્રેણીમાં ફોટા નથી.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB થી મોટા ફોટા નથી. મર્યાદા ઘટાડો અથવા બધું/વિડિયો પર જાઓ.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "કોમ્પ્રેસ કરવા માટે 2 MB થી મોટા ફોટા બાકી નથી. HEIC ફોટા પહેલેથી જ નાના હોય છે.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "કોમ્પ્રેસ કરવા માટે %lld MB થી મોટા ફોટા બાકી નથી. HEIC ફોટા પહેલેથી જ નાના હોય છે.",
     "No savings": "બચત નથી",
     "No savings — kept original": "બચત નથી — મૂળ રાખ્યું",
     "No screen recordings were found.": "કોઈ સ્ક્રીન રેકોર્ડિંગ મળ્યાં નથી.",
@@ -873,9 +873,9 @@
       "one": "%lld ફોટો · %@",
       "other": "%lld ફોટા · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld ફોટો 2 MB થી વધુ છે અને નાનો કરી શકાય છે",
-      "other": "%lld ફોટા 2 MB થી વધુ છે અને નાના કરી શકાય છે"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld ફોટો %2$lld MB થી વધુ છે અને નાનો કરી શકાય છે",
+      "other": "%1$lld ફોટા %2$lld MB થી વધુ છે અને નાના કરી શકાય છે"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

@@ -14731,7 +14731,7 @@
         }
       }
     },
-    "%lld photos over 2 MB that can shrink": {
+    "%lld photos over %lld MB that can shrink": {
       "localizations": {
         "en": {
           "variations": {
@@ -14739,13 +14739,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld photo over 2 MB that can shrink"
+                  "value": "%1$lld photo over %2$lld MB that can shrink"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld photos over 2 MB that can shrink"
+                  "value": "%1$lld photos over %2$lld MB that can shrink"
                 }
               }
             }
@@ -14757,13 +14757,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld फ़ोटो जो 2 MB से बड़ी हैं और घटाई जा सकती हैं"
+                  "value": "%1$lld फ़ोटो जो %2$lld MB से बड़ी है और घटाई जा सकती है"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld फ़ोटो जो 2 MB से बड़ी हैं और घटाई जा सकती हैं"
+                  "value": "%1$lld फ़ोटो जो %2$lld MB से बड़ी हैं और घटाई जा सकती हैं"
                 }
               }
             }
@@ -14775,13 +14775,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ফটো 2 MB-এর বেশি যা ছোট করা যায়"
+                  "value": "%1$lld ফটো %2$lld MB-এর বেশি যা ছোট করা যায়"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ফটো 2 MB-এর বেশি যা ছোট করা যায়"
+                  "value": "%1$lld ফটো %2$lld MB-এর বেশি যা ছোট করা যায়"
                 }
               }
             }
@@ -14793,13 +14793,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld புகைப்படம் 2 MB-க்கு மேல், சுருக்கக்கூடியது"
+                  "value": "%1$lld புகைப்படம் %2$lld MB-க்கு மேல், சுருக்கக்கூடியது"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld புகைப்படங்கள் 2 MB-க்கு மேல், சுருக்கக்கூடியவை"
+                  "value": "%1$lld புகைப்படங்கள் %2$lld MB-க்கு மேல், சுருக்கக்கூடியவை"
                 }
               }
             }
@@ -14811,13 +14811,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ఫోటో 2 MB కంటే పెద్దది, కుదించగలిగేది"
+                  "value": "%1$lld ఫోటో %2$lld MB కంటే పెద్దది, కుదించగలిగేది"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ఫోటోలు 2 MB కంటే పెద్దవి, కుదించగలిగేవి"
+                  "value": "%1$lld ఫోటోలు %2$lld MB కంటే పెద్దవి, కుదించగలిగేవి"
                 }
               }
             }
@@ -14829,13 +14829,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld फोटो 2 MB पेक्षा मोठा असून लहान करता येतो"
+                  "value": "%1$lld फोटो %2$lld MB पेक्षा मोठा असून लहान करता येतो"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld फोटो 2 MB पेक्षा मोठे असून लहान करता येतात"
+                  "value": "%1$lld फोटो %2$lld MB पेक्षा मोठे असून लहान करता येतात"
                 }
               }
             }
@@ -14847,13 +14847,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ફોટો 2 MB થી વધુ છે અને નાનો કરી શકાય છે"
+                  "value": "%1$lld ફોટો %2$lld MB થી વધુ છે અને નાનો કરી શકાય છે"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ફોટા 2 MB થી વધુ છે અને નાના કરી શકાય છે"
+                  "value": "%1$lld ફોટા %2$lld MB થી વધુ છે અને નાના કરી શકાય છે"
                 }
               }
             }
@@ -14865,13 +14865,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ಫೋಟೋ 2 MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು"
+                  "value": "%1$lld ಫೋಟೋ %2$lld MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ಫೋಟೋಗಳು 2 MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು"
+                  "value": "%1$lld ಫೋಟೋಗಳು %2$lld MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದ್ದು ಚಿಕ್ಕದಾಗಿಸಬಹುದು"
                 }
               }
             }
@@ -14883,13 +14883,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ഫോട്ടോ 2 MB-ൽ കൂടുതലുള്ളതും ചെറുതാക്കാവുന്നതുമാണ്"
+                  "value": "%1$lld ഫോട്ടോ %2$lld MB-ൽ കൂടുതലുള്ളതും ചെറുതാക്കാവുന്നതുമാണ്"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ഫോട്ടോകൾ 2 MB-ൽ കൂടുതലുള്ളവയും ചെറുതാക്കാവുന്നവയുമാണ്"
+                  "value": "%1$lld ഫോട്ടോകൾ %2$lld MB-ൽ കൂടുതലുള്ളവയും ചെറുതാക്കാവുന്നവയുമാണ്"
                 }
               }
             }
@@ -14901,13 +14901,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ਫ਼ੋਟੋ 2 MB ਤੋਂ ਵੱਧ ਜੋ ਛੋਟੀ ਹੋ ਸਕਦੀ ਹੈ"
+                  "value": "%1$lld ਫ਼ੋਟੋ %2$lld MB ਤੋਂ ਵੱਧ ਜੋ ਛੋਟੀ ਹੋ ਸਕਦੀ ਹੈ"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ਫ਼ੋਟੋਆਂ 2 MB ਤੋਂ ਵੱਧ ਜੋ ਛੋਟੀਆਂ ਹੋ ਸਕਦੀਆਂ ਹਨ"
+                  "value": "%1$lld ਫ਼ੋਟੋਆਂ %2$lld MB ਤੋਂ ਵੱਧ ਜੋ ਛੋਟੀਆਂ ਹੋ ਸਕਦੀਆਂ ਹਨ"
                 }
               }
             }
@@ -14919,19 +14919,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld foto de más de 2 MB que puede reducirse"
+                  "value": "%1$lld foto de más de %2$lld MB que puede reducirse"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld fotos de más de 2 MB que pueden reducirse"
+                  "value": "%1$lld fotos de más de %2$lld MB que pueden reducirse"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld fotos de más de 2 MB que pueden reducirse"
+                  "value": "%1$lld fotos de más de %2$lld MB que pueden reducirse"
                 }
               }
             }
@@ -14943,19 +14943,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld photo de plus de 2 MB qui peut être réduite"
+                  "value": "%1$lld photo de plus de %2$lld MB qui peut être réduite"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld photos de plus de 2 MB qui peuvent être réduites"
+                  "value": "%1$lld photos de plus de %2$lld MB qui peuvent être réduites"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld photos de plus de 2 MB qui peuvent être réduites"
+                  "value": "%1$lld photos de plus de %2$lld MB qui peuvent être réduites"
                 }
               }
             }
@@ -14967,13 +14967,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Foto über 2 MB, das verkleinert werden kann"
+                  "value": "%1$lld Foto über %2$lld MB, das verkleinert werden kann"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Fotos über 2 MB, die verkleinert werden können"
+                  "value": "%1$lld Fotos über %2$lld MB, die verkleinert werden können"
                 }
               }
             }
@@ -14985,19 +14985,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld foto acima de 2 MB que pode ser reduzida"
+                  "value": "%1$lld foto acima de %2$lld MB que pode ser reduzida"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld fotos acima de 2 MB que podem ser reduzidas"
+                  "value": "%1$lld fotos acima de %2$lld MB que podem ser reduzidas"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld fotos acima de 2 MB que podem ser reduzidas"
+                  "value": "%1$lld fotos acima de %2$lld MB que podem ser reduzidas"
                 }
               }
             }
@@ -15009,19 +15009,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld foto oltre 2 MB che può essere ridotta"
+                  "value": "%1$lld foto oltre %2$lld MB che può essere ridotta"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld foto oltre 2 MB che possono essere ridotte"
+                  "value": "%1$lld foto oltre %2$lld MB che possono essere ridotte"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld foto oltre 2 MB che possono essere ridotte"
+                  "value": "%1$lld foto oltre %2$lld MB che possono essere ridotte"
                 }
               }
             }
@@ -15033,7 +15033,7 @@
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld枚の2 MBを超える縮小可能な写真"
+                  "value": "%1$lld枚の%2$lld MBを超える縮小可能な写真"
                 }
               }
             }
@@ -15045,7 +15045,7 @@
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "2 MB를 넘어 줄일 수 있는 %lld장의 사진"
+                  "value": "%2$lld MB를 넘어 줄일 수 있는 %1$lld장의 사진"
                 }
               }
             }
@@ -15057,7 +15057,7 @@
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld 张超过 2 MB 且可缩小的照片"
+                  "value": "%1$lld 张超过 %2$lld MB 且可缩小的照片"
                 }
               }
             }
@@ -15069,25 +15069,25 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld снимок больше 2 MB, который можно сжать"
+                  "value": "%1$lld снимок больше %2$lld MB, который можно сжать"
                 }
               },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld снимка больше 2 MB, которые можно сжать"
+                  "value": "%1$lld снимка больше %2$lld MB, которые можно сжать"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld снимков больше 2 MB, которые можно сжать"
+                  "value": "%1$lld снимков больше %2$lld MB, которые можно сжать"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld снимка больше 2 MB, которые можно сжать"
+                  "value": "%1$lld снимка больше %2$lld MB, которые можно сжать"
                 }
               }
             }
@@ -15099,37 +15099,37 @@
               "zero": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صور أكبر من 2 MB يمكن تصغيرها"
+                  "value": "%1$lld صور أكبر من %2$lld MB يمكن تصغيرها"
                 }
               },
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صورة أكبر من 2 MB يمكن تصغيرها"
+                  "value": "%1$lld صورة أكبر من %2$lld MB يمكن تصغيرها"
                 }
               },
               "two": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صورتان أكبر من 2 MB يمكن تصغيرهما"
+                  "value": "%1$lld صورتان أكبر من %2$lld MB يمكن تصغيرهما"
                 }
               },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صور أكبر من 2 MB يمكن تصغيرها"
+                  "value": "%1$lld صور أكبر من %2$lld MB يمكن تصغيرها"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صورة أكبر من 2 MB يمكن تصغيرها"
+                  "value": "%1$lld صورة أكبر من %2$lld MB يمكن تصغيرها"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صورة أكبر من 2 MB يمكن تصغيرها"
+                  "value": "%1$lld صورة أكبر من %2$lld MB يمكن تصغيرها"
                 }
               }
             }
@@ -15141,19 +15141,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld תמונה מעל 2 MB שניתן לקמט"
+                  "value": "%1$lld תמונה מעל %2$lld MB שניתן לקמט"
                 }
               },
               "two": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld תמונות מעל 2 MB שניתן לקמט"
+                  "value": "%1$lld תמונות מעל %2$lld MB שניתן לקמט"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld תמונות מעל 2 MB שניתן לקמט"
+                  "value": "%1$lld תמונות מעל %2$lld MB שניתן לקמט"
                 }
               }
             }
@@ -73921,132 +73921,132 @@
         }
       }
     },
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": {
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No photos over 2 MB are left to compress. HEIC photos are already small."
+            "value": "No photos over %lld MB are left to compress. HEIC photos are already small."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "2 MB से बड़ी कोई फ़ोटो कंप्रेस करने के लिए नहीं बची है. HEIC फ़ोटो पहले से छोटी हैं."
+            "value": "%lld MB से बड़ी कोई फ़ोटो कंप्रेस करने के लिए नहीं बची है. HEIC फ़ोटो पहले से छोटी हैं."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "2 MB-এর বেশি কোনও ফটো কমপ্রেস করার জন্য আর নেই. HEIC ফটো আগেই ছোট."
+            "value": "%lld MB-এর বেশি কোনও ফটো কমপ্রেস করার জন্য আর নেই. HEIC ফটো আগেই ছোট."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "சுருக்குவதற்கு 2 MB-க்கு மேல் புகைப்படங்கள் எதுவும் மீதமில்லை. HEIC புகைப்படங்கள் ஏற்கனவே சிறியவை."
+            "value": "சுருக்குவதற்கு %lld MB-க்கு மேல் புகைப்படங்கள் எதுவும் மீதமில்லை. HEIC புகைப்படங்கள் ஏற்கனவே சிறியவை."
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "కుదించడానికి 2 MB కంటే పెద్ద ఫోటోలు ఏవీ మిగలలేదు. HEIC ఫోటోలు ఇప్పటికే చిన్నవి."
+            "value": "కుదించడానికి %lld MB కంటే పెద్ద ఫోటోలు ఏవీ మిగలలేదు. HEIC ఫోటోలు ఇప్పటికే చిన్నవి."
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "कंप्रेस करण्यासाठी 2 MB पेक्षा मोठे फोटो उरलेले नाहीत. HEIC फोटो आधीच लहान असतात."
+            "value": "कंप्रेस करण्यासाठी %lld MB पेक्षा मोठे फोटो उरलेले नाहीत. HEIC फोटो आधीच लहान असतात."
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "કોમ્પ્રેસ કરવા માટે 2 MB થી મોટા ફોટા બાકી નથી. HEIC ફોટા પહેલેથી જ નાના હોય છે."
+            "value": "કોમ્પ્રેસ કરવા માટે %lld MB થી મોટા ફોટા બાકી નથી. HEIC ફોટા પહેલેથી જ નાના હોય છે."
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಸಂಕುಚಿಸಲು 2 MB ಗಿಂತ ದೊಡ್ಡ ಫೋಟೋಗಳು ಉಳಿದಿಲ್ಲ. HEIC ಫೋಟೋಗಳು ಈಗಾಗಲೇ ಚಿಕ್ಕದಾಗಿವೆ."
+            "value": "ಸಂಕುಚಿಸಲು %lld MB ಗಿಂತ ದೊಡ್ಡ ಫೋಟೋಗಳು ಉಳಿದಿಲ್ಲ. HEIC ಫೋಟೋಗಳು ಈಗಾಗಲೇ ಚಿಕ್ಕದಾಗಿವೆ."
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "കംപ്രസ് ചെയ്യാൻ 2 MB-യിൽ കൂടുതലുള്ള ഫോട്ടോകൾ അവശേഷിക്കുന്നില്ല. HEIC ഫോട്ടോകൾ ഇതിനകം ചെറുതാണ്."
+            "value": "കംപ്രസ് ചെയ്യാൻ %lld MB-യിൽ കൂടുതലുള്ള ഫോട്ടോകൾ അവശേഷിക്കുന്നില്ല. HEIC ഫോട്ടോകൾ ഇതിനകം ചെറുതാണ്."
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਕੰਪਰੈਸ ਕਰਨ ਲਈ 2 MB ਤੋਂ ਵੱਡੀਆਂ ਫ਼ੋਟੋਆਂ ਨਹੀਂ ਬਚੀਆਂ. HEIC ਫ਼ੋਟੋਆਂ ਪਹਿਲਾਂ ਹੀ ਛੋਟੀਆਂ ਹੁੰਦੀਆਂ ਹਨ."
+            "value": "ਕੰਪਰੈਸ ਕਰਨ ਲਈ %lld MB ਤੋਂ ਵੱਡੀਆਂ ਫ਼ੋਟੋਆਂ ਨਹੀਂ ਬਚੀਆਂ. HEIC ਫ਼ੋਟੋਆਂ ਪਹਿਲਾਂ ਹੀ ਛੋਟੀਆਂ ਹੁੰਦੀਆਂ ਹਨ."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No quedan fotos de más de 2 MB por comprimir. Las fotos HEIC ya son pequeñas."
+            "value": "No quedan fotos de más de %lld MB por comprimir. Las fotos HEIC ya son pequeñas."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Il ne reste aucune photo de plus de 2 MB à compresser. Les photos HEIC sont déjà légères."
+            "value": "Il ne reste aucune photo de plus de %lld MB à compresser. Les photos HEIC sont déjà légères."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Es sind keine Fotos über 2 MB zum Komprimieren übrig. HEIC-Fotos sind bereits klein."
+            "value": "Es sind keine Fotos über %lld MB zum Komprimieren übrig. HEIC-Fotos sind bereits klein."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não há mais fotos acima de 2 MB para comprimir. As fotos HEIC já são pequenas."
+            "value": "Não há mais fotos acima de %lld MB para comprimir. As fotos HEIC já são pequenas."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non ci sono più foto oltre 2 MB da comprimere. Le foto HEIC sono già leggere."
+            "value": "Non ci sono più foto oltre %lld MB da comprimere. Le foto HEIC sono già leggere."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "圧縮できる2 MBを超える写真はもうありません。HEICの写真はすでに小さいサイズです。"
+            "value": "圧縮できる%lld MBを超える写真はもうありません。HEICの写真はすでに小さいサイズです。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "압축할 2 MB 초과 사진이 남아 있지 않습니다. HEIC 사진은 이미 작습니다."
+            "value": "압축할 %lld MB 초과 사진이 남아 있지 않습니다. HEIC 사진은 이미 작습니다."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有超过 2 MB 的照片需要压缩。HEIC 照片本身已经很小。"
+            "value": "没有超过 %lld MB 的照片需要压缩。HEIC 照片本身已经很小。"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не осталось фото больше 2 MB для сжатия. Фото HEIC и так небольшие."
+            "value": "Не осталось фото больше %lld MB для сжатия. Фото HEIC и так небольшие."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لم تبقَ صور أكبر من 2 MB لضغطها. صور HEIC صغيرة بالفعل."
+            "value": "لم تبقَ صور أكبر من %lld MB لضغطها. صور HEIC صغيرة بالفعل."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לא נותרו תמונות מעל 2 MB לכיווץ. תמונות HEIC כבר קטנות."
+            "value": "לא נותרו תמונות מעל %lld MB לכיווץ. תמונות HEIC כבר קטנות."
           }
         }
       }

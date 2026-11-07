@@ -50,7 +50,7 @@ struct WhyPanelView: View {
                     Button(String(localized: "Approve and Save Always Rule")) {
                         Task { await model.alwaysDoThis(action) }
                     }
-                    .disabled(action.risk == .forbidden || !AppViewModel.isSupportedOperation(action.actionType))
+                    .disabled(action.risk == .forbidden || !action.actionType.isExecutable)
                     Button(String(localized: "Reject and Save Never Rule")) {
                         Task { await model.neverDoThisHere(action) }
                     }
@@ -67,7 +67,7 @@ struct WhyPanelView: View {
 
     private func recoveryText(for action: PlannedAction) -> String {
         if action.risk == .forbidden { return String(localized: "Blocked actions cannot run.") }
-        if !AppViewModel.isSupportedOperation(action.actionType) {
+        if !action.actionType.isExecutable {
             return String(localized: "This action is for review only. Tidybyte cannot execute it.")
         }
         if action.actionType == .runPackageManagerCleanup {

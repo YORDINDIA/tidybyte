@@ -16,8 +16,10 @@
 // and the .md alternates).
 import type { PageMeta } from "../data/page-meta";
 import { PAGES } from "../data/pages";
+import { IOS_VERSION } from "../data/releases";
 import { BASE_LANGUAGE, SITE_LANGUAGES, type SiteLanguage } from "../data/languages";
 import { decodeEntities } from "./llms";
+import englishHomeSource from "../components/HomeMain.astro?raw";
 
 const SITE = "https://tidybyte.yord.si";
 
@@ -83,29 +85,15 @@ function faqPairs(body: string): { question: string; answer: string }[] {
   }));
 }
 
-/** How many questions the English FAQ declares. */
-function englishFaqCount(): number {
-  return (homeMeta().headTail.match(/"@type": "Question"/g) ?? []).length;
-}
-
-/**
- * Rewrites the FAQPage JSON-LD to describe the page's own FAQ.
- *
- * The inherited block is English. Google requires FAQ structured data to match
- * what a reader can see, and the audit enforces it, so a translated page whose
- * schema still held the English questions would both fail the build and be
- * ineligible for the rich result.
- *
- * Rebuilt from the visible text rather than translated a second time: one
- * source for the question, so the schema cannot drift from the page.
- */
-function withLocalizedFaq(headTail: string, body: string): string {
+/** Build the FAQ schema from the page content for every language. */
+function withHomeFaq(headTail: string, body: string): string {
   const pairs = faqPairs(body);
-  const expected = englishFaqCount();
-  if (pairs.length !== expected) {
-    throw new Error(
-      `parsed ${pairs.length} FAQ pair(s) from the page body but the English FAQ declares ${expected} — the FAQ markup changed and the structured data would silently lose questions`,
-    );
+  const expected = (englishHomeSource.match(/<summary class="faq-summary">/g) ?? []).length;
+  if (!expected || pairs.length !== expected) {
+    throw new Error(`parsed ${pairs.length} FAQ pairs; expected ${expected}`);
+  }
+  if (!headTail.includes("<!-- HOME_FAQ_SCHEMA -->")) {
+    throw new Error("home FAQ schema marker is missing");
   }
 
   const json = JSON.stringify(
@@ -126,7 +114,7 @@ function withLocalizedFaq(headTail: string, body: string): string {
   const block = [
     "<!-- Structured Data: FAQPage (mirrors the visible FAQ on this page) -->",
     '  <script type="application/ld+json">',
-    json
+    json.replaceAll("<", "\\u003c")
       .split("\n")
       .map((line) => `  ${line}`)
       .join("\n"),
@@ -134,16 +122,21 @@ function withLocalizedFaq(headTail: string, body: string): string {
   ].join("\n  ");
 
   return headTail.replace(
-    /<!-- Structured Data: FAQPage[\s\S]*?<\/script>/,
+    "<!-- HOME_FAQ_SCHEMA -->",
     block,
   );
 }
 
 /** The English home entry every localized landing page is derived from. */
-export function homeMeta(): PageMeta {
+function baseHomeMeta(): PageMeta {
   const meta = PAGES.find((p) => p.route === "/");
   if (!meta) throw new Error("no page meta for /");
   return meta;
+}
+
+export function homeMeta(): PageMeta {
+  const meta = baseHomeMeta();
+  return { ...meta, headTail: withHomeFaq(meta.headTail, englishHomeSource) };
 }
 
 /**
@@ -195,7 +188,7 @@ function withLanguageTag(base: string, lang: SiteLanguage, max: number): string 
 
 /** Head metadata for `/de`, `/ja`, `/pt-br` … derived from the English home. */
 export function localizedHomeMeta(lang: SiteLanguage): PageMeta {
-  const base = homeMeta();
+  const base = baseHomeMeta();
   const route = `/${lang.slug}`;
   // A translated title and description when they exist, the tagged English
   // otherwise. Falling back rather than throwing keeps a partially translated
@@ -216,7 +209,7 @@ export function localizedHomeMeta(lang: SiteLanguage): PageMeta {
     // English-rooted: they describe one app and one site, not 21. The FAQ is
     // the exception — it describes this page's own visible text, so it is
     // rebuilt from the body.
-    headTail: withLocalizedFaq(
+    headTail: withHomeFaq(
       base.headTail.replace(
         /"inLanguage": "en"/g,
         `"inLanguage": "${lang.htmlLang}"`,
@@ -242,7 +235,7 @@ export function localizedHomeContent(lang: SiteLanguage): string {
       `missing generated component ${key} — run scripts/localization/site/build-site-translations.mjs`,
     );
   }
-  return raw.replace(FRONTMATTER, "");
+  return raw.replace(FRONTMATTER, "").replaceAll("{iosVersion}", IOS_VERSION);
 }
 
 /** The generated Astro component for a localized landing page. */

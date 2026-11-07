@@ -1101,7 +1101,7 @@
     },
     {
       "key": "Filename",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "Filter",
@@ -1342,7 +1342,7 @@
     },
     {
       "key": "Largest",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "Last 30 Days",
@@ -1524,7 +1524,7 @@
     },
     {
       "key": "Newest",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "No accessible user albums.",
@@ -1648,7 +1648,7 @@
     },
     {
       "key": "Oldest",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "On this device, from %@: screenshots, Live Photos, large videos, photos saved from apps and large files.",
@@ -1784,7 +1784,7 @@
     },
     {
       "key": "Photos",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "Photos & Gmail: %@ · Drive: %@",
@@ -2640,7 +2640,7 @@
     },
     {
       "key": "Videos",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "Visual",

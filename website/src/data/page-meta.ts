@@ -3,8 +3,11 @@
 // Kept in its own module so tools.ts can import the type without creating
 // a runtime import cycle with pages.ts.
 
+import type { BlogPostMeta } from "./blog";
+
 export interface PageMeta {
   route: string;
+  // Plain text; HTML renderers escape these fields at the output boundary.
   title: string;
   description: string;
   robots: string;
@@ -16,6 +19,9 @@ export interface PageMeta {
   canonical: string;
   fontPreload: string | null;
   extraScripts: string[];
+  datePublished?: string;
+  dateModified?: string;
+  blog?: BlogPostMeta;
   headTail: string;
   contentFile: string;
 }

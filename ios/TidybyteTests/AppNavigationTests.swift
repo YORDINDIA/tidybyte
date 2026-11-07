@@ -43,7 +43,7 @@ final class AppNavigationTests: XCTestCase {
         navigation.cleanupPath = [.duplicates]
         let initialDismissID = navigation.swipeDismissRequestID
 
-        navigation.showCleanupHome()
+        navigation.showCleanup()
 
         XCTAssertEqual(navigation.selectedTab, .cleanup)
         XCTAssertTrue(navigation.cleanupPath.isEmpty)

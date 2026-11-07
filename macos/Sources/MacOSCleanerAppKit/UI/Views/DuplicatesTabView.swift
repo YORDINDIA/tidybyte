@@ -164,7 +164,7 @@ struct DuplicatesTabView: View {
         if !actions.isEmpty {
             let approved = actions.allSatisfy { $0.userDecision == .approved }
             let canApprove = actions.allSatisfy {
-                $0.risk != .forbidden && AppViewModel.isSupportedOperation($0.actionType)
+                $0.risk != .forbidden && $0.actionType.isExecutable
             }
             HStack {
                 if approved {

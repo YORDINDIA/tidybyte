@@ -14,59 +14,8 @@
   # Astro 7 requires Node >= 22.12 (build-time only; the site is static).
   NODE_VERSION = "22"
 
-# llms.txt content-type for AI crawlers.
-[[headers]]
-  for = "/llms*.txt"
-  [headers.values]
-    Content-Type = "text/plain; charset=utf-8"
-    Cache-Control = "public, max-age=86400"
-
-# Per-post Markdown alternates for AI citation fetchers.
-[[headers]]
-  for = "/blog/*.md"
-  [headers.values]
-    Content-Type = "text/markdown; charset=utf-8"
-    Cache-Control = "public, max-age=86400"
-
-# Markdown alternates for the tool landing pages (/storage-cleaner.md, ...).
-[[headers]]
-  for = "/*.md"
-  [headers.values]
-    Content-Type = "text/markdown; charset=utf-8"
-    Cache-Control = "public, max-age=86400"
-
-# Cache and security headers.
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    X-Frame-Options = "SAMEORIGIN"
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'self'"
-
-# Long cache for fingerprinted/static assets.
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# Never cache HTML.
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-
-# Short cache for crawler files (regenerated every deploy).
-[[headers]]
-  for = "/robots.txt"
-  [headers.values]
-    Cache-Control = "public, max-age=3600"
-
-[[headers]]
-  for = "/sitemap*.xml"
-  [headers.values]
-    Cache-Control = "public, max-age=3600"
+# Shared security and cache headers live in website/public/_headers.
+# Shared legacy redirects live in website/public/_redirects.
 
 # Custom 404.
 [[redirects]]
@@ -103,39 +52,11 @@
   to = "/:slug"
   status = 301
 
+# BEGIN GENERATED LANDING REWRITES
+# Run npm run sync:netlify after building when tool or language routes change.
 [[redirects]]
-  from = "/photo-cleaner"
-  to = "/photo-cleaner.html"
-  status = 200
-
-[[redirects]]
-  from = "/storage-cleaner"
-  to = "/storage-cleaner.html"
-  status = 200
-
-[[redirects]]
-  from = "/duplicate-photo-cleaner"
-  to = "/duplicate-photo-cleaner.html"
-  status = 200
-
-[[redirects]]
-  from = "/similar-photo-cleaner"
-  to = "/similar-photo-cleaner.html"
-  status = 200
-
-[[redirects]]
-  from = "/screenshot-cleaner"
-  to = "/screenshot-cleaner.html"
-  status = 200
-
-[[redirects]]
-  from = "/screen-recording-cleaner"
-  to = "/screen-recording-cleaner.html"
-  status = 200
-
-[[redirects]]
-  from = "/chat-media-cleaner"
-  to = "/chat-media-cleaner.html"
+  from = "/ar"
+  to = "/ar.html"
   status = 200
 
 [[redirects]]
@@ -144,8 +65,8 @@
   status = 200
 
 [[redirects]]
-  from = "/large-file-cleaner"
-  to = "/large-file-cleaner.html"
+  from = "/bn"
+  to = "/bn.html"
   status = 200
 
 [[redirects]]
@@ -154,82 +75,18 @@
   status = 200
 
 [[redirects]]
-  from = "/live-photo-converter"
-  to = "/live-photo-converter.html"
+  from = "/chat-media-cleaner"
+  to = "/chat-media-cleaner.html"
   status = 200
 
 [[redirects]]
-  from = "/video-compression"
-  to = "/video-compression.html"
+  from = "/de"
+  to = "/de.html"
   status = 200
 
 [[redirects]]
-  from = "/image-compression"
-  to = "/image-compression.html"
-  status = 200
-
-[[redirects]]
-  from = "/photo-organizer"
-  to = "/photo-organizer.html"
-  status = 200
-
-[[redirects]]
-  from = "/on-device-ai-photo-search"
-  to = "/on-device-ai-photo-search.html"
-  status = 200
-
-[[redirects]]
-  from = "/free-photo-cleaner-no-subscription"
-  to = "/free-photo-cleaner-no-subscription.html"
-  status = 200
-
-# Localized landing pages — the same page as "/" in each language the app
-# ships, served from <lang>.html. The slug list mirrors src/data/languages.ts;
-# scripts/seo-audit.mjs fails if a language page is not in the sitemap at the
-# home page's priority, which keeps the two in sync.
-[[redirects]]
-  from = "/hi"
-  to = "/hi.html"
-  status = 200
-
-[[redirects]]
-  from = "/bn"
-  to = "/bn.html"
-  status = 200
-
-[[redirects]]
-  from = "/ta"
-  to = "/ta.html"
-  status = 200
-
-[[redirects]]
-  from = "/te"
-  to = "/te.html"
-  status = 200
-
-[[redirects]]
-  from = "/mr"
-  to = "/mr.html"
-  status = 200
-
-[[redirects]]
-  from = "/gu"
-  to = "/gu.html"
-  status = 200
-
-[[redirects]]
-  from = "/kn"
-  to = "/kn.html"
-  status = 200
-
-[[redirects]]
-  from = "/ml"
-  to = "/ml.html"
-  status = 200
-
-[[redirects]]
-  from = "/pa"
-  to = "/pa.html"
+  from = "/duplicate-photo-cleaner"
+  to = "/duplicate-photo-cleaner.html"
   status = 200
 
 [[redirects]]
@@ -243,13 +100,28 @@
   status = 200
 
 [[redirects]]
-  from = "/de"
-  to = "/de.html"
+  from = "/free-photo-cleaner-no-subscription"
+  to = "/free-photo-cleaner-no-subscription.html"
   status = 200
 
 [[redirects]]
-  from = "/pt-br"
-  to = "/pt-br.html"
+  from = "/gu"
+  to = "/gu.html"
+  status = 200
+
+[[redirects]]
+  from = "/he"
+  to = "/he.html"
+  status = 200
+
+[[redirects]]
+  from = "/hi"
+  to = "/hi.html"
+  status = 200
+
+[[redirects]]
+  from = "/image-compression"
+  to = "/image-compression.html"
   status = 200
 
 [[redirects]]
@@ -263,13 +135,58 @@
   status = 200
 
 [[redirects]]
+  from = "/kn"
+  to = "/kn.html"
+  status = 200
+
+[[redirects]]
   from = "/ko"
   to = "/ko.html"
   status = 200
 
 [[redirects]]
-  from = "/zh-hans"
-  to = "/zh-hans.html"
+  from = "/large-file-cleaner"
+  to = "/large-file-cleaner.html"
+  status = 200
+
+[[redirects]]
+  from = "/live-photo-converter"
+  to = "/live-photo-converter.html"
+  status = 200
+
+[[redirects]]
+  from = "/ml"
+  to = "/ml.html"
+  status = 200
+
+[[redirects]]
+  from = "/mr"
+  to = "/mr.html"
+  status = 200
+
+[[redirects]]
+  from = "/on-device-ai-photo-search"
+  to = "/on-device-ai-photo-search.html"
+  status = 200
+
+[[redirects]]
+  from = "/pa"
+  to = "/pa.html"
+  status = 200
+
+[[redirects]]
+  from = "/photo-cleaner"
+  to = "/photo-cleaner.html"
+  status = 200
+
+[[redirects]]
+  from = "/photo-organizer"
+  to = "/photo-organizer.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt-br"
+  to = "/pt-br.html"
   status = 200
 
 [[redirects]]
@@ -278,61 +195,45 @@
   status = 200
 
 [[redirects]]
-  from = "/ar"
-  to = "/ar.html"
+  from = "/screen-recording-cleaner"
+  to = "/screen-recording-cleaner.html"
   status = 200
 
 [[redirects]]
-  from = "/he"
-  to = "/he.html"
+  from = "/screenshot-cleaner"
+  to = "/screenshot-cleaner.html"
   status = 200
 
-# Consolidated posts (F8): overlapping keyword clusters merged into their
-# strongest keeper; old URLs 301 to it so inbound links and SEO carry over.
 [[redirects]]
-  from = "/blog/how-to-clean-up-blurry-shaky-photos"
-  to = "/blog/find-blurry-photos-iphone"
-  status = 301
+  from = "/similar-photo-cleaner"
+  to = "/similar-photo-cleaner.html"
+  status = 200
 
 [[redirects]]
-  from = "/blog/how-to-find-blurry-photos-in-camera-roll"
-  to = "/blog/find-blurry-photos-iphone"
-  status = 301
+  from = "/storage-cleaner"
+  to = "/storage-cleaner.html"
+  status = 200
 
 [[redirects]]
-  from = "/blog/how-to-remove-blurry-photos-iphone"
-  to = "/blog/find-blurry-photos-iphone"
-  status = 301
+  from = "/ta"
+  to = "/ta.html"
+  status = 200
 
 [[redirects]]
-  from = "/blog/how-to-free-up-iphone-storage-without-deleting"
-  to = "/blog/how-to-clean-iphone-storage-without-deleting-photos"
-  status = 301
+  from = "/te"
+  to = "/te.html"
+  status = 200
 
 [[redirects]]
-  from = "/blog/how-to-reduce-photo-library-size-iphone"
-  to = "/blog/how-to-clean-iphone-storage-without-deleting-photos"
-  status = 301
+  from = "/video-compression"
+  to = "/video-compression.html"
+  status = 200
 
 [[redirects]]
-  from = "/blog/photo-cleaner-app-no-subscription"
-  to = "/blog/best-iphone-cleaner-app-no-subscription"
-  status = 301
-
-[[redirects]]
-  from = "/blog/photo-cleaner-app-no-ads-no-in-app-purchase"
-  to = "/blog/best-iphone-cleaner-app-no-subscription"
-  status = 301
-
-[[redirects]]
-  from = "/blog/how-to-free-up-icloud-storage-photos"
-  to = "/blog/free-up-icloud-storage-without-deleting-photos"
-  status = 301
-
-[[redirects]]
-  from = "/blog/swipe-to-clean-photos-iphone"
-  to = "/blog/how-to-organize-thousands-of-photos-iphone"
-  status = 301
+  from = "/zh-hans"
+  to = "/zh-hans.html"
+  status = 200
+# END GENERATED LANDING REWRITES
 
 # Pretty URLs — serve /blog/<slug> from /blog/<slug>.html.
 # NOTE: this rule must come BEFORE the exact /blog rule below; Netlify

@@ -10,6 +10,7 @@
 // strings, which is what Google requires for FAQ rich results.
 import { PAGES } from "../data/pages";
 import { bodyFor } from "./content";
+import { escapeHtml } from "./escape-html.mjs";
 import { TOOLS, toolBySlug, plain, SCREENSHOT_SIZE, type Tool } from "../data/tools";
 
 const APP_STORE = "https://apps.apple.com/app/id6775769763";
@@ -36,7 +37,7 @@ function formatDate(iso: string): string {
 function postCard(route: string): { title: string; date: string; image: string } | null {
   const meta = PAGES.find((p) => p.route === route);
   if (!meta) return null;
-  const iso = meta.headTail.match(/"datePublished":\s*"([^"]+)"/)?.[1] ?? "";
+  const iso = meta.datePublished ?? "";
   return {
     title: plain(meta.title.replace(/\s*\|\s*TidyByte\s*$/, "")),
     date: formatDate(iso),
@@ -255,7 +256,7 @@ function relatedPosts(t: Tool): string {
           `      <a href="${c.route}" class="clay-card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-pop">\n` +
           `        <img src="${c.image}" alt="" width="640" height="427" loading="lazy" decoding="async" class="block aspect-[3/2] h-auto w-full object-cover">\n` +
           `        <div class="p-4">\n` +
-          `          <h3 class="font-display text-base font-medium leading-snug text-ink group-hover:underline">${c.title}</h3>\n` +
+          `          <h3 class="font-display text-base font-medium leading-snug text-ink group-hover:underline">${escapeHtml(c.title)}</h3>\n` +
           `          <p class="muted mt-2 text-xs">${c.date}</p>\n` +
           `        </div>\n` +
           `      </a>`,

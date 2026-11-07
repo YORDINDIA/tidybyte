@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-tutorials" class="badge">Tutorials</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Delete Screenshots from Your iPhone</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Screenshots pile up fast. A quick receipt capture here, a meme save there, and suddenly you have thousands of them eating into your iPhone storage. This guide walks through every method to find and delete screenshots, from the built-in Photos app to TidyByte's batch swipe interface, so you can reclaim gigabytes in minutes.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>9 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-delete-screenshots-from-iphone.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-delete-screenshots-from-iphone.webp" alt="Clay illustration: a marching line of clay screenshot cards walking up a tiny ramp into an open trash bin" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-delete-screenshots-from-iphone.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -52,7 +52,7 @@
         <li aria-hidden="true">/</li>
         <li><a href="/blog" class="hover:text-ink">Blog</a></li>
         <li aria-hidden="true">/</li>
-        <li aria-current="page" class="text-body">How to Delete Screenshots from Your iPhone</li>
+        <li aria-current="page" class="text-body">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 

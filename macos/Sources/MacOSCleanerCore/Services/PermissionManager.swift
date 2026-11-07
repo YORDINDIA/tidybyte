@@ -81,10 +81,9 @@ public actor PermissionManager {
             // Skip unreadable roots instead of aborting the whole scan: one
             // permission-broken candidate (e.g. ~/.m2) must not kill the run.
             return developerRoots().compactMap { try? validateReadableDirectory($0) }
-        case .deepSystem, .userEssentials, .finderMetadata, .macOSSystemCaches,
-             .sandboxedAppCaches, .browsers, .cloudStorage, .officeApps,
-             .developerTools, .devApplications, .vmTools, .applicationSupport,
-             .uninstalledAppData, .appleSiliconUpdates, .iosBackups,
+        case .deepSystem, .userEssentials, .finderMetadata, .macOSSystemCaches, .sandboxedAppCaches,
+             .browsers, .cloudStorage, .officeApps, .developerTools, .devApplications, .vmTools,
+             .applicationSupport, .uninstalledAppData, .appleSiliconUpdates, .iosBackups,
              .timeMachineBackups, .largeFiles:
             // mo clean sections scan well-known paths directly. Unreadable or
             // missing paths are silently skipped — they often require Full Disk
@@ -108,11 +107,7 @@ public actor PermissionManager {
             return "Home-folder scan. Full Disk Access may be required for protected folders. Readable roots: \(names)"
         case .developerCleanup:
             return "Developer cleanup scan. Readable developer roots: \(names)"
-        case .deepSystem, .userEssentials, .finderMetadata, .macOSSystemCaches,
-             .sandboxedAppCaches, .browsers, .cloudStorage, .officeApps,
-             .developerTools, .devApplications, .vmTools, .applicationSupport,
-             .uninstalledAppData, .appleSiliconUpdates, .iosBackups,
-             .timeMachineBackups, .largeFiles:
+        default:
             return "System clean section scan. Full Disk Access may be required for some paths. Readable roots: \(names)"
         }
     }

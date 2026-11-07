@@ -21,6 +21,7 @@ actor PhotoLibraryService {
     /// fragmented the image cache across instances and multiplied actors.
     /// One instance means one shared prefetch cache.
     static let shared = PhotoLibraryService()
+    nonisolated static let shareExportFolderPrefix = "ShareExport-"
 
     /// Upper bound for any single PhotoKit image/data request so a stalled
     /// iCloud download can't hang the awaiting task indefinitely.
@@ -1003,9 +1004,9 @@ actor PhotoLibraryService {
     func exportAssetsForSharing(
         identifiers: [String],
         onProgress: @escaping @MainActor @Sendable (Int, Int) -> Void
-    ) async -> [URL] {
+    ) async -> (folder: URL, urls: [URL]) {
         let folder = FileManager.default.temporaryDirectory
-            .appendingPathComponent("ShareExport-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("\(Self.shareExportFolderPrefix)\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
 
         var urls: [URL] = []
@@ -1025,7 +1026,7 @@ actor PhotoLibraryService {
             await onProgress(completed, total)
         }
 
-        return urls
+        return (folder, urls)
     }
 
     private func writeResourceToTemp(asset: PHAsset, in folder: URL) async -> URL? {

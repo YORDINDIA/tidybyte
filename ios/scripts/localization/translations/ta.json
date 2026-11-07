@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "ஆல்பத்தில் சேர்க்க காத்திருக்கும் புகைப்படம் எதுவும் இல்லை. நிராகரித்து மீண்டும் முயற்சிக்கவும்.",
     "No photos in this category.": "இந்த வகையில் புகைப்படங்கள் இல்லை.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB-ஐ விட பெரிய புகைப்படங்கள் இல்லை. வரம்பைக் குறைக்கவும் அல்லது அனைத்தும்/வீடியோக்களுக்கு மாறவும்.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "சுருக்குவதற்கு 2 MB-க்கு மேல் புகைப்படங்கள் எதுவும் மீதமில்லை. HEIC புகைப்படங்கள் ஏற்கனவே சிறியவை.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "சுருக்குவதற்கு %lld MB-க்கு மேல் புகைப்படங்கள் எதுவும் மீதமில்லை. HEIC புகைப்படங்கள் ஏற்கனவே சிறியவை.",
     "No savings": "சேமிப்பு இல்லை",
     "No savings — kept original": "சேமிப்பு இல்லை — மூலம் வைக்கப்பட்டது",
     "No screen recordings were found.": "திரைப் பதிவுகள் எதுவும் கிடைக்கவில்லை.",
@@ -873,9 +873,9 @@
       "one": "%lld புகைப்படம் · %@",
       "other": "%lld புகைப்படங்கள் · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld புகைப்படம் 2 MB-க்கு மேல், சுருக்கக்கூடியது",
-      "other": "%lld புகைப்படங்கள் 2 MB-க்கு மேல், சுருக்கக்கூடியவை"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld புகைப்படம் %2$lld MB-க்கு மேல், சுருக்கக்கூடியது",
+      "other": "%1$lld புகைப்படங்கள் %2$lld MB-க்கு மேல், சுருக்கக்கூடியவை"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

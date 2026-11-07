@@ -8,7 +8,8 @@
     "dev": "concurrently -k \"tailwindcss -i ./src/input.css -o ./public/assets/css/styles.css --watch\" \"astro dev\"",
     "build": "astro build && tailwindcss -i ./src/input.css -o ./dist/assets/css/styles.css --minify && node scripts/hash-assets.mjs",
     "preview": "astro preview",
-    "check": "node scripts/hash-assets.mjs --check && node scripts/seo-audit.mjs && node scripts/og-cards.mjs --check",
+    "sync:netlify": "node scripts/sync-netlify-routes.mjs",
+    "check": "node --test scripts/lib/html-files.test.mjs scripts/lib/netlify-routes.test.mjs scripts/lib/blog-metadata.test.mjs scripts/localization/site/markup-strings.test.mjs && node scripts/hash-assets.mjs --check && node scripts/seo-audit.mjs && node scripts/sync-netlify-routes.mjs --check && node scripts/og-cards.mjs --check",
     "og": "node scripts/og-cards.mjs"
   },
   "devDependencies": {

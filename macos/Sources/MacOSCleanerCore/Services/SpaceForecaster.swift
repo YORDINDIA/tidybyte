@@ -18,23 +18,6 @@ public actor SpaceForecaster {
         public var message: String
     }
 
-    /// Backward-compatible entry point used by the app shell.
-    ///
-    /// The `diskCapacity` argument is the home volume's total capacity. The
-    /// forecast basis is the volume's ACTUAL available space (read from the
-    /// home-directory volume), never the scan's counted bytes: extrapolating
-    /// scanned bytes against full disk capacity produced meaningless numbers
-    /// for partial scans (e.g. "1.21 GB scanned / 1 TB disk = stable").
-    /// Returns nil when the volume's available space cannot be read so the UI
-    /// never shows a forecast built on scan coverage instead of real usage.
-    public func forecast(diskCapacity: Int64) async throws -> Forecast? {
-        let homeURL = FileManager.default.homeDirectoryForCurrentUser
-        guard let availableBytes = Self.volumeAvailableBytes(for: homeURL) else {
-            return nil
-        }
-        return try await forecast(capacity: diskCapacity, availableBytes: availableBytes)
-    }
-
     /// Volume-based forecast: reads actual capacity and available space from the
     /// volume's resource values and delegates to `forecast(capacity:availableBytes:)`.
     public func forecast(volumeURL: URL) async throws -> Forecast? {
@@ -44,12 +27,11 @@ public actor SpaceForecaster {
             .volumeAvailableCapacityKey
         ]
         guard let values = try? volumeURL.resourceValues(forKeys: keys),
-              let capacity = values.volumeTotalCapacity else {
+              let capacity = values.volumeTotalCapacity,
+              let availableBytes = values.volumeAvailableCapacityForImportantUsage
+                ?? values.volumeAvailableCapacity.map(Int64.init) else {
             return nil
         }
-        let availableBytes: Int64 = values.volumeAvailableCapacityForImportantUsage
-            ?? values.volumeAvailableCapacity.map(Int64.init)
-            ?? Int64(capacity)
         return try await forecast(capacity: Int64(capacity), availableBytes: availableBytes)
     }
 
@@ -64,7 +46,6 @@ public actor SpaceForecaster {
         let snapshots = try await store.recentSnapshots(limit: 14)
         guard snapshots.count >= 2 else { return nil }
 
-        // Sort oldest to newest
         let sorted = snapshots.sorted { $0.createdAt < $1.createdAt }
         guard let oldest = sorted.first, let newest = sorted.last else { return nil }
 
@@ -114,7 +95,6 @@ public actor SpaceForecaster {
             }
         }
 
-        // Build conservative message
         if let days95 = forecast.daysUntil95PercentFull {
             forecast.message = String(localized: "At your current growth rate, your disk could reach 95% full in approximately \(days95) days.", comment: "Space forecast warning message")
         } else if let days90 = forecast.daysUntil90PercentFull {
@@ -128,26 +108,4 @@ public actor SpaceForecaster {
         return forecast
     }
 
-    /// Returns the total capacity of the volume at the given URL, or nil on failure.
-    public nonisolated static func volumeCapacity(for url: URL) -> Int64? {
-        guard let values = try? url.resourceValues(forKeys: [.volumeTotalCapacityKey]),
-              let capacity = values.volumeTotalCapacity else {
-            return nil
-        }
-        return Int64(capacity)
-    }
-
-    /// Returns the volume's currently available space (important-usage capacity
-    /// preferred, plain available capacity as fallback), or nil on failure.
-    public nonisolated static func volumeAvailableBytes(for url: URL) -> Int64? {
-        let keys: Set<URLResourceKey> = [
-            .volumeAvailableCapacityForImportantUsageKey,
-            .volumeAvailableCapacityKey
-        ]
-        guard let values = try? url.resourceValues(forKeys: keys) else {
-            return nil
-        }
-        return values.volumeAvailableCapacityForImportantUsage
-            ?? values.volumeAvailableCapacity.map(Int64.init)
-    }
 }

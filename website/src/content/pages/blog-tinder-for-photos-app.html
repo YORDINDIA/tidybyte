@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-features" class="badge">Features</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">The 'Tinder for Photos' Method: Why Swiping Works for Photo Cleanup</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">Your phone holds thousands of photos you will never look at again. The problem is not finding the bad ones &mdash; it is the sheer mental cost of deciding what to keep. A swipe-based interface, the same mechanic that made dating apps addictive, turns out to be the fastest way to cull a bloated photo library. Here is why it works and how to use it.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>9 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/tinder-for-photos-app.avif" type="image/avif">
-      <img src="/assets/img/blog/tinder-for-photos-app.webp" alt="Clay illustration: a chunky clay hand flicking a heart-topped photograph card to the right while a plain card exits to the left" width="1400" height="933"
+      <img src="/assets/img/blog/tinder-for-photos-app.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -51,7 +51,7 @@
         <li aria-hidden="true" class="text-muted">/</li>
         <li><a href="/blog" class="text-muted transition hover:text-ink">Blog</a></li>
         <li aria-hidden="true" class="text-muted">/</li>
-        <li aria-current="page" class="text-ink">The 'Tinder for Photos' Method</li>
+        <li aria-current="page" class="text-ink">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 

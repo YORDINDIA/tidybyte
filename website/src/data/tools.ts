@@ -1580,15 +1580,6 @@ export function plain(s: string): string {
     .trim();
 }
 
-/**
- * Attribute-safe text: strip entities for display, then escape the double
- * quotes that would otherwise terminate an HTML attribute. Meta tags use
- * double-quoted attributes, so a raw " in a description breaks the page.
- */
-function attr(s: string): string {
-  return plain(s).replace(/"/g, "&quot;");
-}
-
 export function toolCanonical(slug: string): string {
   return `${SITE}/${slug}`;
 }
@@ -1667,8 +1658,8 @@ export function toolPageMeta(t: Tool): PageMeta {
 
   return {
     route: `/${t.slug}`,
-    title: attr(t.title),
-    description: attr(t.description),
+    title: plain(t.title),
+    description: plain(t.description),
     robots: "index, follow",
     ogType: "website",
     ogImage: `${SITE}/assets/img/og/${t.slug}.jpg`,
@@ -1678,6 +1669,7 @@ export function toolPageMeta(t: Tool): PageMeta {
     canonical: url,
     fontPreload: null,
     extraScripts: [],
+    dateModified: webPage.dateModified,
     headTail:
       `\n\n  <!-- Structured Data: WebPage -->\n  <script type="application/ld+json">\n${json(webPage)}\n  </script>\n` +
       (itemList

@@ -288,7 +288,6 @@ final class StorageDashboardViewModel {
             existing.ids.append(asset.id)
             byYearMap[year] = existing
 
-            // Group by asset origin
             var originExisting = bySourceMap[asset.assetOrigin] ?? (bytes: 0, count: 0, ids: [])
             originExisting.bytes += asset.fileSize
             originExisting.count += 1
@@ -314,7 +313,6 @@ final class StorageDashboardViewModel {
             )
         }
 
-        // Convert by‑source to buckets, sorted by bytes descending
         bySource = bySourceMap.map { origin, value in
             let label: String
             switch origin {

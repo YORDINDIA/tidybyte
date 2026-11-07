@@ -25,6 +25,7 @@ export const KEEP_LITERAL = new Set([
   "WhatsApp",
   "Telegram",
   "1.0.5",
+  "{iosVersion}",
   // The landing page's app replicas: unit symbols, a disk and file names,
   // a duration, and HTML entities that render as glyphs. Every language
   // sees the same characters on screen, so there is nothing to translate.

@@ -13,45 +13,48 @@ public final class MonitoringSettings {
 
     /// Seconds between ticks. Faster means smoother charts and more battery.
     public var intervalSeconds: Double {
-        get { defaults.object(forKey: MonitoringKeys.intervalSeconds) as? Double ?? 2 }
+        get { defaults.object(forKey: MonitoringKeys.intervalSeconds) as? Double ?? MonitoringDefaults.intervalSeconds }
         set { defaults.set(newValue, forKey: MonitoringKeys.intervalSeconds) }
     }
 
     /// Days of history kept. The engine prunes beyond this.
     public var historyRetentionDays: Int {
-        get { defaults.object(forKey: MonitoringKeys.historyRetentionDays) as? Int ?? 365 }
+        get { defaults.object(forKey: MonitoringKeys.historyRetentionDays) as? Int ?? MonitoringDefaults.historyRetentionDays }
         set { defaults.set(newValue, forKey: MonitoringKeys.historyRetentionDays) }
     }
 
     public var isAlertsEnabled: Bool {
-        get { defaults.object(forKey: MonitoringKeys.alertsEnabled) as? Bool ?? false }
+        get { defaults.object(forKey: MonitoringKeys.alertsEnabled) as? Bool ?? MonitoringDefaults.alertsEnabled }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertsEnabled) }
     }
 
     /// Sustained CPU percentage that triggers an alert.
     public var alertCPUPercent: Double {
-        get { defaults.object(forKey: MonitoringKeys.alertCPUPercent) as? Double ?? 70 }
+        get { defaults.object(forKey: MonitoringKeys.alertCPUPercent) as? Double ?? MonitoringDefaults.alertCPUPercent }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertCPUPercent) }
     }
 
     public var alertCPUWindowMinutes: Double {
-        get { defaults.object(forKey: MonitoringKeys.alertCPUWindowMinutes) as? Double ?? 10 }
+        get { defaults.object(forKey: MonitoringKeys.alertCPUWindowMinutes) as? Double ?? MonitoringDefaults.alertCPUWindowMinutes }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertCPUWindowMinutes) }
     }
 
     /// Memory growth over an hour that triggers an alert.
     public var alertMemoryGrowthBytes: Int64 {
-        get { defaults.object(forKey: MonitoringKeys.alertMemoryGrowthBytes) as? Int64 ?? 1_500_000_000 }
+        get { defaults.object(forKey: MonitoringKeys.alertMemoryGrowthBytes) as? Int64 ?? Int64(MonitoringDefaults.alertMemoryGrowthBytes) }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertMemoryGrowthBytes) }
     }
 
     public var alertDiskBytesPerSecond: Double {
-        get { defaults.object(forKey: MonitoringKeys.alertDiskBytesPerSecond) as? Double ?? 80_000_000 }
+        get { defaults.object(forKey: MonitoringKeys.alertDiskBytesPerSecond) as? Double ?? MonitoringDefaults.alertDiskBytesPerSecond }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertDiskBytesPerSecond) }
     }
 
     public var alertNetworkBytesPerSecond: Double {
-        get { defaults.object(forKey: MonitoringKeys.alertNetworkBytesPerSecond) as? Double ?? 50_000_000 }
+        get {
+            defaults.object(forKey: MonitoringKeys.alertNetworkBytesPerSecond) as? Double
+                ?? MonitoringDefaults.alertNetworkBytesPerSecond
+        }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertNetworkBytesPerSecond) }
     }
 
@@ -63,7 +66,7 @@ public final class MonitoringSettings {
     /// Whether the combined menu bar panel extra is inserted. Unset mirrors
     /// the scenes' `true` default.
     public var isMenuBarPanelEnabled: Bool {
-        defaults.object(forKey: MonitoringKeys.menuBarPanelEnabled) as? Bool ?? true
+        defaults.object(forKey: MonitoringKeys.menuBarPanelEnabled) as? Bool ?? MonitoringDefaults.menuBarPanelEnabled
     }
 
     /// True when any per-metric menu bar extra is enabled, so the engine can
@@ -106,7 +109,7 @@ public actor MonitoringEngine {
     private var lastRecordAt: Date?
 
     /// Days of history the store keeps; Settings keeps this in sync.
-    public var historyRetentionDays: Int = 365
+    public var historyRetentionDays: Int = MonitoringDefaults.historyRetentionDays
 
     /// Settings-driven retention; called from the UI each tick.
     public func setRetentionDays(_ days: Int) {

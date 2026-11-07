@@ -24,6 +24,7 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isKeepLiteral } from "./keep-literal.mjs";
+import { isTranslatable, mapMarkupStrings } from "./markup-strings.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..", "..");
@@ -31,53 +32,21 @@ const SOURCE = join(root, "src", "components", "HomeMain.astro");
 const SNAPSHOT = join(root, "src", "content", "pages", "index.html");
 const TRANSLATIONS = join(here, "site-translations");
 
-/// Attributes whose value is prose. Mirrors extract-site-strings.mjs.
-const TEXT_ATTRIBUTES = ["alt", "title", "aria-label", "placeholder"];
-
-/// Regions that must pass through untouched: the component's frontmatter is
-/// code, and a translation map can contain a string that also appears inside
-/// a script or a comment — replacing there would corrupt code or a
-/// maintainer note.
-const OPAQUE = /(^---[\s\S]*?---\n|<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->)/g;
-
 const PLACEHOLDER_MARKER = /^<!-- PLACEHOLDER COPY[\s\S]*?-->\s*\n?/m;
 
-/// Replaces every translatable text node and attribute in one chunk of markup.
-///
-/// A string that is not in the map is only a problem if it *should* have been
-/// translated. Keep-literal strings (`Photos`, `GitHub`, the version) are absent
-/// from every map by design, so they pass through without being reported.
-function translateChunk(chunk, map, stats) {
-  let out = chunk.replace(/>([^<>]+)</g, (match, text) => {
-    const key = text.trim();
-    if (!key || !(key in map)) {
-      if (key && /[A-Za-z]/.test(key) && !isKeepLiteral(key)) stats.unmatched.add(key);
-      return match;
-    }
-    stats.replaced.add(key);
-    // Preserve the surrounding whitespace the source had, so indentation and
-    // inline spacing survive.
-    const leading = text.slice(0, text.length - text.trimStart().length);
-    const trailing = text.slice(text.trimEnd().length);
-    return `>${leading}${map[key]}${trailing}<`;
-  });
-
-  const attrPattern = new RegExp(`\\b(${TEXT_ATTRIBUTES.join("|")})="([^"]*)"`, "g");
-  out = out.replace(attrPattern, (match, attr, value) => {
+function translate(source, map, stats) {
+  return mapMarkupStrings(source, (value, kind) => {
     const key = value.trim();
     if (!key || !(key in map)) {
-      // Recorded exactly like the text-node branch above. Without this an
-      // untranslated `alt`, `title`, `aria-label` or `placeholder` left the
-      // English string on a page that declares another language and the build
-      // stayed green, because `unmatched` is the only failure path.
-      if (key && /[A-Za-z]/.test(key) && !isKeepLiteral(key)) stats.unmatched.add(key);
-      return match;
+      if (isTranslatable(key) && !isKeepLiteral(key)) stats.unmatched.add(key);
+      return value;
     }
     stats.replaced.add(key);
-    return `${attr}="${map[key]}"`;
+    if (kind === "attribute") return map[key];
+    const leading = value.slice(0, value.length - value.trimStart().length);
+    const trailing = value.slice(value.trimEnd().length);
+    return `${leading}${map[key]}${trailing}`;
   });
-
-  return out;
 }
 
 /// Builds one page from one translation file.
@@ -98,10 +67,7 @@ function buildOne(file) {
   const source = readFileSync(SOURCE, "utf8");
   const stats = { replaced: new Set(), unmatched: new Set() };
 
-  const chunks = source.replace(PLACEHOLDER_MARKER, "").split(OPAQUE);
-  const body = chunks
-    .map((chunk, index) => (index % 2 === 1 ? chunk : translateChunk(chunk, map, stats)))
-    .join("");
+  const body = translate(source.replace(PLACEHOLDER_MARKER, ""), map, stats);
 
   // A key the page never uses means the map has drifted from the English file —
   // usually a copy that was reworded on one side only.

@@ -46,13 +46,6 @@ final class AppNavigation {
         requestSwipeDismissal()
     }
 
-    func showCleanupHome() {
-        guard !parkIfSessionHasPendingDeletions(.cleanupHome) else { return }
-        cleanupPath.removeAll()
-        selectedTab = .cleanup
-        requestSwipeDismissal()
-    }
-
     func returnToSwipeHome() {
         guard !parkIfSessionHasPendingDeletions(.swipe) else { return }
         cleanupPath.removeAll()
@@ -74,7 +67,7 @@ final class AppNavigation {
         case .swipe:
             returnToSwipeHome()
         case .cleanupHome:
-            showCleanupHome()
+            showCleanup()
         case .cleanupTool(let tool):
             showCleanup(tool: tool)
         }

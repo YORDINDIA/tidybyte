@@ -176,20 +176,24 @@ public enum AutoScanError: Error, LocalizedError {
     }
 }
 
+public enum AutoScanSettingsKey: String, CaseIterable {
+    case enabled = "autoscanEnabled"
+    case selectedFolderPaths
+}
+
 /// Headless `--autoscan` entry point. Runs at most one unattended pass:
 /// gate → scan → execute ONLY clone-fold actions (nothing is ever deleted
 /// unattended; trashing needs a human in the app) → notify → stamp → exit.
 public enum AutoScanRunner {
     private static let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "AutoScanRunner")
     public static let lastRunKey = "lastAutoScanDate"
-    public static let enabledKey = "autoscanEnabled"
 
     /// Returns when the run finished (exit code conveys success). Top-level
     /// `--autoscan` handling in the executable exits the process afterwards.
     @discardableResult
     public static func run() async -> Bool {
         let defaults = UserDefaults.standard
-        guard defaults.bool(forKey: enabledKey) else {
+        guard defaults.bool(forKey: AutoScanSettingsKey.enabled.rawValue) else {
             logger.info("Auto-scan disabled; exiting")
             return false
         }
@@ -267,7 +271,7 @@ public enum AutoScanRunner {
         let executor = ActionExecutor(store: store)
 
         // The user's chosen folders, mirroring the app's saved settings.
-        let folderPaths = UserDefaults.standard.stringArray(forKey: "selectedFolderPaths") ?? []
+        let folderPaths = UserDefaults.standard.stringArray(forKey: AutoScanSettingsKey.selectedFolderPaths.rawValue) ?? []
         let folders = folderPaths.map { URL(fileURLWithPath: $0) }
 
         let (outcome, plan) = try await orchestrator.scan(

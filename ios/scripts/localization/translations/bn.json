@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "অ্যালবামে রাখার মতো কোনও ফটো অপেক্ষা করছে না. বন্ধ করে আবার চেষ্টা করুন.",
     "No photos in this category.": "এই শ্রেণিতে কোনও ফটো নেই.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB-এর চেয়ে বড় কোনও ফটো নেই. সীমা কম করুন বা সব/ভিডিও-তে যান.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "2 MB-এর বেশি কোনও ফটো কমপ্রেস করার জন্য আর নেই. HEIC ফটো আগেই ছোট.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "%lld MB-এর বেশি কোনও ফটো কমপ্রেস করার জন্য আর নেই. HEIC ফটো আগেই ছোট.",
     "No savings": "কোনও সঞ্চয় নেই",
     "No savings — kept original": "কোনও সঞ্চয় নেই — মূল রাখা হয়েছে",
     "No screen recordings were found.": "কোনও স্ক্রিন রেকর্ডিং পাওয়া যায়নি.",
@@ -873,9 +873,9 @@
       "one": "%lld ফটো · %@",
       "other": "%lld ফটো · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld ফটো 2 MB-এর বেশি যা ছোট করা যায়",
-      "other": "%lld ফটো 2 MB-এর বেশি যা ছোট করা যায়"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld ফটো %2$lld MB-এর বেশি যা ছোট করা যায়",
+      "other": "%1$lld ফটো %2$lld MB-এর বেশি যা ছোট করা যায়"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

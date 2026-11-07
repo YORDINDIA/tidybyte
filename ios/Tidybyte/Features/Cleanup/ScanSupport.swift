@@ -53,16 +53,8 @@ final class ScanRunner {
             await current.value
         }
         guard !Task.isCancelled, task == nil else { return }
-        generation += 1
-        let token = generation
-        let current = Task { [weak self] in
-            await work(token)
-            // Same C1 guard as `start`: only the current run releases the slot.
-            guard let self, self.generation == token else { return }
-            self.task = nil
-        }
-        task = current
-        await current.value
+        start(work)
+        await task?.value
     }
 
     /// Cancels the in-flight scan, if any. Callers set their own visible state

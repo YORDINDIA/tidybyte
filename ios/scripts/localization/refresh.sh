@@ -53,6 +53,9 @@ cd "$ROOT"
 DERIVED="${DERIVED_DATA_PATH:-$ROOT/build/LocalizationDerivedData}"
 DESTINATION="${DESTINATION:-platform=iOS Simulator,name=iPhone 18 Pro}"
 
+echo "==> Testing format placeholder handling"
+node --test scripts/localization/format-placeholders.test.mjs
+
 echo "==> Building to emit .stringsdata"
 # The log is kept, not discarded. `set -e` aborts this script on a failed build,
 # so the FAIL branch below is only reachable when the build SUCCEEDED and left no

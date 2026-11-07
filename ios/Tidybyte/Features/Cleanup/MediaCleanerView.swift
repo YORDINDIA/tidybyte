@@ -36,12 +36,12 @@ struct MediaCleanerView: View {
                     filterLayout {
                         if viewModel.tool == .chatMedia {
                             Picker("Media", selection: $viewModel.mediaFilter) {
-                                ForEach(LargeFileFilter.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                                ForEach(MediaFilter.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
                         }
                         if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                         Picker("Sort", selection: $viewModel.sortOrder) {
-                            ForEach(LargeFileSortOrder.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            ForEach(MediaSortOrder.allCases, id: \.self) { Text($0.displayName).tag($0) }
                         }
                         .pickerStyle(.menu)
                         .accessibilityIdentifier("mediaSort")

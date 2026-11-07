@@ -542,7 +542,6 @@ struct SwipeCardDeck: View {
 
     private func actionBarRow(spacing: CGFloat) -> some View {
         HStack(spacing: spacing) {
-            // Delete button
             Button {
                 commit(.delete)
             } label: {
@@ -560,7 +559,6 @@ struct SwipeCardDeck: View {
             .accessibilityLabel("Delete")
             .accessibilityHint("Marks this photo for deletion and shows the next one")
 
-            // Skip button
             Button {
                 commit(.skip)
             } label: {
@@ -590,7 +588,6 @@ struct SwipeCardDeck: View {
             .accessibilityLabel("Add to Album")
             .accessibilityHint("Opens the album picker to file this photo")
 
-            // Keep button
             Button {
                 commit(.keep)
             } label: {

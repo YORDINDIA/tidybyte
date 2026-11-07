@@ -3,11 +3,6 @@ import Foundation
 import XCTest
 
 final class NotificationSchedulerTests: XCTestCase {
-    func testNotificationSchedulerCanBeCreated() {
-        let scheduler = NotificationScheduler()
-        XCTAssertNotNil(scheduler)
-    }
-
     func testNotificationSchedulerRequestAuthorization() async {
         let scheduler = NotificationScheduler()
         // Test processes run unbundled, so authorization can never be granted:

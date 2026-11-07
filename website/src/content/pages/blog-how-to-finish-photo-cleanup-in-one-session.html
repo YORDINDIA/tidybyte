@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-tutorials" class="badge">Tutorials</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">How to Actually Finish Cleaning Your Photo Library (In One Session)</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">You have tried to clean your photo library before. You opened the Photos app, scrolled for ten minutes, deleted a handful of screenshots, and gave up. You are not alone: research from the University of California found that the average person accumulates 630 photos per year but deletes fewer than 50. The problem is not motivation. It is the cleanup method itself. This guide explains why you never finish and how a 30-minute protocol built on binary decisions lets you finish photo cleanup in a single sitting.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>11 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/how-to-finish-photo-cleanup-in-one-session.avif" type="image/avif">
-      <img src="/assets/img/blog/how-to-finish-photo-cleanup-in-one-session.webp" alt="Clay illustration: a checkered finish flag planted beside a tidy shelf of labeled clay photo albums" width="1400" height="933"
+      <img src="/assets/img/blog/how-to-finish-photo-cleanup-in-one-session.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -51,7 +51,7 @@
         <li aria-hidden="true">/</li>
         <li><a href="/blog" class="hover:text-ink transition">Blog</a></li>
         <li aria-hidden="true">/</li>
-        <li aria-current="page" class="text-body">Finish Photo Cleanup in One Session</li>
+        <li aria-current="page" class="text-body">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 

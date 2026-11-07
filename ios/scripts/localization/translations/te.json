@@ -395,7 +395,7 @@
     "No photo is waiting to be filed. Dismiss and try again.": "ఫైల్ చేయడానికి ఏ ఫోటో నిరీక్షణలో లేదు. మూసివేసి మళ్లీ ప్రయత్నించండి.",
     "No photos in this category.": "ఈ వర్గంలో ఫోటోలు లేవు.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB కంటే పెద్ద ఫోటోలు లేవు. పరిమితిని తగ్గించండి లేదా అన్నీ/వీడియోలు ట్యాబ్కు మారండి.",
-    "No photos over 2 MB are left to compress. HEIC photos are already small.": "కుదించడానికి 2 MB కంటే పెద్ద ఫోటోలు ఏవీ మిగలలేదు. HEIC ఫోటోలు ఇప్పటికే చిన్నవి.",
+    "No photos over %lld MB are left to compress. HEIC photos are already small.": "కుదించడానికి %lld MB కంటే పెద్ద ఫోటోలు ఏవీ మిగలలేదు. HEIC ఫోటోలు ఇప్పటికే చిన్నవి.",
     "No savings": "పొదుపు లేదు",
     "No savings — kept original": "పొదుపు లేదు — అసలైనది ఉంచబడింది",
     "No screen recordings were found.": "స్క్రీన్ రికార్డింగ్లు ఏవీ కనుగొనబడలేదు.",
@@ -873,9 +873,9 @@
       "one": "%lld ఫోటో · %@",
       "other": "%lld ఫోటోలు · %@"
     },
-    "%lld photos over 2 MB that can shrink": {
-      "one": "%lld ఫోటో 2 MB కంటే పెద్దది, కుదించగలిగేది",
-      "other": "%lld ఫోటోలు 2 MB కంటే పెద్దవి, కుదించగలిగేవి"
+    "%lld photos over %lld MB that can shrink": {
+      "one": "%1$lld ఫోటో %2$lld MB కంటే పెద్దది, కుదించగలిగేది",
+      "other": "%1$lld ఫోటోలు %2$lld MB కంటే పెద్దవి, కుదించగలిగేవి"
     },
     "%lld Live Photos": {
       "one": "%lld Live Photo",

@@ -27,12 +27,6 @@ public actor ProjectDetector {
         ".git": "git-repository"
     ]
 
-    private let generatedFolderNames: Set<String> = [
-        "node_modules", "dist", "build", ".next", ".nuxt", ".turbo", ".parcel-cache",
-        ".vite", "coverage", ".venv", "venv", ".tox", "__pycache__", ".pytest_cache",
-        ".mypy_cache", ".ruff_cache", "target", ".build", ".dart_tool", "DerivedData"
-    ]
-
     private let sourceExtensions: Set<String>
 
     public init(policy: PathSafetyPolicy = PathSafetyPolicy()) {
@@ -65,7 +59,7 @@ public actor ProjectDetector {
         return grouped.map { root, manifestRecords in
             let projectFiles = filesInPrefix(sortedFiles: sortedFiles, sortedPaths: sortedPaths, root: root)
             let generatedFiles = projectFiles.filter { record in
-                record.url.pathComponents.contains(where: { generatedFolderNames.contains($0) })
+                record.url.pathComponents.contains(where: { ProjectArtifactFolders.reportable.contains($0.lowercased()) })
             }
             let sourceFiles = projectFiles.filter { record in
                 guard record.kind == .regularFile, let fileExtension = record.fileExtension else {

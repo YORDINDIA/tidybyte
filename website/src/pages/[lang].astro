@@ -14,6 +14,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 import { SITE_LANGUAGES } from "../data/languages";
 import { localizedHomeComponent, localizedHomeMeta } from "../lib/localized-page";
 import { quickAnswerBox } from "../lib/content";
+import { IOS_VERSION } from "../data/releases";
 
 export function getStaticPaths() {
   return SITE_LANGUAGES.map((l) => ({ params: { lang: l.slug } }));
@@ -24,5 +25,5 @@ const meta = localizedHomeMeta(lang);
 const LocalizedHome = localizedHomeComponent(lang);
 ---
 <SiteLayout meta={meta} lang={lang} home>
-  <LocalizedHome quickAnswer={quickAnswerBox(meta.description)} />
+  <LocalizedHome quickAnswer={quickAnswerBox(meta.description)} iosVersion={IOS_VERSION} />
 </SiteLayout>

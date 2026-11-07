@@ -9,23 +9,23 @@
 
 <article class="container-prose mx-auto max-w-prose px-4 pb-16 pt-8 sm:pt-10">
   <div class="flex flex-wrap items-center gap-2">
-    <a href="/blog#cat-comparisons" class="badge">Comparisons</a>
+    <a href="/blog#cat-{{BLOG_PRIMARY_CATEGORY}}" class="badge">{{BLOG_PRIMARY_LABEL}}</a>
   </div>
 
-  <h1 class="h-display mt-4">TidyByte vs Slidebox: Swipe Photo Cleaners Compared</h1>
+  <h1 class="h-display mt-4">{{BLOG_HEADING}}</h1>
 
   <p class="lede mt-5">If your iPhone is running low on storage, swipe-based photo cleaners offer the fastest way to sort through thousands of images. Two apps dominate this space: Slidebox, which has been around since 2017, and TidyByte, a newer free and open-source alternative. This TidyByte vs Slidebox comparison breaks down every feature, pricing model, and privacy practice so you can pick the right tool for your photo library.</p>
 
   <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-    <time datetime="2026-06-13">June 13, 2026</time>
+    <time datetime="{{BLOG_DATE}}">{{BLOG_DATE_LABEL}}</time>
     <span aria-hidden="true">&middot;</span>
-    <span>8 min read</span>
+    <span>{{BLOG_READING_MINUTES}} min read</span>
   </div>
 
   <figure class="mt-8">
     <picture>
       <source srcset="/assets/img/blog/tidybyte-vs-slidebox.avif" type="image/avif">
-      <img src="/assets/img/blog/tidybyte-vs-slidebox.webp" alt="Clay illustration: two clay smartphones side by side" width="1400" height="933"
+      <img src="/assets/img/blog/tidybyte-vs-slidebox.webp" alt="{{BLOG_IMAGE_ALT}}" width="1400" height="933"
            loading="eager" fetchpriority="high" decoding="async"
            class="block h-auto w-full rounded-2xl border border-hairline">
     </picture>
@@ -52,7 +52,7 @@
         <li aria-hidden="true">/</li>
         <li><a href="/blog" class="text-muted hover:text-ink hover:underline">Blog</a></li>
         <li aria-hidden="true">/</li>
-        <li aria-current="page" class="text-body">TidyByte vs Slidebox</li>
+        <li aria-current="page" class="text-body">{{BLOG_HEADING}}</li>
       </ol>
     </nav>
 
