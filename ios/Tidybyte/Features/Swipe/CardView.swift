@@ -386,8 +386,11 @@ struct CardView: View {
     private func zoomableImage(_ image: UIImage, frame: CGSize) -> some View {
         let base = Image(uiImage: fullResImage ?? image)
             .resizable()
-            .aspectRatio(contentMode: .fill)
+            // Fit, not fill: fill cropped landscape photos to the card's
+            // height, and zoom cannot go below 1x to reveal the crop.
+            .aspectRatio(contentMode: .fit)
             .frame(width: frame.width, height: frame.height)
+            .background(Color.black)
             .clipped()
             // Zoom applies after clipping so the image can grow past the card;
             // the card-level clipShape trims it.
@@ -433,9 +436,11 @@ struct CardView: View {
         }
         var requested = pixelTarget(for: frame)
         while true {
-            // Card-sized pixels, the same target the session prefetches, so the
-            // cached decode is reused instead of re-fetched.
-            let loaded = await photoService.loadImage(for: asset.id, targetSize: requested)
+            // Card-sized pixels, the same target and content mode the session
+            // prefetches, so the cached decode is reused instead of re-fetched.
+            // Aspect-fit matches the fitted card and keeps a wide panorama from
+            // decoding at the card's full height.
+            let loaded = await photoService.loadImage(for: asset.id, targetSize: requested, contentMode: .aspectFit)
             // The card may have left the deck (or been cancelled) while loading —
             // a late success must not show, or report the image as shown off-deck.
             guard !Task.isCancelled else { return }
@@ -604,12 +609,13 @@ struct CardView: View {
         guard longest > 0 else { return }
         let factor = min(1.0, maxDimension / longest)
         let target = CGSize(width: width * factor, height: height * factor)
-        // Upsample gate: both sides are the card's own render size now, so a
-        // deck that is short or narrow relative to the screen can no longer
-        // disable the swap and leave deep zoom soft.
-        guard target.width > pixelTarget(for: cardFrame).width else { return }
+        // Upsample gate: compare against the decode actually on screen. The
+        // aspect-fit card image of a tall photo is narrower than the card, so
+        // comparing against the card's width would skip a sharper decode.
+        let shownWidth = image.map { $0.size.width * $0.scale } ?? 0
+        guard target.width > shownWidth else { return }
         fullResTask = Task { @MainActor in
-            let loaded = await photoService.loadImage(for: asset.id, targetSize: target)
+            let loaded = await photoService.loadImage(for: asset.id, targetSize: target, contentMode: .aspectFit)
             guard !Task.isCancelled else { return }
             fullResImage = loaded
             // Self-clear so a failed load doesn't poison the guard above and
@@ -630,16 +636,16 @@ struct CardView: View {
         }
     }
 
-    /// Aspect-fill rendered size of the photo in the card frame: the image
-    /// covers the frame, so one axis already overflows at 1x. Pan limits must
-    /// use this, not the frame, or zoomed content edges stay unreachable.
+    /// Aspect-fit rendered size of the photo in the card frame: the image fits
+    /// inside the frame, so one axis is letterboxed at 1x. Pan limits must use
+    /// this, not the frame, or the letterbox bars pan into view when zoomed.
     private func renderedContentSize(for frame: CGSize) -> CGSize {
         let aspect = CGFloat(asset.pixelWidth) / CGFloat(max(asset.pixelHeight, 1))
         guard aspect.isFinite, aspect > 0, frame.height > 0 else { return frame }
         if aspect > frame.width / frame.height {
-            return CGSize(width: frame.height * aspect, height: frame.height)
-        } else {
             return CGSize(width: frame.width, height: frame.width / aspect)
+        } else {
+            return CGSize(width: frame.height * aspect, height: frame.height)
         }
     }
 

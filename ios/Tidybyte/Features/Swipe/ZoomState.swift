@@ -68,7 +68,7 @@ struct ZoomState: Equatable {
     }
 
     /// Bounds pan so no edge of the image can be pulled inside the frame.
-    /// contentSize is the aspect-fill rendered size (already overflowing one axis at 1x);
+    /// contentSize is the aspect-fit rendered size (letterboxed on one axis at 1x);
     /// defaults to the frame, preserving the exact-fit assumption; limit is half the
     /// overflow of the SCALED rendered content per axis, floored at zero for degenerate frames.
     static func clampPan(_ offset: CGSize, scale: CGFloat, frame: CGSize, contentSize: CGSize? = nil) -> CGSize {

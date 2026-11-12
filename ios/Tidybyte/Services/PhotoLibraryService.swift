@@ -735,7 +735,7 @@ actor PhotoLibraryService {
         assets.enumerateObjects { asset, _, _ in
             phAssets.append(asset)
         }
-        imageManager.startCachingImages(for: phAssets, targetSize: targetSize, contentMode: .aspectFill, options: nil)
+        imageManager.startCachingImages(for: phAssets, targetSize: targetSize, contentMode: .aspectFit, options: nil)
     }
 
     func stopCaching(assetIds: [String], targetSize: CGSize) {
@@ -744,7 +744,7 @@ actor PhotoLibraryService {
         assets.enumerateObjects { asset, _, _ in
             phAssets.append(asset)
         }
-        imageManager.stopCachingImages(for: phAssets, targetSize: targetSize, contentMode: .aspectFill, options: nil)
+        imageManager.stopCachingImages(for: phAssets, targetSize: targetSize, contentMode: .aspectFit, options: nil)
     }
 
     func stopAllCaching() {
