@@ -21,7 +21,8 @@
   "Light": "ಲೈಟ್",
   "MIT licensed": "MIT ಪರವಾನಗಿ",
   "Mac Activity Monitor alternative": "Mac ನ ಆಕ್ಟಿವಿಟಿ ಮಾನಿಟರ್‌ಗೆ ಪರ್ಯಾಯ",
-  "Made by": "ರಚಿಸಿದವರು",
+  "Made by {name}": "{name} ಅವರಿಂದ ರಚಿಸಲ್ಪಟ್ಟಿದೆ",
+  "Menu": "ಮೆನು",
   "Mobile": "ಮೊಬೈಲ್",
   "No account. No analytics. Nothing to cancel.": "ಖಾತೆ ಇಲ್ಲ. ವಿಶ್ಲೇಷಣೆ ಇಲ್ಲ. ರದ್ದುಗೊಳಿಸಲು ಏನೂ ಇಲ್ಲ.",
   "Open source": "ಓಪನ್ ಸೋರ್ಸ್",
@@ -39,7 +40,6 @@
   "Terms": "ನಿಯಮಗಳು",
   "TidyByte for Mac": "Mac ಗಾಗಿ TidyByte",
   "TidyByte on GitHub": "GitHub ನಲ್ಲಿ TidyByte",
-  "Toggle menu": "ಮೆನು ತೆರೆಯಿರಿ",
   "Tools": "ಉಪಕರಣಗಳು",
   "Video compression": "ವೀಡಿಯೊ ಕಂಪ್ರೆಷನ್"
 }

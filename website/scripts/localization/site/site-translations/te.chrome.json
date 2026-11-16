@@ -21,7 +21,8 @@
   "Light": "లైట్",
   "MIT licensed": "MIT లైసెన్స్",
   "Mac Activity Monitor alternative": "Mac యాక్టివిటీ మానిటర్‌కు ప్రత్యామ్నాయం",
-  "Made by": "రూపొందించినవారు",
+  "Made by {name}": "{name} రూపొందించారు",
+  "Menu": "మెనూ",
   "Mobile": "మొబైల్",
   "No account. No analytics. Nothing to cancel.": "ఖాతా లేదు. విశ్లేషణ లేదు. రద్దు చేయాల్సినది ఏమీ లేదు.",
   "Open source": "ఓపెన్ సోర్స్",
@@ -31,7 +32,7 @@
   "Project": "ప్రాజెక్ట్",
   "Resources": "వనరులు",
   "Screenshots": "స్క్రీన్‌షాట్‌లు",
-  "Skip to content": "కంటెంట్‌కు దాటవేయి",
+  "Skip to content": "కంటెంట్‌కు వెళ్లండి",
   "Storage cleaner": "స్టోరేజ్ క్లీనర్",
   "Support": "సహాయం",
   "Swipe to clean your photos. Free, on-device, no account.": "స్వైప్ చేసి మీ ఫోటోలను శుభ్రం చేయండి. ఉచితం, పరికరంలోనే, ఖాతా అవసరం లేదు.",
@@ -39,7 +40,6 @@
   "Terms": "నిబంధనలు",
   "TidyByte for Mac": "Mac కోసం TidyByte",
   "TidyByte on GitHub": "GitHubలో TidyByte",
-  "Toggle menu": "మెనూ తెరవండి",
   "Tools": "సాధనాలు",
   "Video compression": "వీడియో కంప్రెషన్"
 }

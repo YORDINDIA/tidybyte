@@ -21,7 +21,8 @@
   "Light": "בהיר",
   "MIT licensed": "רישיון MIT",
   "Mac Activity Monitor alternative": "חלופה ל״צג פעילות״ ב-Mac",
-  "Made by": "נוצר על ידי",
+  "Made by {name}": "נוצר על ידי {name}",
+  "Menu": "תפריט",
   "Mobile": "נייד",
   "No account. No analytics. Nothing to cancel.": "בלי חשבון. בלי אנליטיקה. אין מה לבטל.",
   "Open source": "קוד פתוח",
@@ -39,7 +40,6 @@
   "Terms": "תנאים",
   "TidyByte for Mac": "TidyByte למק",
   "TidyByte on GitHub": "TidyByte ב-GitHub",
-  "Toggle menu": "פתיחת התפריט",
   "Tools": "כלים",
   "Video compression": "דחיסת וידאו"
 }

@@ -21,8 +21,9 @@
   "Light": "Claro",
   "MIT licensed": "Licença MIT",
   "Mac Activity Monitor alternative": "Alternativa ao Monitor de Atividade do Mac",
-  "Made by": "Criado por",
-  "Mobile": "Móvel",
+  "Made by {name}": "Criado por {name}",
+  "Menu": "Menu",
+  "Mobile": "Navegação móvel",
   "No account. No analytics. Nothing to cancel.": "Sem conta. Sem análise de dados. Nada para cancelar.",
   "Open source": "Código aberto",
   "Primary": "Navegação principal",
@@ -39,7 +40,6 @@
   "Terms": "Termos",
   "TidyByte for Mac": "TidyByte para Mac",
   "TidyByte on GitHub": "TidyByte no GitHub",
-  "Toggle menu": "Abrir menu",
   "Tools": "Ferramentas",
   "Video compression": "Compactação de vídeo"
 }

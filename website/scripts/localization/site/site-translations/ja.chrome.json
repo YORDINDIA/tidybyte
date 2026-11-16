@@ -1,7 +1,7 @@
 {
   "AI photo search": "AI 写真検索",
   "All cleanup tools": "すべての整理ツール",
-  "App": "App",
+  "App": "アプリ",
   "Blog": "ブログ",
   "Change color theme": "カラーテーマを変更",
   "Changelog": "変更履歴",
@@ -21,9 +21,10 @@
   "Light": "ライト",
   "MIT licensed": "MIT ライセンス",
   "Mac Activity Monitor alternative": "Mac のアクティビティモニタの代替",
-  "Made by": "制作:",
+  "Made by {name}": "制作: {name}",
+  "Menu": "メニュー",
   "Mobile": "モバイル",
-  "No account. No analytics. Nothing to cancel.": "アカウント不要。分析なし。解約するものなし。",
+  "No account. No analytics. Nothing to cancel.": "アカウント不要。アクセス解析なし。解約するものなし。",
   "Open source": "オープンソース",
   "Primary": "メインナビゲーション",
   "Privacy": "プライバシー",
@@ -39,7 +40,6 @@
   "Terms": "利用規約",
   "TidyByte for Mac": "Mac 版 TidyByte",
   "TidyByte on GitHub": "GitHub の TidyByte",
-  "Toggle menu": "メニューを開く",
   "Tools": "ツール",
   "Video compression": "動画の圧縮"
 }

@@ -21,7 +21,8 @@
   "Light": "ஒளி",
   "MIT licensed": "MIT உரிமம்",
   "Mac Activity Monitor alternative": "Mac செயல்பாட்டு கண்காணிப்புக்கு மாற்று",
-  "Made by": "உருவாக்கியவர்",
+  "Made by {name}": "{name} உருவாக்கியவர்",
+  "Menu": "மெனு",
   "Mobile": "கைபேசி",
   "No account. No analytics. Nothing to cancel.": "கணக்கு இல்லை. பகுப்பாய்வு இல்லை. ரத்து செய்ய எதுவும் இல்லை.",
   "Open source": "திறந்த மூலம்",
@@ -39,7 +40,6 @@
   "Terms": "விதிமுறைகள்",
   "TidyByte for Mac": "Mac-க்கான TidyByte",
   "TidyByte on GitHub": "GitHub-இல் TidyByte",
-  "Toggle menu": "மெனுவைத் திற",
   "Tools": "கருவிகள்",
   "Video compression": "வீடியோ சுருக்கம்"
 }

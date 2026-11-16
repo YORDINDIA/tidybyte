@@ -21,7 +21,8 @@
   "Light": "라이트",
   "MIT licensed": "MIT 라이선스",
   "Mac Activity Monitor alternative": "Mac 활성 상태 보기 대안",
-  "Made by": "제작",
+  "Made by {name}": "제작: {name}",
+  "Menu": "메뉴",
   "Mobile": "모바일",
   "No account. No analytics. Nothing to cancel.": "계정 없음. 분석 없음. 해지할 것 없음.",
   "Open source": "오픈 소스",
@@ -39,7 +40,6 @@
   "Terms": "이용약관",
   "TidyByte for Mac": "Mac용 TidyByte",
   "TidyByte on GitHub": "GitHub의 TidyByte",
-  "Toggle menu": "메뉴 열기",
   "Tools": "도구",
   "Video compression": "동영상 압축"
 }

@@ -21,7 +21,8 @@
   "Light": "हलका",
   "MIT licensed": "MIT परवाना",
   "Mac Activity Monitor alternative": "Mac चा अ‍ॅक्टिव्हिटी मॉनिटर पर्याय",
-  "Made by": "यांनी बनवलेले",
+  "Made by {name}": "{name} यांनी बनवलेले",
+  "Menu": "मेनू",
   "Mobile": "मोबाइल",
   "No account. No analytics. Nothing to cancel.": "खाते नाही. विश्लेषण नाही. रद्द करण्यासारखे काही नाही.",
   "Open source": "ओपन सोर्स",
@@ -39,7 +40,6 @@
   "Terms": "अटी",
   "TidyByte for Mac": "Mac साठी TidyByte",
   "TidyByte on GitHub": "GitHub वर TidyByte",
-  "Toggle menu": "मेनू उघडा",
   "Tools": "साधने",
   "Video compression": "व्हिडिओ कॉम्प्रेशन"
 }

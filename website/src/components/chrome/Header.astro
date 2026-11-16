@@ -1,5 +1,5 @@
 ---
-// Sticky header: logo left, nav centre (lg+, 1024px: seven links do not fit at 768px), language switcher + theme
+// Sticky header: logo left, nav centre (xl+, 1280px: the translated labels wrap or overflow below that), language switcher + theme
 // toggle + CTA + menu right. This Astro component is the single source for
 // the site chrome (the old src/chrome/header.html partial is gone): every
 // page renders it through src/layouts/SiteLayout.astro.
@@ -10,7 +10,7 @@
 // state).
 import { ALL_LANGUAGES, type SiteLanguage } from "../../data/languages";
 import { urlForRoute } from "../../lib/localized-page";
-import { chrome } from "../../lib/chrome";
+import { chrome, COMPACT_NAV } from "../../lib/chrome";
 
 interface Props {
   home?: boolean;
@@ -21,21 +21,22 @@ const { home = false, lang = undefined } = Astro.props;
 const anchor = (id: string) => (home ? `#${id}` : `/#${id}`);
 const current = lang ?? undefined;
 const t = (text: string) => chrome(lang?.code ?? "en", text);
+const compactNav = COMPACT_NAV.has(lang?.code ?? "en");
 ---
 
-<header class="sticky top-0 z-40 border-b border-hairline bg-canvas/85 backdrop-blur">
+<header class:list={["sticky top-0 z-40 border-b border-hairline bg-canvas/85 backdrop-blur", compactNav && "header-compact"]}>
   <div class="container-prose flex h-16 items-center justify-between gap-2 sm:gap-4">
     <a href="/" class="font-display text-lg font-semibold tracking-tight text-ink">TidyByte<span aria-hidden="true" class="text-clay-pink">.</span></a>
 
-    <nav aria-label={t("Primary")} class="hidden items-center gap-1 lg:flex">
-      <a href={anchor("features")} class="nav-link">{t("Features")}</a>
-      <a href="/photo-cleaner" class="nav-link">{t("Tools")}</a>
-      <a href="/mac" class="nav-link">Mac</a>
-      <a href={anchor("how-it-works")} class="nav-link">{t("How it works")}</a>
-      <a href="/blog" class="nav-link">{t("Blog")}</a>
-      <a href={anchor("faq")} class="nav-link">{t("FAQ")}</a>
-      <a href="/support" class="nav-link">{t("Support")}</a>
-      <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="nav-link" aria-label={t("TidyByte on GitHub")}>
+    <nav aria-label={t("Primary")} class="primary-nav hidden items-center gap-1 xl:flex">
+      <a href={anchor("features")} class="nav-link px-2">{t("Features")}</a>
+      <a href="/photo-cleaner" class="nav-link px-2">{t("Tools")}</a>
+      <a href="/mac" class="nav-link px-2">Mac</a>
+      <a href={anchor("how-it-works")} class="nav-link px-2">{t("How it works")}</a>
+      <a href="/blog" class="nav-link px-2">{t("Blog")}</a>
+      <a href={anchor("faq")} class="nav-link px-2">{t("FAQ")}</a>
+      <a href="/support" class="nav-link px-2">{t("Support")}</a>
+      <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="nav-link px-2" aria-label={t("TidyByte on GitHub")}>
         <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.74 5.49.74 11.76c0 4.96 3.22 9.16 7.68 10.65.56.1.77-.24.77-.55v-1.93c-3.12.68-3.78-1.5-3.78-1.5-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.23.71-1.51-2.49-.28-5.12-1.25-5.12-5.55 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.1 1.15.9-.25 1.86-.38 2.82-.39.96.01 1.92.14 2.82.39 2.15-1.45 3.1-1.15 3.1-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.31-2.64 5.27-5.15 5.54.4.34.76 1.02.76 2.06v3.05c0 .31.2.66.78.55 4.46-1.49 7.67-5.69 7.67-10.65C23.26 5.49 18.27.5 12 .5Z"/></svg>
       </a>
     </nav>
@@ -110,13 +111,13 @@ const t = (text: string) => chrome(lang?.code ?? "en", text);
         {t("Get the app")}
       </a>
 
-      <button type="button" data-menu-toggle aria-controls="mobile-menu" aria-expanded="false" aria-label={t("Toggle menu")} class="icon-btn inline-flex h-9 w-9 items-center justify-center rounded-full text-ink transition hover:bg-surface-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-pink lg:hidden">
+      <button type="button" data-menu-toggle aria-controls="mobile-menu" aria-expanded="false" aria-label={t("Menu")} class="icon-btn inline-flex h-9 w-9 items-center justify-center rounded-full text-ink transition hover:bg-surface-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-pink xl:hidden">
         <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
       </button>
     </div>
   </div>
 
-  <div id="mobile-menu" data-mobile-menu class="hidden border-t border-hairline lg:hidden">
+  <div id="mobile-menu" data-mobile-menu class="hidden border-t border-hairline xl:hidden">
     <!-- data-drawer is the collapsing grid: the disclosure animates its own
          height so the page below never jumps. See input.css motion system. -->
     <div data-drawer>

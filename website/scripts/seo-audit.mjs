@@ -22,6 +22,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { findHtmlFiles } from "./lib/html-files.mjs";
 import { missingPageRewrites } from "./lib/netlify-routes.mjs";
+import { plainText } from "../src/lib/plain-text.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -32,6 +33,10 @@ if (!existsSync(DIST)) {
 }
 
 const htmlFiles = () => findHtmlFiles(DIST);
+
+// Words and punctuation must match; whitespace and curly or straight quotes
+// are typography, so they are ignored.
+const norm = (t) => t.replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/\s+/g, "");
 
 const problems = [];
 const titles = new Map();
@@ -204,6 +209,13 @@ for (const file of htmlFiles()) {
         }
         const name = decode(raw);
         if (!text.includes(name)) fail(`FAQ question not visible on page: "${name.slice(0, 60)}"`);
+        // The answer is structured data too: it must match the visible answer,
+        // or search engines get a different claim from the one users read.
+        const answer = plainText(String(q.acceptedAnswer?.text ?? ""));
+        if (!answer) fail(`FAQ answer is empty: "${name.slice(0, 60)}"`);
+        // Inline links turn into spaces before punctuation ("GitHub </a>."),
+        // so compare with all whitespace removed: words and punctuation must match.
+        else if (!norm(plainText(html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "))).includes(norm(answer))) fail(`FAQ answer not visible on page: "${answer.slice(0, 60)}"`);
         if (isTranslatedHome(rel)) {
           const normalize = (value) => decode(value).replace(/\s+([.,!?])/g, "$1").trim();
           const answer = normalize(String(q.acceptedAnswer?.text ?? ""));

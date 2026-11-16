@@ -52,3 +52,9 @@ const TABLES = {
 export function chrome(code, text) {
   return TABLES[code]?.[text] ?? text;
 }
+
+// Languages whose full desktop nav does not fit the 1056 px header content box,
+// even with tighter link padding (measured with Playwright at 1280 to 1440 px,
+// with labels that cannot wrap). These keep the menu button at every width.
+// Re-measure at 1280 to 1440 px after any label change.
+export const COMPACT_NAV = new Set(["es", "pt-BR", "te", "ml", "kn", "ru", "ta"]);

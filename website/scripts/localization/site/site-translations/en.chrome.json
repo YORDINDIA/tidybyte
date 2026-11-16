@@ -21,7 +21,8 @@
   "Light": "Light",
   "MIT licensed": "MIT licensed",
   "Mac Activity Monitor alternative": "Mac Activity Monitor alternative",
-  "Made by": "Made by",
+  "Made by {name}": "Made by {name}",
+  "Menu": "Menu",
   "Mobile": "Mobile",
   "No account. No analytics. Nothing to cancel.": "No account. No analytics. Nothing to cancel.",
   "Open source": "Open source",
@@ -39,7 +40,6 @@
   "Terms": "Terms",
   "TidyByte for Mac": "TidyByte for Mac",
   "TidyByte on GitHub": "TidyByte on GitHub",
-  "Toggle menu": "Toggle menu",
   "Tools": "Tools",
   "Video compression": "Video compression"
 }

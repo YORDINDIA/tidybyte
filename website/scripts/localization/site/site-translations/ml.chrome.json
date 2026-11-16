@@ -21,7 +21,8 @@
   "Light": "ലൈറ്റ്",
   "MIT licensed": "MIT ലൈസൻസ്",
   "Mac Activity Monitor alternative": "Mac-ലെ ആക്ടിവിറ്റി മോണിറ്ററിന് പകരം",
-  "Made by": "നിർമ്മിച്ചത്",
+  "Made by {name}": "{name} നിർമ്മിച്ചത്",
+  "Menu": "മെനു",
   "Mobile": "മൊബൈൽ",
   "No account. No analytics. Nothing to cancel.": "അക്കൗണ്ട് വേണ്ട. അനലിറ്റിക്സ് ഇല്ല. റദ്ദാക്കാൻ ഒന്നുമില്ല.",
   "Open source": "ഓപ്പൺ സോഴ്‌സ്",
@@ -39,7 +40,6 @@
   "Terms": "നിബന്ധനകൾ",
   "TidyByte for Mac": "Mac-നുള്ള TidyByte",
   "TidyByte on GitHub": "GitHub-ൽ TidyByte",
-  "Toggle menu": "മെനു തുറക്കുക",
   "Tools": "ടൂളുകൾ",
   "Video compression": "വീഡിയോ കംപ്രഷൻ"
 }

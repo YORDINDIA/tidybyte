@@ -21,7 +21,8 @@
   "Light": "فاتح",
   "MIT licensed": "رخصة MIT",
   "Mac Activity Monitor alternative": "بديل مراقب النشاط على الماك",
-  "Made by": "صنع بواسطة",
+  "Made by {name}": "صنع بواسطة {name}",
+  "Menu": "القائمة",
   "Mobile": "الجوال",
   "No account. No analytics. Nothing to cancel.": "بلا حساب. بلا تحليلات. لا يوجد ما يُلغى.",
   "Open source": "مفتوح المصدر",
@@ -39,7 +40,6 @@
   "Terms": "الشروط",
   "TidyByte for Mac": "TidyByte للماك",
   "TidyByte on GitHub": "TidyByte على GitHub",
-  "Toggle menu": "فتح القائمة",
   "Tools": "الأدوات",
   "Video compression": "ضغط الفيديو"
 }
