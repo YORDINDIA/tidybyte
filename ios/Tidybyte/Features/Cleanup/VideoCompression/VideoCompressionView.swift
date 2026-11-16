@@ -7,6 +7,7 @@ struct VideoCompressionView: View {
     @State private var previewStart: VideoItem?
     @State private var rowToDelete: VideoItem?
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var isCelebrating = false
     @State private var celebrationStatLine: String?
     private let photoService = PhotoLibraryService.shared
@@ -188,7 +189,10 @@ struct VideoCompressionView: View {
     // MARK: - Video Row
 
     private func videoRow(_ video: VideoItem) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        // At accessibility sizes the details move below the row. Beside the
+        // thumbnail, the Dynamic Type text wraps one word or one character per line.
+        let isAX = dynamicTypeSize.isAccessibilitySize
+        return VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.md) {
                 // Always-visible selection checkbox. Tapping it (de)selects the row;
                 // tapping anywhere else on the row opens the preview.
@@ -219,41 +223,12 @@ struct VideoCompressionView: View {
                             .padding(Spacing.xs)
                     }
 
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    if let date = video.asset.creationDate {
-                        Text(date, style: .date)
-                            .font(.subheadline)
-                    }
-                    Menu {
-                        ForEach(CompressionPreset.presets) { preset in
-                            Button(preset.label) {
-                                viewModel.setPreset(preset, for: video.id)
-                            }
-                        }
-                    } label: {
-                        Text(video.selectedPreset.label)
-                            .font(.caption.bold())
-                            .foregroundStyle(.blue)
-                    }
-
-                    Text(video.asset.resolution)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: Spacing.xs) {
-                    Text(video.asset.displaySize)
-                        .font(.headline.monospacedDigit())
-
-                    let estimated = viewModel.estimateSize(for: video)
-                    // A bitrate-based guess, so grey and labelled.
-                    if estimated < video.asset.fileSize {
-                        Text("est. ~\(estimated.formattedFileSize)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                if isAX {
+                    Spacer()
+                } else {
+                    videoDetails(video)
+                    Spacer()
+                    videoSizeColumn(video, alignment: .trailing)
                 }
 
                 if !viewModel.isCompressing {
@@ -270,12 +245,57 @@ struct VideoCompressionView: View {
                     .accessibilityLabel("Delete video")
                 }
             }
+            // At accessibility sizes the details and size go full width under the
+            // row. Beside the thumbnail they got a sliver of the width.
+            if isAX {
+                videoDetails(video)
+                videoSizeColumn(video, alignment: .leading)
+            }
             // Full row width, under the row: in the middle column an error
             // got ~100 pt and was cut off.
             compressionStateLabel(video)
         }
         .contentShape(Rectangle())
         .onTapGesture { previewStart = video }
+    }
+
+    private func videoDetails(_ video: VideoItem) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            if let date = video.asset.creationDate {
+                Text(date, style: .date)
+                    .font(.subheadline)
+            }
+            Menu {
+                ForEach(CompressionPreset.presets) { preset in
+                    Button(preset.label) {
+                        viewModel.setPreset(preset, for: video.id)
+                    }
+                }
+            } label: {
+                Text(video.selectedPreset.label)
+                    .font(.caption.bold())
+                    .foregroundStyle(.blue)
+            }
+
+            Text(video.asset.resolution)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func videoSizeColumn(_ video: VideoItem, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: Spacing.xs) {
+            Text(video.asset.displaySize)
+                .font(.headline.monospacedDigit())
+
+            let estimated = viewModel.estimateSize(for: video)
+            // A bitrate-based guess, so grey and labelled.
+            if estimated < video.asset.fileSize {
+                Text("est. ~\(estimated.formattedFileSize)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     // MARK: - Compression State Label

@@ -113,7 +113,7 @@ struct CompressionHistoryView: View {
                                         Image(systemName: "arrow.right")
                                             .font(.caption2)
                                             .foregroundStyle(.secondary)
-                                            .accessibilityLabel("to")
+                                            .accessibilityLabel(L10n.string("to"))
                                         Text(record.compressedSizeBytes.formattedFileSize)
                                             .foregroundStyle(.primary)
                                     }

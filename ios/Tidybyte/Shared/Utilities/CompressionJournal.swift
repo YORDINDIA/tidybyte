@@ -324,11 +324,20 @@ enum CompressionJournal {
         return Set(records.compactMap(\.replacementAssetLocalIdentifier))
     }
 
+    /// Whether PhotoKit can answer existence checks. Without access,
+    /// `existingIds` returns an empty set, which reads as "every original is
+    /// gone". Reconcile must not decide anything on that answer.
+    nonisolated static func canReadLibrary(_ status: PHAuthorizationStatus) -> Bool {
+        status == .authorized || status == .limited
+    }
+
     static func reconcile(modelContext: ModelContext) async {
         let descriptor = FetchDescriptor<CompressionRecord>(
             predicate: #Predicate { $0.outcome == "pending" }
         )
         guard let pendings = try? modelContext.fetch(descriptor), !pendings.isEmpty else { return }
+        // Pending rows stay as they are until a load with library access.
+        guard canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite)) else { return }
         AppLog.compression.info("Reconciling \(pendings.count, privacy: .public) pending compression record(s)")
         var resolved: [(CompressionRecord, Resolution)] = []
         // Rows still owned by a live swap (a running batch, or saved copies

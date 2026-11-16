@@ -77,6 +77,8 @@ final class PhotoCompressionViewModel {
     /// The batch mutation loop, owned by the VM so leaving the screen can
     /// cancel it instead of orphaning the mutation loop (COMP-08).
     private var batchTask: Task<Void, Never>?
+    /// The "Check Sizes" encode loop, cancelled with the screen.
+    private var measureTask: Task<Void, Never>?
 
     var defaultPresetId: String {
         get { AppPreferences.defaultPhotoCompressionPresetID() }
@@ -257,16 +259,22 @@ final class PhotoCompressionViewModel {
             && !Self.isAlreadyUnderTarget($0.asset, preset: $0.selectedPreset) }
         guard !items.isEmpty else { return }
         isMeasuring = true
-        Task {
+        measureTask = Task {
             for item in items {
-                if let size = try? await compressionService.measureCompressedSize(assetId: item.id, preset: item.selectedPreset) {
-                    measuredSizes[Self.sizeKey(item.id, item.selectedPreset)] = size
-                } else if item.selectedPreset.targetBytes != nil {
+                if Task.isCancelled { break }
+                let key = Self.sizeKey(item.id, item.selectedPreset)
+                do {
+                    measuredSizes[key] = try await compressionService.measureCompressedSize(assetId: item.id, preset: item.selectedPreset)
+                } catch PhotoCompressionError.cannotReachTarget {
                     // Marks "can't reach" for the row: 0 never comes from a real encode.
-                    measuredSizes[Self.sizeKey(item.id, item.selectedPreset)] = 0
+                    measuredSizes[key] = 0
+                } catch {
+                    // A load or encode failure is not "can't fit". Say what failed.
+                    errorMessage = error.localizedDescription
                 }
             }
             isMeasuring = false
+            measureTask = nil
         }
     }
 
@@ -327,6 +335,7 @@ final class PhotoCompressionViewModel {
     func cancelCompression() {
         isCancelled = true
         batchTask?.cancel()
+        measureTask?.cancel()
     }
 
     /// "Try Again" on the Originals Kept alert: one more delete commit.
@@ -353,6 +362,10 @@ final class PhotoCompressionViewModel {
             keptOriginals = outcome.kept
             if !outcome.failed.isEmpty {
                 errorMessage = OriginalsCommit.missingReplacementMessage
+            } else if outcome.kept.isEmpty {
+                // A retry that finishes the delete clears a stale "Copies
+                // kept" banner left by a declined Remove Copies (video parity).
+                errorMessage = nil
             }
             // A retry that completes the delete IS a clean batch success, but
             // `batchSummary` is unchanged so the view's `.onChange` never

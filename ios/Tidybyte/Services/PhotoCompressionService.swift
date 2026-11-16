@@ -77,10 +77,10 @@ actor PhotoCompressionService {
         let resources = PHAssetResource.assetResources(for: phAsset)
         let originalSize = fileSize(of: resources)
         guard originalSize > 0 else {
-            // iCloud-only (or KVC-unreadable) assets report 0 bytes. Compressing
-            // them would make the "does this save space?" check meaningless and
-            // could delete a large original in exchange for a 0-byte history
-            // record — skip instead (COMP-07).
+            // A size of 0 means PhotoKit reported no size. Compressing would
+            // make the "does this save space?" check meaningless and could
+            // delete a large original in exchange for a 0-byte history record,
+            // so skip instead (COMP-07).
             throw PhotoCompressionError.sizeUnknown
         }
 
@@ -211,7 +211,7 @@ actor PhotoCompressionService {
 
     /// Finds the highest quality (at the highest resolution) whose output is
     /// at or under `maxBytes`, and leaves that file at `url`.
-    // ponytail: up to ~6 encodes per resolution step; make the search adaptive if large images feel slow.
+    // shortcut: up to ~6 encodes per resolution step, upgrade to an adaptive search when large images feel slow.
     private func encode(_ source: CGImageSource, toMaxBytes maxBytes: Int64, at url: URL) throws -> Int64 {
         let range = Self.targetQualityRange
         for dimension in Self.targetDimensionSteps {

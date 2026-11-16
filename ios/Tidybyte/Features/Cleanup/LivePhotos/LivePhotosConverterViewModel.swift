@@ -230,6 +230,9 @@ final class LivePhotosConverterViewModel {
             items.removeAll { doneIds.contains($0.id) }
             // Rows that still hold both versions stay `.copySaved`. Resetting them
             // to `.idle` would let Convert save a second still beside the first.
+            // Keep the decision open, so the alert offers Try Again and Remove
+            // Copies again instead of leaving those rows with no action.
+            keptOriginals = outcome.kept
             isBusy = false
         }
     }
@@ -302,6 +305,15 @@ final class LivePhotosConverterViewModel {
         }
     }
 
+    /// The resource type of the still to save. An edited Live Photo keeps its
+    /// edit in `.fullSizePhoto`; `.photo` is the unedited original. The
+    /// Live Photo is deleted after the save, so saving `.photo` would drop the edit.
+    nonisolated static func stillResourceType(available: [PHAssetResourceType]) -> PHAssetResourceType? {
+        if available.contains(.fullSizePhoto) { return .fullSizePhoto }
+        if available.contains(.photo) { return .photo }
+        return nil
+    }
+
     /// Step 1 of a conversion: save the still as a new asset. The Live Photo
     /// itself is deleted later, in `commitOriginals`.
     private func performConversion(assetId: String, modelContext: ModelContext, albumIdentifiers: [String]? = nil) async throws -> PendingOriginal {
@@ -310,7 +322,8 @@ final class LivePhotosConverterViewModel {
         }
 
         let resources = PHAssetResource.assetResources(for: phAsset)
-        guard let photoResource = resources.first(where: { $0.type == .photo }) else {
+        guard let stillType = Self.stillResourceType(available: resources.map(\.type)),
+              let photoResource = resources.first(where: { $0.type == stillType }) else {
             throw LivePhotoError.noPhotoResource
         }
 
