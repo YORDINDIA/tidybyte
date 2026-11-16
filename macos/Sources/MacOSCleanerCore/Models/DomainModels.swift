@@ -168,7 +168,8 @@ public enum ActionType: String, Codable, CaseIterable, Identifiable, Sendable {
     case restore
     /// Move file to a specified destination directory.
     case move
-    /// Rename a file in place. Phase 2 — not yet implemented.
+    /// Moves a file into a destination folder under its own name. No planner emits
+    /// this action yet, so it runs only from a plan that was saved with it.
     case rename
     /// Apply a Finder tag to a file for organization.
     case tag
@@ -350,6 +351,9 @@ public struct ScanSession: Codable, Identifiable, Sendable {
     /// Package-manager cleanup candidates (brew caches, docker, …). They are
     /// not session-scoped rows, so the session row carries them for restore.
     public var packageCandidates: [PackageCleanupCandidate]?
+    /// Process that owns a running scan. A running row whose owner has exited
+    /// is abandoned. Nil on rows written before this field existed.
+    public var ownerProcessID: Int32?
 
     public init(
         id: String = UUID().uuidString,

@@ -273,29 +273,62 @@ public struct PathSafetyPolicy: Sendable {
         return .allow
     }
 
-    /// Flags that make a file inside a folder unsafe to take along with it.
-    /// Source and manifest flags are excluded: they are normal inside build and
-    /// dependency folders that cleanup is meant to remove.
-    private static let descendantBlockingFlags: Set<RiskFlag> = [
-        .protectedDirectory, .protectedFile, .secretOrCertificate,
-        .codingAgentMemoryOrConfig, .cloudSyncedLocalPath, .reviewOnly
+    /// Credential material that a folder must never take along with it: a
+    /// private key, a keychain or a secrets file anywhere inside the folder
+    /// blocks trashing the folder. Names and extensions only, so the walk stays
+    /// cheap. Build and dependency folders (node_modules, DerivedData, build)
+    /// are not blocked by nested .git folders, config files or source files.
+    private static let credentialDirectoryNames: Set<String> = [
+        ".ssh", ".gnupg", ".aws", "keychains", "passwords", "1password", "bitwarden", "keepass", "mobilesync"
     ]
+    private static let credentialFileNames: Set<String> = [
+        ".env", ".env.local", ".env.production", ".env.development", ".env.staging", ".env.test",
+        "id_rsa", "id_ed25519", "known_hosts"
+    ]
+    /// Always-secret containers and key formats (binary, no public look-alikes).
+    private static let credentialExtensions: Set<String> = [
+        "p12", "pfx", "p8", "jks", "keystore", "keychain", "keychain-db", "gpg", "pgp",
+        "mobileprovision", "provisionprofile"
+    ]
+    /// Coding-agent memory and config folders. IDE folders such as .vscode are not listed.
+    private static let codingAgentMemoryDirectoryNames: Set<String> = [
+        ".claude", ".codex", ".opencode", ".factory", ".openclaw", ".hermes"
+    ]
+    /// Text key formats. Public certificates use the same extensions, so the
+    /// file is blocked only when its header says it holds a private key.
+    private static let privateKeyCandidateExtensions: Set<String> = ["pem", "key"]
 
-    /// First descendant of `folder` that carries a blocking flag. Symlinks are
-    /// not followed. A folder that cannot be enumerated counts as blocked.
+    /// First descendant of `folder` that holds credential material, or nil.
+    /// Symlinks are not followed. A folder that cannot be enumerated counts as blocked.
     private func protectedDescendant(of folder: URL) -> URL? {
-        guard let walker = FileManager.default.enumerator(
-            at: folder, includingPropertiesForKeys: [.isDirectoryKey], options: []
-        ) else {
+        guard let walker = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: nil, options: []) else {
             return folder
         }
-        for case let child as URL in walker {
-            let isDirectory = (try? child.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
-            if !riskFlags(for: child, isDirectory: isDirectory).isDisjoint(with: Self.descendantBlockingFlags) {
-                return child
-            }
+        for case let child as URL in walker where isCredentialEntry(child) {
+            return child
         }
         return nil
+    }
+
+    /// Name-based test for one descendant. Directories and files are judged by
+    /// name, so a folder named like a credential store blocks as well.
+    private func isCredentialEntry(_ url: URL) -> Bool {
+        let name = url.lastPathComponent.lowercased()
+        let ext = url.pathExtension.lowercased()
+        if Self.credentialDirectoryNames.contains(name) || Self.credentialFileNames.contains(name)
+            || name.hasPrefix("com.apple.dt.") || Self.credentialExtensions.contains(ext)
+            || ext == "xcarchive" || Self.codingAgentMemoryDirectoryNames.contains(name) {
+            return true
+        }
+        return Self.privateKeyCandidateExtensions.contains(ext) && Self.holdsPrivateKey(url)
+    }
+
+    /// Reads only the first bytes of a key-like file.
+    private static func holdsPrivateKey(_ url: URL) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? handle.close() }
+        let head = (try? handle.read(upToCount: 512)) ?? Data()
+        return (String(bytes: head, encoding: .ascii) ?? "").contains("PRIVATE KEY")
     }
 
     /// Never-delete folders in the home folder. Trashing a folder that holds

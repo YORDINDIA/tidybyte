@@ -323,7 +323,8 @@ public actor FileCrawler {
                 // record would otherwise carry only the directory entry's own
                 // size (a few KB). Measure the subtree so Explore and the
                 // trash estimate see the package's real footprint.
-                if record.kind == .package, withinBudget {
+                // A package is one record however large its subtree, so it is always measured.
+                if record.kind == .package {
                     let summary = rolledUp(record, sessionID: sessionID, policy: policy, closed: closed)
                     output += summary.records
                     errors += summary.errors

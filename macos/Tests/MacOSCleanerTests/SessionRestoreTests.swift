@@ -53,11 +53,10 @@ final class SessionRestoreTests: XCTestCase {
         let retired = try await store.failStaleRunningSessions(olderThan: cutoff)
 
         XCTAssertEqual(retired, 1, "Only sessions older than the cutoff may be retired")
-        // The retired session is now terminal, so it reads as the latest
-        // finished session; the fresh running one is still skipped.
+        // A failed session holds no results to restore, so it never reads as the
+        // latest finished scan (SCAN-01). The fresh running one is still skipped.
         let latest = try await store.latestFinishedScanSession()
-        XCTAssertEqual(latest?.id, "stale-run")
-        XCTAssertEqual(latest?.status, .failed)
+        XCTAssertNil(latest)
     }
 
     /// The full relaunch path: persist a finished session the way the

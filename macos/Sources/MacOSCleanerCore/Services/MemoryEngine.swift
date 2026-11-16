@@ -230,6 +230,28 @@ public actor MemoryEngine {
         }
     }
 
+    /// Stores a calibration preference with the rule type the caller chose. Use this
+    /// form: the free-text inference below reads "Prefer archiving files ..." as
+    /// `.always` because it looks for the phrase "prefer archive".
+    public func applyCalibrationPreference(
+        _ preference: String,
+        ruleType: MemoryRuleType,
+        scopeType: String = "global",
+        scopeValue: String = ""
+    ) async throws {
+        try await saveOrReinforceRule(
+            scopeType: scopeType,
+            scopeValue: scopeValue,
+            actionType: nil,
+            ruleType: ruleType,
+            rule: preference,
+            source: String(localized: "explicit user setting", comment: "Source label for user calibration preference"),
+            confidence: 0.95,
+            matchOnRuleText: true
+        )
+    }
+
+    /// Legacy form: infers the rule type from the text. Prefer the `ruleType:` form.
     public func applyCalibrationPreference(
         _ preference: String,
         scopeType: String = "global",

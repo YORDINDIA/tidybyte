@@ -14,15 +14,21 @@ enum SortedPathSearch {
     }
 
     /// Returns the index of the first element whose path is >= the character after `prefix`.
-    /// Uses Unicode scalar comparison for correct handling of non-ASCII path characters.
+    /// Uses Swift String ordering, the same ordering the paths are sorted with.
     static func upperBound(_ paths: [String], _ prefix: String) -> Int {
         // Build the upper bound by incrementing the last Unicode scalar of the prefix.
         // This ensures correct ordering for all Unicode characters, not just ASCII.
+        // The surrogate range U+D800...U+DFFF has no scalars, so it is skipped.
+        // A prefix ending in U+10FFFF has no successor: every later path is >= prefix.
         let upperPrefix: String
-        if let lastScalar = prefix.unicodeScalars.last,
-           let incremented = Unicode.Scalar(lastScalar.value + 1) {
-            let base = prefix.unicodeScalars.dropLast()
-            upperPrefix = String(base) + String(incremented)
+        if let lastScalar = prefix.unicodeScalars.last {
+            var next = lastScalar.value + 1
+            if next == 0xD800 { next = 0xE000 }
+            if let incremented = Unicode.Scalar(next) {
+                upperPrefix = String(prefix.unicodeScalars.dropLast()) + String(incremented)
+            } else {
+                return paths.count
+            }
         } else {
             upperPrefix = prefix
         }

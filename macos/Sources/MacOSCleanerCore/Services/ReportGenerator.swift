@@ -5,10 +5,16 @@ import os
 
 public enum ReportGeneratorError: Error, LocalizedError, Sendable {
     case cannotCreatePDF
+    case unsafeDestination(String)
+    case layoutFailed
 
     public var errorDescription: String? {
         switch self {
         case .cannotCreatePDF: String(localized: "Unable to create PDF report.", comment: "Error when PDF creation fails")
+        case .unsafeDestination(let reason):
+            String(localized: "The report cannot be saved there. \(reason)", comment: "Report destination refused by the safety policy")
+        case .layoutFailed:
+            String(localized: "The report could not be laid out on its pages, so nothing was saved.", comment: "Report layout failure")
         }
     }
 }
@@ -22,8 +28,12 @@ public actor ReportGenerator {
     }
 
     public func generateCleanupReport(outcome: ScanOutcome, plan: Plan, destination: URL) throws -> URL {
+        // Reports are written files, so they follow the same destination rules as any other write.
+        if case .deny(let reason) = PathSafetyPolicy().decide(target: destination, isDirectory: true) {
+            throw ReportGeneratorError.unsafeDestination(reason)
+        }
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
-        let reportURL = destination.appendingPathComponent("Cleanup Report \(Self.timestamp()).pdf", isDirectory: false)
+        let reportURL = Self.uniqueReportURL(in: destination)
         let text = reportText(outcome: outcome, plan: plan)
         try writePDF(text: text, to: reportURL)
         return reportURL
@@ -135,7 +145,7 @@ public actor ReportGenerator {
             // Zero-glyph pages (path too small for even one line) never advance
             // the range and would loop forever.
             guard visibleRange.length > 0 else {
-                break
+                throw ReportGeneratorError.layoutFailed
             }
 
             context.saveGState()
@@ -153,13 +163,30 @@ public actor ReportGenerator {
         }
 
         context.closePDF()
+        // The loop ends only when every line is placed. Anything left would be cut from the report.
+        guard currentRange.location >= totalStringRange.length else {
+            throw ReportGeneratorError.layoutFailed
+        }
         try data.write(to: url, options: .atomic)
+    }
+
+    /// A report name that does not replace an earlier report: the name carries
+    /// seconds, and a counter is added when the name is still taken.
+    private static func uniqueReportURL(in folder: URL) -> URL {
+        let base = "Cleanup Report \(timestamp())"
+        var candidate = folder.appendingPathComponent("\(base).pdf", isDirectory: false)
+        var counter = 2
+        while FileManager.default.fileExists(atPath: candidate.path) {
+            candidate = folder.appendingPathComponent("\(base) \(counter).pdf", isDirectory: false)
+            counter += 1
+        }
+        return candidate
     }
 
     private static func timestamp() -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd-HH-mm"
+        formatter.dateFormat = "yyyy-MM-dd-HH-mm-ss"
         return formatter.string(from: Date())
     }
 }

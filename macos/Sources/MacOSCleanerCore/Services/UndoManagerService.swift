@@ -99,12 +99,16 @@ public actor UndoManagerService {
     private let store: SQLiteStore
     private let memory: MemoryEngine
     private let fileManager: FileManager
+    private let trash: any TrashService
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "UndoManagerService")
 
-    public init(store: SQLiteStore, memory: MemoryEngine, fileManager: FileManager = .default) {
+    /// `trash` receives the artifacts that undo removes (archive copies, aliases,
+    /// symlinks). They go to the Trash, never straight to deletion.
+    public init(store: SQLiteStore, memory: MemoryEngine, fileManager: FileManager = .default, trash: (any TrashService)? = nil) {
         self.store = store
         self.memory = memory
         self.fileManager = fileManager
+        self.trash = trash ?? FileSystemTrashProvider()
     }
 
     /// Batch-restore with a simple success count. Prefer `restoreBatchDetailed` when
@@ -232,7 +236,7 @@ public actor UndoManagerService {
             // Never delete an artifact this record does not provably own, and never
             // delete an archive copy while the original file is still unrestored.
             try await verifyOwnership(of: undo, artifactURL: createdURL)
-            try fileManager.removeItem(at: createdURL)
+            _ = try trash.trashItem(at: createdURL)
         case .rename:
             guard let currentURL = undo.trashURL, let restoreURL = undo.restoreURL else {
                 throw UndoManagerServiceError.undoUnavailable

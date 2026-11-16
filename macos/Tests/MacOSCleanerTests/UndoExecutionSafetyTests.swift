@@ -24,7 +24,7 @@ final class UndoExecutionSafetyTests: XCTestCase {
     private func makeServices() throws -> (SQLiteStore, UndoManagerService) {
         let store = try SQLiteStore.inMemory()
         let memory = MemoryEngine(store: store)
-        return (store, UndoManagerService(store: store, memory: memory))
+        return (store, UndoManagerService(store: store, memory: memory, trash: FixtureTrash()))
     }
 
     private func futureDate(days: Int) -> Date? {

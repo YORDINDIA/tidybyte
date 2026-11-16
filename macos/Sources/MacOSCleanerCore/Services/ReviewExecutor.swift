@@ -75,7 +75,16 @@ public actor ReviewExecutor {
             throw CleanupError.message(String(localized: "The action is missing a move destination."))
         }
         if let output = event.outputURL {
-            event.outputIdentity = try? ReviewSafety.identity(at: output)
+            // Without an identity the restore step cannot prove the file is still ours.
+            // Report that now instead of leaving a completed action with no way back.
+            do {
+                event.outputIdentity = try ReviewSafety.identity(at: output)
+            } catch {
+                throw CleanupError.message(String(localized: """
+                    The item was moved, but its recovery record could not be saved. \
+                    Check Trash or the destination in Finder.
+                    """))
+            }
             event.recoveryBookmark = try? output.bookmarkData(options: .withSecurityScope)
         }
     }

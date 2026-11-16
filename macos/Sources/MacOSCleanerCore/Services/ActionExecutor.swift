@@ -62,16 +62,21 @@ public actor ActionExecutor {
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "ActionExecutor")
     private let executorVersion = "1.0"
     private let commandTimeout: TimeInterval
+    private let policy: PathSafetyPolicy
     /// Set by cancelExecution(); checked between actions so long batches can
     /// stop after the current action instead of running everything.
     private var isCancelled = false
 
-    public init(store: SQLiteStore, auditor: SafetyAuditor = SafetyAuditor(), fileManager: FileManager = .default, trash: TrashService? = nil, commandTimeout: TimeInterval = 600) {
+    public init(
+        store: SQLiteStore, auditor: SafetyAuditor = SafetyAuditor(), fileManager: FileManager = .default,
+        trash: TrashService? = nil, commandTimeout: TimeInterval = 600, policy: PathSafetyPolicy = PathSafetyPolicy()
+    ) {
         self.store = store
         self.auditor = auditor
         self.fileManager = fileManager
         self.trash = trash ?? FileSystemTrashProvider()
         self.commandTimeout = commandTimeout
+        self.policy = policy
     }
 
     /// Stop the in-flight batch after the currently executing action completes.
@@ -128,9 +133,6 @@ public actor ActionExecutor {
                 let audit = try await auditor.audit(action: action, filesByID: filesByID)
                 guard audit.decision == .allowed else {
                     throw ActionExecutorError.manualReviewRequired(action.actionType)
-                }
-                guard Date().timeIntervalSince(audit.auditedAt) <= ExecutionLimits.auditFreshnessWindow else {
-                    throw ActionExecutorError.staleAudit("Re-approve \(action.id). Its safety audit expired.")
                 }
                 let result = try await execute(action: action, filesByID: filesByID, packageCandidates: packageCandidates)
                 // Persist undo records and operation logs immediately after each action.
@@ -894,11 +896,13 @@ public actor ActionExecutor {
     /// symlink into a protected area must not become a move/rename target.
     private func validatedDestination(_ destination: URL) throws {
         let resolved = destination.resolvingSymlinksInPath()
-        if case .deny = PathSafetyPolicy().decide(target: resolved, isDirectory: true) {
+        if case .deny = policy.decide(target: resolved, isDirectory: true) {
             throw SafetyAuditError.unsafeDestination(destination)
         }
     }
 
+    /// Moves each target into the destination folder under its own name (the
+    /// action name suggests an in-place rename, but no name is set here).
     private func rename(action: PlannedAction, filesByID: [String: FileRecord]) async throws -> ExecutionSummary {
         guard let destination = action.destination else {
             throw ActionExecutorError.missingDestination

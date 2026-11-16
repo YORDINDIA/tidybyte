@@ -25,6 +25,8 @@ public extension Int64 {
 public extension Double {
     /// Rounds a bytes-per-second rate to a whole count, then formats it.
     var formattedByteRate: String {
-        Int64(self).formattedByteRate
+        // Int64(Double) traps on NaN, infinity and out-of-range values. Clamp first.
+        let bounded = isFinite ? min(max(self, 0), 1e18) : 0
+        return Int64(bounded).formattedByteRate
     }
 }

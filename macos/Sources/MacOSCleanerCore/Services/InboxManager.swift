@@ -13,6 +13,10 @@ public actor InboxManager {
 
     public func ensureInboxExists(at url: URL? = nil) throws -> URL {
         let resolved = url ?? defaultInboxURL()
+        // Creating a folder is a write, so the same destination rules apply as to every other write.
+        if case .deny(let reason) = PathSafetyPolicy().decide(target: resolved, isDirectory: true) {
+            throw CocoaError(.fileWriteNoPermission, userInfo: [NSLocalizedDescriptionKey: reason])
+        }
         try fileManager.createDirectory(at: resolved, withIntermediateDirectories: true)
         return resolved
     }

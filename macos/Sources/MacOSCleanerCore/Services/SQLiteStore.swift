@@ -60,12 +60,21 @@ public struct FileHashCacheEntry: Codable, Sendable {
     public var sizeBytes: Int64
     public var modifiedAt: Date?
     public var fullHash: String
+    /// Inode and status-change time when the hash was taken. A replaced file or a
+    /// rewrite that restores mtime still changes these, so the cached hash is not reused.
+    public var inode: UInt64?
+    public var changedAt: Date?
 
-    public init(path: String, sizeBytes: Int64, modifiedAt: Date?, fullHash: String) {
+    public init(
+        path: String, sizeBytes: Int64, modifiedAt: Date?, fullHash: String,
+        inode: UInt64? = nil, changedAt: Date? = nil
+    ) {
         self.path = path
         self.sizeBytes = sizeBytes
         self.modifiedAt = modifiedAt
         self.fullHash = fullHash
+        self.inode = inode
+        self.changedAt = changedAt
     }
 }
 
@@ -263,7 +272,11 @@ public actor SQLiteStore {
         }
 
         var stepResult = sqlite3_backup_step(backup, -1)
+        var busyRetries = 0
         while stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED {
+            // Bounded: the store actor is blocked for the whole wait, so give up after about 5 s.
+            busyRetries += 1
+            if busyRetries > 500 { break }
             // Nap between retries: a hot spin pegs a core while contended.
             sqlite3_sleep(10)
             stepResult = sqlite3_backup_step(backup, -1)
@@ -423,7 +436,9 @@ public actor SQLiteStore {
 
     /// Cached full hash for `path`, valid only when size and mtime both match.
     /// Returns nil on any mismatch so the caller re-hashes.
-    public func cachedFullHash(forPath path: String, sizeBytes: Int64, modifiedAt: Date?) throws -> String? {
+    public func cachedFullHash(
+        forPath path: String, sizeBytes: Int64, modifiedAt: Date?, inode: UInt64? = nil, changedAt: Date? = nil
+    ) throws -> String? {
         let rows: [FileHashCacheEntry] = try selectJSON(
             "SELECT json FROM \(SQLiteTable.fileHashes.rawValue) WHERE id = ? LIMIT 1",
             values: [.text(path)],
@@ -431,6 +446,12 @@ public actor SQLiteStore {
         )
         guard let entry = rows.first, entry.sizeBytes == sizeBytes else {
             return nil
+        }
+        // When the caller knows the file's identity, a stored entry without the same
+        // identity is a miss: it may describe a different file at the same path.
+        if let inode, entry.inode != inode { return nil }
+        if let changedAt {
+            guard let stored = entry.changedAt, abs(changedAt.timeIntervalSince(stored)) <= 1 else { return nil }
         }
         switch (entry.modifiedAt, modifiedAt) {
         case (nil, nil):
@@ -507,7 +528,7 @@ public actor SQLiteStore {
         let sessions: [ScanSession] = try selectJSON(
             """
             SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
-            WHERE json_extract(json, '$.status') != 'running'
+            WHERE json_extract(json, '$.status') = 'completed'
             ORDER BY created_at DESC LIMIT 1
             """,
             values: [],
@@ -516,21 +537,44 @@ public actor SQLiteStore {
         return sessions.first
     }
 
-    /// Marks crashed runs as failed so they never read as fresh results and
-    /// purgeOldData can retire them. Sessions newer than the cutoff may belong
-    /// to a concurrently running app (the LaunchAgent, MCP server) and stay.
+    /// Marks abandoned running sessions as failed so they never read as fresh
+    /// results and purgeOldData can retire them. Rows without an owner keep the
+    /// insert-time rule. A row with an owner is retired only when that process has
+    /// exited, so a long scan that is still running is never failed.
     /// Returns how many sessions were retired.
     @discardableResult
     public func failStaleRunningSessions(olderThan cutoff: Date) throws -> Int {
-        try execute(
+        let legacy: [ScanSession] = try selectJSON(
             """
-            UPDATE \(SQLiteTable.scanSessions.rawValue)
-            SET json = json_set(json, '$.status', 'failed')
-            WHERE json_extract(json, '$.status') = 'running' AND created_at < ?
+            SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
+            WHERE json_extract(json, '$.status') = 'running'
+              AND json_extract(json, '$.ownerProcessID') IS NULL AND created_at < ?
             """,
-            values: [.real(cutoff.timeIntervalSince1970)]
+            values: [.real(cutoff.timeIntervalSince1970)],
+            as: ScanSession.self
         )
-        return changedRowCount()
+        let owned: [ScanSession] = try selectJSON(
+            """
+            SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
+            WHERE json_extract(json, '$.status') = 'running' AND json_extract(json, '$.ownerProcessID') IS NOT NULL
+            """,
+            values: [],
+            as: ScanSession.self
+        )
+        let abandoned = legacy + owned.filter(Self.ownerHasExited)
+        for session in abandoned {
+            try execute(
+                "UPDATE \(SQLiteTable.scanSessions.rawValue) SET json = json_set(json, '$.status', 'failed') WHERE id = ?",
+                values: [.text(session.id)]
+            )
+        }
+        return abandoned.count
+    }
+
+    /// True when the process that owns a running session no longer exists.
+    static func ownerHasExited(_ session: ScanSession) -> Bool {
+        guard let owner = session.ownerProcessID, owner != getpid() else { return false }
+        return kill(owner, 0) != 0 && errno == ESRCH
     }
 
     public func loadFindings(for sessionID: String) throws -> [Finding] {
@@ -839,6 +883,7 @@ public actor SQLiteStore {
         // ALTER TABLE ... ADD COLUMN) must be guarded by a user_version check so
         // they run exactly once on existing databases.
         let currentVersion = try getUserVersion(database: database)
+        try Self.refuseNewerSchema(currentVersion)
 
         // v2: initial tracked version (base schema above is idempotent).
         // v3: undo_records.operation_log_id column + index + backfill, so undo
@@ -908,6 +953,18 @@ public actor SQLiteStore {
         if currentVersion < 6 {
             // Cleanup tables are additive and deliberately excluded from scan retention.
             try setUserVersion(6, database: database)
+        }
+    }
+
+    /// Highest user_version this build migrates to.
+    static let schemaVersion: Int32 = 6
+
+    /// A file written by a newer build may hold tables and columns this build
+    /// does not know. Refuse it rather than write to it.
+    private static func refuseNewerSchema(_ version: Int32) throws {
+        guard version <= schemaVersion else {
+            throw DatabaseError.migrationFailed(
+                "The database schema is version \(version), newer than this app supports (\(schemaVersion)).")
         }
     }
 

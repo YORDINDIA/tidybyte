@@ -221,7 +221,7 @@ final class MacOSCleanerTests: XCTestCase {
         let store = try SQLiteStore(databaseURL: databaseURL)
         let memory = MemoryEngine(store: store)
         let executor = TestFixtures.makeExecutor(store: store)
-        let undo = UndoManagerService(store: store, memory: memory)
+        let undo = UndoManagerService(store: store, memory: memory, trash: FixtureTrash())
         let action = PlannedAction(
             id: "archive-action",
             planID: "plan",
@@ -2619,7 +2619,7 @@ final class MacOSCleanerTests: XCTestCase {
         )
         try await store.saveUndoRecord(undo)
 
-        let undoService = UndoManagerService(store: store, memory: memory)
+        let undoService = UndoManagerService(store: store, memory: memory, trash: FixtureTrash())
         let restored = try await undoService.restore(undo)
         XCTAssertEqual(restored.status, .restored)
         // Alias file should be removed
@@ -2658,7 +2658,7 @@ final class MacOSCleanerTests: XCTestCase {
         )
         try await store.saveUndoRecord(undo)
 
-        let undoService = UndoManagerService(store: store, memory: memory)
+        let undoService = UndoManagerService(store: store, memory: memory, trash: FixtureTrash())
         let restored = try await undoService.restore(undo)
         XCTAssertEqual(restored.status, .restored)
         XCTAssertFalse(FileManager.default.fileExists(atPath: link.path), "Symlink should be removed on undo")

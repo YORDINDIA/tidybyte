@@ -125,8 +125,9 @@ public actor AIGateway {
         // uses the provider account); fall back to the legacy shared account ONLY
         // for the default provider — sending a legacy key to a different provider
         // would leak one vendor's credential to another.
+        // A Keychain failure propagates. Only a missing item means "no key stored".
         let apiKey: String
-        if let providerKey = try? await keychain.loadAPIKey(account: settings.providerName),
+        if let providerKey = try await keychain.loadAPIKey(account: settings.providerName),
            !providerKey.isEmpty {
             apiKey = providerKey
         } else if settings.providerName == Self.defaultProviderName,

@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import os
 @preconcurrency import Vision
@@ -109,6 +110,8 @@ public actor DuplicateDetector {
         var uniqueStorage: [FileRecord] = []
         uniqueStorage.reserveCapacity(candidates.count)
         for file in candidates {
+            // A copy with another hard link elsewhere frees no bytes when removed, so it is not a duplicate to reclaim.
+            if let links = file.linkCount, links > 1 { continue }
             if let device = file.identity.deviceIdentifier,
                let inode = file.identity.inodeIdentifier {
                 guard seenInodes.insert("\(device)-\(inode)").inserted else { continue }
@@ -170,12 +173,17 @@ public actor DuplicateDetector {
             // mtime both match, so unchanged files skip the disk entirely.
             var resolvedHashes: [String: String] = [:]
             var pendingHash: [String: FileRecord] = [:]
+            var stamps: [String: (inode: UInt64, changedAt: Date)] = [:]
             for file in fullHashCandidates {
+                let stamp = Self.changeStamp(of: file.url)
+                stamps[file.id] = stamp
                 if let hashCache,
                    let cached = try? await hashCache.cachedFullHash(
                         forPath: file.url.path,
                         sizeBytes: file.sizeBytes,
-                        modifiedAt: file.modifiedAt
+                        modifiedAt: file.modifiedAt,
+                        inode: stamp?.inode,
+                        changedAt: stamp?.changedAt
                    ) {
                     resolvedHashes[file.id] = cached
                 } else {
@@ -208,7 +216,9 @@ public actor DuplicateDetector {
                         path: file.url.path,
                         sizeBytes: file.sizeBytes,
                         modifiedAt: file.modifiedAt,
-                        fullHash: hash
+                        fullHash: hash,
+                        inode: stamps[file.id]?.inode,
+                        changedAt: stamps[file.id]?.changedAt
                     )
                 }
                 try? await hashCache.saveFileHashes(entries)
@@ -560,5 +570,13 @@ public actor DuplicateDetector {
                 ))
             }
         }
+    }
+
+    /// Inode and status-change time from one lstat. Nil when the file cannot be read.
+    static func changeStamp(of url: URL) -> (inode: UInt64, changedAt: Date)? {
+        var info = stat()
+        guard lstat(url.path, &info) == 0 else { return nil }
+        let changed = Date(timeIntervalSince1970: Double(info.st_ctimespec.tv_sec) + Double(info.st_ctimespec.tv_nsec) / 1_000_000_000)
+        return (UInt64(info.st_ino), changed)
     }
 }

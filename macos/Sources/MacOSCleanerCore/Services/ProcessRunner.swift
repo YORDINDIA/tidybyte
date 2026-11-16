@@ -95,6 +95,14 @@ enum ProcessRunner {
         return await collectDrains(drains, didTimeOut: handle.didTimeOut, exitCode: exitCode, timeout: timeout)
     }
 
+    /// UTF-8 text when the bytes are valid. Otherwise the ASCII bytes, so the readable
+    /// parts survive instead of the whole output becoming an empty string.
+    static func readableText(_ data: Data) -> String {
+        String(bytes: data, encoding: .utf8)
+            ?? String(bytes: data.filter { $0 < 0x80 }, encoding: .ascii)
+            ?? ""
+    }
+
     /// Bounded post-exit drain collection: a forked grandchild can inherit the
     /// pipe and hold it open long past the direct child's exit — the timeout
     /// only kills the direct child. Wait up to a grace window so the call
@@ -104,8 +112,9 @@ enum ProcessRunner {
     ) async -> ProcessResult {
         let finishedInTime = drains.wait(seconds: 5)
         let drained = drains.results()
-        var stdoutStr = String(data: drained.stdout.data, encoding: .utf8) ?? ""
-        let stderrStr = String(data: drained.stderr.data, encoding: .utf8) ?? ""
+        // Lossy decoding: non-UTF-8 output keeps its readable parts instead of becoming "".
+        var stdoutStr = Self.readableText(drained.stdout.data)
+        let stderrStr = Self.readableText(drained.stderr.data)
         var truncated = drained.stdout.capped || drained.stderr.capped
         if !finishedInTime {
             truncated = true

@@ -6,7 +6,8 @@ public extension TimeInterval {
     /// Compact duration with the two most significant units, e.g. "2d 3h"
     /// or "5h 30m".
     var formattedDuration: String {
-        let total = Int(self)
+        // Int(Double) traps on NaN and infinity. Invalid or negative durations show as zero.
+        let total = isFinite ? Int(min(max(self, 0), 1e15)) : 0
         let days = total / 86_400
         let hours = (total % 86_400) / 3_600
         let minutes = (total % 3_600) / 60
