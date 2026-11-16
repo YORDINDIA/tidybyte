@@ -4,6 +4,7 @@ struct SessionCompletionView: View {
     @Bindable var viewModel: SwipeSessionViewModel
     @Environment(AppNavigation.self) private var appNavigation
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var showCheckmark = false
     /// Where the user wanted to go when they hit an exit button while deletions
@@ -342,20 +343,40 @@ struct SessionCompletionView: View {
     // The label is a key, the value is not: values are counts and file sizes
     // already localized through `L10n` at the call site.
     private func statRow(icon: String, color: Color, label: LocalizedStringKey, value: String) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(color)
-                .frame(width: 32)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // Accessibility sizes: the label and value go full width below
+                // the fixed icon, so neither wraps per word.
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack {
+                        Image(systemName: icon)
+                            .font(.title3)
+                            .foregroundStyle(color)
+                        Spacer()
+                    }
+                    Text(label)
+                        .font(.body)
+                    Text(value)
+                        .font(.body.bold())
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                HStack {
+                    Image(systemName: icon)
+                        .font(.title3)
+                        .foregroundStyle(color)
+                        .frame(width: 32)
 
-            Text(label)
-                .font(.body)
+                    Text(label)
+                        .font(.body)
 
-            Spacer()
+                    Spacer()
 
-            Text(value)
-                .font(.body.bold())
-                .foregroundStyle(.secondary)
+                    Text(value)
+                        .font(.body.bold())
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
     }
 }
