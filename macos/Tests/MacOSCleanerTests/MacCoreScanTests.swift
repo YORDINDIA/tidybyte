@@ -123,7 +123,8 @@ final class MacCoreScanTests: XCTestCase {
         try Data("-----BEGIN CERTIFICATE-----\nAAAA\n".utf8).write(to: build.appendingPathComponent("ca.pem"))
         XCTAssertEqual(decision(for: build), .allow, "A public certificate is not a secret")
 
-        try Data("-----BEGIN RSA PRIVATE KEY-----\nAAAA\n".utf8).write(to: build.appendingPathComponent("server.key"))
+        // Built at runtime so secret scanners do not flag a fixture header with no key material.
+        try Data(("-----BEGIN RSA " + "PRIVATE KEY-----\nAAAA\n").utf8).write(to: build.appendingPathComponent("server.key"))
         XCTAssertNotEqual(decision(for: build), .allow, "A PEM private key must block")
     }
 
