@@ -117,11 +117,13 @@ public actor PlannerAgent {
         plan.actions = originalActions
 
         // --- Phase 1: Action type transformations (not filters) ---
+        // Inspect-only actions (system logs, app data, backups) are never
+        // converted into a destructive or moving action by a natural-language command.
         switch intent.action {
         case .archive:
             plan.actions = plan.actions.map { action in
                 var updated = action
-                if updated.actionType == .tag || updated.actionType == .inspectOnly {
+                if updated.actionType == .tag {
                     updated.actionType = .archive
                     updated.reason += String(localized: " Natural-language command requested archive-oriented organization.", comment: "Reason suffix for archive-oriented NL command")
                 }
@@ -130,7 +132,7 @@ public actor PlannerAgent {
         case .delete:
             plan.actions = plan.actions.map { action in
                 var updated = action
-                if updated.risk == .low && updated.actionType != .moveToTrash {
+                if updated.risk == .low, canBecomeTrash(updated.actionType) {
                     updated.actionType = .moveToTrash
                     updated.reason += String(localized: " Natural-language command requested removal.", comment: "Reason suffix for delete/trash/remove NL command")
                 }
@@ -139,7 +141,7 @@ public actor PlannerAgent {
         case .organize:
             plan.actions = plan.actions.map { action in
                 var updated = action
-                if updated.actionType == .tag || updated.actionType == .inspectOnly {
+                if updated.actionType == .tag {
                     guard let destination = organizationDestination(for: updated, filesByID: filesByID) else {
                         return updated
                     }
@@ -538,5 +540,18 @@ public actor PlannerAgent {
             )
         }
         return actions
+    }
+}
+
+/// Action types a "delete" command may turn into a Trash move. Clone folds
+/// (no deletion, no expiry), package cleanups and inspect-only findings keep
+/// their own type.
+private func canBecomeTrash(_ actionType: ActionType) -> Bool {
+    switch actionType {
+    case .tag, .archive, .createAlias, .createSymlink, .move:
+        true
+    case .moveToTrash, .inspectOnly, .cloneDeduplicate, .restore, .rename, .unfoldClone,
+         .offloadLocalCopy, .runProviderCleanup, .runPackageManagerCleanup:
+        false
     }
 }

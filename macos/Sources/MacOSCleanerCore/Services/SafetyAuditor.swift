@@ -219,7 +219,7 @@ public actor SafetyAuditor {
                 throw SafetyAuditError.symlinkTarget(record.url)
             }
             if requiresIntegrity(action.actionType) {
-                if case .deny = policy.decide(target: record.url, isDirectory: record.kind == .directory) {
+                if case .deny = policy.decide(target: record.url, isDirectory: record.kind == .directory, descendants: true) {
                     throw SafetyAuditError.unsafePath(record.url, policy.riskFlags(for: record.url, isDirectory: record.kind == .directory))
                 }
             }

@@ -235,7 +235,8 @@ public actor CleanerRuleEngine {
         let components = record.url.pathComponents
         // Case-insensitive cache detection to catch "cache", "Cache", "CACHE" variants
         let isCache = components.contains(where: { $0.lowercased() == "caches" || $0.lowercased() == ".cache" || $0.lowercased() == "cache" })
-        let isLog = components.contains(where: { $0.lowercased() == "logs" }) || record.fileExtension == "log"
+        // A "Logs" folder in Documents can hold user files: only the macOS log folder and .log files count.
+        let isLog = record.fileExtension == "log" || record.url.path.contains("/Library/Logs/")
         guard isCache || isLog else {
             return nil
         }

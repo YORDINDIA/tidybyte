@@ -196,9 +196,10 @@ public actor AIGateway {
                        let seconds = Double(retryAfter.trimmingCharacters(in: .whitespaces)) {
                         retryDelayOverride = min(seconds, 60)
                     }
+                    // A provider may echo the request back. Remove the key before the body
+                    // reaches an error message, a scan notice or the log.
                     let body = String(data: data, encoding: .utf8) ?? "(no body)"
-                    // Truncate to avoid leaking API keys or other sensitive data in error messages.
-                    let truncatedBody = String(body.prefix(200))
+                    let truncatedBody = String(body.replacingOccurrences(of: apiKey, with: "[redacted]").prefix(200))
                     throw AIGatewayError.invalidResponse(statusCode: statusCode, body: truncatedBody)
                 }
                 let envelope = try decoder.decode(ChatCompletionEnvelope.self, from: data)
@@ -217,10 +218,10 @@ public actor AIGateway {
                     || Task.isCancelled {
                     throw CancellationError()
                 }
-                // Client errors (4xx except 429) are permanent — do not retry.
-                // Only server errors (5xx) and rate limits (429) benefit from retries.
+                // Client errors (4xx except 408 and 429) are permanent — do not retry.
+                // Server errors (5xx), request timeouts (408) and rate limits (429) benefit from retries.
                 if case AIGatewayError.invalidResponse(let statusCode, _) = error,
-                   statusCode >= 400 && statusCode < 500 && statusCode != 429 {
+                   statusCode >= 400 && statusCode < 500 && statusCode != 429 && statusCode != 408 {
                     throw error
                 }
                 // Malformed JSON is deterministic — the model will produce the same

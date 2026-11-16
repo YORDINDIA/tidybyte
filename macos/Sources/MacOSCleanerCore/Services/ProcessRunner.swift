@@ -33,6 +33,8 @@ enum ProcessRunner {
         let stderrPipe = Pipe()
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
+        // A child must never read the caller's stdin: the MCP server speaks JSON-RPC on it.
+        process.standardInput = FileHandle.nullDevice
 
         let handle = ProcessExecutionHandle(process: process, stdoutPipe: stdoutPipe, stderrPipe: stderrPipe)
 
@@ -65,9 +67,13 @@ enum ProcessRunner {
 
             timeoutTask = Task { [handle] in
                 try? await Task.sleep(for: .seconds(timeout))
+                guard handle.process.isRunning else { return }
+                handle.markTimedOut()
+                handle.process.terminate()
+                // A child that ignores SIGTERM would keep the continuation parked forever.
+                try? await Task.sleep(for: .seconds(5))
                 if handle.process.isRunning {
-                    handle.markTimedOut()
-                    handle.process.terminate()
+                    kill(handle.process.processIdentifier, SIGKILL)
                 }
             }
         }

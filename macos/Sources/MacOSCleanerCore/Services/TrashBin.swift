@@ -86,17 +86,18 @@ public enum TrashBin {
                     close(childFD)
                     throw TrashBinError.removalFailed(name)
                 }
+                // Closed on every exit path, including a failed recursion.
+                defer { closedir(childDir) }
                 let childDirFD = dirfd(childDir)
                 var childNames: [String] = []
                 while let entry = readdir(childDir) {
                     let childName = entryName(entry)
                     if childName != "." && childName != ".." { childNames.append(childName) }
                 }
-                // childDirFD is only valid until closedir, so recurse first.
+                // childDirFD stays valid until the defer above closes childDir.
                 for childName in childNames {
                     try removeEntry(named: childName, directoryFD: childDirFD)
                 }
-                closedir(childDir)
                 guard unlinkat(directoryFD, cName, AT_REMOVEDIR) == 0 else {
                     throw TrashBinError.removalFailed(name)
                 }

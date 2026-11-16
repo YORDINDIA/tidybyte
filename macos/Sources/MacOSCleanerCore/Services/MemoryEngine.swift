@@ -43,9 +43,10 @@ public actor MemoryEngine {
                     adjusted.reason += String(localized: " Memory rule applied: \(rule.rule)", comment: "Suffix appended to reason when a memory rule is applied")
                     // "Never" suppresses every destructive action, not just trash —
                     // the user said no to this file, so .move/.archive are equally unwanted.
-                    // A fold rewrites the file's inode too, so it is equally unwanted.
+                    // A fold rewrites the file's inode too, and a package cleanup
+                    // deletes data outside the file system, so both are equally unwanted.
                     switch adjusted.actionType {
-                    case .moveToTrash, .move, .rename, .archive, .cloneDeduplicate:
+                    case .moveToTrash, .move, .rename, .archive, .cloneDeduplicate, .runPackageManagerCleanup:
                         adjusted.actionType = .inspectOnly
                     default:
                         break

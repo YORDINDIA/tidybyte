@@ -86,7 +86,9 @@ public actor ContentExtractor {
         file: FileRecord,
         privacyMode: PrivacyMode
     ) async -> (textPreview: String?, ocrText: String?, language: String?, topics: [String], imageLabels: [String], videoLabels: [String]) {
-        guard case .allow = policy.decide(target: file.url, isDirectory: file.kind == .directory) else {
+        // Files named like credentials are never read, even in the snippet modes.
+        guard case .allow = policy.decide(target: file.url, isDirectory: file.kind == .directory),
+              !Self.isCredentialLike(file.fileName) else {
             return (nil, nil, nil, ["protected"], [], [])
         }
 
@@ -166,8 +168,26 @@ public actor ContentExtractor {
             if let _ = try? String(data: data.prefix(validLength), encoding: .utf8) { break }
             validLength -= 1
         }
-        return String(data: data.prefix(validLength), encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return Self.textIfPrintable(String(data: data.prefix(validLength), encoding: .utf8))
+    }
+
+    private static let credentialNameHints = [
+        "password", "passwd", "secret", "credential", "token", "api_key", "apikey", "private_key", "keychain", ".env"
+    ]
+
+    private static func isCredentialLike(_ fileName: String) -> Bool {
+        let lowered = fileName.lowercased()
+        return credentialNameHints.contains { lowered.contains($0) }
+    }
+
+    /// Trimmed text, or nil when the decoded content holds NUL or other control
+    /// bytes. Binary data that happens to decode as UTF-8 must not become a preview.
+    private static func textIfPrintable(_ decoded: String?) -> String? {
+        guard let decoded else { return nil }
+        let allowedControls: Set<Unicode.Scalar> = ["\n", "\r", "\t"]
+        let hasControl = decoded.unicodeScalars.contains { $0.value < 0x20 && !allowedControls.contains($0) }
+        guard !hasControl else { return nil }
+        return decoded.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func readPDFPreview(_ url: URL) async -> String? {
@@ -190,8 +210,7 @@ public actor ContentExtractor {
             timeout: 10
         )
         guard result.exitCode == 0 else { return nil }
-        let text = result.stdout
-        return String(text.prefix(4096)).trimmingCharacters(in: .whitespacesAndNewlines)
+        return Self.textIfPrintable(String(result.stdout.prefix(4096)))
     }
 
     private func readVideoPreview(_ url: URL) -> [String] {

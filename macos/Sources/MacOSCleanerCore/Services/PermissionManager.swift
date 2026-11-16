@@ -42,6 +42,11 @@ public enum FullDiskAccess {
         })
     }
 
+    /// True when `path` is one of the closed containers or lies inside one.
+    static func isClosed(_ path: String, in closed: Set<String>) -> Bool {
+        closed.contains(where: { path == $0 || path.hasPrefix($0 + "/") })
+    }
+
     /// true = opened, false = permission denied, nil = not there.
     static func canOpen(_ url: URL) -> Bool? {
         let descriptor = open(url.path, O_RDONLY)

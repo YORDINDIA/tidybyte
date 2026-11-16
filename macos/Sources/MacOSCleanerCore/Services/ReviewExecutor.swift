@@ -90,7 +90,11 @@ public actor ReviewExecutor {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
             event.outputURL = directory
             try await store.saveActivity(event)
-            _ = try await photos.export(decision.item, to: directory)
+            // The Photos original is deleted next. Refuse unless every resource was exported.
+            let exported = try await photos.export(decision.item, to: directory)
+            guard !exported.isEmpty, exported.count == decision.item.resources.count else {
+                throw CleanupError.message(String(localized: "Export verification failed. The Photos original was kept."))
+            }
             event.state = .outputReady
             try await store.saveActivity(event)
             try Task.checkCancellation()

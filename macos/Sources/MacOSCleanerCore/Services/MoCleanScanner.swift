@@ -300,7 +300,7 @@ public actor MoCleanScanner {
         // De-dupe nested roots: if one root is contained inside another, scanning
         // both double-counts bytes (Chrome root + Chrome/GPUCache were both listed).
         let roots = Self.deduplicatedRoots(candidateRoots.filter {
-            fileManager.fileExists(atPath: $0.path) && !closed.contains($0.standardizedFileURL.path)
+            fileManager.fileExists(atPath: $0.path) && !FullDiskAccess.isClosed($0.standardizedFileURL.path, in: closed)
         })
 
         guard !roots.isEmpty else {

@@ -102,4 +102,15 @@ final class AutoScanTests: XCTestCase {
             executablePath: "/private/var/folders/x/AppTranslocation/.../Tidybyte"
         ))
     }
+
+    /// A failed maintenance pass must exit 1 and must not record a completed run.
+    func testAutoScanFailedPassReturnsFailureExitCode() async {
+        struct PassFailure: Error {}
+        let defaults = makeIsolatedDefaults()
+
+        let code = await AutoScanRunner.runPass(defaults: defaults, pass: { throw PassFailure() })
+
+        XCTAssertEqual(code, 1)
+        XCTAssertNil(defaults.object(forKey: AutoScanRunner.lastRunKey))
+    }
 }

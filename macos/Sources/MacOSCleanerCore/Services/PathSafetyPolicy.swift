@@ -243,7 +243,10 @@ public struct PathSafetyPolicy: Sendable {
     /// resolved here so literal paths cannot hide a protected location.
     /// `destination`, when provided, is validated with the same rules
     /// (move/archive/alias/symlink outputs).
-    public func decide(target url: URL, isDirectory: Bool, destination: URL? = nil) -> PolicyDecision {
+    /// `descendants` also denies a folder that holds protected content, because
+    /// trashing a folder takes everything inside it. Set it for destructive
+    /// targets only: a destination folder may hold anything.
+    public func decide(target url: URL, isDirectory: Bool, destination: URL? = nil, descendants: Bool = false) -> PolicyDecision {
         let resolvedTarget = Self.resolved(url)
         let targetFlags = riskFlags(for: resolvedTarget, isDirectory: isDirectory)
         if !targetFlags.intersection(Self.allProtectionFlags).isEmpty {
@@ -252,6 +255,9 @@ public struct PathSafetyPolicy: Sendable {
         let folder = resolvedTarget.standardizedFileURL.path.lowercased() + "/"
         if Self.protectedFolders.contains(where: { $0.hasPrefix(folder) }) {
             return .deny(reason: "Contains protected data: \(resolvedTarget.path)")
+        }
+        if descendants, isDirectory, let blocked = protectedDescendant(of: resolvedTarget) {
+            return .deny(reason: "Contains protected data: \(blocked.path)")
         }
         guard let destination else {
             return .allow
@@ -265,6 +271,31 @@ public struct PathSafetyPolicy: Sendable {
             return .deny(reason: "Destination is a protected path: \(resolvedDestination.path)")
         }
         return .allow
+    }
+
+    /// Flags that make a file inside a folder unsafe to take along with it.
+    /// Source and manifest flags are excluded: they are normal inside build and
+    /// dependency folders that cleanup is meant to remove.
+    private static let descendantBlockingFlags: Set<RiskFlag> = [
+        .protectedDirectory, .protectedFile, .secretOrCertificate,
+        .codingAgentMemoryOrConfig, .cloudSyncedLocalPath, .reviewOnly
+    ]
+
+    /// First descendant of `folder` that carries a blocking flag. Symlinks are
+    /// not followed. A folder that cannot be enumerated counts as blocked.
+    private func protectedDescendant(of folder: URL) -> URL? {
+        guard let walker = FileManager.default.enumerator(
+            at: folder, includingPropertiesForKeys: [.isDirectoryKey], options: []
+        ) else {
+            return folder
+        }
+        for case let child as URL in walker {
+            let isDirectory = (try? child.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            if !riskFlags(for: child, isDirectory: isDirectory).isDisjoint(with: Self.descendantBlockingFlags) {
+                return child
+            }
+        }
+        return nil
     }
 
     /// Never-delete folders in the home folder. Trashing a folder that holds

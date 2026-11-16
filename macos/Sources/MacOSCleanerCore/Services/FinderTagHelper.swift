@@ -8,7 +8,8 @@ struct FinderTagHelper {
             guard let baseAddress = buffer.baseAddress else {
                 return -1
             }
-            return setxattr(url.path, "com.apple.metadata:_kMDItemUserTags", baseAddress, buffer.count, 0, 0)
+            // XATTR_NOFOLLOW: a symlink swapped in after the audit must not redirect the write to its target.
+            return setxattr(url.path, "com.apple.metadata:_kMDItemUserTags", baseAddress, buffer.count, 0, XATTR_NOFOLLOW)
         }
         if result != 0 {
             let err = Darwin.errno

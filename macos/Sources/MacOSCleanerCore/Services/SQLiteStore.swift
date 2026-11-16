@@ -230,13 +230,24 @@ public actor SQLiteStore {
         // complete standalone database if it is later copied with FileManager.
         try checkpointWAL()
 
-        try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
-        if FileManager.default.fileExists(atPath: destination.path) {
-            try FileManager.default.removeItem(at: destination)
+        // Never export over the live database or its WAL and shared-memory files.
+        let livePath = databaseURL.resolvingSymlinksInPath().path
+        let targetPath = destination.resolvingSymlinksInPath().path
+        guard targetPath != livePath, !targetPath.hasPrefix(livePath + "-") else {
+            let message = String(
+                localized: "Choose a different file. The export would overwrite the live database.",
+                comment: "Error when the export destination is the live database")
+            throw DatabaseError.exportFailed(message)
         }
 
+        try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+        // Back up to a sibling file first. The existing export is replaced only after the backup is complete.
+        let staging = destination.deletingLastPathComponent()
+            .appendingPathComponent(".\(destination.lastPathComponent).\(UUID().uuidString).partial")
+        defer { try? FileManager.default.removeItem(at: staging) }
+
         var destinationHandle: OpaquePointer?
-        let openResult = sqlite3_open_v2(destination.path, &destinationHandle, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE, nil)
+        let openResult = sqlite3_open_v2(staging.path, &destinationHandle, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE, nil)
         guard openResult == SQLITE_OK, let destinationHandle else {
             let message = destinationHandle.flatMap { sqlite3_errmsg($0) }.map { String(cString: $0) } ?? String(localized: "Unable to open export destination.", comment: "Error when opening the export destination database")
             if let destinationHandle {
@@ -266,6 +277,11 @@ public actor SQLiteStore {
         sqlite3_close(destinationHandle)
         guard finishResult == SQLITE_OK else {
             throw DatabaseError.exportFailed(String(localized: "Database export could not be finalized.", comment: "Error when finalizing a database backup"))
+        }
+        if FileManager.default.fileExists(atPath: destination.path) {
+            _ = try FileManager.default.replaceItemAt(destination, withItemAt: staging)
+        } else {
+            try FileManager.default.moveItem(at: staging, to: destination)
         }
     }
 

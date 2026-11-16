@@ -54,6 +54,7 @@ public enum ReviewSafety {
 
     public static func verify(_ item: ReviewItem) throws {
         guard let url = item.url, let root = item.root, item.canChange, isAllowed(url),
+            !PathSafetyPolicy().isProtectedFromCleanup(url: url, isDirectory: false),
             contains(url, in: root),
             contains(url.deletingLastPathComponent().resolvingSymlinksInPath(), in: root.resolvingSymlinksInPath()),
             let expected = item.identity, try identity(at: url) == expected
