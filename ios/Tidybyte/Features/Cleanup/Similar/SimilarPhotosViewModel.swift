@@ -428,8 +428,11 @@ final class SimilarPhotosViewModel {
     /// Drops items deleted elsewhere (Swipe Review, the Photos app) from their
     /// groups, as Blurry Photos does. Runs on a library change, and only after a
     /// scan has published results.
-    func pruneDeleted() async {
+    /// `authorization` defaults to the live status; tests pass one. Without library
+    /// access `existingIds` is empty, which would read as every asset deleted.
+    func pruneDeleted(authorization: PHAuthorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)) async {
         guard scanState == .completed, !isDeleting else { return }
+        guard CompressionJournal.canReadLibrary(authorization) else { return }
         let known = Set(groups.flatMap { $0.assets.map(\.id) })
         guard !known.isEmpty else { return }
         let present = await photoService.existingIds(Array(known))

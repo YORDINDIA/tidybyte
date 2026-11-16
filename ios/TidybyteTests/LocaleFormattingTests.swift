@@ -269,18 +269,10 @@ final class LocaleFormattingTests: XCTestCase {
             )
         }
 
-        // And the known gap: under a non-Russian device locale, Russian's `many`
-        // form is never selected, so 5 does not read "5 объектов". (English
-        // rules pick `other` for 5; Russian `many` is `%lld объектов`.)
+        // Counted forms follow the app language, not the device locale: under an
+        // English device, Russian 5 is still its `many` form (`%lld объектов`).
         let five = L10n.format("%lld items", language: .russian, 5)
-        XCTAssertNotEqual(
-            five, "5 объектов",
-            """
-            Russian plural categories now resolve correctly under a foreign \
-            device locale. Remove the limitation note on L10n.format and \
-            tighten this test into a real assertion.
-            """
-        )
+        XCTAssertEqual(five, "5 объектов")
     }
 
     // MARK: - Code-built cleanup strings

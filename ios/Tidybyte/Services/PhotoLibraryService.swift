@@ -86,11 +86,11 @@ actor PhotoLibraryService {
                 await ImageCache.shared.removeAllVariants(of: id)
             }
         } else {
-            // No purge of `summaryBuilder.resources`: an asset's resources
-            // change only with an edit (a new modification date) or an iCloud
-            // download or offload (`ResourceCache.maxAge`). PhotoKit sends
-            // these changes often on an iCloud library, and purging on each
-            // one made every scan read the whole library again.
+            // A change with no per-asset detail can touch any asset's resources
+            // (size, iCloud state), and the next incremental change no longer
+            // reports it, since the baseline moved on. Drop every cached read.
+            // The cost is one library re-read after such a change.
+            summaryBuilder.resources.removeAll()
             await ImageCache.shared.removeAll()
         }
         onLibraryChange?()
@@ -1084,7 +1084,12 @@ actor PhotoLibraryService {
                     resumer.resume(nil)
                     return
                 }
-                sink.close()
+                // A failed write (disk full) must not come back as a complete copy.
+                guard sink.finish() else {
+                    sink.discard()
+                    resumer.resume(nil)
+                    return
+                }
                 if resumer.resume(fileURL) {
                     // Here rather than after the await: the original is now local.
                     Task { await self.forgetResources(of: assetId) }
@@ -1284,30 +1289,39 @@ actor PhotoLibraryService {
     }
 }
 
-/// Writes one export file as PhotoKit delivers its bytes. `discard` removes the
-/// partial file and drops any bytes that arrive later.
+/// Writes one export file as PhotoKit delivers its bytes. A failed write (for
+/// example a full disk) marks the sink, and `finish` reports it, so a truncated
+/// copy is never returned as complete. `discard` removes the partial file and
+/// drops later bytes.
 final class ExportFileSink: @unchecked Sendable {
     private let lock = NSLock()
     private let url: URL
+    private let writeChunk: (FileHandle, Data) throws -> Void
     private var handle: FileHandle?
+    private var failed = false
 
-    init?(url: URL) {
+    init?(url: URL, writeChunk: @escaping (FileHandle, Data) throws -> Void = { try $0.write(contentsOf: $1) }) {
         guard FileManager.default.createFile(atPath: url.path, contents: nil),
               let handle = try? FileHandle(forWritingTo: url) else { return nil }
         self.url = url
+        self.writeChunk = writeChunk
         self.handle = handle
     }
 
     func append(_ data: Data) {
         lock.withLock {
-            if let handle { try? handle.write(contentsOf: data) }
+            guard let handle, !failed else { return }
+            do { try writeChunk(handle, data) } catch { failed = true }
         }
     }
 
-    func close() {
+    /// Closes the file. True only when the file was open and every write succeeded.
+    func finish() -> Bool {
         lock.withLock {
-            try? handle?.close()
-            handle = nil
+            guard let handle else { return false }
+            self.handle = nil
+            do { try handle.close() } catch { failed = true }
+            return !failed
         }
     }
 
@@ -1317,47 +1331,6 @@ final class ExportFileSink: @unchecked Sendable {
             handle = nil
             try? FileManager.default.removeItem(at: url)
         }
-    }
-}
-
-/// What a PhotoKit request's stall watch decides at one instant.
-enum StallVerdict: Equatable, Sendable {
-    /// Still progressing. Check again after `remaining` seconds.
-    case progressing(remaining: TimeInterval)
-    /// No progress for the whole limit. Cancel the request.
-    case stalled
-    /// The request finished before it stalled. Stop watching.
-    case done
-}
-
-/// The decision behind a PhotoKit request's stall watch, with the clock and the
-/// progress passed in, so a test can drive it with fake timestamps. It is built
-/// on the same `StallDeadline` that `StallWatch` uses for the live watch. Once
-/// the request finishes, the verdict is `.done` even when the deadline has
-/// passed, and later progress cannot revive it.
-struct PhotoRequestStallTracker: Sendable {
-    private var deadline: StallDeadline
-    private(set) var finished = false
-
-    init(limit: TimeInterval = LoadStall.limit, startedAt now: TimeInterval) {
-        deadline = StallDeadline(limit: limit, startedAt: now)
-    }
-
-    /// A progress callback arrived at `now`. Ignored after `finish()`.
-    mutating func recordProgress(at now: TimeInterval) {
-        guard !finished else { return }
-        deadline.recordProgress(at: now)
-    }
-
-    /// The request completed, failed, or was cancelled by its owner.
-    mutating func finish() {
-        finished = true
-    }
-
-    func verdict(at now: TimeInterval) -> StallVerdict {
-        if finished { return .done }
-        let remaining = deadline.remaining(at: now)
-        return remaining > 0 ? .progressing(remaining: remaining) : .stalled
     }
 }
 

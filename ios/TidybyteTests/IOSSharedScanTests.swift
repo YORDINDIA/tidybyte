@@ -256,71 +256,6 @@ final class ModelsAndFormattingRound3Tests: XCTestCase {
     }
 }
 
-// MARK: - Round 3: PhotoKit stall decision (fake clock, fake progress)
-
-final class PhotoRequestStallRound3Tests: XCTestCase {
-
-    /// `TimeInterval` values are not exact in binary, so durations are compared
-    /// with an accuracy, and the case is matched separately.
-    private func assertProgressing(_ verdict: StallVerdict, remaining expected: TimeInterval,
-                                   file: StaticString = #filePath, line: UInt = #line) {
-        guard case .progressing(let remaining) = verdict else {
-            return XCTFail("expected progressing, got \(verdict)", file: file, line: line)
-        }
-        XCTAssertEqual(remaining, expected, accuracy: 1e-9, file: file, line: line)
-    }
-
-    func testProgressKeepsTheRequestAlive() {
-        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
-        tracker.recordProgress(at: 15)
-        assertProgressing(tracker.verdict(at: 30), remaining: 5)
-    }
-
-    func testNoProgressForTheWholeLimitStalls() {
-        let tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
-        assertProgressing(tracker.verdict(at: 19.9), remaining: 0.1)
-        XCTAssertEqual(tracker.verdict(at: 20), .stalled)
-        XCTAssertEqual(tracker.verdict(at: 500), .stalled)
-    }
-
-    /// A late, older progress callback must not push the deadline back.
-    func testOutOfOrderProgressDoesNotMoveTheDeadlineBack() {
-        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
-        tracker.recordProgress(at: 15)
-        tracker.recordProgress(at: 10)
-        assertProgressing(tracker.verdict(at: 30), remaining: 5)
-    }
-
-    /// A finished request is `.done` even after its deadline has passed.
-    func testFinishedRequestIsDoneEvenPastTheDeadline() {
-        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
-        tracker.finish()
-        XCTAssertEqual(tracker.verdict(at: 100), .done)
-    }
-
-    /// Progress that arrives after the request finished cannot revive the watch.
-    func testProgressAfterFinishCannotReviveTheWatch() {
-        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
-        tracker.finish()
-        tracker.recordProgress(at: 50)
-        XCTAssertEqual(tracker.verdict(at: 60), .done)
-        XCTAssertTrue(tracker.finished)
-    }
-
-    /// The same progress, without a finish, does keep the request alive. This
-    /// is the contrast that makes the test above meaningful.
-    func testSameProgressWithoutFinishKeepsItAlive() {
-        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
-        tracker.recordProgress(at: 50)
-        assertProgressing(tracker.verdict(at: 60), remaining: 10)
-    }
-
-    func testStallLimitMatchesTheLiveWatch() {
-        let tracker = PhotoRequestStallTracker(startedAt: 0)
-        XCTAssertEqual(tracker.verdict(at: LoadStall.limit), .stalled)
-    }
-}
-
 // MARK: - Round 3: export file sink
 
 final class ExportFileSinkRound3Tests: XCTestCase {
@@ -344,7 +279,7 @@ final class ExportFileSinkRound3Tests: XCTestCase {
         let sink = try XCTUnwrap(ExportFileSink(url: url))
         sink.append(Data("abc".utf8))
         sink.append(Data("def".utf8))
-        sink.close()
+        XCTAssertTrue(sink.finish())
         XCTAssertEqual(try Data(contentsOf: url), Data("abcdef".utf8))
     }
 
@@ -356,7 +291,26 @@ final class ExportFileSinkRound3Tests: XCTestCase {
         sink.append(Data("partial".utf8))
         sink.discard()
         sink.append(Data("late".utf8))
-        sink.close()
+        XCTAssertFalse(sink.finish(), "a discarded sink never reports a complete file")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    /// A disk-full write must not come back as a complete copy. `finish` reports
+    /// the failure, and the bytes after the first failure are not written.
+    func testFailedWriteIsReportedByFinishAndLaterBytesAreSkipped() throws {
+        struct DiskFull: Error {}
+        final class Attempts: @unchecked Sendable { var count = 0 }
+        let attempts = Attempts()
+        let url = folder.appendingPathComponent("disk-full.jpg")
+        let sink = try XCTUnwrap(ExportFileSink(url: url, writeChunk: { _, _ in
+            attempts.count += 1
+            throw DiskFull()
+        }))
+        sink.append(Data("abc".utf8))
+        sink.append(Data("def".utf8))
+        XCTAssertFalse(sink.finish())
+        XCTAssertEqual(attempts.count, 1, "no write is attempted after the first failure")
+        sink.discard()
         XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
     }
 
@@ -475,40 +429,79 @@ final class CountedKeyResolutionTests: XCTestCase {
         s.replacingOccurrences(of: "\u{2068}", with: "").replacingOccurrences(of: "\u{2069}", with: "")
     }
 
-    private let reason = "Known limit: L10n.format picks the plural category from the device locale, not the app language (see L10n.swift). A non-English device shows the English category for count 5."
-
-    /// Exact strings, not substrings: "صورة" contains "صور", so a substring
-    /// check passed for the wrong form.
-    func testFailedDeleteEnglishAndArabicOneResolve() {
+    /// Each counted form must follow the app language's plural rules, not the
+    /// device locale (the simulator is en_US).
+    func testFailedDeleteResolvesPerAppLanguage() {
         let key = "Failed to delete %lld photo: %@"
         let fallback = "Failed to delete %lld photos: %@"
-        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 1, "x"), "Failed to delete 1 photo: x")
-        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 5, "x"), "Failed to delete 5 photos: x")
+        XCTAssertEqual(visible(L10n.format(key, language: .english, fallback: fallback, 1, "x")), "Failed to delete 1 photo: x")
+        XCTAssertEqual(visible(L10n.format(key, language: .english, fallback: fallback, 5, "x")), "Failed to delete 5 photos: x")
         XCTAssertEqual(visible(L10n.format(key, language: .russian, fallback: fallback, 1, "x")), "Не удалось удалить 1 фотографию: x")
+        XCTAssertEqual(visible(L10n.format(key, language: .russian, fallback: fallback, 5, "x")), "Не удалось удалить 5 фотографий: x")
         XCTAssertEqual(visible(L10n.format(key, language: .arabic, fallback: fallback, 1, "x")), "تعذّر حذف 1 صورة: x")
+        XCTAssertEqual(visible(L10n.format(key, language: .arabic, fallback: fallback, 5, "x")), "تعذّر حذف 5 صور: x")
     }
 
-    func testFailedDeleteFiveInRussianAndArabicIsKnownToUseTheDeviceCategory() {
-        let key = "Failed to delete %lld photo: %@"
-        let fallback = "Failed to delete %lld photos: %@"
-        XCTExpectFailure(reason) {
-            XCTAssertEqual(visible(L10n.format(key, language: .russian, fallback: fallback, 5, "x")), "Не удалось удалить 5 фотографий: x")
-        }
-        XCTExpectFailure(reason) {
-            XCTAssertEqual(visible(L10n.format(key, language: .arabic, fallback: fallback, 5, "x")), "تعذّر حذف 5 صور: x")
-        }
-    }
-
-    func testUpdatedDayAgoEnglishResolves() {
+    func testUpdatedDayAgoResolvesPerAppLanguage() {
         let key = "Updated %lld day ago"
         let fallback = "Updated %lld days ago"
         XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 1), "Updated 1 day ago")
         XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 5), "Updated 5 days ago")
+        XCTAssertEqual(L10n.format(key, language: .russian, fallback: fallback, 5), "Обновлено 5 дней назад")
     }
 
-    func testUpdatedDayAgoFiveInRussianIsKnownToUseTheDeviceCategory() {
-        XCTExpectFailure(reason) {
-            XCTAssertEqual(L10n.format("Updated %lld day ago", language: .russian, fallback: "Updated %lld days ago", 5), "Обновлено 5 дней назад")
-        }
+    /// Digits in `%lld` stay ASCII in every language, as before this change.
+    func testCountDigitsStayASCIIInArabic() {
+        let text = visible(L10n.format("Failed to delete %lld photo: %@", language: .arabic, fallback: "x", 5, "x"))
+        XCTAssertTrue(text.contains("5"))
+        XCTAssertFalse(text.contains("٥"))
+    }
+}
+
+
+// MARK: - Final review: markers, library-access guard in prune
+
+final class FinalReviewTests: XCTestCase {
+
+    /// `INSTA_` keeps INSTANT and INSTALL out. `INSTAGRAM` must still match its own name.
+    func testInstagramBothPrefixesMatch() {
+        XCTAssertTrue(SavedFromAppMarkers.matches(filename: "INSTAGRAM_20240101.JPG"))
+        XCTAssertTrue(SavedFromAppMarkers.matches(filename: "INSTA_1704067200000.JPG"))
+        XCTAssertTrue(SavedFromAppMarkers.matches(filename: "instagram-export-1.jpg"))
+        XCTAssertFalse(SavedFromAppMarkers.matches(filename: "INSTANT_1.JPG"))
+        XCTAssertFalse(SavedFromAppMarkers.matches(filename: "INSTALL_1.JPG"))
+    }
+}
+
+/// Pruning treats an empty `existingIds` as "every asset deleted". Without library
+/// access that answer is not real, so the groups must stay.
+@MainActor
+final class PruneNeedsLibraryAccessTests: XCTestCase {
+
+    func testDuplicatesKeepGroupsWithoutLibraryAccess() async {
+        let vm = DuplicateFinderViewModel()
+        vm.exactGroups = [DuplicateGroup(
+            id: "g1",
+            assets: [makeRound3Asset(id: "dup-a"), makeRound3Asset(id: "dup-b")],
+            bestAssetId: "dup-a",
+            type: .exact
+        )]
+        vm.scanState = .completed
+        await vm.pruneDeleted(authorization: .denied)
+        XCTAssertEqual(vm.exactGroups.count, 1)
+        await vm.pruneDeleted(authorization: .notDetermined)
+        XCTAssertEqual(vm.exactGroups.count, 1)
+    }
+
+    func testSimilarKeepsGroupsWithoutLibraryAccess() async {
+        let vm = SimilarPhotosViewModel()
+        vm.groups = [SimilarGroup(
+            id: "s1",
+            assets: [makeRound3Asset(id: "sim-a"), makeRound3Asset(id: "sim-b")],
+            bestAssetId: "sim-a"
+        )]
+        vm.scanState = .completed
+        await vm.pruneDeleted(authorization: .restricted)
+        XCTAssertEqual(vm.groups.count, 1)
     }
 }

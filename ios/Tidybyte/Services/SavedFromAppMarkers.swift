@@ -69,6 +69,7 @@ enum SavedFromAppMarkers {
         "FB_IMG",       // Facebook
         "MESSENGER",    // Facebook Messenger
         "INSTA_",       // Instagram: the underscore keeps INSTANT and INSTALL from matching
+        "INSTAGRAM",    // Instagram, spelled out in some export names
         "TELEGRAM",     // Telegram
         "SNAPCHAT",     // Snapchat
         "SIGNAL-",      // Signal: signal-2024-01-01-120000.jpg (the hyphen keeps SIGNALS and SIGNAL_TOWER out)
