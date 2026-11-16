@@ -1286,7 +1286,7 @@ actor PhotoLibraryService {
 
 /// Writes one export file as PhotoKit delivers its bytes. `discard` removes the
 /// partial file and drops any bytes that arrive later.
-private final class ExportFileSink: @unchecked Sendable {
+final class ExportFileSink: @unchecked Sendable {
     private let lock = NSLock()
     private let url: URL
     private var handle: FileHandle?
@@ -1317,6 +1317,47 @@ private final class ExportFileSink: @unchecked Sendable {
             handle = nil
             try? FileManager.default.removeItem(at: url)
         }
+    }
+}
+
+/// What a PhotoKit request's stall watch decides at one instant.
+enum StallVerdict: Equatable, Sendable {
+    /// Still progressing. Check again after `remaining` seconds.
+    case progressing(remaining: TimeInterval)
+    /// No progress for the whole limit. Cancel the request.
+    case stalled
+    /// The request finished before it stalled. Stop watching.
+    case done
+}
+
+/// The decision behind a PhotoKit request's stall watch, with the clock and the
+/// progress passed in, so a test can drive it with fake timestamps. It is built
+/// on the same `StallDeadline` that `StallWatch` uses for the live watch. Once
+/// the request finishes, the verdict is `.done` even when the deadline has
+/// passed, and later progress cannot revive it.
+struct PhotoRequestStallTracker: Sendable {
+    private var deadline: StallDeadline
+    private(set) var finished = false
+
+    init(limit: TimeInterval = LoadStall.limit, startedAt now: TimeInterval) {
+        deadline = StallDeadline(limit: limit, startedAt: now)
+    }
+
+    /// A progress callback arrived at `now`. Ignored after `finish()`.
+    mutating func recordProgress(at now: TimeInterval) {
+        guard !finished else { return }
+        deadline.recordProgress(at: now)
+    }
+
+    /// The request completed, failed, or was cancelled by its owner.
+    mutating func finish() {
+        finished = true
+    }
+
+    func verdict(at now: TimeInterval) -> StallVerdict {
+        if finished { return .done }
+        let remaining = deadline.remaining(at: now)
+        return remaining > 0 ? .progressing(remaining: remaining) : .stalled
     }
 }
 

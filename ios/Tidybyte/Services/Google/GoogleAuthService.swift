@@ -155,7 +155,8 @@ final class GoogleAuthService: NSObject {
 
     // MARK: - Helpers
 
-    private struct TokenResponse: Decodable {
+    /// Internal, not private, so tests can decode a fixture and call `store`.
+    struct TokenResponse: Decodable {
         let access_token: String
         let expires_in: Double
         let refresh_token: String?
@@ -174,7 +175,7 @@ final class GoogleAuthService: NSObject {
 
     /// Keeps the tokens only once they reached the Keychain. Until then the app
     /// does not hold them, so a failed write is never reported as signed in.
-    private func store(_ response: TokenResponse, keepingRefreshToken previous: String?) throws {
+    func store(_ response: TokenResponse, keepingRefreshToken previous: String?) throws {
         let tokens = Tokens(
             accessToken: response.access_token,
             refreshToken: response.refresh_token ?? previous,
@@ -254,7 +255,30 @@ enum PKCE {
 
 /// One generic-password item holding the token JSON. This-device-only, so
 /// tokens never sync to iCloud Keychain or move to a restored device.
+/// The three Keychain calls `GoogleKeychain` makes. Production uses `.system`.
+/// Tests replace `GoogleKeychain.backend` with a fake, so a failed write can be
+/// simulated: the simulator cannot be made to refuse `SecItemAdd` on demand.
+struct GoogleKeychainBackend: Sendable {
+    var add: @Sendable (CFDictionary) -> OSStatus
+    var delete: @Sendable (CFDictionary) -> OSStatus
+    var copyMatching: @Sendable (CFDictionary) -> Data?
+
+    static let system = GoogleKeychainBackend(
+        add: { SecItemAdd($0, nil) },
+        delete: { SecItemDelete($0) },
+        copyMatching: { query in
+            var result: CFTypeRef?
+            guard SecItemCopyMatching(query, &result) == errSecSuccess else { return nil }
+            return result as? Data
+        }
+    )
+}
+
+@MainActor
 enum GoogleKeychain {
+    /// Swapped only by tests. Every caller is on the main actor.
+    static var backend = GoogleKeychainBackend.system
+
     private static let query: [CFString: Any] = [
         kSecClass: kSecClassGenericPassword,
         kSecAttrService: "com.sakshammittal.tidybyte.google",
@@ -266,11 +290,11 @@ enum GoogleKeychain {
     @discardableResult
     static func save(_ tokens: GoogleAuthService.Tokens) -> Bool {
         guard let data = try? JSONEncoder().encode(tokens) else { return false }
-        SecItemDelete(query as CFDictionary)
+        _ = backend.delete(query as CFDictionary)
         var item = query
         item[kSecValueData] = data
         item[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        let status = SecItemAdd(item as CFDictionary, nil)
+        let status = backend.add(item as CFDictionary)
         // Logged with the status only: no token text reaches the log.
         guard status == errSecSuccess else {
             AppLog.app.error("Failed to store Google sign-in: OSStatus \(status, privacy: .public)")
@@ -283,13 +307,11 @@ enum GoogleKeychain {
         var lookup = query
         lookup[kSecReturnData] = true
         lookup[kSecMatchLimit] = kSecMatchLimitOne
-        var result: CFTypeRef?
-        guard SecItemCopyMatching(lookup as CFDictionary, &result) == errSecSuccess,
-              let data = result as? Data else { return nil }
+        guard let data = backend.copyMatching(lookup as CFDictionary) else { return nil }
         return try? JSONDecoder().decode(GoogleAuthService.Tokens.self, from: data)
     }
 
     static func delete() {
-        SecItemDelete(query as CFDictionary)
+        _ = backend.delete(query as CFDictionary)
     }
 }

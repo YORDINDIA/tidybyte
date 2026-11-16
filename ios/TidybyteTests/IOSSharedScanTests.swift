@@ -184,3 +184,283 @@ final class SharedRound2Tests: XCTestCase {
         XCTAssertEqual(GoogleAuthError.failed("Boom").errorDescription, "Boom")
     }
 }
+
+// MARK: - Round 3: models, formatting, selection
+
+private func makeRound3Asset(
+    id: String,
+    width: Int = 100,
+    height: Int = 100,
+    duration: TimeInterval = 0,
+    favorite: Bool = false,
+    filename: String? = nil,
+    date: Date? = nil
+) -> AssetSummary {
+    AssetSummary(
+        id: id, mediaType: .photo, creationDate: date, modificationDate: nil,
+        pixelWidth: width, pixelHeight: height, duration: duration, fileSize: 1_000,
+        filename: filename, isFavorite: favorite, isBurst: false, burstIdentifier: nil,
+        isLivePhoto: false, isScreenshot: false, isLocallyAvailable: true
+    )
+}
+
+final class ModelsAndFormattingRound3Tests: XCTestCase {
+
+    /// The 999.95 kB boundary: the unit switches before one decimal place can
+    /// print "1000 kB".
+    func testFileSizeSwitchesUnitBeforeItRoundsToAThousand() {
+        let us = Locale.Region("US")
+        let almostMegabyte = Formatters.fileSize(999_950, language: .english, region: us)
+        XCTAssertFalse(almostMegabyte.contains("1000"), "got \(almostMegabyte)")
+        XCTAssertTrue(almostMegabyte.contains("MB"), "got \(almostMegabyte)")
+
+        let justBelow = Formatters.fileSize(999_949, language: .english, region: us)
+        XCTAssertTrue(justBelow.contains("kB"), "got \(justBelow)")
+        XCTAssertTrue(justBelow.contains("999.9"), "got \(justBelow)")
+    }
+
+    func testDurationReadsMinutesUnderAnHourAndHoursFromAnHour() {
+        XCTAssertEqual(makeRound3Asset(id: "a", duration: 0).formattedDuration, "")
+        XCTAssertEqual(makeRound3Asset(id: "a", duration: 75).formattedDuration, "1:15")
+        XCTAssertEqual(makeRound3Asset(id: "a", duration: 3_599).formattedDuration, "59:59")
+        XCTAssertEqual(makeRound3Asset(id: "a", duration: 3_725).formattedDuration, "1:02:05")
+    }
+
+    /// `.anchored` with `.backwards` must match the extension only, at the end.
+    func testIsHEICMatchesTheExtensionAtTheEndOnly() {
+        XCTAssertTrue(makeRound3Asset(id: "a", filename: "IMG_1.HEIC").isHEIC)
+        XCTAssertTrue(makeRound3Asset(id: "a", filename: "IMG_1.heif").isHEIC)
+        XCTAssertFalse(makeRound3Asset(id: "a", filename: "IMG_1.heic.jpg").isHEIC)
+        XCTAssertFalse(makeRound3Asset(id: "a", filename: "HEIC.jpg").isHEIC)
+        XCTAssertFalse(makeRound3Asset(id: "a", filename: "IMG_1.HEICS").isHEIC)
+        XCTAssertFalse(makeRound3Asset(id: "a", filename: nil).isHEIC)
+    }
+
+    /// The keeper must not depend on the order the tool happened to list the assets.
+    func testBestByMetadataIgnoresInputOrder() {
+        let favorite = makeRound3Asset(id: "b", width: 100, height: 100, favorite: true)
+        let large = makeRound3Asset(id: "a", width: 4_000, height: 3_000)
+        let mid = makeRound3Asset(id: "c", width: 2_000, height: 1_500)
+        for order in [[favorite, large, mid], [mid, large, favorite], [large, mid, favorite]] {
+            XCTAssertEqual(BestAssetSelector.bestByMetadata(from: order)?.id, "b")
+        }
+    }
+
+    /// Two assets with nothing to tell them apart: the smaller id wins, in any order.
+    func testBestByMetadataTieBreaksOnSmallerId() {
+        let date = Date(timeIntervalSince1970: 1_700_000_000)
+        let z = makeRound3Asset(id: "z", date: date)
+        let a = makeRound3Asset(id: "a", date: date)
+        XCTAssertEqual(BestAssetSelector.bestByMetadata(from: [z, a])?.id, "a")
+        XCTAssertEqual(BestAssetSelector.bestByMetadata(from: [a, z])?.id, "a")
+    }
+}
+
+// MARK: - Round 3: PhotoKit stall decision (fake clock, fake progress)
+
+final class PhotoRequestStallRound3Tests: XCTestCase {
+
+    /// `TimeInterval` values are not exact in binary, so durations are compared
+    /// with an accuracy, and the case is matched separately.
+    private func assertProgressing(_ verdict: StallVerdict, remaining expected: TimeInterval,
+                                   file: StaticString = #filePath, line: UInt = #line) {
+        guard case .progressing(let remaining) = verdict else {
+            return XCTFail("expected progressing, got \(verdict)", file: file, line: line)
+        }
+        XCTAssertEqual(remaining, expected, accuracy: 1e-9, file: file, line: line)
+    }
+
+    func testProgressKeepsTheRequestAlive() {
+        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
+        tracker.recordProgress(at: 15)
+        assertProgressing(tracker.verdict(at: 30), remaining: 5)
+    }
+
+    func testNoProgressForTheWholeLimitStalls() {
+        let tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
+        assertProgressing(tracker.verdict(at: 19.9), remaining: 0.1)
+        XCTAssertEqual(tracker.verdict(at: 20), .stalled)
+        XCTAssertEqual(tracker.verdict(at: 500), .stalled)
+    }
+
+    /// A late, older progress callback must not push the deadline back.
+    func testOutOfOrderProgressDoesNotMoveTheDeadlineBack() {
+        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
+        tracker.recordProgress(at: 15)
+        tracker.recordProgress(at: 10)
+        assertProgressing(tracker.verdict(at: 30), remaining: 5)
+    }
+
+    /// A finished request is `.done` even after its deadline has passed.
+    func testFinishedRequestIsDoneEvenPastTheDeadline() {
+        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
+        tracker.finish()
+        XCTAssertEqual(tracker.verdict(at: 100), .done)
+    }
+
+    /// Progress that arrives after the request finished cannot revive the watch.
+    func testProgressAfterFinishCannotReviveTheWatch() {
+        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
+        tracker.finish()
+        tracker.recordProgress(at: 50)
+        XCTAssertEqual(tracker.verdict(at: 60), .done)
+        XCTAssertTrue(tracker.finished)
+    }
+
+    /// The same progress, without a finish, does keep the request alive. This
+    /// is the contrast that makes the test above meaningful.
+    func testSameProgressWithoutFinishKeepsItAlive() {
+        var tracker = PhotoRequestStallTracker(limit: 20, startedAt: 0)
+        tracker.recordProgress(at: 50)
+        assertProgressing(tracker.verdict(at: 60), remaining: 10)
+    }
+
+    func testStallLimitMatchesTheLiveWatch() {
+        let tracker = PhotoRequestStallTracker(startedAt: 0)
+        XCTAssertEqual(tracker.verdict(at: LoadStall.limit), .stalled)
+    }
+}
+
+// MARK: - Round 3: export file sink
+
+final class ExportFileSinkRound3Tests: XCTestCase {
+
+    private var folder: URL!
+
+    override func setUp() {
+        super.setUp()
+        folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ExportSinkTests-\(UUID().uuidString)", isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    }
+
+    override func tearDown() {
+        try? FileManager.default.removeItem(at: folder)
+        super.tearDown()
+    }
+
+    func testAppendThenCloseKeepsTheBytes() throws {
+        let url = folder.appendingPathComponent("a.jpg")
+        let sink = try XCTUnwrap(ExportFileSink(url: url))
+        sink.append(Data("abc".utf8))
+        sink.append(Data("def".utf8))
+        sink.close()
+        XCTAssertEqual(try Data(contentsOf: url), Data("abcdef".utf8))
+    }
+
+    /// A stalled or cancelled export must leave no partial file, and bytes that
+    /// arrive after the discard must not recreate it.
+    func testDiscardRemovesThePartialFileAndDropsLaterBytes() throws {
+        let url = folder.appendingPathComponent("b.jpg")
+        let sink = try XCTUnwrap(ExportFileSink(url: url))
+        sink.append(Data("partial".utf8))
+        sink.discard()
+        sink.append(Data("late".utf8))
+        sink.close()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    func testSinkCannotBeCreatedWhereTheFolderIsMissing() {
+        let url = folder.appendingPathComponent("missing", isDirectory: true)
+            .appendingPathComponent("c.jpg")
+        XCTAssertNil(ExportFileSink(url: url))
+    }
+}
+
+// MARK: - Round 3: Keychain write failure (fake backend)
+
+@MainActor
+final class GoogleKeychainRound3Tests: XCTestCase {
+
+    /// In-memory stand-in for the Keychain. `refuseAdds` makes `SecItemAdd` fail
+    /// the way a locked or full Keychain does.
+    private final class FakeKeychain: @unchecked Sendable {
+        private let lock = NSLock()
+        private var stored: Data?
+        private let refuseAdds: Bool
+        private(set) var addCount = 0
+
+        init(refuseAdds: Bool) {
+            self.refuseAdds = refuseAdds
+        }
+
+        var backend: GoogleKeychainBackend {
+            GoogleKeychainBackend(
+                add: { [self] query in
+                    lock.withLock {
+                        addCount += 1
+                        if refuseAdds { return errSecInteractionNotAllowed }
+                        stored = (query as NSDictionary)[kSecValueData] as? Data
+                        return errSecSuccess
+                    }
+                },
+                delete: { [self] _ in
+                    lock.withLock {
+                        stored = nil
+                        return errSecSuccess
+                    }
+                },
+                copyMatching: { [self] _ in
+                    lock.withLock { stored }
+                }
+            )
+        }
+    }
+
+    override func tearDown() {
+        GoogleKeychain.backend = .system
+        super.tearDown()
+    }
+
+    private func sampleTokens() -> GoogleAuthService.Tokens {
+        GoogleAuthService.Tokens(accessToken: "access", refreshToken: "refresh", expiresAt: Date(timeIntervalSince1970: 2_000_000_000))
+    }
+
+    private func sampleResponse() throws -> GoogleAuthService.TokenResponse {
+        try JSONDecoder().decode(
+            GoogleAuthService.TokenResponse.self,
+            from: Data(#"{"access_token":"access","expires_in":3600,"refresh_token":"refresh"}"#.utf8)
+        )
+    }
+
+    func testSaveReportsFailureWhenTheKeychainRefusesTheWrite() {
+        let fake = FakeKeychain(refuseAdds: true)
+        GoogleKeychain.backend = fake.backend
+        XCTAssertFalse(GoogleKeychain.save(sampleTokens()))
+        XCTAssertEqual(fake.addCount, 1)
+    }
+
+    func testSaveRoundTripsThroughTheKeychain() {
+        let fake = FakeKeychain(refuseAdds: false)
+        GoogleKeychain.backend = fake.backend
+        XCTAssertTrue(GoogleKeychain.save(sampleTokens()))
+        XCTAssertEqual(GoogleKeychain.load(), sampleTokens())
+    }
+
+    /// The user must not be left looking signed in when the write failed: the
+    /// error is thrown, and the app holds no tokens.
+    func testStoreThrowsAndHoldsNoTokensWhenTheKeychainRefuses() throws {
+        let fake = FakeKeychain(refuseAdds: true)
+        GoogleKeychain.backend = fake.backend
+        let auth = GoogleAuthService()
+        XCTAssertNil(auth.tokens)
+
+        XCTAssertThrowsError(try auth.store(try sampleResponse(), keepingRefreshToken: nil)) { error in
+            XCTAssertEqual(error as? GoogleAuthError, .keychainWriteFailed)
+        }
+        XCTAssertNil(auth.tokens)
+        XCTAssertFalse(auth.isSignedIn)
+    }
+
+    func testStoreKeepsTokensWhenTheKeychainAccepts() throws {
+        let fake = FakeKeychain(refuseAdds: false)
+        GoogleKeychain.backend = fake.backend
+        let auth = GoogleAuthService()
+
+        try auth.store(try sampleResponse(), keepingRefreshToken: nil)
+        XCTAssertEqual(auth.tokens?.accessToken, "access")
+        XCTAssertEqual(auth.tokens?.refreshToken, "refresh")
+        XCTAssertTrue(auth.isSignedIn)
+        XCTAssertEqual(GoogleKeychain.load()?.accessToken, "access")
+    }
+}

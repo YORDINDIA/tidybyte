@@ -63,10 +63,17 @@ struct AssetSummary: Identifiable, Sendable, Hashable {
         "\(pixelWidth) × \(pixelHeight)"
     }
 
+    /// `m:ss` under an hour, `h:mm:ss` from an hour up. Minutes past 59 would
+    /// read as a longer clip ("75:00" for a 1 h 15 min video).
     var formattedDuration: String {
         guard duration > 0 else { return "" }
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
+        let total = Int(duration)
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        let seconds = total % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
         return String(format: "%d:%02d", minutes, seconds)
     }
 

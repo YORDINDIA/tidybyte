@@ -81,10 +81,12 @@ enum Formatters {
         let locale = locale(for: language, region: region)
 
         let value = Double(bytes)
+        // The switch point is 999.95 of the lower unit, not 1000: at one decimal
+        // place 999.95 kB rounds to "1000 kB", so the next unit starts there.
         let (scaled, unit): (Double, UnitInformationStorage) = switch bytes {
-        case 1_000_000_000_000...: (value / 1e12, .terabytes)
-        case 1_000_000_000...: (value / 1e9, .gigabytes)
-        case 1_000_000...: (value / 1e6, .megabytes)
+        case 999_950_000_000...: (value / 1e12, .terabytes)
+        case 999_950_000...: (value / 1e9, .gigabytes)
+        case 999_950...: (value / 1e6, .megabytes)
         default: (value / 1e3, .kilobytes)
         }
 
