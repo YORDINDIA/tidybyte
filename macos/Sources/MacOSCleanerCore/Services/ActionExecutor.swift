@@ -30,7 +30,8 @@ public enum ActionExecutorError: Error, LocalizedError, Sendable {
     /// The action already ran once (executedAt stamped); refusing to run it again.
     case alreadyExecuted(String)
     case batchLimitExceeded(String)
-    case staleAudit(String)
+    /// The caller cancelled the batch. Actions not yet started were not run.
+    case cancelled(remaining: Int)
     /// The undo trail could not be persisted ahead of the mutation, so the
     /// mutation was refused — deleting without a recoverable trail is never acceptable.
     case undoTrailUnavailable(String)
@@ -47,7 +48,7 @@ public enum ActionExecutorError: Error, LocalizedError, Sendable {
         case .manualReviewRequired(let action): String(localized: "Manual review is still required before executing \(action.rawValue).")
         case .alreadyExecuted(let id): String(localized: "Action \(id) was already executed and cannot run again.")
         case .batchLimitExceeded(let reason): String(localized: "Batch limit exceeded: \(reason)")
-        case .staleAudit(let reason): String(localized: "Stale safety audit: \(reason)")
+        case .cancelled(let remaining): String(localized: "Execution cancelled; \(remaining) remaining actions were not run.")
         case .undoTrailUnavailable(let reason): String(localized: "Could not record the undo trail (\(reason)); the action was not performed.")
         case .toolRunning(let name): String(localized: "Quit \(name) first, then try again.")
         }
@@ -118,9 +119,10 @@ public actor ActionExecutor {
         isCancelled = false
         for action in executableActions {
             // Cancellation lands between actions: the in-flight action finishes
-            // (its undo trail stays consistent), remaining ones never start.
-            if isCancelled {
-                failures.append(String(localized: "Execution cancelled; remaining actions were not run."))
+            // (its undo trail stays consistent), remaining ones never start. Both
+            // the explicit flag and the caller's task cancellation count.
+            if isCancelled || Task.isCancelled {
+                failures.append(ActionExecutorError.cancelled(remaining: executableActions.count - completed).localizedDescription)
                 break
             }
             do {

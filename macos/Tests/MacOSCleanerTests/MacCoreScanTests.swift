@@ -2,6 +2,7 @@ import Foundation
 import SQLite3
 import XCTest
 @testable import MacOSCleanerCore
+@testable import MacOSCleanerMCPLibrary
 
 // swiftlint:disable type_body_length file_length
 /// Regression tests for the macOS core audit. Every filesystem fixture lives
@@ -604,6 +605,155 @@ final class MacCoreScanTests: XCTestCase {
         XCTAssertFalse(outcome.wasCancelled)
         XCTAssertTrue(outcome.notices.contains { $0.message.contains("status could not be saved") },
                       "The user must be told the status was not saved")
+    }
+
+    // MARK: - Round 4: review fixes
+
+    func testAgentUndoGateAllowsOnlyTheReviewedKinds() {
+        let allowed: Set<ActionType> = [.restore, .move, .rename, .tag, .unfoldClone]
+        for kind in ActionType.allCases {
+            XCTAssertEqual(MCPKit.agentMayUndo(kind), allowed.contains(kind), "\(kind.rawValue)")
+        }
+        XCTAssertFalse(MCPKit.agentMayUndo(.moveToTrash), "Trash-based removal of a created artifact stays in the app")
+    }
+
+    func testCheckReportStatesWhatWasCompared() {
+        let hashed = MCPKit.checkReport(total: 2, verified: 2, hashed: 2, missing: [], changed: [])
+        XCTAssertTrue(hashed.contains("byte-identical to the scan"))
+        XCTAssertTrue(hashed.contains("The plan is still safe to execute."))
+
+        let identityOnly = MCPKit.checkReport(total: 2, verified: 2, hashed: nil, missing: [], changed: [])
+        XCTAssertTrue(identityOnly.contains("file bytes were not compared"))
+        XCTAssertFalse(identityOnly.contains("byte-identical"))
+
+        let drifted = MCPKit.checkReport(total: 3, verified: 1, hashed: nil, missing: ["/a"], changed: ["/b"])
+        XCTAssertTrue(drifted.contains("Missing since the scan: /a"))
+        XCTAssertTrue(drifted.contains("Changed since the scan"))
+        XCTAssertTrue(drifted.contains("Re-scan before executing"))
+        XCTAssertFalse(drifted.contains("still safe"))
+    }
+
+    func testTypedArgumentHelpersRejectWrongTypes() throws {
+        XCTAssertNil(try MCPKit.stringArgument([:], "k"))
+        XCTAssertEqual(try MCPKit.stringArgument(["k": "v"], "k"), "v")
+        XCTAssertThrowsError(try MCPKit.stringArgument(["k": 5], "k"))
+
+        XCTAssertNil(try MCPKit.intArgument([:], "k"))
+        XCTAssertEqual(try MCPKit.intArgument(["k": 3], "k"), 3)
+        XCTAssertThrowsError(try MCPKit.intArgument(["k": "3"], "k"))
+        XCTAssertThrowsError(try MCPKit.intArgument(["k": true], "k"), "A JSON boolean is not an integer")
+
+        XCTAssertNil(try MCPKit.stringArrayArgument([:], "k"))
+        XCTAssertEqual(try MCPKit.stringArrayArgument(["k": ["a", "b"]], "k"), ["a", "b"])
+        XCTAssertThrowsError(try MCPKit.stringArrayArgument(["k": "a"], "k"))
+        XCTAssertThrowsError(try MCPKit.stringArrayArgument(["k": [1, 2]], "k"))
+
+        XCTAssertNil(try MCPKit.boolArgument([:], "k"))
+        XCTAssertEqual(try MCPKit.boolArgument(["k": true], "k"), true)
+        XCTAssertThrowsError(try MCPKit.boolArgument(["k": 1], "k"))
+        XCTAssertThrowsError(try MCPKit.boolArgument(["k": "true"], "k"))
+    }
+
+    func testIDPrefixGateRejectsEmptyAndShortValues() throws {
+        XCTAssertThrowsError(try MCPKit.validatedIDPrefix(nil))
+        XCTAssertThrowsError(try MCPKit.validatedIDPrefix("   "))
+        XCTAssertThrowsError(try MCPKit.validatedIDPrefix("abc"))
+        XCTAssertEqual(try MCPKit.validatedIDPrefix(" abcdefgh "), "abcdefgh")
+        XCTAssertNil(try MCPKit.validatedIDPrefix(nil, allowNil: true))
+        XCTAssertThrowsError(try MCPKit.validatedIDPrefix("", allowNil: true), "An empty filter would match everything")
+    }
+
+    func testShortUndoIDMatchingTwoOperationsRestoresNeither() async throws {
+        let store = try SQLiteStore.inMemory()
+        for suffix in ["one", "two"] {
+            try await store.saveUndoRecord(UndoRecord(
+                id: "undo-\(suffix)", operationLogID: "abcdefgh-\(suffix)", inverseAction: .move,
+                restoreURL: URL(fileURLWithPath: "/tmp/tidybyte-test/\(suffix).txt"), trashURL: nil,
+                validUntil: nil, status: .available))
+        }
+        let kit = MCPKit(store: store)
+        let request: [String: Any] = [
+            "jsonrpc": "2.0", "id": "u1", "method": "tools/call",
+            "params": ["name": "undo", "arguments": ["operation_log_id": "abcdefgh", "confirm": true]]
+        ]
+        let reply = await kit.handle(request: request)
+        let response = try XCTUnwrap(reply).payload
+        let result = try XCTUnwrap(response["result"] as? [String: Any])
+        let text = ((result["content"] as? [[String: Any]])?.first?["text"] as? String) ?? ""
+        XCTAssertEqual(result["isError"] as? Bool, true)
+        XCTAssertTrue(text.contains("matches more than one recorded operation"), text)
+    }
+
+    func testAIKeychainFailureFallsBackToLocalRulesWithANotice() async throws {
+        let store = try SQLiteStore.inMemory()
+        let memory = MemoryEngine(store: store)
+        let gateway = AIGateway(
+            keychain: KeychainStore(inMemory: true, injectedLoadError: .unexpectedStatus(-25300)),
+            session: URLSession(configuration: .ephemeral))
+        let orchestrator = ScanOrchestrator(store: store, aiGateway: gateway, memory: memory)
+        let folder = try root.appendingPathComponent("ai", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("x".utf8).write(to: folder.appendingPathComponent("a.txt"))
+
+        let (outcome, _) = try await orchestrator.scan(
+            mode: .selectedFolders, selectedFolders: [folder],
+            providerSettings: ProviderSettings(privacyMode: .metadataOnlyAI), includeAI: true)
+
+        XCTAssertFalse(outcome.wasCancelled, "An unreadable AI key must not fail the scan")
+        XCTAssertTrue(outcome.notices.contains { $0.message.contains("AI classification was skipped") })
+    }
+
+    func testDescendantWalkDeniesFolderWithUnreadableChild() throws {
+        let folder = try makeFolder("locked-tree")
+        let hidden = folder.appendingPathComponent("unreadable", isDirectory: true)
+        try FileManager.default.createDirectory(at: hidden, withIntermediateDirectories: true)
+        try Data("x".utf8).write(to: hidden.appendingPathComponent("inside.txt"))
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: hidden.path) }
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: hidden.path)
+
+        XCTAssertNotEqual(decision(for: folder), .allow,
+                          "A child that cannot be read may hold credentials, so the folder is blocked")
+    }
+
+    func testExecutionStopsBetweenActionsWhenTheCallerCancels() async throws {
+        let store = try SQLiteStore.inMemory()
+        let folder = try root.appendingPathComponent("cancel-run", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let names = ["first.txt", "second.txt"]
+        for name in names { try Data(name.utf8).write(to: folder.appendingPathComponent(name)) }
+        let crawl = await FileCrawler().crawl(rootURLs: [folder], sessionID: "cancel")
+        let records = crawl.files.filter { $0.kind == .regularFile }
+        let filesByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
+        let actions = records.sorted { $0.fileName < $1.fileName }.map { record in
+            PlannedAction(id: "a-\(record.fileName)", planID: "p", actionType: .moveToTrash, targets: [record.id],
+                          destination: nil, status: .approved, risk: .low, confidence: 0.9, reason: "test",
+                          userDecision: .approved, executedAt: nil, findingID: nil)
+        }
+        let executor = TestFixtures.makeExecutor(store: store)
+
+        let summary = await executor.execute(actions: actions, filesByID: filesByID, progress: { completed in
+            // Cancel the caller's task after the first action finished.
+            if completed == 1 { withUnsafeCurrentTask { $0?.cancel() } }
+        })
+
+        XCTAssertEqual(summary.logs.count, 1, "The action in flight when cancellation arrived must finish")
+        XCTAssertEqual(summary.undoRecords.count, 1, "Completed actions keep their undo records")
+        XCTAssertTrue(summary.failures.contains { $0.contains("cancelled") })
+        let remaining = records.filter { FileManager.default.fileExists(atPath: $0.url.path) }
+        XCTAssertEqual(remaining.count, 1, "The action after the cancellation must not run")
+    }
+
+    func testMigrationRefusesNewerDatabaseWithoutWritingToIt() throws {
+        let file = try root.appendingPathComponent("newer-untouched.sqlite")
+        var handle: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(file.path, &handle), SQLITE_OK)
+        XCTAssertEqual(sqlite3_exec(handle, "CREATE TABLE future_only (x INTEGER); PRAGMA user_version = 99", nil, nil, nil), SQLITE_OK)
+        sqlite3_close(handle)
+        let before = try Data(contentsOf: file)
+
+        XCTAssertThrowsError(try SQLiteStore(databaseURL: file))
+
+        XCTAssertEqual(try Data(contentsOf: file), before, "A refused database must be left byte for byte unchanged")
     }
 
     // MARK: - Child processes are bounded even when they ignore SIGTERM

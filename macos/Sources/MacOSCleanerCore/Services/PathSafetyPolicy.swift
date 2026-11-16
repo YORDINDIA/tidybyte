@@ -303,13 +303,27 @@ public struct PathSafetyPolicy: Sendable {
     /// First descendant of `folder` that holds credential material, or nil.
     /// Symlinks are not followed. A folder that cannot be enumerated counts as blocked.
     private func protectedDescendant(of folder: URL) -> URL? {
-        guard let walker = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: nil, options: []) else {
+        // A child that cannot be read may hold credentials, so the walk stops and
+        // the folder counts as blocked. Returning false from the handler ends the walk.
+        let unreadable = UnreadableFlag()
+        guard let walker = FileManager.default.enumerator(
+            at: folder, includingPropertiesForKeys: nil, options: [],
+            errorHandler: { _, _ in
+                unreadable.isSet = true
+                return false
+            }
+        ) else {
             return folder
         }
         for case let child as URL in walker where isCredentialEntry(child) {
             return child
         }
-        return nil
+        return unreadable.isSet ? folder : nil
+    }
+
+    /// Set from the enumerator's error handler, which runs synchronously on the walking thread.
+    private final class UnreadableFlag: @unchecked Sendable {
+        var isSet = false
     }
 
     /// Name-based test for one descendant. Directories and files are judged by

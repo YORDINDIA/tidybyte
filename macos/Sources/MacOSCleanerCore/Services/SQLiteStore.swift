@@ -532,9 +532,10 @@ public actor SQLiteStore {
 
     // MARK: Last-session restore
 
-    /// The most recent scan session that reached a terminal state. Running
-    /// sessions are skipped: a session still marked running at launch belongs
-    /// to a crashed process (failStaleRunningSessions retires those first).
+    /// The most recent scan session that completed. Failed and cancelled sessions
+    /// are skipped: they hold no results to restore. Running sessions are skipped
+    /// too: a session still marked running at launch belongs to a crashed process
+    /// (failStaleRunningSessions retires those first).
     public func latestFinishedScanSession() throws -> ScanSession? {
         let sessions: [ScanSession] = try selectJSON(
             """
@@ -864,6 +865,10 @@ public actor SQLiteStore {
     }
 
     private static func migrate(database: OpaquePointer) throws {
+        // Refuse a file from a newer build before anything is written: switching to
+        // WAL, creating tables and creating indexes all modify the file.
+        let currentVersion = try getUserVersion(database: database)
+        try Self.refuseNewerSchema(currentVersion)
         // WAL mode may fail on some filesystems (network drives, certain configurations).
         // Fall back to non-WAL mode if WAL cannot be enabled.
         do {
@@ -902,8 +907,6 @@ public actor SQLiteStore {
         // Schema version tracking. Any future schema additions (e.g.
         // ALTER TABLE ... ADD COLUMN) must be guarded by a user_version check so
         // they run exactly once on existing databases.
-        let currentVersion = try getUserVersion(database: database)
-        try Self.refuseNewerSchema(currentVersion)
 
         // v2: initial tracked version (base schema above is idempotent).
         // v3: undo_records.operation_log_id column + index + backfill, so undo

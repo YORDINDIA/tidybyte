@@ -893,9 +893,11 @@ final class AppViewModel {
         }
     }
 
-    func executeApprovedActions() async {
-        await executeApprovedActions(allowingRiskUpTo: .forbidden)
-    }
+    #if DEBUG
+    /// Test-only. It runs approved actions with no package-command confirmation.
+    /// Production runs through `executeConfirmedRequest`, which carries the step.
+    func executeApprovedActions() async { await executeApprovedActions(allowingRiskUpTo: .forbidden) }
+    #endif
 
     func executeConfirmedRequest(_ request: ExecutionRequest, packageCommandsOnly: Bool = false) async {
         guard request.isCurrent(in: self) else {

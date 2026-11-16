@@ -10,8 +10,7 @@ public struct SafetyAuditResult: Codable, Sendable {
     public var decision: SafetyDecision
     public var reasons: [String]
     public var undoStatus: UndoStatus
-    /// When the audit ran. Executors treat audits older than `auditFreshnessWindow`
-    /// as stale and must re-audit before mutating.
+    /// When the audit ran. Executors audit each action immediately before running it.
     public var auditedAt: Date
 }
 
@@ -19,8 +18,6 @@ public struct SafetyAuditResult: Codable, Sendable {
 public enum ExecutionLimits {
     public static let maxActionsPerBatch = 200
     public static let maxBytesPerBatch: Int64 = 50_000_000_000
-    /// An audit older than this must be re-run before mutation.
-    public static let auditFreshnessWindow: TimeInterval = 60
 }
 
 public enum SafetyAuditError: Error, LocalizedError, Sendable {
@@ -35,7 +32,6 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
     /// Target existed at audit time but is gone by mutation time — nothing to act on.
     case targetVanished(URL)
     case unsafeDestination(URL)
-    case staleAudit(URL)
     /// A cloneDeduplicate action names no keeper (destination), or the keeper
     /// is not among the scanned files.
     case missingKeeper(URL?)
@@ -66,8 +62,6 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
             return String(localized: "Target no longer exists on disk: \(url.path)", comment: "Target vanished before execution")
         case .unsafeDestination(let url):
             return String(localized: "Action destination is not safe: \(url.path)", comment: "Unsafe action destination error")
-        case .staleAudit(let url):
-            return String(localized: "Safety audit for \(url.path) is stale; re-audit before executing.", comment: "Stale audit error")
         case .missingKeeper(let url):
             if let url {
                 return String(localized: "Clone action has no keeper file on record: \(url.path)", comment: "Missing clone keeper error")

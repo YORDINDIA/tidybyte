@@ -267,12 +267,40 @@ final class MacMonitorRound2Tests: XCTestCase {
         var argc = Int32(3)
         withUnsafeBytes(of: &argc) { data.append(contentsOf: $0) }
         data.append(Data("/usr/bin/tool".utf8))
-        data.append(contentsOf: [0, 0, 0])
+        data.append(contentsOf: [0, 0])
         for argument in ["tool", "", "last"] {
             data.append(Data(argument.utf8))
             data.append(0)
         }
         XCTAssertEqual(ProcessProbe.parseArguments(data), ["tool", "", "last"])
+    }
+
+    /// Builds argv the way the kernel lays it out: argc, the path and its NUL,
+    /// zero padding until argv starts at index 4 (mod 8), then each argument NUL-terminated.
+    private func kernelArgv(path: String, arguments: [String]) -> Data {
+        var data = Data()
+        var argc = Int32(arguments.count)
+        withUnsafeBytes(of: &argc) { data.append(contentsOf: $0) }
+        data.append(Data(path.utf8))
+        data.append(0)
+        while (data.count - 4) % 8 != 0 { data.append(0) }
+        for argument in arguments {
+            data.append(Data(argument.utf8))
+            data.append(0)
+        }
+        return data
+    }
+
+    /// An empty argv[0] sits on the aligned boundary; it must not be skipped as padding.
+    func testArgumentParserKeepsEmptyFirstArgument() {
+        let data = kernelArgv(path: "/bin/cat", arguments: ["", "-", "last"])
+        XCTAssertEqual(ProcessProbe.parseArguments(data), ["", "-", "last"])
+    }
+
+    /// An empty argument after the first must keep its place too.
+    func testArgumentParserKeepsEmptyMiddleArgument() {
+        let data = kernelArgv(path: "/bin/sleep", arguments: ["sleep", "", "5"])
+        XCTAssertEqual(ProcessProbe.parseArguments(data), ["sleep", "", "5"])
     }
 
     /// MON-11: a process name with a comma stays whole, and the numbers still line up.

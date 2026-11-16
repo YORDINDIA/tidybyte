@@ -319,9 +319,9 @@ extension ProcessProbe {
     }
 
     /// KERN_PROCARGS2 layout: a native-endian int32 argc, the executable path,
-    /// NUL padding, then argc argv strings, each NUL-terminated, then the
-    /// environment. An empty argument is an empty NUL-terminated string and is
-    /// kept, so later arguments do not shift.
+    /// its NUL terminator, NUL padding to an 8-byte boundary, then argc argv
+    /// strings, each NUL-terminated, then the environment. An empty argument is an
+    /// empty NUL-terminated string and is kept, so later arguments do not shift.
     static func parseArguments(_ data: Data) -> [String] {
         let bytes = [UInt8](data)
         let argcSize = MemoryLayout<Int32>.size
@@ -333,9 +333,14 @@ extension ProcessProbe {
         let argc = Int(Int32(bitPattern: argcBits))
         guard argc > 0, argc < 4096 else { return [] }
         var index = argcSize
-        // Skip the executable path and the NUL padding after it.
+        // Skip the executable path and its NUL terminator. The kernel then pads so that
+        // argv starts at an index that is 4 (mod 8): measured on macOS for executable
+        // paths of 10 and 8 characters, argv[0] began at index 20 both times. Padding
+        // is skipped only up to that boundary, so an empty argv[0], which is a lone NUL
+        // sitting on the boundary, is kept and later arguments do not shift.
         while index < bytes.count, bytes[index] != 0 { index += 1 }
-        while index < bytes.count, bytes[index] == 0 { index += 1 }
+        if index < bytes.count { index += 1 }
+        while index < bytes.count, bytes[index] == 0, (index - argcSize) % 8 != 0 { index += 1 }
         var arguments: [String] = []
         while arguments.count < argc, index < bytes.count {
             let start = index

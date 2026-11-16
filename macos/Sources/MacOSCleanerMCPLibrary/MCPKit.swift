@@ -564,9 +564,10 @@ extension MCPKit {
 
     // MARK: - Undo policy
 
-    /// Undo kinds an agent may run. `moveToTrash` removes its artifact with
-    /// `removeItem` (no Trash), so it stays in the app. Every case is listed
-    /// with no `default`, so a new ActionType cannot pass unreviewed.
+    /// Undo kinds an agent may run. `moveToTrash` undo sends an alias, symlink or
+    /// archive copy to the Trash. It stays in the app because it removes an
+    /// artifact the cleanup created, which needs a person to confirm. Every case
+    /// is listed with no `default`, so a new ActionType cannot pass unreviewed.
     static func agentMayUndo(_ inverse: ActionType) -> Bool {
         switch inverse {
         case .restore, .move, .rename, .tag, .unfoldClone:
