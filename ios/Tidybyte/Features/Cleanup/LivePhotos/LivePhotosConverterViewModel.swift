@@ -363,7 +363,8 @@ final class LivePhotosConverterViewModel {
             let resourceManager = PHAssetResourceManager.default()
             let imageData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
                 let resumer = ThrowingContinuationResumer(continuation)
-                var data = Data()
+                // Chunks arrive on one queue, the completion on another. Both go through the lock.
+                let buffer = LockedValue(Data())
                 let options = PHAssetResourceRequestOptions()
                 options.isNetworkAccessAllowed = true
 
@@ -373,29 +374,31 @@ final class LivePhotosConverterViewModel {
                 // callback cancels the timer. Without this the item hangs in `.converting`.
                 // Each data chunk is progress, so a steady download is not cut off.
                 let stall = StallWatch()
-                var requestID: PHAssetResourceDataRequestID = 0
+                let requestID = LockedValue<PHAssetResourceDataRequestID>(0)
                 let timeoutTask = watchForStall(stall) {
                     resumer.resume(throwing: LivePhotoError.conversionTimedOut)
                 }
                 resumer.onResume = {
-                    resourceManager.cancelDataRequest(requestID)
+                    resourceManager.cancelDataRequest(requestID.withValue { $0 })
                     timeoutTask.cancel()
                 }
 
-                requestID = resourceManager.requestData(
+                let id = resourceManager.requestData(
                     for: photoResource,
                     options: options
                 ) { chunk in
                     let at = LoadStall.now()
                     Task { await stall.recordProgress(at: at) }
-                    data.append(chunk)
+                    buffer.withValue { $0.append(chunk) }
                 } completionHandler: { error in
                     if let error {
                         resumer.resume(throwing: error)
                     } else {
-                        resumer.resume(returning: data)
+                        resumer.resume(returning: buffer.withValue { $0 })
                     }
                 }
+                // Stored after the call returns, never under the lock (see LockedValue).
+                requestID.withValue { $0 = id }
             }
 
             guard !imageData.isEmpty else {

@@ -87,6 +87,24 @@ final class IOSCleanupBScanTests: XCTestCase {
         }
     }
 
+    /// The lock serializes writes from concurrent queues, as the PhotoKit callbacks do.
+    func testLockedValueSerializesConcurrentWrites() {
+        let counter = LockedValue(0)
+        DispatchQueue.concurrentPerform(iterations: 1_000) { _ in
+            counter.withValue { $0 += 1 }
+        }
+        XCTAssertEqual(counter.withValue { $0 }, 1_000)
+    }
+
+    /// With no progress, the watch fires once its limit passes.
+    func testWatchForStallFiresWhenNoProgressArrives() async {
+        let fired = LockedValue(false)
+        let watch = StallWatch(limit: 0.05)
+        let task = watchForStall(watch) { fired.withValue { $0 = true } }
+        await task.value
+        XCTAssertTrue(fired.withValue { $0 })
+    }
+
     // MARK: - Export failure mapping (round 2 item 3c)
 
     func testInterruptedExportMapsToForegroundMessage() {

@@ -63,3 +63,21 @@ func watchForStall(_ watch: StallWatch, onStall: @escaping @Sendable () -> Void)
         }
     }
 }
+
+/// A value that callbacks on other queues read or write. PhotoKit completion
+/// and cancel paths run on arbitrary queues, so every access takes the lock.
+/// Never call PhotoKit while holding it: a synchronous callback would re-enter it.
+final class LockedValue<Value: Sendable>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: Value
+
+    init(_ value: Value) {
+        self.value = value
+    }
+
+    func withValue<Result>(_ body: (inout Value) -> Result) -> Result {
+        lock.lock()
+        defer { lock.unlock() }
+        return body(&value)
+    }
+}

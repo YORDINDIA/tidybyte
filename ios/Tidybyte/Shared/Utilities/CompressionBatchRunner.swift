@@ -24,7 +24,10 @@ final class CompressionSession {
 
         let session = CompressionSession()
         session.backgroundTask = app.beginBackgroundTask(withName: "TidyByte compression") {
-            Task { @MainActor in
+            // iOS calls this on the main thread and needs the task ended before
+            // it returns, or the watchdog can end the app. Both calls stay
+            // synchronous. `onExpire` only sets a flag and cancels a task.
+            MainActor.assumeIsolated {
                 onExpire()
                 session.stopBackgroundTime()
             }

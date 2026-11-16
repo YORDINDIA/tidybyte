@@ -346,14 +346,15 @@ actor VideoCompressionService {
             // synchronously-delivered callback still cancels the timeout Task
             // (otherwise it lingers, orphaned, for the full timeout).
             let manager = PHImageManager.default()
-            var requestID: PHImageRequestID = PHInvalidImageRequestID
+            // The cancel closure reads this on whichever queue resumes first.
+            let requestID = LockedValue<PHImageRequestID>(PHInvalidImageRequestID)
             let timeoutTask = watchForStall(stall) { resumer.resume(.timedOut) }
             resumer.onResume = {
-                manager.cancelImageRequest(requestID)
+                manager.cancelImageRequest(requestID.withValue { $0 })
                 timeoutTask.cancel()
             }
 
-            requestID = manager.requestAVAsset(
+            let id = manager.requestAVAsset(
                 forVideo: phAsset,
                 options: options
             ) { avAsset, _, info in
@@ -370,6 +371,8 @@ actor VideoCompressionService {
                     resumer.resume(.failed(L10n.string("Unknown error")))
                 }
             }
+            // Stored after the call returns, never under the lock (see LockedValue).
+            requestID.withValue { $0 = id }
         }
     }
 
