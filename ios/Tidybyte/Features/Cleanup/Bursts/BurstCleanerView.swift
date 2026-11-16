@@ -32,6 +32,7 @@ struct BurstCleanerView: View {
         return "\(opening)\(favoritesKept) \(CleanupDeletion.recoverableNote)"
     }
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         Group {
             if viewModel.isLoading {
@@ -49,6 +50,7 @@ struct BurstCleanerView: View {
             }
         }
         .localizedNavigationTitle("Burst Photos")
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .toolbar {
             if !viewModel.groups.isEmpty {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -62,9 +64,9 @@ struct BurstCleanerView: View {
         }
         .happyPathCelebration(isPresented: $isCelebrating, statLine: celebrationStatLine)
         .toast($toast)
-        .alert("Auto-Clean All Bursts", isPresented: $showAutoCleanConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: viewModel.autoCleanArmedCount), isPresented: $showAutoCleanConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.autoCleanArmedCount) Photos", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 Task {
                     // Celebrate only what really left the library: a declined
                     // iOS prompt or a failure deletes nothing.
@@ -84,9 +86,9 @@ struct BurstCleanerView: View {
         } message: {
             Text(autoCleanMessage)
         }
-        .alert("Delete Selected Burst Photos", isPresented: $showDeleteConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: viewModel.selectedCount), isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.selectedCount) Photos", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 Task {
                     // Celebrate only what PhotoKit really deleted: ids that
                     // were already gone leave the list but are not a success.
@@ -104,7 +106,7 @@ struct BurstCleanerView: View {
                 }
             }
         } message: {
-            Text("This will delete the selected burst frames and keep your chosen best photos. \(CleanupDeletion.recoverableNote)")
+            Text(CleanupDeletion.confirmMessage(L10n.string("The selected burst frames will be deleted. Your chosen best photos are kept.")))
         }
         // Non-modal error surface. The retry is preserved from the alert it
         // replaces: a failed burst delete leaves the selection intact, so
@@ -173,11 +175,19 @@ struct BurstCleanerView: View {
 
     private var contentView: some View {
         VStack(spacing: 0) {
-            // Summary header
-            summaryHeader
-                .fadeSlideIn()
+            // At accessibility sizes the summary scrolls with the groups. Above the
+            // list it, and the taller action bar, left no room for a single group.
+            if !dynamicTypeSize.isAccessibilitySize {
+                summaryHeader
+                    .fadeSlideIn()
+            }
 
             List {
+                if dynamicTypeSize.isAccessibilitySize {
+                    summaryHeader
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                }
                 ForEach(Array(viewModel.groups.enumerated()), id: \.element.id) { index, group in
                     burstGroupRow(group)
                         .fadeSlideIn(delay: Double(index) * 0.03)
@@ -187,7 +197,7 @@ struct BurstCleanerView: View {
             .pullToRefresh { await viewModel.refresh() }
 
             // Bottom action bar
-            ActionBarView {
+            CleanupActionBar {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("\(viewModel.deletableCount) removable")
                         .font(.caption.bold())
@@ -196,17 +206,19 @@ struct BurstCleanerView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Spacer()
+                AdaptiveSpacer()
 
-                HStack(spacing: Spacing.sm) {
+                AdaptiveRow(spacing: Spacing.sm) {
                     Button {
                         HapticHelper.impact(.light)
                         showDeleteConfirm = true
                     } label: {
                         Text("Delete Selected")
                             .font(.headline)
+                            .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, Spacing.lg)
                             .padding(.vertical, Spacing.sm)
+                            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
                             .background(Color.destructive)
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
@@ -220,8 +232,10 @@ struct BurstCleanerView: View {
                     } label: {
                         Text("Auto-Clean")
                             .font(.headline)
+                            .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, Spacing.lg)
                             .padding(.vertical, Spacing.sm)
+                            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
                             .background(.blue)
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
@@ -240,10 +254,12 @@ struct BurstCleanerView: View {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(L10n.format("%lld burst group", fallback: "%lld burst groups", viewModel.groups.count))
                     .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("\(viewModel.totalBurstCount) total · \(viewModel.deletableCount) removable · \(viewModel.savingsBytes.formattedFileSize)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .fixedSize(horizontal: false, vertical: true)
 
             Spacer()
 
@@ -287,17 +303,21 @@ struct BurstCleanerView: View {
         return L10n.string("Kept: auto pick")
     }
 
+    /// Accessibility sizes need room for "Keep This" and the star label; the
+    /// thumbnails stay 80 pt, centered in a wider column.
+    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 80 }
+
     private func burstGroupRow(_ group: BurstGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack {
+            AdaptiveRow(spacing: nil) {
                 Text("\(group.assets.count) frames")
                     .font(.subheadline.bold())
                 Text(keeperReason(for: group))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Spacer()
+                AdaptiveSpacer()
                 if let date = group.assets.first?.creationDate {
-                    Text(date, style: .date)
+                    Text(date, format: .dateTime.day().month(.abbreviated).year())
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -344,7 +364,7 @@ struct BurstCleanerView: View {
                                 }
                             }
                         }
-                        .frame(width: 80)
+                        .frame(width: groupColumnWidth)
                     }
                 }
             }

@@ -14,6 +14,18 @@ enum CleanupDeletion {
         L10n.string("iOS will ask you to confirm. Deleted items go to Recently Deleted in Photos, where you can restore them for 30 days.")
     }
 
+    /// Title of every bulk delete confirm: "Delete N Items". One noun in every
+    /// tool, so the same action reads the same in each screen.
+    static func confirmTitle(count: Int) -> String {
+        count == 1 ? L10n.string("Delete 1 Item") : L10n.format("Delete %lld Items", count)
+    }
+
+    /// Body of every delete confirm: the tool's own sentence, then the shared
+    /// recoverable note.
+    static func confirmMessage(_ scope: String) -> String {
+        "\(scope) \(recoverableNote)"
+    }
+
     struct Outcome {
         let removed: Set<String>       // confirmed deleted or already absent
         let errorMessage: String?      // nil on full success; set on partial + hard failure

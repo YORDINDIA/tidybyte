@@ -18,6 +18,7 @@ struct BlurryPhotosView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         VStack(spacing: 0) {
             // Non-modal error surface. Replaces the OK-only alert: an alert
@@ -57,6 +58,7 @@ struct BlurryPhotosView: View {
         }
         .animation(.reduceMotionAware(.spring(response: 0.4, dampingFraction: 0.85), reduceMotion: reduceMotion), value: viewModel.scanState)
         .localizedNavigationTitle(CleanupTool.blurry.nameKey)
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         // Items deleted elsewhere (Swipe Review, the Photos app) leave the
         // list when the library changes, instead of lingering as blanks.
         .task(id: libraryMonitor.generation) {
@@ -117,9 +119,9 @@ struct BlurryPhotosView: View {
                 modelContext: modelContext
             )
         }
-        .alert("Delete Photos", isPresented: $showDeleteConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: viewModel.totalSelectedCount), isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.totalSelectedCount) Photos", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 Task {
                     await viewModel.deleteSelected()
                     // C12: success feedback, gated on an actual deletion.
@@ -129,9 +131,9 @@ struct BlurryPhotosView: View {
                 }
             }
         } message: {
-            Text(CleanupDeletion.recoverableNote)
+            Text(CleanupDeletion.confirmMessage(L10n.string("The selected photos will be deleted from Photos.")))
         }
-        .alert("Delete Photo", isPresented: .init(
+        .alert(CleanupDeletion.confirmTitle(count: 1), isPresented: .init(
             get: { cellToDelete != nil },
             set: { if !$0 { cellToDelete = nil } }
         ), presenting: cellToDelete) { photo in
@@ -142,7 +144,7 @@ struct BlurryPhotosView: View {
                 Task { await viewModel.delete(assetId: id) }
             }
         } message: { _ in
-            Text(CleanupDeletion.recoverableNote)
+            Text(CleanupDeletion.confirmMessage(L10n.string("This photo will be deleted from Photos.")))
         }
         .fullScreenCover(item: $previewPhoto, onDismiss: {
             if pendingSwipeReview {
@@ -248,17 +250,18 @@ struct BlurryPhotosView: View {
             // Outside the list branch: picks on other tabs stay reachable
             // even when this tab is empty.
             if !viewModel.selectedIds.isEmpty {
-                ActionBarView {
+                CleanupActionBar {
                     Text(viewModel.selectedOnOtherTabs > 0 ? "\(viewModel.selectedIds.count) selected (\(viewModel.selectedOnOtherTabs) on other tabs) \u{00B7} \(viewModel.selectedSize.formattedFileSize)" : "\(viewModel.selectedIds.count) selected \u{00B7} \(viewModel.selectedSize.formattedFileSize)")
                         .font(.caption)
                     if viewModel.isDeleting {
                         ProgressView()
                             .controlSize(.small)
                     }
-                    Spacer()
+                    AdaptiveSpacer()
                     Button(role: .destructive) { showDeleteConfirm = true } label: {
                         Label("Delete", systemImage: "trash")
                             .font(.headline)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .disabled(viewModel.isDeleting)
                 }
@@ -304,6 +307,10 @@ struct BlurryPhotosView: View {
                 }
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
+                // The thumbnail is the preview target; the checkbox is its own element.
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel("Preview photo, \(photo.asset.displaySize)")
 
             // Score indicator
             HStack(spacing: Spacing.xs) {

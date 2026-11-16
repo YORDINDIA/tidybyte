@@ -82,6 +82,10 @@ final class DuplicateFinderViewModel {
         let scanEpoch = ScanResults.epoch
         scanState = .scanning(0)
         selectedForDeletion.removeAll()
+        // Both lists go, not only the scanned type's: a result from an earlier
+        // scan of another type must not survive into this one.
+        exactGroups = []
+        visualGroups = []
         errorMessage = nil
         skippedICloudCount = 0
         deletedCount = 0

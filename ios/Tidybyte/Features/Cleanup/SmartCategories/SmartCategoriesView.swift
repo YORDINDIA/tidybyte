@@ -61,6 +61,7 @@ struct SmartCategoriesView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         VStack(spacing: 0) {
             // Non-modal error surface. Replaces the OK-only alert: an alert
@@ -97,6 +98,7 @@ struct SmartCategoriesView: View {
         }
         .animation(.reduceMotionAware(.spring(response: 0.4, dampingFraction: 0.85), reduceMotion: reduceMotion), value: viewModel.scanState)
         .localizedNavigationTitle("Smart Categories")
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         // Items deleted elsewhere (Swipe Review, the Photos app) leave the
         // list when the library changes, instead of lingering as blanks.
         .task(id: libraryMonitor.generation) {
@@ -155,9 +157,9 @@ struct SmartCategoriesView: View {
                 modelContext: modelContext
             )
         }
-        .alert("Delete Photos", isPresented: $showDeleteConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: viewModel.totalSelectedCount), isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.totalSelectedCount) Photos", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 Task {
                     await viewModel.deleteSelected()
                     // C12: success feedback, gated on an actual deletion.
@@ -167,9 +169,9 @@ struct SmartCategoriesView: View {
                 }
             }
         } message: {
-            Text(CleanupDeletion.recoverableNote)
+            Text(CleanupDeletion.confirmMessage(L10n.string("The selected photos will be deleted from Photos.")))
         }
-        .alert("Delete Photo", isPresented: .init(
+        .alert(CleanupDeletion.confirmTitle(count: 1), isPresented: .init(
             get: { cellToDelete != nil },
             set: { if !$0 { cellToDelete = nil } }
         ), presenting: cellToDelete) { photo in
@@ -180,7 +182,7 @@ struct SmartCategoriesView: View {
                 Task { await viewModel.delete(assetId: id) }
             }
         } message: { _ in
-            Text(CleanupDeletion.recoverableNote)
+            Text(CleanupDeletion.confirmMessage(L10n.string("This photo will be deleted from Photos.")))
         }
         .fullScreenCover(item: $previewPhoto, onDismiss: {
             if pendingSwipeReview {
@@ -282,10 +284,12 @@ struct SmartCategoriesView: View {
                 if viewModel.isSearching { ProgressView("Searching on device") }
                 if let message = viewModel.searchMessage {
                     Text(message).font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.lg)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 if viewModel.skippedAnalysisCount > 0 {
                     Text("\(viewModel.skippedAnalysisCount) photos could not be indexed from a local image.")
                         .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.lg)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 if !viewModel.isSearchActive { categoryChips }
 
@@ -318,6 +322,7 @@ struct SmartCategoriesView: View {
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, Spacing.lg)
                             .padding(.bottom, Spacing.sm)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     ScrollView {
@@ -332,17 +337,18 @@ struct SmartCategoriesView: View {
                 // Outside the list branch: picks in other categories stay
                 // reachable even when this one is empty.
                     if !viewModel.selectedIds.isEmpty {
-                        ActionBarView {
+                        CleanupActionBar {
                             Text(viewModel.selectedInOtherCategories > 0 ? "\(viewModel.selectedIds.count) selected (\(viewModel.selectedInOtherCategories) not shown) \u{00B7} \(viewModel.selectedSize.formattedFileSize)" : "\(viewModel.selectedIds.count) selected \u{00B7} \(viewModel.selectedSize.formattedFileSize)")
                                 .font(.caption)
                             if viewModel.isDeleting {
                                 ProgressView()
                                     .controlSize(.small)
                             }
-                            Spacer()
+                            AdaptiveSpacer()
                             Button(role: .destructive) { showDeleteConfirm = true } label: {
                                 Label("Delete", systemImage: "trash")
                                     .font(.headline)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                             .disabled(viewModel.isDeleting)
                         }
@@ -410,6 +416,10 @@ struct SmartCategoriesView: View {
                 }
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
+                // The thumbnail is the preview target; the checkbox is its own element.
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel("Preview photo, \(photo.asset.displaySize)")
 
             // Always-visible selection checkbox. Tapping it (de)selects; tapping
             // anywhere else on the cell opens the preview.

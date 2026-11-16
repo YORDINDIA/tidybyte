@@ -87,7 +87,7 @@ struct ScreenshotCleanerView: View {
 
                     // Bottom action bar
                     if !viewModel.selectedIds.isEmpty {
-                        ActionBarView {
+                        CleanupActionBar {
                             Text("\(viewModel.selectedIds.count) selected \u{00B7} \(viewModel.selectedSize.formattedFileSize)")
                                 .font(.caption)
                             if viewModel.isDeleting {
@@ -95,13 +95,14 @@ struct ScreenshotCleanerView: View {
                                     .controlSize(.small)
                             }
 
-                            Spacer()
+                            AdaptiveSpacer()
 
                             Button(role: .destructive) {
                                 showDeleteConfirm = true
                             } label: {
                                 Label("Delete", systemImage: "trash")
                                     .font(.headline)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                             .disabled(viewModel.isDeleting)
                         }
@@ -112,6 +113,7 @@ struct ScreenshotCleanerView: View {
         }
         .animation(.reduceMotionAware(.spring(response: 0.35, dampingFraction: 0.85), reduceMotion: reduceMotion), value: viewModel.isLoading)
         .localizedNavigationTitle("Screenshots")
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         // Items deleted elsewhere (Swipe Review, the Photos app) leave the
         // list when the library changes, instead of lingering as blanks.
         .task(id: libraryMonitor.generation) {
@@ -148,9 +150,9 @@ struct ScreenshotCleanerView: View {
                 modelContext: modelContext
             )
         }
-        .alert("Delete Screenshots", isPresented: $showDeleteConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: viewModel.selectedIds.count), isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.selectedIds.count) Screenshots", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 Task {
                     await viewModel.deleteSelected()
                     // C12: success feedback, gated on an actual deletion.
@@ -160,7 +162,7 @@ struct ScreenshotCleanerView: View {
                 }
             }
         } message: {
-            Text(CleanupDeletion.recoverableNote)
+            Text(CleanupDeletion.confirmMessage(L10n.string("The selected screenshots will be deleted from Photos.")))
         }
         // Non-modal error surface. `safeAreaInset` pushes the grid down rather
         // than floating the banner over its first row.
@@ -180,7 +182,7 @@ struct ScreenshotCleanerView: View {
                 .padding(.vertical, Spacing.sm)
             }
         }
-        .alert("Delete Screenshot", isPresented: .init(
+        .alert(CleanupDeletion.confirmTitle(count: 1), isPresented: .init(
             get: { cellToDelete != nil },
             set: { if !$0 { cellToDelete = nil } }
         ), presenting: cellToDelete) { asset in
@@ -191,7 +193,7 @@ struct ScreenshotCleanerView: View {
                 Task { await viewModel.delete(assetId: id) }
             }
         } message: { _ in
-            Text(CleanupDeletion.recoverableNote)
+            Text(CleanupDeletion.confirmMessage(L10n.string("This screenshot will be deleted from Photos.")))
         }
         .fullScreenCover(item: $previewAsset, onDismiss: {
             if pendingSwipeReview {
@@ -227,6 +229,10 @@ struct ScreenshotCleanerView: View {
                 }
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
+                // The thumbnail is the preview target; the checkbox is its own element.
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel("Preview screenshot, \(screenshot.displaySize)")
 
             // Always-visible selection checkbox. Tapping it (de)selects; tapping
             // anywhere else on the cell opens the preview.

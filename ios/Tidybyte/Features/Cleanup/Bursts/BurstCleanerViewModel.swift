@@ -23,7 +23,16 @@ final class BurstCleanerViewModel {
     /// user never touched, so explicit keep/deselect choices survive (LF-02).
     private(set) var touchedGroups: Set<String> = []
 
-    private let photoService = PhotoLibraryService.shared
+    private let fetchBursts: @Sendable () async -> [String: [AssetSummary]]
+    /// The in-flight load or refresh. A second call waits for it instead of
+    /// starting a second fetch, so the two cannot apply results out of order.
+    private var fetchTask: Task<Void, Never>?
+
+    init(fetchBursts: @escaping @Sendable () async -> [String: [AssetSummary]] = {
+        await PhotoLibraryService.shared.fetchBurstPhotos()
+    }) {
+        self.fetchBursts = fetchBursts
+    }
 
     var totalBurstCount: Int {
         groups.reduce(0) { $0 + $1.assets.count }
@@ -117,25 +126,33 @@ final class BurstCleanerViewModel {
     }
 
     func load() async {
-        isLoading = true
-        errorMessage = nil
-
-        let burstGroups = await photoService.fetchBurstPhotos()
-        apply(BurstSelectionPolicy.rebuildGroups(from: burstGroups), preservingUserState: false)
-
-        hasLoadedGroups = true
-        isLoading = false
+        await runFetch(showsLoading: true, preservingUserState: false)
     }
 
     /// Re-fetch without flipping `isLoading`, so existing content stays under the pull-to-refresh
     /// spinner. User best picks and explicit selection choices are preserved (LF-01).
     func refresh() async {
-        errorMessage = nil
+        await runFetch(showsLoading: false, preservingUserState: true)
+    }
 
-        let burstGroups = await photoService.fetchBurstPhotos()
-        apply(BurstSelectionPolicy.rebuildGroups(from: burstGroups), preservingUserState: true)
-
-        hasLoadedGroups = true
+    /// Runs one fetch at a time. A call made while one is in flight waits for
+    /// it and returns; it does not start a second fetch.
+    private func runFetch(showsLoading: Bool, preservingUserState: Bool) async {
+        if let fetchTask {
+            await fetchTask.value
+            return
+        }
+        let task = Task { [fetchBursts] in
+            if showsLoading { isLoading = true }
+            errorMessage = nil
+            let burstGroups = await fetchBursts()
+            apply(BurstSelectionPolicy.rebuildGroups(from: burstGroups), preservingUserState: preservingUserState)
+            hasLoadedGroups = true
+            isLoading = false
+        }
+        fetchTask = task
+        await task.value
+        fetchTask = nil
     }
 
     /// Shared load/refresh pipeline (de-slop D3). On a fresh load, non-best

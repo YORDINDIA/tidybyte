@@ -14,6 +14,7 @@ struct LargeFilesView: View {
     private let photoService = PhotoLibraryService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         Group {
             if viewModel.isLoading {
@@ -79,13 +80,13 @@ struct LargeFilesView: View {
                     }
 
                     if !viewModel.selectedIds.isEmpty {
-                        ActionBarView {
+                        CleanupActionBar {
                             if viewModel.isPreparingShare {
                                 ProgressView()
                                     .padding(.trailing, Spacing.sm)
                                 Text("Preparing \(viewModel.shareProgress.completed)/\(viewModel.shareProgress.total)\u{2026}")
                                     .font(.caption)
-                                Spacer()
+                                AdaptiveSpacer()
                                 Button("Cancel") { viewModel.cancelShare() }
                             } else {
                                 // Picks hidden by the media filter or sort order
@@ -98,16 +99,18 @@ struct LargeFilesView: View {
                                      ? "\(viewModel.selectedVisibleCount) selected \u{00B7} \(viewModel.selectedSize.formattedFileSize) (\(hidden) hidden by filter)"
                                      : "\(viewModel.selectedVisibleCount) selected \u{00B7} \(viewModel.selectedSize.formattedFileSize)")
                                     .font(.caption)
-                                Spacer()
+                                AdaptiveSpacer()
                                 Button { viewModel.startShare() } label: {
                                     Image(systemName: "square.and.arrow.up")
                                         .font(.headline)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
                                 .accessibilityLabel("Share selected")
                                 .disabled(viewModel.selectedVisibleCount == 0)
                                 Button(role: .destructive) { showDeleteConfirm = true } label: {
                                     Label("Delete", systemImage: "trash")
                                         .font(.headline)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
                                 .disabled(viewModel.selectedVisibleCount == 0)
                             }
@@ -119,6 +122,7 @@ struct LargeFilesView: View {
         }
         .animation(.reduceMotionAware(.spring(response: 0.35, dampingFraction: 0.85), reduceMotion: reduceMotion), value: viewModel.isLoading)
         .localizedNavigationTitle("Large Files")
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .happyPathCelebration(isPresented: $isCelebrating, statLine: celebrationStatLine)
         .toolbar {
             if !viewModel.filteredAssets.isEmpty {
@@ -131,9 +135,9 @@ struct LargeFilesView: View {
                 }
             }
         }
-        .alert("Delete Files", isPresented: $showDeleteConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: viewModel.selectedVisibleCount), isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.selectedVisibleCount) Files", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 Task {
                     // Celebrate only what PhotoKit really deleted: a no-op or
                     // ids that were already gone are not a success.
@@ -151,7 +155,7 @@ struct LargeFilesView: View {
                 }
             }
         } message: {
-            Text("This will delete \(viewModel.selectedSize.formattedFileSize) of media. \(CleanupDeletion.recoverableNote)")
+            Text(CleanupDeletion.confirmMessage(L10n.format("%@ of media will be deleted from Photos.", viewModel.selectedSize.formattedFileSize)))
         }
         // Non-modal error surface. `safeAreaInset` pushes the list down rather
         // than floating the banner over its first row.
@@ -178,7 +182,7 @@ struct LargeFilesView: View {
             guard let notice else { return }
             toast = ToastMessage(text: notice.text)
         }
-        .alert("Delete File", isPresented: .init(
+        .alert(CleanupDeletion.confirmTitle(count: 1), isPresented: .init(
             get: { rowToDelete != nil },
             set: { if !$0 { rowToDelete = nil } }
         ), presenting: rowToDelete) { asset in
@@ -188,8 +192,8 @@ struct LargeFilesView: View {
                 rowToDelete = nil
                 Task { await viewModel.deleteAsset(id: id) }
             }
-        } message: { asset in
-            Text("This will delete \(asset.displaySize). \(CleanupDeletion.recoverableNote)")
+        } message: { _ in
+            Text(CleanupDeletion.confirmMessage(L10n.string("This item will be deleted from Photos.")))
         }
         .fullScreenCover(item: $previewStart) { start in
             MediaPreviewView(
@@ -215,6 +219,7 @@ struct LargeFilesView: View {
                 .foregroundStyle(.secondary)
             Text(emptyTitle)
                 .font(.headline)
+                .fixedSize(horizontal: false, vertical: true)
             Text(emptyMessage)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -230,6 +235,7 @@ struct LargeFilesView: View {
             } label: {
                 Label("Refresh", systemImage: "arrow.clockwise")
                     .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, Spacing.xxxl)
                     .padding(.vertical, Spacing.md)
                     .background(.blue)
@@ -341,7 +347,7 @@ struct LargeFileRow: View {
                 Image(systemName: asset.mediaType == .video ? "video" : "photo")
                     .font(.caption)
                 if let date = asset.creationDate {
-                    Text(date, style: .date)
+                    Text(date, format: .dateTime.day().month(.abbreviated).year())
                         .font(.subheadline)
                         // Full-width at accessibility sizes: wrap, do not truncate.
                         .fixedSize(horizontal: false, vertical: isAX)

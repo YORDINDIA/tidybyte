@@ -3,6 +3,11 @@ import XCTest
 
 /// Regression tests for the cleanup audit (ios-cleanup-a): Bursts selection
 /// invariants, the shared scan runner, and the shared delete pipeline.
+/// Call counter for the fetch stub. Only touched from the test's main actor.
+final class FetchCounter: @unchecked Sendable {
+    var count = 0
+}
+
 @MainActor
 final class IOSCleanupAScanTests: XCTestCase {
 
@@ -90,6 +95,31 @@ final class IOSCleanupAScanTests: XCTestCase {
             "big": [makeAsset(id: "b1"), makeAsset(id: "b2"), makeAsset(id: "b3")]
         ])
         XCTAssertEqual(groups.map(\.id), ["big", "alpha", "zeta"])
+    }
+
+    // MARK: - Bursts: one fetch at a time
+
+    func testOverlappingLoadAndRefreshRunOneFetch() async {
+        let counter = FetchCounter()
+        let assets = [makeAsset(id: "a"), makeAsset(id: "b")]
+        let viewModel = BurstCleanerViewModel(fetchBursts: {
+            counter.count += 1
+            try? await Task.sleep(nanoseconds: 50_000_000)
+            return ["burst": assets]
+        })
+        async let load: Void = viewModel.load()
+        async let refresh: Void = viewModel.refresh()
+        _ = await (load, refresh)
+        XCTAssertEqual(counter.count, 1)
+        XCTAssertEqual(viewModel.groups.map(\.id), ["burst"])
+        XCTAssertFalse(viewModel.isLoading)
+    }
+
+    // MARK: - Delete confirmations share one title pattern
+
+    func testConfirmTitleUsesSingularForOneItem() {
+        XCTAssertEqual(CleanupDeletion.confirmTitle(count: 1), "Delete 1 Item")
+        XCTAssertEqual(CleanupDeletion.confirmTitle(count: 3), "Delete 3 Items")
     }
 
     // MARK: - Shared scan runner (C1/C2)

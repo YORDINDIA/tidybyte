@@ -13,6 +13,7 @@ struct SimilarPhotosView: View {
     private let photoService = PhotoLibraryService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         VStack(spacing: 0) {
             // Non-modal error surface. Replaces the OK-only alert: an alert
@@ -49,6 +50,7 @@ struct SimilarPhotosView: View {
         }
         .animation(.reduceMotionAware(.spring(response: 0.4, dampingFraction: 0.85), reduceMotion: reduceMotion), value: viewModel.scanState)
         .localizedNavigationTitle("Similar Photos")
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .happyPathCelebration(
             isPresented: $isCelebrating,
             statLine: L10n.format(
@@ -102,9 +104,9 @@ struct SimilarPhotosView: View {
             .localizedNavigationTitle("Review Group")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .alert("Delete Similar Photos", isPresented: $showDeleteConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: viewModel.selectedForDeletion.count), isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(viewModel.selectedForDeletion.count) Items", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 Task {
                     await viewModel.deleteSelected()
                     // DUP-04d: only celebrate an actual deletion.
@@ -114,7 +116,7 @@ struct SimilarPhotosView: View {
                 }
             }
         } message: {
-            Text("The best photo from each group will be kept. \(CleanupDeletion.recoverableNote)")
+            Text(CleanupDeletion.confirmMessage(L10n.string("The best photo from each group will be kept.")))
         }
         // DUP-02: leaving the screen must stop the scan.
         .onDisappear {
@@ -194,6 +196,7 @@ struct SimilarPhotosView: View {
                                 VStack(alignment: .leading, spacing: Spacing.xs) {
                                     Text(L10n.format("%lld group found", fallback: "%lld groups found", viewModel.groups.count))
                                         .font(.headline)
+                                        .fixedSize(horizontal: false, vertical: true)
                                     Text("\(viewModel.totalDuplicateCount) extras · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -203,6 +206,7 @@ struct SimilarPhotosView: View {
                                             .foregroundStyle(.secondary)
                                     }
                                 }
+                                .fixedSize(horizontal: false, vertical: true)
                                 Spacer()
                                 Image(systemName: "square.on.square")
                                     .font(.title2)
@@ -225,7 +229,7 @@ struct SimilarPhotosView: View {
 
                     // Bottom action bar
                     if !viewModel.selectedForDeletion.isEmpty {
-                        ActionBarView {
+                        CleanupActionBar {
                             VStack(alignment: .leading, spacing: Spacing.xs) {
                                 Text("\(viewModel.selectedForDeletion.count) selected")
                                     .font(.caption.bold())
@@ -234,7 +238,7 @@ struct SimilarPhotosView: View {
                                     .foregroundStyle(.secondary)
                             }
 
-                            Spacer()
+                            AdaptiveSpacer()
 
                             if viewModel.isDeleting {
                                 // DUP-09: in-flight feedback instead of a dead button.
@@ -248,6 +252,7 @@ struct SimilarPhotosView: View {
                                 } label: {
                                     Text("Delete Selected")
                                         .font(.headline)
+                                        .fixedSize(horizontal: false, vertical: true)
                                         .padding(.horizontal, Spacing.xxl)
                                         .padding(.vertical, Spacing.sm)
                                         .background(Color.destructive)
@@ -265,14 +270,18 @@ struct SimilarPhotosView: View {
 
     // MARK: - Group Row
 
+    /// Accessibility sizes need room for "Keep This" and the star label; the
+    /// thumbnails stay 80 pt, centered in a wider column.
+    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 80 }
+
     private func groupRow(_ group: SimilarGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack {
+            AdaptiveRow(spacing: nil) {
                 Text("\(group.assets.count) photos")
                     .font(.subheadline.bold())
-                Spacer()
+                AdaptiveSpacer()
                 if let date = group.assets.first?.creationDate {
-                    Text(date, style: .date)
+                    Text(date, format: .dateTime.day().month(.abbreviated).year())
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -360,7 +369,7 @@ struct SimilarPhotosView: View {
                                 }
                             }
                         }
-                        .frame(width: 80)
+                        .frame(width: groupColumnWidth)
                     }
                 }
             }
