@@ -181,7 +181,7 @@ struct BubblesView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer()
-                Text(String(localized: "\(group.bytes.formattedByteCount) · \(group.fileCount) files"))
+                Text(String(localized: "\(group.bytes.formattedByteCount) · \(ExploreCopy.fileCount(group.fileCount))"))
                     .appFont(.caption)
                     .monospacedDigit()
                     .foregroundStyle(Color.secondary)

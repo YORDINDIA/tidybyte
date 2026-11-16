@@ -124,7 +124,7 @@ struct TopSizesView: View {
                 .frame(height: 8)
                 .accessibilityHidden(true)
                 HStack {
-                    Text(String(localized: "\(group.fileCount) files", comment: "Explore group file count"))
+                    Text(ExploreCopy.fileCount(group.fileCount))
                         .appFont(.caption)
                         .foregroundStyle(Color.secondary)
                     if let detail = group.detail, detail != group.name {

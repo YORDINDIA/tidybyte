@@ -139,7 +139,8 @@ struct FoldersGridView: View {
         .buttonStyle(.plain)
         .help(groupTooltip(for: group))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(String(localized: "\(group.name), \(group.bytes.formattedByteCount), \(group.fileCount) files")))
+        .accessibilityLabel(Text(String(
+            localized: "\(group.name), \(group.bytes.formattedByteCount), \(ExploreCopy.fileCount(group.fileCount))")))
         .accessibilityAddTraits(selectedID == group.id ? .isSelected : [])
         .accessibilityHint(group.children.isEmpty
             ? String(localized: "Shows group details")
@@ -219,7 +220,7 @@ struct FoldersGridView: View {
             .foregroundStyle(Color.primary)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
-        Text(String(localized: "\(group.fileCount) files", comment: "Explore group file count"))
+        Text(ExploreCopy.fileCount(group.fileCount))
             .appFont(.caption)
             .foregroundStyle(Color.secondary)
             .lineLimit(1)

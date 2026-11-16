@@ -150,3 +150,12 @@ final class ExploreTreeMemo {
         return value
     }
 }
+
+/// File-count copy for Explore labels: "1 file" or "N files".
+enum ExploreCopy {
+    static func fileCount(_ count: Int) -> String {
+        count == 1
+            ? String(localized: "1 file", comment: "Explore file count, singular")
+            : String(localized: "\(count) files", comment: "Explore file count, plural")
+    }
+}

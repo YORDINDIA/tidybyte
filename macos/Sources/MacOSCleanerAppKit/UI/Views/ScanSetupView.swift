@@ -33,8 +33,10 @@ struct ScanSetupView: View {
                         Text(String(localized: "Balanced")).tag(CleanupPosture.balanced)
                         Text(String(localized: "Aggressive")).tag(CleanupPosture.aggressive)
                     }
+                    // Saved on change, so Cancel cannot leave an unsaved value in Settings.
                     Toggle(String(localized: "Use configured AI provider"), isOn: $model.includeAI)
                         .disabled(model.providerSettings.privacyMode == .localOnly)
+                        .onChange(of: model.includeAI) { model.saveSettings() }
                     Text(
                         model.includeAI
                             ? String(

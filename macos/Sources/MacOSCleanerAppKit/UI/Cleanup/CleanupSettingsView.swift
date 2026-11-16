@@ -54,9 +54,6 @@ struct CleanupSettingsView: View {
         }
             .formStyle(.grouped)
             .onChange(of: model.settings.defaultFilter) { model.filter = model.settings.defaultFilter }
-            // MAC-29: save on every change, not only on disappear. A quit with the
-            // window open otherwise lost the change. Reminder changes re-register the notification here too.
-            .onChange(of: model.settings) { Task { await model.saveSettings() } }
             .confirmationDialog(
                 String(
                     localized: """

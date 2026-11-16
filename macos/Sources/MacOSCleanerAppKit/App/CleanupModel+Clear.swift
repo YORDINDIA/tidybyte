@@ -16,7 +16,9 @@ extension CleanupModel {
         for grant in monitoredGrants { grant.stopAccessingSecurityScopedResource() }
         monitoredGrants = []
         scope = ReviewScope()
+        suppressSettingsSave = true  // the store is already wiped; do not write defaults back
         settings = CleanupSettings()
+        suppressSettingsSave = false
         filter = settings.defaultFilter
         filterFolder = nil
         result = nil

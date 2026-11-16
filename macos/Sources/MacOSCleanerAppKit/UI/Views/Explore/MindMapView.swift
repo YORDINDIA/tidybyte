@@ -133,7 +133,7 @@ struct MindMapView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                 if group.fileCount > 0 {
-                    Text(String(localized: "\(group.fileCount) files", comment: "Explore group file count"))
+                    Text(ExploreCopy.fileCount(group.fileCount))
                         .appFont(.caption)
                         .foregroundStyle(Color.secondary)
                 }
@@ -141,7 +141,10 @@ struct MindMapView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .frame(maxWidth: 150)
+            // An opaque base under the tint: the translucent tint alone let connector lines show through
+            // the label. The later .background modifier draws underneath, so the tint is applied first.
             .background(palette.soft, in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
+            .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
             .overlay {
                 if isSelected {
                     RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous).strokeBorder(.tint, lineWidth: 2)
@@ -152,7 +155,8 @@ struct MindMapView: View {
         .position(point)
         .help(String(localized: "\(group.name), \(group.bytes.formattedByteCount)"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(String(localized: "\(group.name), \(group.bytes.formattedByteCount), \(group.fileCount) files")))
+        .accessibilityLabel(Text(String(
+            localized: "\(group.name), \(group.bytes.formattedByteCount), \(ExploreCopy.fileCount(group.fileCount))")))
         .accessibilityHint(String(localized: "Shows group details"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
@@ -166,7 +170,7 @@ struct MindMapView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
             Spacer()
-            Text(String(localized: "\(group.bytes.formattedByteCount) · \(group.fileCount) files"))
+            Text(String(localized: "\(group.bytes.formattedByteCount) · \(ExploreCopy.fileCount(group.fileCount))"))
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)

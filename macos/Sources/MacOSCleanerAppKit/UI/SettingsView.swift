@@ -135,18 +135,19 @@ struct SettingsView: View {
             Section(String(localized: "Recommendation preferences")) {
                 calibration(
                     String(localized: "Review source code carefully"),
-                    rule: "Never suggest deleting source code files without manual review.")
+                    ruleType: .never, rule: "Never suggest deleting source code files without manual review.")
                 calibration(
                     String(localized: "Find more old downloads"),
-                    rule: "Be more willing to suggest cleanup for old downloads and installers.")
+                    ruleType: .always, rule: "Be more willing to suggest cleanup for old downloads and installers.")
                 calibration(
                     String(localized: "Protect design source files"),
-                    rule: "Never suggest deleting design source files (.psd, .sketch, .fig) without review.")
+                    ruleType: .never, rule: "Never suggest deleting design source files (.psd, .sketch, .fig) without review.")
                 calibration(
-                    String(localized: "Prefer archiving"), rule: "Prefer archiving files instead of moving to trash.")
+                    String(localized: "Prefer archiving"), ruleType: .preferArchive,
+                    rule: "Prefer archiving files instead of moving to trash.")
                 calibration(
                     String(localized: "Review cloud files carefully"),
-                    rule: "Never suggest actions on cloud-synced files without explicit review.")
+                    ruleType: .never, rule: "Never suggest actions on cloud-synced files without explicit review.")
             }
         }
         .formStyle(.grouped)
@@ -222,8 +223,9 @@ struct SettingsView: View {
         }.formStyle(.grouped).disabled(model.isScanning || model.isExecuting)
     }
 
-    private func calibration(_ title: String, rule: String) -> some View {
-        Button(title) { Task { await model.applyCalibrationPreset(rule) } }
+    /// Each preset names its rule type. The text is not used to infer it (MEM-02).
+    private func calibration(_ title: String, ruleType: MemoryRuleType, rule: String) -> some View {
+        Button(title) { Task { await model.applyCalibrationPreset(rule, ruleType: ruleType) } }
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {

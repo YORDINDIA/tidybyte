@@ -105,7 +105,7 @@ struct AgeMapView: View {
                 }
             }
             if undated > 0 {
-                Text(String(localized: "\(undated) files have no known date", comment: "Age Map undated files note"))
+                Text(String(localized: "\(ExploreCopy.fileCount(undated)) have no known date", comment: "Age Map undated files note"))
                     .appFont(.caption)
                     .foregroundStyle(Color.secondary)
             }
@@ -148,9 +148,10 @@ struct AgeMapView: View {
             }
         }
         .buttonStyle(.plain)
-        .help(String(localized: "\(bucket.label), \(bucket.bytes.formattedByteCount), \(bucket.fileCount) files"))
+        .help(String(localized: "\(bucket.label), \(bucket.bytes.formattedByteCount), \(ExploreCopy.fileCount(bucket.fileCount))"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(String(localized: "\(bucket.label): \(bucket.bytes.formattedByteCount), \(bucket.fileCount) files")))
+        .accessibilityLabel(Text(String(
+            localized: "\(bucket.label): \(bucket.bytes.formattedByteCount), \(ExploreCopy.fileCount(bucket.fileCount))")))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityHint(String(localized: "Shows month details"))
     }
@@ -161,7 +162,7 @@ struct AgeMapView: View {
                 .appFont(.caption)
                 .foregroundStyle(Color.secondary)
             Spacer()
-            Text(String(localized: "\(bucket.bytes.formattedByteCount) · \(bucket.fileCount) files"))
+            Text(String(localized: "\(bucket.bytes.formattedByteCount) · \(ExploreCopy.fileCount(bucket.fileCount))"))
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)

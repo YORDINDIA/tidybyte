@@ -57,9 +57,11 @@ struct OverviewView: View {
         ) {
             Button(String(localized: "Empty Trash"), role: .destructive) { emptyTrash() }
         } message: {
+            // An unknown size (no Full Disk Access) must not read as "0 bytes".
             Text(
-                String(
-                    localized: "This permanently erases \((trashBytes ?? 0).formattedByteCount). You can't undo this action."))
+                trashBytes.map {
+                    String(localized: "This permanently erases \($0.formattedByteCount). You can't undo this action.")
+                } ?? String(localized: "This permanently erases everything in the Trash. You can't undo this action."))
         }
         .task {
             disk = DiskGaugeData.currentHomeVolume()

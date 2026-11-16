@@ -1211,9 +1211,9 @@ final class AppViewModel {
         return outcome.notices.filter { !dismissedScanNoticeIDs.contains($0.id) }
     }
 
-    func applyCalibrationPreset(_ preset: String) async {
+    func applyCalibrationPreset(_ preset: String, ruleType: MemoryRuleType) async {
         do {
-            try await memory.applyCalibrationPreference(preset)
+            try await memory.applyCalibrationPreference(preset, ruleType: ruleType)
             statusMessage = String(localized: "Preference saved.", comment: "Calibration preset applied message")
         } catch {
             errorMessage = error.localizedDescription

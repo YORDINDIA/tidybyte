@@ -1063,7 +1063,7 @@ final class AppViewModelTests: XCTestCase {
         let model = try makeModel(defaults: makeDefaultsSuite())
 
         // When the user applies a calibration preset
-        await model.applyCalibrationPreset("Never delete design source")
+        await model.applyCalibrationPreset("Never delete design source", ruleType: .never)
 
         // Then the confirmation message is shown
         XCTAssertEqual(model.statusMessage, "Preference saved.")

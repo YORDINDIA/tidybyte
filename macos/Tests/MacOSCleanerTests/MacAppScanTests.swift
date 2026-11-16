@@ -181,4 +181,27 @@ final class MacAppScanTests: XCTestCase {
         print("MAC-19 row renders written to \(folder.path)")
         XCTAssertNotEqual(approved, undecided, "The approved row must look different from an undecided row")
     }
+
+    /// MAC-29: a Photos & Media setting persists when changed through the model.
+    /// No view is involved, so the save cannot depend on a view staying on screen.
+    func testPhotosSettingChangePersistsFromTheModel() async throws {
+        let (model, store) = try makeModel()
+        model.cleanup.settings.blurSensitivity = 2
+        try await Task.sleep(nanoseconds: 300_000_000)
+        let stored = try await store.loadCleanupState(CleanupSettings.self, key: "settings")
+        XCTAssertEqual(stored?.blurSensitivity, 2)
+    }
+
+    /// Loading stored settings must not write them back: the store is the source, not a copy to save.
+    func testLoadingStoredSettingsDoesNotRewriteThem() async throws {
+        let (model, store) = try makeModel()
+        var stored = CleanupSettings()
+        stored.blurSensitivity = 1
+        try await store.saveCleanupState(stored, key: "settings")
+        await model.cleanup.load()
+        XCTAssertEqual(model.cleanup.settings.blurSensitivity, 1)
+        try await Task.sleep(nanoseconds: 300_000_000)
+        let reread = try await store.loadCleanupState(CleanupSettings.self, key: "settings")
+        XCTAssertEqual(reread?.blurSensitivity, 1)
+    }
 }
