@@ -63,6 +63,25 @@ final class MacCoreScanTests: XCTestCase {
         }
     }
 
+    func testAuditRejectsFolderWithUnreadableKeyFile() async throws {
+        let folder = try root.appendingPathComponent("vault", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let key = folder.appendingPathComponent("id.pem")
+        try Data("-----BEGIN CERTIFICATE-----".utf8).write(to: key)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: key.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: key.path) }
+        let folderRecord = try await record(for: folder)
+
+        do {
+            _ = try await SafetyAuditor().audit(
+                action: trashAction(for: folderRecord), filesByID: [folderRecord.id: folderRecord]
+            )
+            XCTFail("A folder with an unreadable key file must not be trashed")
+        } catch SafetyAuditError.containsProtectedContent(_, let child) {
+            XCTAssertEqual(child.lastPathComponent, "id.pem")
+        }
+    }
+
     func testAuditAllowsFolderWithOnlySourceAndManifestFiles() async throws {
         let project = try root.appendingPathComponent("build-output", isDirectory: true)
         let sources = project.appendingPathComponent("src", isDirectory: true)
