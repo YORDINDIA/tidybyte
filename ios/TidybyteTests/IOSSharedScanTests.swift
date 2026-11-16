@@ -464,3 +464,51 @@ final class GoogleKeychainRound3Tests: XCTestCase {
         XCTAssertEqual(GoogleKeychain.load()?.accessToken, "access")
     }
 }
+
+// MARK: - Final pass: counted keys resolve per language
+
+final class CountedKeyResolutionTests: XCTestCase {
+
+    /// Foundation wraps inserted arguments in bidi isolation marks for
+    /// right-to-left text. They are invisible and not part of the copy.
+    private func visible(_ s: String) -> String {
+        s.replacingOccurrences(of: "\u{2068}", with: "").replacingOccurrences(of: "\u{2069}", with: "")
+    }
+
+    private let reason = "Known limit: L10n.format picks the plural category from the device locale, not the app language (see L10n.swift). A non-English device shows the English category for count 5."
+
+    /// Exact strings, not substrings: "صورة" contains "صور", so a substring
+    /// check passed for the wrong form.
+    func testFailedDeleteEnglishAndArabicOneResolve() {
+        let key = "Failed to delete %lld photo: %@"
+        let fallback = "Failed to delete %lld photos: %@"
+        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 1, "x"), "Failed to delete 1 photo: x")
+        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 5, "x"), "Failed to delete 5 photos: x")
+        XCTAssertEqual(visible(L10n.format(key, language: .russian, fallback: fallback, 1, "x")), "Не удалось удалить 1 фотографию: x")
+        XCTAssertEqual(visible(L10n.format(key, language: .arabic, fallback: fallback, 1, "x")), "تعذّر حذف 1 صورة: x")
+    }
+
+    func testFailedDeleteFiveInRussianAndArabicIsKnownToUseTheDeviceCategory() {
+        let key = "Failed to delete %lld photo: %@"
+        let fallback = "Failed to delete %lld photos: %@"
+        XCTExpectFailure(reason) {
+            XCTAssertEqual(visible(L10n.format(key, language: .russian, fallback: fallback, 5, "x")), "Не удалось удалить 5 фотографий: x")
+        }
+        XCTExpectFailure(reason) {
+            XCTAssertEqual(visible(L10n.format(key, language: .arabic, fallback: fallback, 5, "x")), "تعذّر حذف 5 صور: x")
+        }
+    }
+
+    func testUpdatedDayAgoEnglishResolves() {
+        let key = "Updated %lld day ago"
+        let fallback = "Updated %lld days ago"
+        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 1), "Updated 1 day ago")
+        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 5), "Updated 5 days ago")
+    }
+
+    func testUpdatedDayAgoFiveInRussianIsKnownToUseTheDeviceCategory() {
+        XCTExpectFailure(reason) {
+            XCTAssertEqual(L10n.format("Updated %lld day ago", language: .russian, fallback: "Updated %lld days ago", 5), "Обновлено 5 дней назад")
+        }
+    }
+}

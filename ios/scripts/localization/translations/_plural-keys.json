@@ -286,5 +286,13 @@
   "%lld group found": {
     "one": "%lld group found",
     "other": "%lld groups found"
+  },
+  "Failed to delete %lld photo: %@": {
+    "one": "Failed to delete %lld photo: %@",
+    "other": "Failed to delete %lld photos: %@"
+  },
+  "Updated %lld day ago": {
+    "one": "Updated %lld day ago",
+    "other": "Updated %lld days ago"
   }
 }
