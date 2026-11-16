@@ -279,7 +279,7 @@ final class BurstCleanerViewModel {
     ) -> Set<String> {
         groups.reduce(into: Set<String>()) { armed, group in
             if touchedGroups.contains(group.id) {
-                armed.formUnion(selection.intersection(group.assets.map(\.id)))
+                armed.formUnion(selection.intersection(group.assets.map(\.id)).subtracting([group.bestAssetId]))
             } else {
                 armed.formUnion(BurstSelectionPolicy.suggestedIds(in: group))
             }
@@ -330,13 +330,13 @@ final class BurstCleanerViewModel {
                     let bestAssetId: String
                     if remaining.contains(where: { $0.id == groups[index].bestAssetId }) {
                         bestAssetId = groups[index].bestAssetId
-                    } else if let newBest = BestAssetSelector.bestByMetadata(from: remaining) {
+                    } else {
                         // The manually picked frame was deleted: the fallback
                         // re-pick is automatic, so drop the "your choice" flag.
+                        // `remaining` holds at least two frames, so the ladder
+                        // always has a winner.
                         manuallySetBest.remove(groupId)
-                        bestAssetId = newBest.id
-                    } else {
-                        return
+                        bestAssetId = (BestAssetSelector.bestByMetadata(from: remaining) ?? remaining[0]).id
                     }
                     groups[index] = BurstGroup(id: groupId, assets: remaining, bestAssetId: bestAssetId)
                 } else {
@@ -384,6 +384,9 @@ final class BurstCleanerViewModel {
         for group in groups where !touchedGroups.contains(group.id) {
             merged.formUnion(BurstSelectionPolicy.suggestedIds(in: group))
         }
+        // A keeper is never marked. A refresh can move the best to a frame the
+        // user had already marked (a favorite or a Photos pick), so drop it here.
+        merged.subtract(groups.map(\.bestAssetId))
         return merged
     }
 

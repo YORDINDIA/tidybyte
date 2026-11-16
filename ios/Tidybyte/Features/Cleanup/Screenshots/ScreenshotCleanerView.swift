@@ -17,6 +17,7 @@ struct ScreenshotCleanerView: View {
     private let columns = ResponsiveGrid.photo()
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Group {
@@ -46,12 +47,16 @@ struct ScreenshotCleanerView: View {
                 }
             } else {
                 VStack(spacing: 0) {
-                    // Header
-                    HStack {
+                    // Header. Stacks at accessibility sizes, as the media
+                    // tools do, so the count, button and sort menu do not share
+                    // one row.
+                    let headerLayout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.sm)) : AnyLayout(HStackLayout())
+                    headerLayout {
                         Text("\(viewModel.screenshots.count) screenshots \u{00B7} \(viewModel.totalSize.formattedFileSize)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        Spacer()
+                        if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                         Button("Review with Swipe") {
                             HapticHelper.impact(.light)
                             startSwipeReview(with: .screenshots)
@@ -168,6 +173,7 @@ struct ScreenshotCleanerView: View {
                     // the user's language. Looking it up as a key would miss,
                     // and `Text` would apply Markdown to it.
                     message: .runtimeText(message),
+                    title: .runtimeText(CleanupTool.screenshots.name),
                     onDismiss: { viewModel.errorMessage = nil }
                 )
                 .padding(.horizontal, Spacing.lg)

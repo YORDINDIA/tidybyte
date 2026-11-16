@@ -26,6 +26,7 @@ struct SimilarPhotosView: View {
                     // the user's language. Looking it up as a key would miss,
                     // and `Text` would apply Markdown to it.
                     message: .runtimeText(message),
+                    title: .runtimeText(CleanupTool.similar.name),
                     onDismiss: { viewModel.errorMessage = nil }
                 )
                 .padding(.horizontal, Spacing.lg)
@@ -113,7 +114,7 @@ struct SimilarPhotosView: View {
                 }
             }
         } message: {
-            Text("The best photo from each group will be kept.")
+            Text("The best photo from each group will be kept. \(CleanupDeletion.recoverableNote)")
         }
         // DUP-02: leaving the screen must stop the scan.
         .onDisappear {
@@ -191,7 +192,7 @@ struct SimilarPhotosView: View {
                         Section {
                             HStack(spacing: Spacing.md) {
                                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                                    Text("\(viewModel.groups.count) groups found")
+                                    Text(L10n.format("%lld group found", fallback: "%lld groups found", viewModel.groups.count))
                                         .font(.headline)
                                     Text("\(viewModel.totalDuplicateCount) extras · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
                                         .font(.caption)
@@ -280,6 +281,8 @@ struct SimilarPhotosView: View {
                 } label: {
                     Label("Review", systemImage: "chevron.forward")
                         .font(.caption.bold())
+                        // Hit area grows to 44 pt without changing the header's layout.
+                        .contentShape(Rectangle().inset(by: -12))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Review similar photo group")

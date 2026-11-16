@@ -31,5 +31,4 @@ enum BurstSelectionPolicy {
         selection.selectNonBest(assets: group.assets, bestAssetId: group.bestAssetId)
         return selection.ids
     }
-
 }

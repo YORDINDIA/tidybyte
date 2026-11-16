@@ -183,7 +183,7 @@ struct DuplicateFinderView: View {
                 VStack(spacing: 0) {
                     HStack(spacing: Spacing.md) {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text("\(viewModel.allGroups.count) groups")
+                            Text(L10n.format("%lld group", fallback: "%lld groups", viewModel.allGroups.count))
                                 .font(.headline)
                             Text("\(viewModel.totalDuplicateCount) duplicates · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
                                 .font(.caption)

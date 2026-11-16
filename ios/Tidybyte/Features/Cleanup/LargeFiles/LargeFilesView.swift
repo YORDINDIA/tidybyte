@@ -58,7 +58,14 @@ struct LargeFilesView: View {
                     } else {
                         List {
                             ForEach(viewModel.filteredAssets) { asset in
-                                fileRow(asset)
+                                LargeFileRow(
+                                    asset: asset,
+                                    isSelected: viewModel.selectedIds.contains(asset.id),
+                                    photoService: photoService,
+                                    onToggle: { viewModel.toggleSelection(asset.id) },
+                                    onPreview: { previewStart = asset },
+                                    onDelete: { rowToDelete = asset }
+                                )
                             }
                             if viewModel.zeroSizeCount > 0 {
                                 Text("\(viewModel.zeroSizeCount) items with unknown size are not listed")
@@ -157,6 +164,7 @@ struct LargeFilesView: View {
                     // the user's language. Looking it up as a key would miss,
                     // and `Text` would apply Markdown to it.
                     message: .runtimeText(message),
+                    title: .runtimeText(CleanupTool.largeFiles.name),
                     onDismiss: { viewModel.errorMessage = nil }
                 )
                 .padding(.horizontal, Spacing.lg)
@@ -264,63 +272,97 @@ struct LargeFilesView: View {
         }
     }
 
-    private func fileRow(_ asset: AssetSummary) -> some View {
-        HStack(spacing: Spacing.md) {
-            // Always-visible selection checkbox. Tapping it (de)selects the row;
-            // tapping anywhere else on the row opens the preview.
-            SelectToggle(isSelected: viewModel.selectedIds.contains(asset.id), itemName: "file", overPhoto: false) {
-                viewModel.toggleSelection(asset.id)
+}
+
+/// One row of the Large Files list. At accessibility sizes the details and the
+/// size move below the controls, so they get the full row width. Beside the
+/// fixed 44 pt checkbox, 60 pt thumbnail and 44 pt trash, they wrapped one word
+/// per line.
+struct LargeFileRow: View {
+    let asset: AssetSummary
+    let isSelected: Bool
+    let photoService: PhotoLibraryService
+    let onToggle: () -> Void
+    let onPreview: () -> Void
+    let onDelete: () -> Void
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        let isAX = dynamicTypeSize.isAccessibilitySize
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.md) {
+                // Always-visible selection checkbox. Tapping it (de)selects the row;
+                // tapping anywhere else on the row opens the preview.
+                SelectToggle(isSelected: isSelected, itemName: "file", overPhoto: false, action: onToggle)
+
+                AsyncThumbnailView(assetId: asset.id, photoService: photoService)
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+
+                if isAX {
+                    Spacer()
+                } else {
+                    details
+                    Spacer()
+                    sizeLabel
+                }
+
+                Button(role: .destructive, action: onDelete) {
+                    Image(systemName: "trash")
+                        .font(.body)
+                        .foregroundStyle(.red)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Delete file")
             }
 
-            AsyncThumbnailView(assetId: asset.id, photoService: photoService)
-                .frame(width: 60, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
-
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                if let filename = asset.filename, !filename.isEmpty {
-                    Text(filename)
-                        .font(.subheadline.bold())
-                        .lineLimit(1)
-                }
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: asset.mediaType == .video ? "video" : "photo")
-                        .font(.caption)
-                    if let date = asset.creationDate {
-                        Text(date, style: .date)
-                            .font(.subheadline)
-                    }
-                }
-
-                Text(asset.resolution)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                if asset.mediaType == .video {
-                    Text(asset.formattedDuration)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            if isAX {
+                details
+                sizeLabel
             }
-
-            Spacer()
-
-            Text(asset.displaySize)
-                .font(.headline.monospacedDigit())
-                .foregroundStyle(.primary)
-
-            Button(role: .destructive) {
-                rowToDelete = asset
-            } label: {
-                Image(systemName: "trash")
-                    .font(.body)
-                    .foregroundStyle(.red)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Delete file")
         }
         .contentShape(Rectangle())
-        .onTapGesture { previewStart = asset }
+        .onTapGesture(perform: onPreview)
+    }
+
+    @ViewBuilder
+    private var details: some View {
+        let isAX = dynamicTypeSize.isAccessibilitySize
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            if let filename = asset.filename, !filename.isEmpty {
+                Text(filename)
+                    .font(.subheadline.bold())
+                    .lineLimit(1)
+            }
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: asset.mediaType == .video ? "video" : "photo")
+                    .font(.caption)
+                if let date = asset.creationDate {
+                    Text(date, style: .date)
+                        .font(.subheadline)
+                        // Full-width at accessibility sizes: wrap, do not truncate.
+                        .fixedSize(horizontal: false, vertical: isAX)
+                }
+            }
+
+            Text(asset.resolution)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if asset.mediaType == .video {
+                Text(asset.formattedDuration)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var sizeLabel: some View {
+        Text(asset.displaySize)
+            .font(.headline.monospacedDigit())
+            .foregroundStyle(.primary)
     }
 }

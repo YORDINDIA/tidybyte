@@ -28,7 +28,7 @@ struct BurstCleanerView: View {
         // Built here rather than in a `Text`, so each sentence resolves through
         // `L10n` on its own; the leading space keeps the sentences joined.
         let favoritesKept = viewModel.autoCleanArmedIncludesFavorite ? "" : L10n.string(" Favorites are kept.")
-        let opening = L10n.string("This keeps the starred frame of each burst and deletes the rest.")
+        let opening = L10n.string("Deletes the frames marked for deletion. The starred frame of each burst is kept.")
         return "\(opening)\(favoritesKept) \(CleanupDeletion.recoverableNote)"
     }
 
@@ -118,6 +118,7 @@ struct BurstCleanerView: View {
                     // the user's language. Looking it up as a key would miss,
                     // and `Text` would apply Markdown to it.
                     message: .runtimeText(message),
+                    title: .runtimeText(CleanupTool.bursts.name),
                     onRetry: {
                         // Retry re-arms the same confirmation as the first
                         // attempt; a delete never runs without it.
@@ -237,7 +238,7 @@ struct BurstCleanerView: View {
     private var summaryHeader: some View {
         HStack(spacing: Spacing.md) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("\(viewModel.groups.count) burst groups")
+                Text(L10n.format("%lld burst group", fallback: "%lld burst groups", viewModel.groups.count))
                     .font(.headline)
                 Text("\(viewModel.totalBurstCount) total · \(viewModel.deletableCount) removable · \(viewModel.savingsBytes.formattedFileSize)")
                     .font(.caption)

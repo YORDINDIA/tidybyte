@@ -74,6 +74,7 @@ struct SmartCategoriesView: View {
                     // the user's language. Looking it up as a key would miss,
                     // and `Text` would apply Markdown to it.
                     message: .runtimeText(message),
+                    title: .runtimeText(CleanupTool.smartCategories.name),
                     onDismiss: { viewModel.errorMessage = nil }
                 )
                 .padding(.horizontal, Spacing.lg)
