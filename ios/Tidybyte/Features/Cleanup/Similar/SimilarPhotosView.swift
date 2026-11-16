@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SimilarPhotosView: View {
     @State private var viewModel = SimilarPhotosViewModel()
+    @Environment(LibraryChangeMonitor.self) private var libraryMonitor
     @State private var showDeleteConfirm = false
     @State private var selectedGroup: SimilarGroup?
     @State private var preview: GroupPreviewContext?
@@ -119,6 +120,10 @@ struct SimilarPhotosView: View {
             Text(CleanupDeletion.confirmMessage(L10n.string("The best photo from each group will be kept.")))
         }
         // DUP-02: leaving the screen must stop the scan.
+        // Items deleted elsewhere leave their groups when the library changes.
+        .task(id: libraryMonitor.generation) {
+            await viewModel.pruneDeleted()
+        }
         .onDisappear {
             viewModel.cancelScan()
         }
@@ -230,12 +235,17 @@ struct SimilarPhotosView: View {
                     // Bottom action bar
                     if !viewModel.selectedForDeletion.isEmpty {
                         CleanupActionBar {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text("\(viewModel.selectedForDeletion.count) selected")
+                            if dynamicTypeSize.isAccessibilitySize {
+                                Text("\(viewModel.selectedForDeletion.count) selected · \(viewModel.selectedSavingsBytes.formattedFileSize)")
                                     .font(.caption.bold())
-                                Text(viewModel.selectedSavingsBytes.formattedFileSize)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            } else {
+                                VStack(alignment: .leading, spacing: Spacing.xs) {
+                                    Text("\(viewModel.selectedForDeletion.count) selected")
+                                        .font(.caption.bold())
+                                    Text(viewModel.selectedSavingsBytes.formattedFileSize)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
 
                             AdaptiveSpacer()
@@ -250,11 +260,12 @@ struct SimilarPhotosView: View {
                                     HapticHelper.impact(.light)
                                     showDeleteConfirm = true
                                 } label: {
-                                    Text("Delete Selected")
+                                    Text(dynamicTypeSize.isAccessibilitySize ? "Delete" : "Delete Selected")
                                         .font(.headline)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .padding(.horizontal, Spacing.xxl)
                                         .padding(.vertical, Spacing.sm)
+                                        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
                                         .background(Color.destructive)
                                         .foregroundStyle(.white)
                                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))

@@ -184,7 +184,7 @@ struct BurstCleanerView: View {
 
             List {
                 if dynamicTypeSize.isAccessibilitySize {
-                    summaryHeader
+                    compactSummary
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                 }
@@ -198,22 +198,29 @@ struct BurstCleanerView: View {
 
             // Bottom action bar
             CleanupActionBar {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("\(viewModel.deletableCount) removable")
-                        .font(.caption.bold())
+                if dynamicTypeSize.isAccessibilitySize {
                     Text("\(viewModel.selectedCount) selected · \(viewModel.selectedSavingsBytes.formattedFileSize)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.caption.bold())
+                } else {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text("\(viewModel.deletableCount) removable")
+                            .font(.caption.bold())
+                        Text("\(viewModel.selectedCount) selected · \(viewModel.selectedSavingsBytes.formattedFileSize)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 AdaptiveSpacer()
 
+                // Side by side at default size. At accessibility sizes the primary
+                // takes the full width and Auto-Clean drops to a text button below it.
                 AdaptiveRow(spacing: Spacing.sm) {
                     Button {
                         HapticHelper.impact(.light)
                         showDeleteConfirm = true
                     } label: {
-                        Text("Delete Selected")
+                        Text("Delete")
                             .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, Spacing.lg)
@@ -235,9 +242,8 @@ struct BurstCleanerView: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, Spacing.lg)
                             .padding(.vertical, Spacing.sm)
-                            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
-                            .background(.blue)
-                            .foregroundStyle(.white)
+                            .background(dynamicTypeSize.isAccessibilitySize ? Color.clear : Color.blue)
+                            .foregroundStyle(dynamicTypeSize.isAccessibilitySize ? Color.blue : Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
                     }
                     .scaleOnPress()
@@ -248,6 +254,15 @@ struct BurstCleanerView: View {
     }
 
     // MARK: - Summary Header
+
+    /// Accessibility sizes: the counts as one line of text, without the card.
+    private var compactSummary: some View {
+        Text("\(viewModel.totalBurstCount) total · \(viewModel.deletableCount) removable · \(viewModel.savingsBytes.formattedFileSize)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, Spacing.xs)
+    }
 
     private var summaryHeader: some View {
         HStack(spacing: Spacing.md) {

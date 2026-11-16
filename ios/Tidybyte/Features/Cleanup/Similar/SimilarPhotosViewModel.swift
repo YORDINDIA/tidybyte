@@ -425,6 +425,26 @@ final class SimilarPhotosViewModel {
         ScanResults.record(.similar, count: totalDuplicateCount)
     }
 
+    /// Drops items deleted elsewhere (Swipe Review, the Photos app) from their
+    /// groups, as Blurry Photos does. Runs on a library change, and only after a
+    /// scan has published results.
+    func pruneDeleted() async {
+        guard scanState == .completed, !isDeleting else { return }
+        let known = Set(groups.flatMap { $0.assets.map(\.id) })
+        guard !known.isEmpty else { return }
+        let present = await photoService.existingIds(Array(known))
+        guard scanState == .completed, !isDeleting else { return }
+        pruneGone(known.subtracting(present))
+    }
+
+    /// Removes `gone` from every group. A group left with one item disappears,
+    /// the keeper is re-picked when it was removed, and the selection keeps only
+    /// ids that still exist.
+    func pruneGone(_ gone: Set<String>) {
+        guard !gone.isEmpty else { return }
+        applyDeletion(of: gone)
+    }
+
     func toggleSelection(_ assetId: String) {
         var state = SelectionState(ids: selectedForDeletion)
         state.toggle(assetId)

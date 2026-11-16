@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DuplicateFinderView: View {
     @State private var viewModel = DuplicateFinderViewModel()
+    @Environment(LibraryChangeMonitor.self) private var libraryMonitor
     @State private var showDeleteConfirm = false
     // Set by a row's swipe-to-delete so the shared confirmation deletes only
     // that group's checked copies. nil means the bottom bar's selection.
@@ -127,6 +128,10 @@ struct DuplicateFinderView: View {
         }
         // DUP-02: leaving the screen must stop the scan (it would otherwise run
         // to completion in the background and re-enter on return).
+        // Items deleted elsewhere leave their groups when the library changes.
+        .task(id: libraryMonitor.generation) {
+            await viewModel.pruneDeleted()
+        }
         .onDisappear {
             viewModel.cancelScan()
         }
@@ -244,12 +249,17 @@ struct DuplicateFinderView: View {
                     // DUP-04b: delete-selected bar, mirroring Similar Photos.
                     if !viewModel.selectedForDeletion.isEmpty {
                         CleanupActionBar {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text("\(viewModel.selectedForDeletion.count) selected")
+                            if dynamicTypeSize.isAccessibilitySize {
+                                Text("\(viewModel.selectedForDeletion.count) selected · \(viewModel.selectedSavingsBytes.formattedFileSize)")
                                     .font(.caption.bold())
-                                Text(viewModel.selectedSavingsBytes.formattedFileSize)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            } else {
+                                VStack(alignment: .leading, spacing: Spacing.xs) {
+                                    Text("\(viewModel.selectedForDeletion.count) selected")
+                                        .font(.caption.bold())
+                                    Text(viewModel.selectedSavingsBytes.formattedFileSize)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
 
                             AdaptiveSpacer()
@@ -265,11 +275,12 @@ struct DuplicateFinderView: View {
                                     pendingGroup = nil
                                     showDeleteConfirm = true
                                 } label: {
-                                    Text("Delete Selected (\(viewModel.selectedForDeletion.count))")
+                                    Text(dynamicTypeSize.isAccessibilitySize ? "Delete" : "Delete Selected (\(viewModel.selectedForDeletion.count))")
                                         .font(.headline)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .padding(.horizontal, Spacing.xxl)
                                         .padding(.vertical, Spacing.sm)
+                                        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
                                         .background(Color.destructive)
                                         .foregroundStyle(.white)
                                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))

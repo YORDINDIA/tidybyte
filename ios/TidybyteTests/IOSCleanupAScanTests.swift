@@ -115,6 +115,59 @@ final class IOSCleanupAScanTests: XCTestCase {
         XCTAssertFalse(viewModel.isLoading)
     }
 
+    // MARK: - Duplicates and Similar: items vanish during review
+
+    func testDuplicatePruneRemovesGoneItemsAndDropsSmallGroups() {
+        let viewModel = DuplicateFinderViewModel()
+        viewModel.scanState = .completed
+        viewModel.exactGroups = [
+            DuplicateGroup(id: "g", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")],
+                           bestAssetId: "a", type: .exact)
+        ]
+        viewModel.selectedForDeletion = ["b", "c"]
+
+        viewModel.pruneGone(["c"])
+        XCTAssertEqual(viewModel.exactGroups.map { $0.assets.map(\.id) }, [["a", "b"]])
+        XCTAssertEqual(viewModel.selectedForDeletion, ["b"])
+
+        viewModel.pruneGone(["b"])
+        XCTAssertTrue(viewModel.exactGroups.isEmpty, "a group with one item left is dropped")
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+    }
+
+    func testDuplicatePruneReElectsKeeperWhenKeeperVanishes() {
+        let viewModel = DuplicateFinderViewModel()
+        viewModel.scanState = .completed
+        viewModel.exactGroups = [
+            DuplicateGroup(id: "g", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")],
+                           bestAssetId: "a", type: .exact)
+        ]
+        viewModel.pruneGone(["a"])
+        XCTAssertEqual(viewModel.exactGroups.count, 1)
+        XCTAssertEqual(Set(viewModel.exactGroups[0].assets.map(\.id)), ["b", "c"])
+        XCTAssertTrue(["b", "c"].contains(viewModel.exactGroups[0].bestAssetId))
+    }
+
+    func testSimilarPruneRemovesGoneItemsAndDropsSmallGroups() {
+        let viewModel = SimilarPhotosViewModel()
+        viewModel.scanState = .completed
+        viewModel.groups = [
+            SimilarGroup(id: "g", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")],
+                         bestAssetId: "a", qualityScores: [:], bestReason: .bestOverall)
+        ]
+        viewModel.selectedForDeletion = ["b", "c"]
+
+        viewModel.pruneGone(["a"])
+        XCTAssertEqual(viewModel.groups.count, 1)
+        XCTAssertEqual(Set(viewModel.groups[0].assets.map(\.id)), ["b", "c"])
+        XCTAssertNotEqual(viewModel.groups[0].bestAssetId, "a")
+        XCTAssertEqual(viewModel.selectedForDeletion, ["b", "c"])
+
+        viewModel.pruneGone(["c"])
+        XCTAssertTrue(viewModel.groups.isEmpty)
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+    }
+
     // MARK: - Delete confirmations share one title pattern
 
     func testConfirmTitleUsesSingularForOneItem() {
