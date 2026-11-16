@@ -53,6 +53,38 @@ extension Color {
     /// Opaque fill for controls that normally sit on a material (action bars,
     /// capsule buttons) so they stay legible without a blur backdrop.
     static let controlSurface = Color(.tertiarySystemFill)
+
+    // Fills for controls whose label is white. Each holds at least 4.5:1 against
+    // white in both appearances (WCAG AA). The system tint, green, red and gray
+    // do not: white on them measures 2.3:1 to 4.0:1. Values are sRGB hex.
+    static let actionFill = Color(red: 0.000, green: 0.376, blue: 0.784)       // #0060C8
+    static let successFill = Color(red: 0.118, green: 0.482, blue: 0.204)      // #1E7B34
+    static let destructiveFill = Color(red: 0.769, green: 0.188, blue: 0.169)  // #C4302B
+    static let neutralFill = Color(red: 0.431, green: 0.431, blue: 0.451)      // #6E6E73
+
+    // Text tokens for copy drawn on the page or on a 12% tint. Each is adaptive
+    // and clears 4.5:1 in both appearances. Use these where a system colour would
+    // be text: system green, orange, blue and red text fall below 4.5:1 on white.
+    static let actionText = Color(UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.039, green: 0.518, blue: 1.000, alpha: 1)   // #0A84FF
+            : UIColor(red: 0.000, green: 0.376, blue: 0.784, alpha: 1)   // #0060C8
+    })
+    static let successText = Color(UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.188, green: 0.820, blue: 0.345, alpha: 1)   // #30D158
+            : UIColor(red: 0.118, green: 0.482, blue: 0.204, alpha: 1)   // #1E7B34
+    })
+    static let destructiveText = Color(UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 1.000, green: 0.412, blue: 0.380, alpha: 1)   // #FF6961
+            : UIColor(red: 0.702, green: 0.149, blue: 0.118, alpha: 1)   // #B3261E
+    })
+    static let warningText = Color(UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 1.000, green: 0.702, blue: 0.251, alpha: 1)   // #FFB340
+            : UIColor(red: 0.561, green: 0.337, blue: 0.000, alpha: 1)   // #8F5600
+    })
 }
 
 

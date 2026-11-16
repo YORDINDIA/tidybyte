@@ -73,12 +73,16 @@ actor PhotoLibraryService {
     /// unavailable (fetch result released, non-incremental change) — stale
     /// thumbnails are worse than re-decode churn.
     private func handleLibraryChange(_ change: PHChange) async {
-        if let baseline = changeBaselineFetch,
-           let details = change.changeDetails(for: baseline),
-           details.hasIncrementalChanges {
-            // Advance the baseline so the NEXT change diffs against current
-            // state rather than re-reporting these same objects.
+        var incremental: PHFetchResultChangeDetails<PHAsset>?
+        if let baseline = changeBaselineFetch, let details = change.changeDetails(for: baseline) {
+            // Advance the baseline on every answered change, incremental or not, so
+            // the NEXT change diffs against current state. Left stale after a
+            // non-incremental change, every later change diffed against an old
+            // snapshot and purged the whole image cache.
             changeBaselineFetch = details.fetchResultAfterChanges
+            if details.hasIncrementalChanges { incremental = details }
+        }
+        if let details = incremental {
             let removedIds = details.removedObjects.map(\.localIdentifier)
             let changedIds = details.changedObjects.map(\.localIdentifier)
             summaryBuilder.resources.remove(removedIds + changedIds)
@@ -376,6 +380,7 @@ actor PhotoLibraryService {
         // reads don't hold up image requests.
         var frameIds: [String] = []
         for index in 0..<allAssets.count {
+            if index % 20 == 0 { await Task.yield() }
             let asset = allAssets.object(at: index)
             if asset.burstIdentifier != nil {
                 frameIds.append(asset.localIdentifier)
@@ -657,8 +662,7 @@ actor PhotoLibraryService {
                 let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
                 let isCancelled = (info?[PHImageCancelledKey] as? Bool) ?? false
                 let isInCloud = (info?[PHImageResultIsInCloudKey] as? Bool) ?? false
-                if isDegraded { box.isDegraded = true }
-                if let image = image { box.image = image }
+                box.record(image, degraded: isDegraded)
 
                 if info?[PHImageErrorKey] != nil {
                     AppLog.photo.error("Image request failed: \(String(describing: info?[PHImageErrorKey]), privacy: .public)")
@@ -678,7 +682,7 @@ actor PhotoLibraryService {
                     // promptly so a scan doesn't stall per iCloud-only photo.
                     // Discard the retained degraded placeholder so the caller
                     // gets nil and falls back to the thumbnail path.
-                    box.image = nil
+                    box.dropImage()
                     resumer.resume(isDegraded)
                 }
                 // A degraded placeholder without an error (and reachable) means
@@ -686,14 +690,31 @@ actor PhotoLibraryService {
             }
         }
 
-        return (box.image, box.isDegraded)
+        return box.result
     }
 
-    /// Mutable capture box bridging the PhotoKit completion closure (which may
-    /// fire on a PhotoKit queue) into the quality tuple returned on the actor.
+    /// Result state bridged from the PhotoKit completion closure (a PhotoKit
+    /// queue) to the actor. A late callback can still arrive after the timeout
+    /// has resumed the continuation, so every access goes through the lock.
     private final class QualityResultBox: @unchecked Sendable {
-        var image: UIImage?
-        var isDegraded = false
+        private let lock = NSLock()
+        private var image: UIImage?
+        private var isDegraded = false
+
+        func record(_ image: UIImage?, degraded: Bool) {
+            lock.withLock {
+                if degraded { isDegraded = true }
+                if let image { self.image = image }
+            }
+        }
+
+        func dropImage() {
+            lock.withLock { image = nil }
+        }
+
+        var result: (image: UIImage?, isDegraded: Bool) {
+            lock.withLock { (image, isDegraded) }
+        }
     }
 
     // MARK: - Album Membership

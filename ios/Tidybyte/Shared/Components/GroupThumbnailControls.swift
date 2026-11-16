@@ -108,7 +108,7 @@ struct MakeKeeperButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(Color.accentColor)
+        .foregroundStyle(Color.actionText)
         .accessibilityLabel("Keep this photo instead")
     }
 }

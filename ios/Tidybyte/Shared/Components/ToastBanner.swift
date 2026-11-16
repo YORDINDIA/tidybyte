@@ -104,9 +104,11 @@ struct ToastBanner: View {
                         HapticHelper.impact(.light)
                         action()
                     } label: {
+                        // Primary text, not the tint: amber and blue text on the
+                        // tinted capsule measure 1.8:1 and 3.1:1. The icon keeps the tint.
                         Text(actionTitle)
                             .font(.footnote.bold())
-                            .foregroundStyle(message.style.tint)
+                            .foregroundStyle(.primary)
                             .padding(.horizontal, Spacing.md)
                             .padding(.vertical, Spacing.xs)
                             .background(message.style.tint.opacity(0.12), in: Capsule())

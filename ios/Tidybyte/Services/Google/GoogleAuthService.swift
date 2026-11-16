@@ -249,7 +249,13 @@ enum GoogleKeychain {
         var item = query
         item[kSecValueData] = data
         item[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        SecItemAdd(item as CFDictionary, nil)
+        let status = SecItemAdd(item as CFDictionary, nil)
+        // The session still works until relaunch, but a failed write means the
+        // user is signed out on the next launch. Log it, since the status is the
+        // only clue (no token text is logged).
+        if status != errSecSuccess {
+            AppLog.app.error("Failed to store Google sign-in: OSStatus \(status, privacy: .public)")
+        }
     }
 
     static func load() -> GoogleAuthService.Tokens? {

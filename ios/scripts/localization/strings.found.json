@@ -94,7 +94,8 @@
       "file": "Tidybyte/Features/Activity/ActivityView.swift"
     },
     {
-      "key": "%lld burst groups",
+      "key": "%lld burst group",
+      "fallback": "%lld burst groups",
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
@@ -126,11 +127,13 @@
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
-      "key": "%lld groups",
+      "key": "%lld group",
+      "fallback": "%lld groups",
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
     },
     {
-      "key": "%lld groups found",
+      "key": "%lld group found",
+      "fallback": "%lld groups found",
       "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
     },
     {
@@ -758,6 +761,10 @@
       "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
+      "key": "Couldn't load the video: %@",
+      "file": "Tidybyte/Services/VideoCompressionService.swift"
+    },
+    {
       "key": "Couldn't load this photo.",
       "file": "Tidybyte/Features/Swipe/CardView.swift"
     },
@@ -961,6 +968,10 @@
     {
       "key": "Deleted items go to Recently Deleted in Photos, where you can restore them for 30 days.",
       "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
+    },
+    {
+      "key": "Deletes the frames marked for deletion. The starred frame of each burst is kept.",
+      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
       "key": "Denied",
@@ -2318,7 +2329,7 @@
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
-      "key": "The best photo from each group will be kept.",
+      "key": "The best photo from each group will be kept. %@",
       "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
     },
     {
@@ -2389,10 +2400,6 @@
     {
       "key": "This item uses %@; review whether you need it.",
       "file": "Tidybyte/Services/LocalPhotoIntelligence.swift"
-    },
-    {
-      "key": "This keeps the starred frame of each burst and deletes the rest.",
-      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
       "key": "This language is not supported by local AI.",
@@ -2501,6 +2508,10 @@
     {
       "key": "TidyByte saves a new, smaller copy of each photo and keeps the originals. You get both versions in your library.",
       "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
+      "key": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.",
+      "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
       "key": "Time for a Photo Cleanup",
@@ -2723,5 +2734,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 673
+  "total": 675
 }

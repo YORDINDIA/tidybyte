@@ -129,12 +129,12 @@ private struct RecoveryActionStyle: ViewModifier {
     func body(content: Content) -> some View {
         if isPrimary {
             content
-                .background(.blue)
+                .background(Color.actionFill)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
         } else {
             content
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.actionText)
                 .background {
                     RoundedRectangle(cornerRadius: CornerRadius.medium)
                         .strokeBorder(.blue.opacity(0.5), lineWidth: 1)

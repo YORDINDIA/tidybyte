@@ -47,9 +47,11 @@ struct LimitedLibraryBanner: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Button("Add More Photos") {
+                Button {
                     HapticHelper.impact(.light)
                     PhotoPermissionHandler.presentLimitedLibraryPicker()
+                } label: {
+                    Text("Add More Photos").foregroundStyle(Color.actionText)
                 }
                 .font(.footnote.bold())
                 .padding(.top, Spacing.xs)
