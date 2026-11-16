@@ -25,6 +25,9 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
     case identityMismatch(URL)
     case unapprovedAction
     case unsafePath(URL, Set<RiskFlag>)
+    /// A folder or package holds credential material, or holds content that cannot
+    /// be checked. `child` is the entry that blocked it.
+    case containsProtectedContent(folder: URL, child: URL)
     case symlinkTarget(URL)
     case cloudSideEffect(URL)
     case highRiskDestructiveAction(URL)
@@ -50,6 +53,10 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
         case .unsafePath(let url, let flags):
             let flagNames = flags.map(\.rawValue).joined(separator: ", ")
             return String(localized: "Unsafe path rejected: \(url.path) (\(flagNames))", comment: "Safety audit protected-path rejection")
+        case .containsProtectedContent(let folder, let child):
+            return String(
+                localized: "Not trashed: \(folder.path) holds protected or unreadable content (\(child.path)).",
+                comment: "Safety audit rejection for a folder with protected contents")
         case .symlinkTarget(let url):
             return String(localized: "Destructive actions against symlinks are rejected: \(url.path)", comment: "Safety audit symlink rejection")
         case .cloudSideEffect(let url):
@@ -213,11 +220,15 @@ public actor SafetyAuditor {
                 throw SafetyAuditError.symlinkTarget(record.url)
             }
             if requiresIntegrity(action.actionType) {
-                if case .deny = policy.decide(
-                    target: record.url, isDirectory: record.kind == .directory,
-                    descendants: record.kind != .regularFile
-                ) {
-                    throw SafetyAuditError.unsafePath(record.url, policy.riskFlags(for: record.url, isDirectory: record.kind == .directory))
+                let isDirectory = record.kind == .directory
+                if case .deny = policy.decide(target: record.url, isDirectory: isDirectory) {
+                    throw SafetyAuditError.unsafePath(record.url, policy.riskFlags(for: record.url, isDirectory: isDirectory))
+                }
+                // Trashing a folder takes its contents along. Tags and clone folds
+                // change nothing that is removed, so only destructive actions check contents.
+                if isDestructive(action.actionType), record.kind != .regularFile,
+                   let blocked = policy.firstProtectedDescendant(of: record.url) {
+                    throw SafetyAuditError.containsProtectedContent(folder: record.url, child: blocked)
                 }
             }
             // `decide` already resolves symlinked ancestors internally; this

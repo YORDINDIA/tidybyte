@@ -59,10 +59,11 @@ final class MacMonitorScanTests: XCTestCase {
     /// A short id that matches two operations must not restore both.
     func testAmbiguousShortUndoIDRestoresNothing() async throws {
         let store = try SQLiteStore.inMemory()
+        // The second operation's only record is already restored. It still matches the short id.
         for (index, operation) in ["op-ambig-A-000001", "op-ambig-B-000002"].enumerated() {
             try await store.saveUndoRecord(UndoRecord(
                 id: "undo-ambig-\(index)", operationLogID: operation, inverseAction: .restore,
-                restoreURL: nil, trashURL: nil, validUntil: nil, status: .available
+                restoreURL: nil, trashURL: nil, validUntil: nil, status: index == 0 ? .available : .restored
             ))
         }
         let kit = MCPKit(store: store)
@@ -89,6 +90,10 @@ final class MacMonitorScanTests: XCTestCase {
             id: "a4", name: "scan", arguments: ["paths": "/"]))
         try await expectRefused(kit, tool: "scan", naming: "paths", Self.toolCall(
             id: "a5", name: "scan", arguments: ["paths": [""]]))
+        try await expectRefused(kit, tool: "scan", naming: "paths", Self.toolCall(
+            id: "a8", name: "scan", arguments: ["paths": ["."]]))
+        try await expectRefused(kit, tool: "scan", naming: "paths", Self.toolCall(
+            id: "a9", name: "scan", arguments: ["paths": ["relative/folder"]]))
         try await expectRefused(kit, tool: "scan", naming: "duplicate_strategy", Self.toolCall(
             id: "a6", name: "scan", arguments: ["duplicate_strategy": "delete_everything"]))
         try await expectRefused(kit, tool: "list_findings", naming: "limit", Self.toolCall(
@@ -249,6 +254,9 @@ final class MacMonitorRound2Tests: XCTestCase {
         let same = ProcessProbe.tickRates(previous: previous, current: counters(start: first, cpu: 11), interval: 1)
         XCTAssertEqual(same?.cpuPercent ?? -1, 100, accuracy: 0.01)
         XCTAssertNil(ProcessProbe.tickRates(previous: nil, current: counters(start: first, cpu: 11), interval: 1))
+        // Unknown start times prove nothing: no rates, even when both are nil.
+        XCTAssertNil(ProcessProbe.tickRates(previous: counters(start: nil, cpu: 10), current: counters(start: nil, cpu: 11), interval: 1))
+        XCTAssertNil(ProcessProbe.tickRates(previous: counters(start: first, cpu: 10), current: counters(start: nil, cpu: 11), interval: 1))
     }
 
     /// MON-07: one background refresh at a time.
@@ -263,15 +271,8 @@ final class MacMonitorRound2Tests: XCTestCase {
 
     /// MON-10: an empty argument is kept, so later arguments do not shift.
     func testArgumentParserKeepsEmptyArguments() {
-        var data = Data()
-        var argc = Int32(3)
-        withUnsafeBytes(of: &argc) { data.append(contentsOf: $0) }
-        data.append(Data("/usr/bin/tool".utf8))
-        data.append(contentsOf: [0, 0])
-        for argument in ["tool", "", "last"] {
-            data.append(Data(argument.utf8))
-            data.append(0)
-        }
+        // The fixture pads the way the kernel does, so argv[0] starts at index 20 for this path.
+        let data = kernelArgv(path: "/usr/bin/tool", arguments: ["tool", "", "last"])
         XCTAssertEqual(ProcessProbe.parseArguments(data), ["tool", "", "last"])
     }
 
@@ -301,6 +302,56 @@ final class MacMonitorRound2Tests: XCTestCase {
     func testArgumentParserKeepsEmptyMiddleArgument() {
         let data = kernelArgv(path: "/bin/sleep", arguments: ["sleep", "", "5"])
         XCTAssertEqual(ProcessProbe.parseArguments(data), ["sleep", "", "5"])
+    }
+
+    /// A quoted nettop process field keeps its PID, and its name keeps the comma.
+    func testNettopParserReadsQuotedProcessFields() {
+        let parsed = MonitoringEngine.parseNettopCSV("""
+        time,process,bytes_in,bytes_out
+        2026-11-01 10:00:00,"Acme,Ltd.123",4096,1024
+        2026-11-01 10:00:00,"say ""hi"".456",1,2
+        """)
+        XCTAssertEqual(parsed.count, 2)
+        XCTAssertEqual(parsed.first?.name, "Acme,Ltd")
+        XCTAssertEqual(parsed.first?.pid, 123)
+        XCTAssertEqual(parsed.first?.downloadPerSecond, 4096)
+        XCTAssertEqual(parsed.last?.name, "say \"hi\"")
+        XCTAssertEqual(parsed.last?.pid, 456)
+    }
+
+    /// A present arguments value that is not an object is refused, not read as {}.
+    func testNonObjectArgumentsAreRefused() async throws {
+        let kit = try MCPKit(store: SQLiteStore.inMemory())
+        let request: [String: Any] = [
+            "jsonrpc": "2.0", "id": "n1", "method": "tools/call",
+            "params": ["name": "scan", "arguments": "/"]
+        ]
+        let response = await kit.handle(request: request)
+        let result = try XCTUnwrap(response?.payload["result"] as? [String: Any])
+        XCTAssertEqual(result["isError"] as? Bool, true)
+    }
+
+    /// An action id that matches no pending action is refused, and nothing runs.
+    func testUnknownActionPrefixIsRefusedAfterAScan() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MCP-UnknownAction-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let payload = Data("duplicate contents for the unknown-action test".utf8)
+        try payload.write(to: root.appendingPathComponent("one.bin"))
+        try payload.write(to: root.appendingPathComponent("two.bin"))
+        let kit = try MCPKit(store: SQLiteStore.inMemory())
+        _ = await kit.handle(request: ["jsonrpc": "2.0", "id": "s", "method": "tools/call", "params": [
+            "name": "scan", "arguments": ["paths": [root.path]]
+        ]])
+        let response = await kit.handle(request: ["jsonrpc": "2.0", "id": "e", "method": "tools/call", "params": [
+            "name": "execute", "arguments": ["action_ids": ["zzzzzzzz"], "confirm": true]
+        ]])
+        let result = try XCTUnwrap(response?.payload["result"] as? [String: Any])
+        XCTAssertEqual(result["isError"] as? Bool, true)
+        let text = ((result["content"] as? [[String: Any]])?.first?["text"] as? String) ?? ""
+        XCTAssertTrue(text.contains("No pending action"), "Got: \(text)")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("two.bin").path))
     }
 
     /// MON-11: a process name with a comma stays whole, and the numbers still line up.

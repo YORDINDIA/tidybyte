@@ -57,8 +57,9 @@ final class MacCoreScanTests: XCTestCase {
                 action: trashAction(for: folderRecord), filesByID: [folderRecord.id: folderRecord]
             )
             XCTFail("A folder that holds a private key must not be trashed")
-        } catch SafetyAuditError.unsafePath(let url, _) {
-            XCTAssertEqual(url.lastPathComponent, "cache")
+        } catch SafetyAuditError.containsProtectedContent(let folder, let child) {
+            XCTAssertEqual(folder.lastPathComponent, "cache")
+            XCTAssertEqual(child.lastPathComponent, "id_rsa", "The error must name the key file")
         }
     }
 
@@ -100,6 +101,10 @@ final class MacCoreScanTests: XCTestCase {
         let build = try makeFolder("App/build")
         try Data("{}".utf8).write(to: build.appendingPathComponent("settings.json"))
         XCTAssertEqual(decision(for: build), .allow)
+
+        let derived = try makeFolder("DerivedData/Build")
+        try Data("{}".utf8).write(to: derived.appendingPathComponent("settings.json"))
+        XCTAssertEqual(decision(for: derived), .allow, "Settings inside DerivedData must not block trash")
     }
 
     func testCredentialMaterialBlocksFolderTrashEverywhere() throws {
@@ -243,7 +248,8 @@ final class MacCoreScanTests: XCTestCase {
 
     func testRuleEngineDoesNotTreatUserLogsFolderAsLogFiles() async throws {
         let documents = try root.appendingPathComponent("Documents/Logs/report.pdf")
-        let systemLog = try root.appendingPathComponent("Library/Logs/app.txt")
+        // Only the real ~/Library/Logs counts as the macOS log folder, so use the home folder here.
+        let systemLog = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/app.txt")
         let files = [
             TestFixtures.makeFileRecord(id: "doc", path: documents.path, sizeBytes: 2_000_000),
             TestFixtures.makeFileRecord(id: "sys", path: systemLog.path, sizeBytes: 2_000_000)
@@ -434,18 +440,19 @@ final class MacCoreScanTests: XCTestCase {
     func testHashCacheMissesWhenInodeOrChangeTimeDiffers() async throws {
         let store = try SQLiteStore.inMemory()
         let changed = Date(timeIntervalSince1970: 1_700_000_000)
+        let stamp: Int64 = 1_700_000_000_123_456_789
         try await store.saveFileHashes([
             FileHashCacheEntry(path: "/tmp/tidybyte-test/a.bin", sizeBytes: 10, modifiedAt: changed,
-                               fullHash: "abc", inode: 7, changedAt: changed)
+                               fullHash: "abc", inode: 7, changedAtNanoseconds: stamp)
         ])
 
         let hit = try await store.cachedFullHash(forPath: "/tmp/tidybyte-test/a.bin", sizeBytes: 10,
-                                                 modifiedAt: changed, inode: 7, changedAt: changed)
+                                                 modifiedAt: changed, inode: 7, changedAtNanoseconds: stamp)
         let replacedFile = try await store.cachedFullHash(forPath: "/tmp/tidybyte-test/a.bin", sizeBytes: 10,
-                                                          modifiedAt: changed, inode: 8, changedAt: changed)
+                                                          modifiedAt: changed, inode: 8, changedAtNanoseconds: stamp)
         let restoredMtime = try await store.cachedFullHash(forPath: "/tmp/tidybyte-test/a.bin", sizeBytes: 10,
                                                            modifiedAt: changed, inode: 7,
-                                                           changedAt: changed.addingTimeInterval(60))
+                                                           changedAtNanoseconds: stamp + 60_000_000_000)
 
         XCTAssertEqual(hit, "abc")
         XCTAssertNil(replacedFile, "A different inode at the same path must not reuse the hash")

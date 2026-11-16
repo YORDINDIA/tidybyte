@@ -142,6 +142,27 @@ final class MacAppExploreScanTests: XCTestCase {
         return (try XCTUnwrap(rep.representation(using: .png, properties: [:])), window)
     }
 
+    /// Share of sampled pixels that differ from the top-left background. A blank render is near 0.
+    private func drawnFraction(_ png: Data) throws -> Double {
+        let rep = try XCTUnwrap(NSBitmapImageRep(data: png))
+        let background = try XCTUnwrap(rep.colorAt(x: 0, y: 0)?.usingColorSpace(.sRGB))
+        var drawn = 0
+        var total = 0
+        for y in stride(from: 0, to: rep.pixelsHigh, by: 4) {
+            for x in stride(from: 0, to: rep.pixelsWide, by: 4) {
+                total += 1
+                guard let color = rep.colorAt(x: x, y: y)?.usingColorSpace(.sRGB) else { continue }
+                let delta = abs(color.redComponent - background.redComponent)
+                    + abs(color.greenComponent - background.greenComponent)
+                    + abs(color.blueComponent - background.blueComponent)
+                if delta > 0.05 { drawn += 1 }
+            }
+        }
+        return Double(drawn) / Double(max(total, 1))
+    }
+
+    /// Checks that each Explore view draws content, at both widths and both schemes.
+    /// It does not check accessibility: SwiftUI exposes no accessibility tree to an in-process test.
     @MainActor
     func testExploreViewsRenderAtBothWidthsAndSchemes() throws {
         let model = try renderModel()
@@ -177,10 +198,35 @@ final class MacAppExploreScanTests: XCTestCase {
                     let shot = try snapshot(view, size: size, dark: dark)
                     let url = folder.appendingPathComponent("explore-\(name)-\(width)-\(scheme).png")
                     try shot.data.write(to: url)
-                    XCTAssertGreaterThan(shot.data.count, 1_000, "\(name) rendered an empty image")
+                    let drawn = try drawnFraction(shot.data)
+                    XCTAssertGreaterThan(drawn, 0.01, "\(name) at \(width) pt (\(scheme)) drew almost nothing")
                 }
             }
         }
         print("EXP render PNGs written to \(folder.path)")
+    }
+
+    /// Root-level scans have "/" as the common path. Folder ids must not start with "//", and must resolve.
+    func testRootLevelFolderIDsHaveNoDoubleSlashAndResolve() {
+        let files = [
+            TestFixtures.makeFileRecord(id: "a", path: "/Alpha/one.bin", sizeBytes: 100),
+            TestFixtures.makeFileRecord(id: "b", path: "/Beta/two.bin", sizeBytes: 200)
+        ]
+        let groups = ExploreTreeBuilder.build(files: files, grouping: .byFolder, maxDepth: 3)
+        XCTAssertFalse(groups.isEmpty)
+        for group in groups {
+            XCTAssertFalse(group.id.hasPrefix("//"), "Folder id \(group.id) has a double slash")
+            XCTAssertFalse(ExploreTreeBuilder.members(of: group, in: files).isEmpty, "\(group.id) must resolve its members")
+        }
+    }
+
+    /// A zero-byte file beside a subfolder still gets an "Other" row, because it counts as an item.
+    func testZeroByteLooseFileBesideSubfolderGetsAnOtherRow() {
+        let files = [
+            TestFixtures.makeFileRecord(id: "a", path: "/fx/sub/a.bin", sizeBytes: 100),
+            TestFixtures.makeFileRecord(id: "z", path: "/fx/zero.txt", sizeBytes: 0)
+        ]
+        let groups = ExploreTreeBuilder.build(files: files, grouping: .byFolder, maxDepth: 3)
+        XCTAssertEqual(groups.first { $0.id == "__other__" }?.fileCount, 1)
     }
 }

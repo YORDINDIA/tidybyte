@@ -16,6 +16,7 @@ are removed at the end.
 Usage: Scripts/mcp-e2e.py [path-to-tidybyte-mcp-binary]
 """
 
+import hashlib
 import json
 import os
 import re
@@ -27,7 +28,11 @@ import tempfile
 
 REQUEST_TIMEOUT = 120.0  # seconds
 OLD_TS = 1700000000  # any timestamp outside the fold's quiet period
-BINARY = sys.argv[1] if len(sys.argv) > 1 else ".build/debug/tidybyte-mcp"
+# Resolve before anything changes directory: the server runs with cwd set to the
+# fixture, so a relative path would resolve inside the fixture and not be found.
+BINARY = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else ".build/debug/tidybyte-mcp")
+# The only SQLite files the server writes next to its database.
+DATABASE_FILES = ("mcp-e2e.sqlite", "mcp-e2e.sqlite-wal", "mcp-e2e.sqlite-shm")
 
 
 class MCPClient:
@@ -69,13 +74,19 @@ def identity(path):
 
 
 def tree(top):
-    """Every entry under top: relative path mapped to device, inode, size and mtime."""
+    """Every entry under top: relative path mapped to device, inode, size, mtime and,
+    for regular files, a SHA-256 of the bytes. A same-size rewrite with restored
+    metadata still changes the digest. A missing top yields {}."""
     entries = {}
     for dirpath, dirnames, filenames in os.walk(top):
         for name in dirnames + filenames:
             path = os.path.join(dirpath, name)
             st = os.lstat(path)
-            entries[os.path.relpath(path, top)] = (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns)
+            digest = None
+            if os.path.isfile(path) and not os.path.islink(path):
+                with open(path, "rb") as f:
+                    digest = hashlib.sha256(f.read()).hexdigest()
+            entries[os.path.relpath(path, top)] = (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns, digest)
     return entries
 
 
@@ -219,17 +230,18 @@ def main():
         # Containment checks. The canary must be untouched, and ROOT must hold
         # only what the test made: the two fixture files, the database with its
         # journal files, and the empty HOME and TMPDIR.
-        if os.path.isdir(canary):
-            check("canary outside the fixture is unchanged",
-                  canary_before is not None and tree(canary) == canary_before)
+        # Each check runs unconditionally. A deleted canary or root is a failure,
+        # not a skipped check: tree() of a missing directory is {}, which differs
+        # from the recorded state.
+        check("canary outside the fixture is unchanged",
+              canary_before is not None and os.path.isdir(canary) and tree(canary) == canary_before)
         if os.path.isdir(root):
-            allowed = {"a/blob.bin", "b/blob.bin", "home", "tmp"}
-            stray = []
-            for rel in tree(root):
-                if rel in allowed or rel in ("a", "b") or rel.startswith("mcp-e2e.sqlite"):
-                    continue
-                stray.append(rel)
+            allowed = {"a/blob.bin", "b/blob.bin", "a", "b", "home", "tmp"}
+            stray = [rel for rel in tree(root)
+                     if rel not in allowed and rel not in DATABASE_FILES]
             check("nothing outside the fixture layout was written", not stray, ", ".join(sorted(stray)))
+        else:
+            check("the fixture root survived the run", False, root)
         shutil.rmtree(root, ignore_errors=True)
         shutil.rmtree(canary, ignore_errors=True)
 

@@ -63,18 +63,20 @@ public struct FileHashCacheEntry: Codable, Sendable {
     /// Inode and status-change time when the hash was taken. A replaced file or a
     /// rewrite that restores mtime still changes these, so the cached hash is not reused.
     public var inode: UInt64?
-    public var changedAt: Date?
+    /// Status-change time in nanoseconds since the epoch. An integer keeps the full
+    /// precision of the file system's timestamp, so equality is exact.
+    public var changedAtNanoseconds: Int64?
 
     public init(
         path: String, sizeBytes: Int64, modifiedAt: Date?, fullHash: String,
-        inode: UInt64? = nil, changedAt: Date? = nil
+        inode: UInt64? = nil, changedAtNanoseconds: Int64? = nil
     ) {
         self.path = path
         self.sizeBytes = sizeBytes
         self.modifiedAt = modifiedAt
         self.fullHash = fullHash
         self.inode = inode
-        self.changedAt = changedAt
+        self.changedAtNanoseconds = changedAtNanoseconds
     }
 }
 
@@ -448,7 +450,7 @@ public actor SQLiteStore {
     /// Cached full hash for `path`, valid only when size and mtime both match.
     /// Returns nil on any mismatch so the caller re-hashes.
     public func cachedFullHash(
-        forPath path: String, sizeBytes: Int64, modifiedAt: Date?, inode: UInt64? = nil, changedAt: Date? = nil
+        forPath path: String, sizeBytes: Int64, modifiedAt: Date?, inode: UInt64? = nil, changedAtNanoseconds: Int64? = nil
     ) throws -> String? {
         let rows: [FileHashCacheEntry] = try selectJSON(
             "SELECT json FROM \(SQLiteTable.fileHashes.rawValue) WHERE id = ? LIMIT 1",
@@ -461,9 +463,8 @@ public actor SQLiteStore {
         // When the caller knows the file's identity, a stored entry without the same
         // identity is a miss: it may describe a different file at the same path.
         if let inode, entry.inode != inode { return nil }
-        if let changedAt {
-            guard let stored = entry.changedAt, abs(changedAt.timeIntervalSince(stored)) <= 1 else { return nil }
-        }
+        // Exact match only: any status change, however small, makes the cached hash unusable.
+        if let changedAtNanoseconds, entry.changedAtNanoseconds != changedAtNanoseconds { return nil }
         switch (entry.modifiedAt, modifiedAt) {
         case (nil, nil):
             return entry.fullHash
@@ -586,7 +587,28 @@ public actor SQLiteStore {
     /// True when the process that owns a running session no longer exists.
     static func ownerHasExited(_ session: ScanSession) -> Bool {
         guard let owner = session.ownerProcessID, owner != getpid() else { return false }
-        return kill(owner, 0) != 0 && errno == ESRCH
+        if kill(owner, 0) != 0 {
+            // ESRCH: no such process. EPERM means it exists but belongs to another user.
+            return errno == ESRCH
+        }
+        // The PID exists. It is the owner only if its start time matches the recorded one.
+        guard let recorded = session.ownerProcessStart, let current = processStartTime(of: owner) else {
+            return false
+        }
+        return recorded != current
+    }
+
+    /// Start time of `pid` in microseconds since the epoch, from the kernel process table.
+    /// Nil when the process does not exist or cannot be read.
+    static func processStartTime(of pid: pid_t) -> Int64? {
+        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
+        var info = kinfo_proc()
+        var size = MemoryLayout<kinfo_proc>.size
+        guard sysctl(&mib, 4, &info, &size, nil, 0) == 0, size == MemoryLayout<kinfo_proc>.size else {
+            return nil
+        }
+        let start = info.kp_proc.p_starttime
+        return Int64(start.tv_sec) * 1_000_000 + Int64(start.tv_usec)
     }
 
     public func loadFindings(for sessionID: String) throws -> [Finding] {

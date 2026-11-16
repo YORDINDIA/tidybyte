@@ -18,6 +18,11 @@ struct QuitConfirmView: View {
                 localized: "Do you want to quit “\(sample.name)”? Unsaved work in this app could be lost.",
                 comment: "Quit confirmation body"))
                 .font(.callout)
+            if sample.startedAt == nil {
+                Text(ProcessInspectorView.unknownStartMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             HStack {
                 Spacer()
                 Button(String(localized: "Cancel", comment: "Dialog cancel")) {
@@ -30,11 +35,13 @@ struct QuitConfirmView: View {
                         onForceQuit()
                         dismiss()
                     }
+                    .disabled(sample.startedAt == nil)
                 }
                 Button(String(localized: "Quit", comment: "Dialog confirm quit"), role: .destructive) {
                     onQuit()
                     dismiss()
                 }
+                .disabled(sample.startedAt == nil)
             }
         }
         .padding(Spacing.elementSection)
@@ -115,25 +122,42 @@ struct ProcessInspectorView: View {
                     tint: MonitorTab.cpu.tint)
                     .frame(height: 44)
             }
-            .accessibilityElement(children: .ignore)
+            // .contain keeps the sparkline's elements; the value carries the numbers.
+            .accessibilityElement(children: .contain)
             .accessibilityLabel(String(localized: "CPU over the last 24 hours", comment: "History chart label"))
+            .accessibilityValue(HistoryChartView.summary(history, unit: .cpu))
         }
     }
 
     private var header: some View {
-        HStack {
-            Text(String(localized: "pid \(inspection.pid)", comment: "Inspector process identifier"))
-                .font(.callout.monospacedDigit())
-                .foregroundStyle(.secondary)
-            Spacer()
-            Button(String(localized: "Quit", comment: "Inspector action")) {
-                confirmQuit = true
+        VStack(alignment: .leading, spacing: Spacing.elementTight) {
+            HStack {
+                Text(String(localized: "pid \(inspection.pid)", comment: "Inspector process identifier"))
+                    .font(.callout.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button(String(localized: "Quit", comment: "Inspector action")) {
+                    confirmQuit = true
+                }
+                .disabled(inspection.startedAt == nil)
+                Button(String(localized: "Force Quit", comment: "Inspector action"), role: .destructive) {
+                    confirmForce = true
+                }
+                .disabled(inspection.startedAt == nil)
             }
-            Button(String(localized: "Force Quit", comment: "Inspector action"), role: .destructive) {
-                confirmForce = true
+            if inspection.startedAt == nil {
+                Text(Self.unknownStartMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
+
+    /// Shown when the start time is unknown. Without it the pid cannot be checked
+    /// before a signal, so quitting is disabled rather than failing silently.
+    static let unknownStartMessage = String(
+        localized: "The start time of this process is unavailable, so it cannot be quit safely.",
+        comment: "Quit disabled: unknown process start time")
 
     private var identitySection: some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {

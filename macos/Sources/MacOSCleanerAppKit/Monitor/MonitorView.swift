@@ -11,9 +11,6 @@ struct MonitorView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let error = model.lastError {
-                errorBanner(error)
-            }
             tabRail
             Divider()
             content
@@ -62,33 +59,6 @@ struct MonitorView: View {
         }
         .onDisappear { model.setWindowVisible(false) }
         .onChange(of: hiddenTabsRaw) { normalizeTabSelection() }
-    }
-
-    /// A history-store failure would otherwise be silent: samples still show, but
-    /// nothing is saved. The banner says so and can be dismissed.
-    private func errorBanner(_ message: String) -> some View {
-        // The message wraps across the full width, and the button sits on its own
-        // row. Side by side, a long message pushed the button off a narrow window.
-        VStack(alignment: .leading, spacing: Spacing.elementTight) {
-            Label {
-                Text(String(localized: "History is not being saved: \(message)", comment: "Monitor history failure banner"))
-                    .fixedSize(horizontal: false, vertical: true)
-            } icon: {
-                Image(systemName: "exclamationmark.triangle")
-            }
-            .font(.callout)
-            HStack {
-                Spacer()
-                Button(String(localized: "Dismiss", comment: "Dismiss monitor banner")) {
-                    model.dismissError()
-                }
-                .controlSize(.small)
-            }
-        }
-        .padding(.horizontal, Spacing.elementNormal)
-        .padding(.vertical, Spacing.elementTight)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(SemanticScale.warningSoft)
     }
 
     /// Falls back to Overview when the selected tab was hidden in Settings.

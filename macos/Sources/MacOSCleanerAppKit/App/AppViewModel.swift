@@ -152,6 +152,7 @@ final class AppViewModel {
     private(set) var spaceForecast: SpaceForecaster.Forecast?
     /// True while the forecast and timeline load, so the Changes tab shows progress, not "not enough history".
     private(set) var isLoadingTimeline = false
+    @ObservationIgnored private var timelineLoadsInFlight = 0
     // MARK: - Top-level tabs (state lives here, behavior in AppViewModel+Tabs.swift)
 
     /// Selected top-level tab. Explore is the existing scan/review workspace;
@@ -1072,8 +1073,13 @@ final class AppViewModel {
     }
 
     func loadStorageTimeline() async {
+        // Overlapping loads (Monitor and scan completion) share one flag: it clears only when the last one ends.
+        timelineLoadsInFlight += 1
         isLoadingTimeline = true
-        defer { isLoadingTimeline = false }
+        defer {
+            timelineLoadsInFlight -= 1
+            isLoadingTimeline = timelineLoadsInFlight > 0
+        }
         do {
             let forecaster = SpaceForecaster(store: store)
             spaceForecast = try await forecaster.forecast(volumeURL: FileManager.default.homeDirectoryForCurrentUser)
@@ -1237,6 +1243,8 @@ final class AppViewModel {
             return
         }
         do {
+            // A pending settings save must not write the settings back after the store is wiped.
+            await cleanup.cancelPendingSettingsSave()
             try await keychain.deleteAllAPIKeys()
             try await store.deleteAllData()
             await cleanup.resetAfterClear()
@@ -1365,6 +1373,11 @@ final class AppViewModel {
             merged.append(normalized)
         }
         return merged
+    }
+
+    /// Persists only the AI-during-scans flag. The scan sheet uses this, so Cancel cannot save its other edits.
+    func saveIncludeAI() {
+        defaults.set(includeAI, forKey: SettingsKey.includeAI.rawValue)
     }
 
     func saveSettings() {

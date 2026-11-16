@@ -256,7 +256,7 @@ public struct PathSafetyPolicy: Sendable {
         if Self.protectedFolders.contains(where: { $0.hasPrefix(folder) }) {
             return .deny(reason: "Contains protected data: \(resolvedTarget.path)")
         }
-        if descendants, let blocked = protectedDescendant(of: resolvedTarget) {
+        if descendants, let blocked = firstProtectedDescendant(of: resolvedTarget) {
             return .deny(reason: "Contains protected data: \(blocked.path)")
         }
         guard let destination else {
@@ -300,11 +300,17 @@ public struct PathSafetyPolicy: Sendable {
     /// file is blocked only when its header says it holds a private key.
     private static let privateKeyCandidateExtensions: Set<String> = ["pem", "key"]
 
-    /// First descendant of `folder` that holds credential material, or nil.
-    /// Symlinks are not followed. A folder that cannot be enumerated counts as blocked.
-    private func protectedDescendant(of folder: URL) -> URL? {
-        // A child that cannot be read may hold credentials, so the walk stops and
-        // the folder counts as blocked. Returning false from the handler ends the walk.
+    /// Most entries one descendant walk may visit. A larger tree is blocked rather
+    /// than walked without limit: 500,000 entries take a few seconds on this Mac.
+    static let maxDescendantEntries = 500_000
+
+    /// First descendant of `folder` that holds credential material, or nil. Returns
+    /// `folder` itself when the walk cannot finish: a child cannot be read, the
+    /// folder cannot be enumerated, or it has more than `maxDescendantEntries` entries.
+    /// Symlinks are not followed.
+    func firstProtectedDescendant(of folder: URL) -> URL? {
+        // A child that cannot be read may hold credentials. Returning false from the
+        // handler ends the walk, and the folder counts as blocked.
         let unreadable = UnreadableFlag()
         guard let walker = FileManager.default.enumerator(
             at: folder, includingPropertiesForKeys: nil, options: [],
@@ -315,8 +321,11 @@ public struct PathSafetyPolicy: Sendable {
         ) else {
             return folder
         }
-        for case let child as URL in walker where isCredentialEntry(child) {
-            return child
+        var visited = 0
+        for case let child as URL in walker {
+            visited += 1
+            if visited > Self.maxDescendantEntries { return folder }
+            if isCredentialEntry(child) { return child }
         }
         return unreadable.isSet ? folder : nil
     }
@@ -336,15 +345,23 @@ public struct PathSafetyPolicy: Sendable {
             || ext == "xcarchive" || Self.codingAgentMemoryDirectoryNames.contains(name) {
             return true
         }
-        return Self.privateKeyCandidateExtensions.contains(ext) && Self.holdsPrivateKey(url)
+        return Self.privateKeyCandidateExtensions.contains(ext) && Self.mayHoldPrivateKey(url)
     }
 
-    /// Reads only the first bytes of a key-like file.
-    private static func holdsPrivateKey(_ url: URL) -> Bool {
-        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+    /// Largest key-like file that is searched in full. A larger file counts as a key.
+    private static let keyInspectionLimit = 4 * 1024 * 1024
+
+    /// True when a key-like file is, or may be, a private key. A directory with a key
+    /// name (a Keynote package, for example) is not a key. A file that cannot be read
+    /// or is too large to search is treated as a key. Otherwise the whole file is
+    /// searched for the marker, so a certificate placed before the key is still seen.
+    private static func mayHoldPrivateKey(_ url: URL) -> Bool {
+        if (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true { return false }
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return true }
         defer { try? handle.close() }
-        let head = (try? handle.read(upToCount: 512)) ?? Data()
-        return (String(bytes: head, encoding: .ascii) ?? "").contains("PRIVATE KEY")
+        guard let data = try? handle.read(upToCount: keyInspectionLimit + 1) else { return true }
+        if data.count > keyInspectionLimit { return true }
+        return data.range(of: Data("PRIVATE KEY".utf8)) != nil
     }
 
     /// Never-delete folders in the home folder. Trashing a folder that holds

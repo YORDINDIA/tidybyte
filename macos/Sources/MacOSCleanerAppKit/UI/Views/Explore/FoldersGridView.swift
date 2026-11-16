@@ -70,6 +70,13 @@ struct FoldersGridView: View {
             drillIDs = []
             selectedID = nil
         }
+        // A filter or depth change can hide a drilled folder. Its id would then be unreachable.
+        .onChange(of: nameFilter) { _, _ in
+            drillIDs = []
+        }
+        .onChange(of: maxDepth) { _, _ in
+            drillIDs = []
+        }
     }
 
     private func breadcrumb(_ path: [ExploreGroup]) -> some View {

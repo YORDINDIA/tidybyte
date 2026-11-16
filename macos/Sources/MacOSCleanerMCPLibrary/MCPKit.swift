@@ -23,10 +23,12 @@ enum MCPError: Error, LocalizedError {
     /// rejected, never read as absent: a malformed filter must not widen the
     /// action to every item.
     case invalidArgument(String)
-    /// An undo that removes an artifact permanently (`removeItem`, not Trash).
+    /// An undo that moves an artifact to the Trash. Moving files is an app action.
     case undoRequiresApp
     /// A short operation id matches more than one recorded operation.
     case ambiguousOperationID(String)
+    /// A short action id matches more than one pending action, or none at all.
+    case ambiguousActionID(String)
 
     var errorDescription: String? {
         switch self {
@@ -52,10 +54,12 @@ enum MCPError: Error, LocalizedError {
         case .invalidArgument(let name):
             "Argument \(name) has the wrong type or an unknown value."
         case .undoRequiresApp:
-            "This undo removes an artifact permanently. It can only run in the Tidybyte app,"
+            "This undo moves an artifact to the Trash. It can only run in the Tidybyte app,"
                 + " never through MCP."
         case .ambiguousOperationID(let id):
             "Id \(id) matches more than one recorded operation. Nothing changed."
+        case .ambiguousActionID(let id):
+            "Id \(id) matches more than one pending action. Nothing changed."
         }
     }
 }
@@ -146,27 +150,39 @@ public actor MCPKit {
             return MCPResponse(Self.responsePayload(
                     id: id, result: ["tools": Self.toolDescriptions + MonitorToolRouter.toolDescriptions]))
         case "tools/call":
-            let params = request["params"] as? [String: Any] ?? [:]
-            let name = params["name"] as? String ?? ""
-            // MCP: an unknown tool is a protocol error (-32602), not a tool result.
-            guard MCPCleanupTool(rawValue: name) != nil || MonitorToolRouter.handles(name: name) else {
-                return MCPResponse(Self.errorPayload(id: id, code: -32602, message: "Unknown tool: \(name)."))
-            }
-            let arguments = params["arguments"] as? [String: Any] ?? [:]
-            do {
-                let text = try await callTool(name: name, arguments: arguments)
-                return MCPResponse(Self.responsePayload(id: id, result: [
-                    "content": [["type": "text", "text": text]],
-                    "isError": false
-                ]))
-            } catch {
-                return MCPResponse(Self.responsePayload(id: id, result: [
-                    "content": [["type": "text", "text": error.localizedDescription]],
-                    "isError": true
-                ]))
-            }
+            return await toolsCall(id: id, request: request)
         default:
             return MCPResponse(Self.errorPayload(id: id, code: -32601, message: "Method not found: \(method)"))
+        }
+    }
+
+    /// tools/call: unknown tools are protocol errors, and tool failures are results.
+    private func toolsCall(id: Any, request: [String: Any]) async -> MCPResponse {
+        let params = request["params"] as? [String: Any] ?? [:]
+        let name = params["name"] as? String ?? ""
+        // MCP: an unknown tool is a protocol error (-32602), not a tool result.
+        guard MCPCleanupTool(rawValue: name) != nil || MonitorToolRouter.handles(name: name) else {
+            return MCPResponse(Self.errorPayload(id: id, code: -32602, message: "Unknown tool: \(name)."))
+        }
+        // A present arguments value that is not an object is refused, never read as {}.
+        if let raw = params["arguments"], !(raw is [String: Any]) {
+            return MCPResponse(Self.responsePayload(id: id, result: [
+                "content": [["type": "text", "text": "Argument arguments must be an object."]],
+                "isError": true
+            ]))
+        }
+        let arguments = params["arguments"] as? [String: Any] ?? [:]
+        do {
+            let text = try await callTool(name: name, arguments: arguments)
+            return MCPResponse(Self.responsePayload(id: id, result: [
+                "content": [["type": "text", "text": text]],
+                "isError": false
+            ]))
+        } catch {
+            return MCPResponse(Self.responsePayload(id: id, result: [
+                "content": [["type": "text", "text": error.localizedDescription]],
+                "isError": true
+            ]))
         }
     }
 
@@ -266,15 +282,30 @@ public actor MCPKit {
             hashed: scannedHash == nil ? nil : hashed, missing: missing, changed: changed)
     }
 
+    /// The open actions to run. Each requested id must name exactly one open action.
+    /// A prefix that matches none or several is refused, so it cannot widen the batch.
+    static func pendingActions(in plan: Plan, requestedIDs: [String]?) throws -> [PlannedAction] {
+        let open = plan.actions.filter { $0.userDecision == .undecided && $0.executedAt == nil }
+        guard let requestedIDs else { return open }
+        var pending: [PlannedAction] = []
+        for prefix in requestedIDs {
+            let matches = open.filter { $0.id.hasPrefix(prefix) }
+            guard let match = matches.first, matches.count == 1 else {
+                throw matches.isEmpty
+                    ? MCPError.unknownAction(prefix)
+                    : MCPError.ambiguousActionID(prefix)
+            }
+            if !pending.contains(where: { $0.id == match.id }) { pending.append(match) }
+        }
+        return pending
+    }
+
     private func toolExecute(_ arguments: [String: Any]) async throws -> String {
         let confirm = try Self.boolArgument(arguments, "confirm") ?? false
         let requestedIDs = try Self.validatedIDPrefixes(Self.stringArrayArgument(arguments, "action_ids"))
         guard let lastScan else { throw MCPError.noScan }
-        let pending = lastScan.plan.actions.filter { action in
-            action.userDecision == .undecided && action.executedAt == nil
-                && (requestedIDs == nil || requestedIDs?.contains(where: { action.id.hasPrefix($0) }) == true)
-        }
-        guard !pending.isEmpty else { throw MCPError.unknownAction(requestedIDs?.joined(separator: ", ") ?? "any") }
+        let pending = try Self.pendingActions(in: lastScan.plan, requestedIDs: requestedIDs)
+        guard !pending.isEmpty else { throw MCPError.unknownAction("any") }
 
         let targetBytes = pending.reduce(Int64(0)) { total, action in
             total + action.targets.reduce(Int64(0)) { sum, id in
@@ -365,12 +396,14 @@ public actor MCPKit {
             // History lists 8-character prefixes; resolve those against full ids.
             records = try await store.loadUndoRecords().filter { $0.operationLogID.hasPrefix(id) }
         }
-        let restorable = records.filter { $0.status == .available }
-        guard !restorable.isEmpty else { throw MCPError.nothingToUndo(id) }
-        // A short id that matches two operations must never restore both.
-        guard Set(restorable.map(\.operationLogID)).count == 1 else {
+        guard !records.isEmpty else { throw MCPError.nothingToUndo(id) }
+        // A short id that matches two operations must never restore both. Check
+        // every matching record, including ones no longer available.
+        guard Set(records.map(\.operationLogID)).count == 1 else {
             throw MCPError.ambiguousOperationID(id)
         }
+        let restorable = records.filter { $0.status == .available }
+        guard !restorable.isEmpty else { throw MCPError.nothingToUndo(id) }
         // Refuse the whole operation when any record is not agent-undoable, the
         // same way execute refuses a mixed batch. Checked before the dry run so
         // the agent is told up front that the app must do this.
@@ -564,10 +597,10 @@ extension MCPKit {
 
     // MARK: - Undo policy
 
-    /// Undo kinds an agent may run. `moveToTrash` undo sends an alias, symlink or
-    /// archive copy to the Trash. It stays in the app because it removes an
-    /// artifact the cleanup created, which needs a person to confirm. Every case
-    /// is listed with no `default`, so a new ActionType cannot pass unreviewed.
+    /// Undo kinds an agent may run. `moveToTrash` undo moves an alias, symlink or
+    /// archive copy to the Trash. It stays in the app because it moves a file the
+    /// cleanup created, which needs a person to confirm. Every case is listed
+    /// with no `default`, so a new ActionType cannot pass unreviewed.
     static func agentMayUndo(_ inverse: ActionType) -> Bool {
         switch inverse {
         case .restore, .move, .rename, .tag, .unfoldClone:

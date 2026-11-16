@@ -36,7 +36,7 @@ struct ScanSetupView: View {
                     // Saved on change, so Cancel cannot leave an unsaved value in Settings.
                     Toggle(String(localized: "Use configured AI provider"), isOn: $model.includeAI)
                         .disabled(model.providerSettings.privacyMode == .localOnly)
-                        .onChange(of: model.includeAI) { model.saveSettings() }
+                        .onChange(of: model.includeAI) { model.saveIncludeAI() }
                     Text(
                         model.includeAI
                             ? String(

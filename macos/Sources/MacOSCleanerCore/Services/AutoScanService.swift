@@ -222,7 +222,8 @@ public enum AutoScanRunner {
                 reclaimedBytes: summary.freedBytes
             )
             logger.info("Auto-scan finished: \(summary.foldCount) folds, \(summary.failureCount) failures")
-            return 0
+            // Per-action failures are recorded in the summary, not thrown, so the exit code reads them here.
+            return summary.failureCount > 0 ? 1 : 0
         } catch {
             logger.error("Auto-scan failed: \(error.localizedDescription, privacy: .public)")
             return 1

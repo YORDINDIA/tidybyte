@@ -235,8 +235,8 @@ public actor CleanerRuleEngine {
         let components = record.url.pathComponents
         // Case-insensitive cache detection to catch "cache", "Cache", "CACHE" variants
         let isCache = components.contains(where: { $0.lowercased() == "caches" || $0.lowercased() == ".cache" || $0.lowercased() == "cache" })
-        // A "Logs" folder in Documents can hold user files: only the macOS log folder and .log files count.
-        let isLog = record.fileExtension == "log" || record.url.path.contains("/Library/Logs/")
+        // A "Logs" folder in Documents can hold user files: only the macOS log folders and .log files count.
+        let isLog = record.fileExtension == "log" || Self.isMacOSLog(record.url)
         guard isCache || isLog else {
             return nil
         }
@@ -688,5 +688,18 @@ public actor CleanerRuleEngine {
             }
         }
         return Array(bestByKey.values)
+    }
+}
+
+extension CleanerRuleEngine {
+    /// True for `/Library/Logs`, `<home>/Library/Logs` and everything inside them,
+    /// including the folder record itself. A `Library/Logs` folder elsewhere does not match.
+    static func isMacOSLogPath(_ path: String, home: String) -> Bool {
+        ["/Library/Logs", home + "/Library/Logs"].contains { path == $0 || path.hasPrefix($0 + "/") }
+    }
+
+    static func isMacOSLog(_ url: URL) -> Bool {
+        let home = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path
+        return isMacOSLogPath(url.standardizedFileURL.path, home: home)
     }
 }

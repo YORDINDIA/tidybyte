@@ -288,27 +288,23 @@ public actor MonitoringEngine {
         guard lines.count > 1 else { return result }
         // Header-driven layout: time, process ("name.pid"), then byte
         // counters. Rate columns win when nettop emits them.
-        let header = lines[0].components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        let header = csvFields(lines[0])
         func column(_ candidates: [String]) -> Int? {
             candidates.compactMap { header.firstIndex(of: $0) }.first
         }
         let processIndex = column(["process"]) ?? 1
         let inIndex = column(["bytes_in_per_s", "bytes_in"]) ?? 2
         let outIndex = column(["bytes_out_per_s", "bytes_out"]) ?? 3
-        // Every column after the process name is numeric. Counting them from the
-        // end lets a process name that contains commas stay whole.
-        let trailing = max(0, header.count - processIndex - 1)
         for line in lines.dropFirst() {
-            let columns = line.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-            guard columns.count > processIndex + trailing, trailing > 0 else { continue }
-            let identifier = columns[processIndex..<(columns.count - trailing)].joined(separator: ",")
-            let tail = Array(columns.suffix(trailing))
-            let inOffset = inIndex - processIndex - 1
-            let outOffset = outIndex - processIndex - 1
-            guard tail.indices.contains(inOffset), tail.indices.contains(outOffset),
-                  let bytesIn = Double(tail[inOffset]), let bytesOut = Double(tail[outOffset]) else {
-                continue
-            }
+            let fields = csvFields(line)
+            // A row with more fields than the header has an unquoted comma inside
+            // the process name. The extra fields belong to that name, so the
+            // numeric columns sit that many places further right.
+            let extra = fields.count - header.count
+            guard extra >= 0, processIndex + extra < fields.count else { continue }
+            func field(_ column: Int) -> String { fields[column + extra] }
+            guard let bytesIn = Double(field(inIndex)), let bytesOut = Double(field(outIndex)) else { continue }
+            let identifier = fields[processIndex...(processIndex + extra)].joined(separator: ",")
             // "Safari.123" → name "Safari", pid 123; a name that does not end
             // in a numeric pid stays whole.
             var name = identifier
@@ -326,6 +322,42 @@ public actor MonitoringEngine {
                     downloadPerSecond: bytesIn, uploadPerSecond: bytesOut))
         }
         return result
+    }
+
+    /// Splits one CSV line. A field in double quotes may contain commas, and a
+    /// doubled quote inside one is a literal quote. The quotes themselves are
+    /// removed, so a quoted "Acme,Ltd.123" reaches the caller as Acme,Ltd.123.
+    static func csvFields(_ line: String) -> [String] {
+        var fields: [String] = []
+        var current = ""
+        var inQuotes = false
+        let characters = Array(line)
+        var index = 0
+        while index < characters.count {
+            let character = characters[index]
+            if inQuotes {
+                if character == "\"" {
+                    if index + 1 < characters.count, characters[index + 1] == "\"" {
+                        current.append("\"")
+                        index += 1
+                    } else {
+                        inQuotes = false
+                    }
+                } else {
+                    current.append(character)
+                }
+            } else if character == "\"" {
+                inQuotes = true
+            } else if character == "," {
+                fields.append(current)
+                current = ""
+            } else {
+                current.append(character)
+            }
+            index += 1
+        }
+        fields.append(current)
+        return fields.map { $0.trimmingCharacters(in: .whitespaces) }
     }
 
     private func refreshDevServers(processes: [ProcessSample]) async {

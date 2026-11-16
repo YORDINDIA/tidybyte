@@ -347,6 +347,10 @@ public actor MoCleanScanner {
         url.lastPathComponent.lowercased() == "caches"
     }
 
+    static func isDockerContainerRoot(_ rootPath: String) -> Bool {
+        rootPath.hasSuffix("/Containers/com.docker.docker")
+    }
+
     /// Roots that are never proposed for trashing, even inside a cache section.
     /// Xcode Archives hold dSYMs for shipped builds; the Bun folder is a global
     /// package store. Both are surfaced as inspect-only findings.
@@ -778,6 +782,11 @@ public actor MoCleanScanner {
     }
 
     private func reason(for section: SystemCleanSection, rootPath: String, reviewOnly: Bool = false) -> String {
+        if reviewOnly, Self.isDockerContainerRoot(rootPath) {
+            return String(
+                localized: "Review only: Docker's virtual machine disk. Trashing it deletes every image, container and volume.",
+                comment: "Mo clean review-only reason for the Docker VM disk")
+        }
         if reviewOnly {
             let message = String(
                 localized: """

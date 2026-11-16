@@ -548,9 +548,9 @@ public actor PlannerAgent {
 /// their own type.
 private func canBecomeTrash(_ actionType: ActionType) -> Bool {
     switch actionType {
-    case .tag, .archive, .createAlias, .createSymlink, .move:
+    case .tag, .archive, .createAlias, .createSymlink, .move, .rename:
         true
-    case .moveToTrash, .inspectOnly, .cloneDeduplicate, .restore, .rename, .unfoldClone,
+    case .moveToTrash, .inspectOnly, .cloneDeduplicate, .restore, .unfoldClone,
          .offloadLocalCopy, .runProviderCleanup, .runPackageManagerCleanup:
         false
     }

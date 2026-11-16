@@ -37,6 +37,11 @@ extension AppViewModel {
         }
     }
 
+    /// The default export name. ISO dates: the numeric style contains "/" in en_US, which is not a valid file name.
+    static func databaseExportFileName(on date: Date) -> String {
+        "MacOSCleaner-\(date.formatted(.iso8601.year().month().day())).sqlite"
+    }
+
     func exportDatabase() async {
         guard !isScanning, !isExecuting else {
             errorMessage = String(localized: "Cannot export while a scan or execution is in progress.")
@@ -44,7 +49,7 @@ extension AppViewModel {
         }
         do {
             let panel = NSSavePanel()
-            panel.nameFieldStringValue = "MacOSCleaner-\(Date().formatted(date: .numeric, time: .omitted)).sqlite"
+            panel.nameFieldStringValue = Self.databaseExportFileName(on: Date())
             panel.allowedContentTypes = [.data]
             guard let window = NSApp.mainWindow ?? NSApp.windows.first(where: \.isVisible) else {
                 errorMessage = String(localized: "The database could not be exported: no window is available to attach the save panel to.")

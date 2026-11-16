@@ -139,14 +139,20 @@ final class ExploreTreeMemo {
     private var value: [ExploreGroup] = []
 
     func groups(files: [FileRecord], grouping: ExploreGrouping, maxDepth: Int, nameFilter: String) -> [ExploreGroup] {
+        let build = {
+            ExploreTreeBuilder.build(
+                files: ExploreTreeBuilder.filteredFiles(files, nameFilter: nameFilter),
+                grouping: grouping,
+                maxDepth: maxDepth
+            )
+        }
+        // By Age buckets files against the current time, which the key does not cover.
+        // Rebuild it every time so the buckets do not freeze while the canvas is open.
+        guard grouping != .byAge else { return build() }
         let next = Key(token: ExploreFilesToken(files), grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
         if next == key { return value }
         key = next
-        value = ExploreTreeBuilder.build(
-            files: ExploreTreeBuilder.filteredFiles(files, nameFilter: nameFilter),
-            grouping: grouping,
-            maxDepth: maxDepth
-        )
+        value = build()
         return value
     }
 }

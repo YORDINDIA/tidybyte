@@ -256,7 +256,8 @@ extension ProcessProbe {
     /// predecessor's totals. Start times are the kernel's exact p_start values.
     static func tickRates(previous: ProcessUsageCounters?, current: ProcessUsageCounters, interval: TimeInterval)
         -> UsageRates? {
-        guard let previous, previous.startedAt == current.startedAt else { return nil }
+        // Both start times must be known. Two unknown starts are not evidence of the same process.
+        guard let previous, let start = current.startedAt, previous.startedAt == start else { return nil }
         return rates(from: previous, to: current, interval: interval)
     }
 }

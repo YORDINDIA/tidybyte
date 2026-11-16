@@ -133,6 +133,7 @@ public actor ScanOrchestrator {
         let permissions = await permissionManager.permissionsSnapshot(for: roots, mode: mode)
         var session = ScanSession(scanType: mode, rootURLs: roots, permissionsSnapshot: permissions)
         session.ownerProcessID = getpid()
+        session.ownerProcessStart = SQLiteStore.processStartTime(of: getpid())
         try await store.saveScanSession(session)
 
         for volume in await permissionManager.mountedVolumes() {
@@ -517,6 +518,7 @@ public actor ScanOrchestrator {
                 localized: "The scan finished, but its status could not be saved. Results stay available until you quit.",
                 comment: "Scan notice when the final session status write fails")))
         }
+        session.notices = notices
         if persistRecords {
             // The five auxiliary loaders filter by session, so their bulk
             // saves must carry the session id explicitly.

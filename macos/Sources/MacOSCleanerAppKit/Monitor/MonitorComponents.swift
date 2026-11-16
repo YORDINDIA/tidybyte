@@ -287,6 +287,20 @@ extension View {
 
 /// Full history chart with an average/peak area, used on every metric tab.
 struct HistoryChartView: View {
+    /// "Average 42%, peak 80%, 120 readings" for VoiceOver.
+    static func summary(_ points: [MetricsHistoryStore.SeriesPoint], unit: UsageMetric) -> String {
+        guard !points.isEmpty else { return String(localized: "No readings yet", comment: "Chart summary with no data") }
+        let average = points.reduce(0.0) { $0 + $1.average } / Double(points.count)
+        let peak = points.map { $0.peak ?? $0.average }.max() ?? average
+        return String(
+            localized: """
+            Average \(MetricFormatting.value(average, metric: unit)), \
+            peak \(MetricFormatting.value(peak, metric: unit)), \
+            \(points.count) readings
+            """,
+            comment: "History chart summary for VoiceOver")
+    }
+
     let points: [MetricsHistoryStore.SeriesPoint]
     let tint: Color
     let unit: UsageMetric
@@ -322,7 +336,10 @@ struct HistoryChartView: View {
             }
         }
         .frame(minHeight: 180)
-        .accessibilityElement(children: .ignore)
+        // .contain keeps the chart's own elements in the accessibility tree. The
+        // value gives VoiceOver the plotted numbers in one sentence.
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(String(localized: "\(unit.monitorTitle) history chart", comment: "History chart label"))
+        .accessibilityValue(Self.summary(points, unit: unit))
     }
 }

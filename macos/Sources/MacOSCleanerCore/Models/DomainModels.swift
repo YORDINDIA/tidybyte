@@ -354,6 +354,9 @@ public struct ScanSession: Codable, Identifiable, Sendable {
     /// Process that owns a running scan. A running row whose owner has exited
     /// is abandoned. Nil on rows written before this field existed.
     public var ownerProcessID: Int32?
+    /// Start time of the owner process (microseconds since the epoch). A PID the OS
+    /// reuses for another process has a different start time, so the owner is gone.
+    public var ownerProcessStart: Int64?
 
     public init(
         id: String = UUID().uuidString,

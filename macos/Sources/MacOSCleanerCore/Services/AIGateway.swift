@@ -199,8 +199,11 @@ public actor AIGateway {
                     }
                     // A provider may echo the request back. Remove the key before the body
                     // reaches an error message, a scan notice or the log.
-                    let body = String(data: data, encoding: .utf8) ?? "(no body)"
-                    let truncatedBody = String(body.replacingOccurrences(of: apiKey, with: "[redacted]").prefix(200))
+                    // Only 200 characters are kept. The window is wider than that by the key's
+                    // length (at most four bytes per character), so a key that starts inside the
+                    // kept text is removed whole, and the rest of a large body is never decoded.
+                    let head = ProcessRunner.readableText(Data(data.prefix(4 * (200 + apiKey.count))))
+                    let truncatedBody = String(head.replacingOccurrences(of: apiKey, with: "[redacted]").prefix(200))
                     throw AIGatewayError.invalidResponse(statusCode: statusCode, body: truncatedBody)
                 }
                 let envelope = try decoder.decode(ChatCompletionEnvelope.self, from: data)

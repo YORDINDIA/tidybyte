@@ -38,13 +38,16 @@ public actor MediaAnalysisService {
                     } else if let url = item.url, hashCandidates.contains(item.id) {
                         // The key carries inode and status-change time too: a replaced file
                         // with the same size and a restored mtime must not reuse the digest.
-                        let stamp = DuplicateDetector.changeStamp(of: url)
-                        let identity = stamp.map { "\($0.inode)|\($0.changedAt.timeIntervalSince1970)" } ?? "none"
-                        let key = "hash:" + item.reviewKey + "|" + identity
-                        let cached = try await store.loadCleanupState(String.self, key: key)
-                        let digest = try cached ?? FingerprintService.fullHash(for: url)
-                        try await store.saveCleanupState(digest, key: key)
-                        digests[item.id] = digest
+                        // Without a stamp the digest is computed and not cached.
+                        if let stamp = DuplicateDetector.changeStamp(of: url) {
+                            let key = "hash:" + item.reviewKey + "|\(stamp.inode)|\(stamp.changedAtNanoseconds)"
+                            let cached = try await store.loadCleanupState(String.self, key: key)
+                            let digest = try cached ?? FingerprintService.fullHash(for: url)
+                            try await store.saveCleanupState(digest, key: key)
+                            digests[item.id] = digest
+                        } else {
+                            digests[item.id] = try FingerprintService.fullHash(for: url)
+                        }
                     }
                     if item.kind == .image {
                         let measured = try await measure(item, settings: settings)

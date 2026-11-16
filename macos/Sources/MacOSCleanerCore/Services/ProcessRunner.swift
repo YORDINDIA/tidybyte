@@ -69,11 +69,17 @@ enum ProcessRunner {
                 try? await Task.sleep(for: .seconds(timeout))
                 guard handle.process.isRunning else { return }
                 handle.markTimedOut()
+                let pid = handle.process.processIdentifier
+                // Forked workers are not children of the launched process once it
+                // exits, so the tree is captured and killed before the launched process
+                // is signalled. Otherwise a worker can outlive `run`.
+                let workers = Self.descendantPIDs(of: pid)
+                for worker in workers { kill(worker, SIGKILL) }
                 handle.process.terminate()
                 // A child that ignores SIGTERM would keep the continuation parked forever.
                 try? await Task.sleep(for: .seconds(5))
                 if handle.process.isRunning {
-                    kill(handle.process.processIdentifier, SIGKILL)
+                    kill(pid, SIGKILL)
                 }
             }
         }
@@ -95,12 +101,35 @@ enum ProcessRunner {
         return await collectDrains(drains, didTimeOut: handle.didTimeOut, exitCode: exitCode, timeout: timeout)
     }
 
-    /// UTF-8 text when the bytes are valid. Otherwise the ASCII bytes, so the readable
-    /// parts survive instead of the whole output becoming an empty string.
+    /// Text with valid UTF-8 kept intact. Each invalid byte sequence becomes U+FFFD,
+    /// so a bad byte never empties the whole output.
     static func readableText(_ data: Data) -> String {
-        String(bytes: data, encoding: .utf8)
-            ?? String(bytes: data.filter { $0 < 0x80 }, encoding: .ascii)
-            ?? ""
+        // The lossy decode is the point here, so the failable initializer is not wanted.
+        // swiftlint:disable:next optional_data_string_conversion
+        String(decoding: data, as: UTF8.self)
+    }
+
+    /// Every process below `pid`, found breadth-first through parent links.
+    static func descendantPIDs(of pid: pid_t) -> [pid_t] {
+        var found: [pid_t] = []
+        var pending: [pid_t] = [pid]
+        while let parent = pending.popLast() {
+            let children = childPIDs(of: parent)
+            found += children
+            pending += children
+        }
+        return found
+    }
+
+    /// Direct children of `pid`, from libproc. Empty when none are listed or the call fails.
+    static func childPIDs(of pid: pid_t) -> [pid_t] {
+        let capacity = 256
+        var buffer = [pid_t](repeating: 0, count: capacity)
+        let returned = proc_listchildpids(pid, &buffer, Int32(capacity * MemoryLayout<pid_t>.size))
+        guard returned > 0 else { return [] }
+        // proc_listchildpids returns the number of pids, not a byte count.
+        let count = min(Int(returned), capacity)
+        return buffer.prefix(count).filter { $0 > 0 }
     }
 
     /// Bounded post-exit drain collection: a forked grandchild can inherit the

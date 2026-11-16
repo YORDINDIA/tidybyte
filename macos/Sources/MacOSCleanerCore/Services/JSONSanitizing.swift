@@ -25,13 +25,33 @@ public enum JSONSanitizing {
 
     /// Integers pass through. Floating-point values pass through when finite.
     private static func sanitizedNumber(_ value: Any) -> Any? {
+        sanitizedSignedInteger(value) ?? sanitizedUnsignedInteger(value) ?? sanitizedFloatingPoint(value)
+    }
+
+    private static func sanitizedSignedInteger(_ value: Any) -> Any? {
         switch value {
         case let int as Int: return int
         case let int64 as Int64: return int64
         case let int32 as Int32: return int32
+        case let int16 as Int16: return int16
+        case let int8 as Int8: return int8
+        default: return nil
+        }
+    }
+
+    private static func sanitizedUnsignedInteger(_ value: Any) -> Any? {
+        switch value {
         case let uint as UInt: return uint
-        case let uint32 as UInt32: return uint32
         case let uint64 as UInt64: return uint64
+        case let uint32 as UInt32: return uint32
+        case let uint16 as UInt16: return uint16
+        case let uint8 as UInt8: return uint8
+        default: return nil
+        }
+    }
+
+    private static func sanitizedFloatingPoint(_ value: Any) -> Any? {
+        switch value {
         case let double as Double: return finite(double)
         case let float as Float: return finite(float)
         default: return nil

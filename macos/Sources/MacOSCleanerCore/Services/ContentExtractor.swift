@@ -88,7 +88,7 @@ public actor ContentExtractor {
     ) async -> (textPreview: String?, ocrText: String?, language: String?, topics: [String], imageLabels: [String], videoLabels: [String]) {
         // Files named like credentials are never read, even in the snippet modes.
         guard case .allow = policy.decide(target: file.url, isDirectory: file.kind == .directory),
-              !Self.isCredentialLike(file.fileName) else {
+              !Self.isCredentialLike(file.url) else {
             return (nil, nil, nil, ["protected"], [], [])
         }
 
@@ -171,13 +171,20 @@ public actor ContentExtractor {
         return Self.textIfPrintable(String(data: data.prefix(validLength), encoding: .utf8))
     }
 
+    /// Name fragments that mark a file as credential material. Separators are
+    /// dropped before matching, so "api-key", "api_key" and "apikey" all count.
     private static let credentialNameHints = [
-        "password", "passwd", "secret", "credential", "token", "api_key", "apikey", "private_key", "keychain", ".env"
+        "password", "passwd", "secret", "credential", "token", "apikey", "privatekey", "keychain", ".env"
     ]
 
-    private static func isCredentialLike(_ fileName: String) -> Bool {
-        let lowered = fileName.lowercased()
-        return credentialNameHints.contains { lowered.contains($0) }
+    /// Folder names that mark everything inside them as credential material.
+    private static let credentialFolderNames: Set<String> = ["secrets", "credentials", "secret", "credential"]
+
+    /// True when the file name or any enclosing folder name looks like credential material.
+    static func isCredentialLike(_ url: URL) -> Bool {
+        let name = url.lastPathComponent.lowercased().filter { $0 != "-" && $0 != "_" && $0 != " " }
+        if credentialNameHints.contains(where: { name.contains($0) }) { return true }
+        return url.pathComponents.dropLast().contains { credentialFolderNames.contains($0.lowercased()) }
     }
 
     /// Trimmed text, or nil when the decoded content holds NUL or other control

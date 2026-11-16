@@ -111,6 +111,9 @@ struct ContentView: View {
             }
         }
         .task {
+            // Errors raised before this window appeared (for example the bootstrap database fallback) are not announced
+            // by onChange, so announce them once here.
+            if let message = model.errorMessage { AccessibilityNotification.Announcement(message).post() }
             await model.cleanup.load()
             await model.loadUndoHistory()
             await model.restoreLastSession()

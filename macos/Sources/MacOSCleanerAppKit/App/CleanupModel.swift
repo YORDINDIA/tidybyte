@@ -25,11 +25,13 @@ final class CleanupModel {
     var settings = CleanupSettings() {
         didSet {
             guard !suppressSettingsSave, settings != oldValue else { return }
-            Task { await saveSettings() }
+            scheduleSettingsSave()
         }
     }
     /// Set while the stored settings are read or cleared, so loading does not write them back.
     var suppressSettingsSave = false
+    /// The latest pending settings save. Clear All Data cancels and awaits it before the store is wiped.
+    var settingsSaveTask: Task<Void, Never>?
     var result: AnalysisResult?
     var session: ReviewSession?
     var reviewed: [String: ReviewChoice] = [:]
@@ -194,14 +196,14 @@ final class CleanupModel {
                 if analyzed.isFresh { try await store.saveCleanupSnapshot(snapshot) }
                 try await reloadHistory()
                 startMonitoring()
-                await refreshReminderAfterScan()
+                await refreshReminder()
             } catch is CancellationError { result?.isFresh = false } catch { surfaceError(error) }
         }
     }
 
-    /// The scan itself succeeded; a denied reminder permission must not turn it
-    /// into a failed scan, so the reminder error becomes a notice.
-    private func refreshReminderAfterScan() async {
+    /// A denied reminder permission must not turn a scan or a settings change into a failure,
+    /// so the reminder error becomes a notice.
+    func refreshReminder() async {
         do { try await updateReminder() } catch { notice = error.localizedDescription }
     }
 

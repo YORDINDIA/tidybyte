@@ -56,7 +56,7 @@ final class MacAppScanTests: XCTestCase {
 
     private struct Timeout: Error {}
 
-    private func makeModel() throws -> (model: AppViewModel, store: SQLiteStore) {
+    private func makeModel(defaults: UserDefaults? = nil) throws -> (model: AppViewModel, store: SQLiteStore) {
         let store = try SQLiteStore.inMemory()
         let memory = MemoryEngine(store: store)
         let model = AppViewModel(
@@ -65,17 +65,24 @@ final class MacAppScanTests: XCTestCase {
             executor: TestFixtures.makeExecutor(store: store),
             undoService: UndoManagerService(store: store, memory: memory),
             reportGenerator: ReportGenerator(store: store), notifications: NotificationScheduler(),
-            planner: PlannerAgent(), defaults: makeIsolatedDefaults())
+            planner: PlannerAgent(), defaults: defaults ?? makeIsolatedDefaults())
         return (model, store)
     }
 
     /// Scans a two-file folder for real, so the model has a plan and file records.
-    private func scanFixture(_ model: AppViewModel) async throws {
+    /// Scans a small folder. `withCache` adds a cache folder, which the safe-caches command can plan.
+    private func scanFixture(_ model: AppViewModel, withCache: Bool = false) async throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("MacAppScan-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         try Data("fixture-one".utf8).write(to: root.appendingPathComponent("one.txt"))
         try Data("fixture-two".utf8).write(to: root.appendingPathComponent("two.txt"))
+        if withCache {
+            let cache = root.appendingPathComponent("Caches/App", isDirectory: true)
+            try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: true)
+            try Data(repeating: 1, count: 2_000_000).write(to: cache.appendingPathComponent("cache.bin"))
+        }
         model.selectedMode = .selectedFolders
         model.selectedFolders = [root]
         model.runScan()
@@ -131,12 +138,14 @@ final class MacAppScanTests: XCTestCase {
 
     func testNaturalLanguagePlanIsPersisted() async throws {
         let (model, store) = try makeModel()
-        try await scanFixture(model)
+        try await scanFixture(model, withCache: true)
         model.naturalLanguageCommand = "safe caches"
         let applied = await model.applyNaturalLanguageCommand()
         XCTAssertTrue(applied)
+        let inMemory = try XCTUnwrap(model.plan?.actions.map(\.id))
+        XCTAssertFalse(inMemory.isEmpty, "The cache fixture must yield a planned action, or this test proves nothing")
         let saved = try await persistedPlan(store, model)
-        XCTAssertEqual(saved?.actions.map(\.id), model.plan?.actions.map(\.id))
+        XCTAssertEqual(saved?.actions.map(\.id), inMemory)
     }
 
     func testStorageTimelineClearsItsLoadingFlag() async throws {
@@ -203,5 +212,42 @@ final class MacAppScanTests: XCTestCase {
         try await Task.sleep(nanoseconds: 300_000_000)
         let reread = try await store.loadCleanupState(CleanupSettings.self, key: "settings")
         XCTAssertEqual(reread?.blurSensitivity, 1)
+    }
+
+    /// Toggling the scan sheet's AI flag saves only that flag, so Cancel cannot keep other edits.
+    func testScanSheetAIToggleSavesOnlyTheAIFlag() throws {
+        let defaults = makeIsolatedDefaults()
+        let (model, _) = try makeModel(defaults: defaults)
+        model.cleanupPosture = .aggressive
+        model.includeAI = true
+        model.saveIncludeAI()
+        XCTAssertTrue(defaults.bool(forKey: "includeAI"))
+        XCTAssertNil(defaults.string(forKey: "cleanupPosture"), "Posture was not saved, so Cancel must not persist it")
+    }
+
+    /// The default export name must be a valid file name: the numeric date style puts "/" in it for en_US.
+    func testDatabaseExportFileNameIsAValidISODate() {
+        let name = AppViewModel.databaseExportFileName(on: Date(timeIntervalSince1970: 1_700_000_000))
+        XCTAssertFalse(name.contains("/"))
+        XCTAssertNotNil(name.range(of: #"^MacOSCleaner-\d{4}-\d{2}-\d{2}\.sqlite$"#, options: .regularExpression))
+    }
+
+    /// Clear All Data must not be undone by a settings save that was still pending.
+    func testClearAllDataIsNotUndoneByAPendingSettingsSave() async throws {
+        let (model, store) = try makeModel()
+        model.cleanup.settings.blurSensitivity = 2
+        await model.clearAllData()
+        try await Task.sleep(nanoseconds: 300_000_000)
+        let stored = try await store.loadCleanupState(CleanupSettings.self, key: "settings")
+        XCTAssertNil(stored, "A settings save that ran after the wipe would bring the old value back")
+    }
+
+    /// Overlapping timeline loads share one flag. It clears only when the last load ends.
+    func testOverlappingTimelineLoadsEndWithTheFlagCleared() async throws {
+        let (model, _) = try makeModel()
+        async let first: Void = model.loadStorageTimeline()
+        async let second: Void = model.loadStorageTimeline()
+        _ = await (first, second)
+        XCTAssertFalse(model.isLoadingTimeline)
     }
 }

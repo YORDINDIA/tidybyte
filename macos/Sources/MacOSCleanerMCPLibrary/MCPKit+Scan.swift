@@ -5,11 +5,12 @@ extension MCPKit {
     func toolScan(_ arguments: [String: Any]) async throws -> String {
         // A string or an empty path would widen the scan (an empty path is the
         // working directory), so both are rejected instead of ignored.
+        // Relative paths such as "." resolve against the server's working directory,
+        // so each path must be absolute after tilde expansion.
         let rawPaths = try Self.stringArrayArgument(arguments, "paths") ?? []
-        guard rawPaths.allSatisfy({ !$0.isEmpty }) else { throw MCPError.invalidArgument("paths") }
-        let paths = rawPaths.map {
-            URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath)
-        }
+        let expanded = rawPaths.map { ($0 as NSString).expandingTildeInPath }
+        guard expanded.allSatisfy({ $0.hasPrefix("/") }) else { throw MCPError.invalidArgument("paths") }
+        let paths = expanded.map { URL(fileURLWithPath: $0) }
         let strategyName = try Self.stringArgument(arguments, "duplicate_strategy")
         guard strategyName == nil || strategyName == "apfs_clone" || strategyName == "move_to_trash" else {
             throw MCPError.invalidArgument("duplicate_strategy")

@@ -49,7 +49,8 @@ extension ExploreTreeBuilder {
             var node = root
             var pathSoFar = commonPath
             for folder in folders {
-                pathSoFar += "/" + folder
+                // A root-level common path is "/", so plain concatenation would make "//folder".
+                pathSoFar = pathSoFar.hasSuffix("/") ? pathSoFar + folder : pathSoFar + "/" + folder
                 if node.children[folder] == nil {
                     node.children[folder] = FolderTrieNode(name: folder, path: pathSoFar)
                 }
@@ -86,7 +87,10 @@ extension ExploreTreeBuilder {
             convertNode(node, paletteIndex: paletteBase + index)
         }
         let remainder = nodes.dropFirst(kept.count)
-        if !remainder.isEmpty || loose.bytes > 0 {
+        // Zero-byte loose files still count, so they need an "Other" row too.
+        // `loose.count` is an Int field of a tuple, not a collection.
+        // swiftlint:disable:next empty_count
+        if !remainder.isEmpty || loose.bytes > 0 || loose.count > 0 {
             let bytes = remainder.reduce(loose.bytes) { $0 + $1.bytes }
             let count = remainder.reduce(loose.count) { $0 + $1.fileCount }
             groups.append(ExploreGroup(

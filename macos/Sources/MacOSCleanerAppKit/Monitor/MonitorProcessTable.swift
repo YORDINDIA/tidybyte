@@ -95,6 +95,10 @@ struct ProcessTableView: View {
                 table(groups, tier: .full, cpuMaximum: cpuMaximum, memoryMaximum: memoryMaximum)
                 table(groups, tier: .medium, cpuMaximum: cpuMaximum, memoryMaximum: memoryMaximum)
                 table(groups, tier: .compact, cpuMaximum: cpuMaximum, memoryMaximum: memoryMaximum)
+                // Narrower than the compact tier: scroll sideways rather than clip.
+                ScrollView(.horizontal) {
+                    table(groups, tier: .compact, cpuMaximum: cpuMaximum, memoryMaximum: memoryMaximum)
+                }
             }
         }
         .sheet(item: $quitIntent) { intent in
@@ -264,8 +268,11 @@ struct ProcessTableView: View {
 
     /// Tells people why the list stops at the cap, and what to do about it.
     private func footer(shown: Int, total: Int) -> some View {
-        Text(String(
-            localized: "Showing \(shown) of \(total) apps. Search to narrow the list.",
+        let noun = model.groupingMode == .byProcess
+            ? String(localized: "processes", comment: "Row noun in process mode")
+            : String(localized: "apps", comment: "Row noun in app mode")
+        return Text(String(
+            localized: "Showing \(shown) of \(total) \(noun). Search to narrow the list.",
             comment: "Process table row cap footer"))
             .font(.caption)
             .foregroundStyle(.tertiary)
