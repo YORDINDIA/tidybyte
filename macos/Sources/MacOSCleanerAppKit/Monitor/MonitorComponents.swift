@@ -40,7 +40,8 @@ struct MetricTileView: View {
             }
         }
         .padding(Spacing.cardInternal)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        // Fill the grid row, so tiles beside a taller one keep the same height.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .monitorCard()
         // One tile reads as one VoiceOver result: title, value, context.
         .accessibilityElement(children: .combine)
@@ -66,11 +67,6 @@ struct SparklineView: View {
                 .interpolationMethod(.catmullRom)
                 .foregroundStyle(tint)
             }
-            AreaMark(
-                x: .value(Self.timeLabel, points.first?.0 ?? .now),
-                y: .value(Self.valueLabel, points.first?.1 ?? 0)
-            )
-            .foregroundStyle(.clear)
         }
         .chartYScale(domain: 0...(scale ?? max(1, points.map(\.1).max() ?? 1)))
         .chartXAxis(.hidden)
@@ -115,7 +111,7 @@ struct BusiestListView: View {
             onSelect?(group)
         } label: {
             HStack(spacing: Spacing.elementTight) {
-                MonitorAppIconView(bundlePath: group.bundlePath, name: group.name)
+                MonitorAppIconView(bundlePath: group.bundlePath)
                 Text(group.name)
                     .font(.callout)
                     .lineLimit(1)
@@ -149,7 +145,6 @@ struct BusiestListView: View {
 /// AppIconView used across the app.
 struct MonitorAppIconView: View {
     let bundlePath: String?
-    let name: String
 
     var body: some View {
         if let bundlePath {
@@ -201,7 +196,7 @@ enum MetricFormatting {
     static func value(_ raw: Double, metric: UsageMetric) -> String {
         switch metric {
         case .cpu: String(format: "%.1f%%", raw)
-        case .memory: byteCount(Int64(raw))
+        case .memory: byteCount(bytes(raw))
         case .disk: rate(raw)
         case .network: rate(raw)
         case .energy: energy(raw)
@@ -229,7 +224,21 @@ enum MetricFormatting {
     /// Byte rates honor the same units setting; the no-op localization wrapper
     /// is gone (it made the localized key a placeholder).
     static func rate(_ bytesPerSecond: Double) -> String {
-        byteCount(Int64(bytesPerSecond)) + "/s"
+        byteCount(bytes(bytesPerSecond)) + "/s"
+    }
+
+    /// Byte count from a reading. Int64(Double) traps on NaN and infinity, so a
+    /// non-finite or negative reading shows as 0 bytes instead of crashing the app.
+    static func bytes(_ value: Double) -> Int64 {
+        guard value.isFinite else { return 0 }
+        return Int64(min(max(value, 0), 9.0e18))
+    }
+
+    /// Whole number for display. Int(Double) traps on NaN and infinity, so a bad
+    /// reading shows as 0 instead.
+    static func whole(_ value: Double) -> Int {
+        guard value.isFinite else { return 0 }
+        return Int(min(max(value, -9.0e15), 9.0e15))
     }
 
     /// Energy index in vendor units, one decimal.
@@ -252,9 +261,9 @@ enum MetricFormatting {
     }
 
     /// Compact duration through the shared Core formatter ("2d 3h");
-    /// "—" for negative values, matching the previous nil fallback.
+    /// "-" for negative values, matching the previous nil fallback.
     static func duration(_ seconds: TimeInterval) -> String {
-        seconds >= 0 ? seconds.formattedDuration : "—"
+        seconds >= 0 ? seconds.formattedDuration : "-"
     }
 }
 
@@ -306,12 +315,14 @@ struct HistoryChartView: View {
                 AxisGridLine()
                 AxisValueLabel {
                     if let number = value.as(Double.self) {
-                        Text(MetricFormatting.value(number, metric: unit))
+                        Text(unit == .cpu ? String(format: "%.0f%%", number) : MetricFormatting.value(number, metric: unit))
                             .font(.caption2)
                     }
                 }
             }
         }
         .frame(minHeight: 180)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "\(unit.monitorTitle) history chart", comment: "History chart label"))
     }
 }

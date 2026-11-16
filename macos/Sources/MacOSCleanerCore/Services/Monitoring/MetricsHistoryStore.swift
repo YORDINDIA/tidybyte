@@ -16,6 +16,9 @@ public actor MetricsHistoryStore {
     /// Raw samples older than this are folded into hourly rollups.
     static let rawSampleWindow: TimeInterval = 48 * 3600
     public static let minimumRetentionDays = 7
+    /// Per-app rows grow with every distinct app name, so they are kept for at
+    /// most this long. The app-level views read only the recent hours.
+    public static let appRollupRetentionDays = 90
 
     public init(databaseURL: URL? = nil) throws {
         let base = databaseURL ?? Self.defaultLocation()
@@ -218,7 +221,9 @@ public actor MetricsHistoryStore {
         runWithParameter("DELETE FROM metric_samples WHERE timestamp < ?;", cutoff)
         runWithParameter("DELETE FROM app_samples WHERE timestamp < ?;", cutoff)
         runWithParameter("DELETE FROM metric_rollups WHERE hour < ?;", cutoff)
-        runWithParameter("DELETE FROM app_rollups WHERE hour < ?;", cutoff)
+        let appCutoff = max(cutoff, Date.now.addingTimeInterval(-Double(Self.appRollupRetentionDays) * 86400)
+            .timeIntervalSince1970)
+        runWithParameter("DELETE FROM app_rollups WHERE hour < ?;", appCutoff)
         exec("COMMIT")
     }
 

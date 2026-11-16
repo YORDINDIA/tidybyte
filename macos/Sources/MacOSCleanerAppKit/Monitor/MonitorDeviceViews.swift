@@ -25,6 +25,13 @@ struct SoundTabView: View {
                 }
                 outputControls(audio)
                 appActivityList(audio)
+            } else {
+                ContentUnavailableView(
+                    String(localized: "No sound readings"),
+                    systemImage: "speaker.slash",
+                    description: Text(String(
+                        localized: "Output and microphone status show up here once macOS reports them.",
+                        comment: "Sound empty state")))
             }
         }
     }
@@ -63,7 +70,7 @@ struct SoundTabView: View {
         }
         .padding(Spacing.cardInternal)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: Radius.card).fill(.background.secondary))
+        .monitorCard()
         .onChange(of: audio.outputVolume) { _, reading in
             volumeOverride = reading
         }
@@ -74,7 +81,7 @@ struct SoundTabView: View {
     ) -> some View {
         MetricTileView(
             title: title, icon: icon,
-            value: volume.map { MetricFormatting.percent($0) } ?? "—",
+            value: volume.map { MetricFormatting.percent($0) } ?? "-",
             unit: nil,
             context: [name, muted == true ? String(localized: "Muted", comment: "Audio muted") : nil, badge]
                 .compactMap { $0 }
@@ -100,7 +107,10 @@ struct SoundTabView: View {
                         Circle()
                             .fill(app.isMuted ? SemanticScale.success.opacity(0.4) : MonitorTab.sound.tint)
                             .frame(width: 8, height: 8)
-                        Text(app.processName).font(.callout)
+                        Text(app.processName)
+                            .font(.callout)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
                         Spacer()
                         if app.isMuted {
                             Label(String(localized: "Silent", comment: "Inaudible app"), systemImage: "speaker.slash")
@@ -121,7 +131,7 @@ struct SoundTabView: View {
             }
         }
         .padding(Spacing.cardInternal)
-        .background(RoundedRectangle(cornerRadius: Radius.card).fill(.background.secondary))
+        .monitorCard()
     }
 }
 
@@ -210,6 +220,8 @@ struct ProjectsTabView: View {
                                 }
                                 Text("\(server.processName) · :\(server.port.formatted(.number.grouping(.never)))")
                                     .font(.callout.monospacedDigit())
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
                                 Spacer()
                                 Text(MetricFormatting.value(server.cpuPercent, metric: .cpu))
                                     .font(.callout.monospacedDigit())
@@ -284,7 +296,7 @@ struct AgentsTabView: View {
     @ViewBuilder
     private func usageRow(_ usage: AgentUsageReading) -> some View {
         HStack {
-            Text(usage.planName).font(.caption.weight(.medium))
+            Text(usage.planName).font(.caption.weight(.medium)).lineLimit(1)
             if let fraction = usage.usedFraction {
                 ProgressBarView(fraction: fraction, tint: fraction > 0.85 ? SemanticScale.warning : MonitorTab.agents.tint)
                     .frame(maxWidth: 160)
@@ -363,7 +375,7 @@ struct ContainersTabView: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                         HStack {
-                            Label(container.memoryBytes.formattedByteCount, systemImage: "memorychip")
+                            Label(MetricFormatting.byteCount(container.memoryBytes), systemImage: "memorychip")
                             Spacer()
                             Label(MetricFormatting.value(container.cpuPercent, metric: .cpu), systemImage: "cpu")
                         }

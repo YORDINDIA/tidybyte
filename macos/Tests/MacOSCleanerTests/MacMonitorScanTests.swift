@@ -193,13 +193,16 @@ final class MacMonitorTimeUnitTests: XCTestCase {
         XCTAssertLessThan(abs(started.timeIntervalSinceNow), 3600, "start date \(started)")
     }
 
-    /// The mach start time must not drift by the sleep time, which the boot
-    /// date plus mach time did. The test process started seconds ago.
-    func testUsageReportStartDateIsWallClock() throws {
-        let report = try XCTUnwrap(LibProc.usageReport(pid: getpid()))
-        let started = try XCTUnwrap(report.startedAt)
-        XCTAssertLessThan(abs(started.timeIntervalSinceNow), 3600, "start date \(started)")
+    /// The start time read through PROC_PIDTBSDINFO (fixed offsets) must equal the
+    /// process table's p_starttime. This checks the offsets ProcessActions relies on.
+    func testBSDInfoStartTimeMatchesTheProcessTable() throws {
+        let entry = try XCTUnwrap(ProcessProbe.kernelProcessTable().first { pid_t($0.kp_proc.p_pid) == getpid() })
+        let live = try XCTUnwrap(LibProc.startTime(pid: getpid()))
+        XCTAssertEqual(live.seconds, Int64(entry.kp_proc.p_starttime.tv_sec))
+        XCTAssertEqual(live.microseconds, Int64(entry.kp_proc.p_starttime.tv_usec))
+        XCTAssertEqual(ProcessActions.liveStart(pid: getpid()), ProcessProbe.date(fromTimeInterval: entry.kp_proc.p_starttime))
     }
+
 }
 
 /// Signals reach only the process the user confirmed. The test signals a
@@ -212,7 +215,7 @@ final class MacMonitorProcessActionTests: XCTestCase {
         try child.run()
         defer { if child.isRunning { child.terminate() } }
         let pid = child.processIdentifier
-        let started = try XCTUnwrap(LibProc.usageReport(pid: pid)?.startedAt)
+        let started = try XCTUnwrap(ProcessActions.liveStart(pid: pid))
 
         // A reused pid has a different start time, so the signal must not go out.
         XCTAssertFalse(ProcessActions.quit(pid: pid, confirmedStart: started.addingTimeInterval(-600)))
@@ -224,5 +227,89 @@ final class MacMonitorProcessActionTests: XCTestCase {
         XCTAssertTrue(ProcessActions.quit(pid: pid, confirmedStart: started))
         child.waitUntilExit()
         XCTAssertFalse(child.isRunning)
+    }
+}
+
+/// Round 2 regression tests: pid reuse, the refresh gate, the two parsers, and
+/// history retention. History uses a temporary database, never the user's.
+final class MacMonitorRound2Tests: XCTestCase {
+    private func counters(start: Date?, cpu: Double) -> ProcessProbe.ProcessUsageCounters {
+        ProcessProbe.ProcessUsageCounters(
+            cpuTimeSeconds: cpu, diskReadBytes: 0, diskWrittenBytes: 0, wakeups: 0, energy: 0, startedAt: start)
+    }
+
+    /// MON-04: a reused pid must not diff against its predecessor's totals.
+    func testReusedPidYieldsNoRatesFromItsPredecessor() {
+        let first = Date(timeIntervalSince1970: 1_000)
+        let reused = Date(timeIntervalSince1970: 2_000)
+        let previous = counters(start: first, cpu: 10)
+        // The new process has a larger total, so a naive diff would show a spike.
+        XCTAssertNil(ProcessProbe.tickRates(previous: previous, current: counters(start: reused, cpu: 50), interval: 1))
+        // The same process still diffs: one CPU-second over one second is 100 percent.
+        let same = ProcessProbe.tickRates(previous: previous, current: counters(start: first, cpu: 11), interval: 1)
+        XCTAssertEqual(same?.cpuPercent ?? -1, 100, accuracy: 0.01)
+        XCTAssertNil(ProcessProbe.tickRates(previous: nil, current: counters(start: first, cpu: 11), interval: 1))
+    }
+
+    /// MON-07: one background refresh at a time.
+    func testRefreshGateAllowsOneRefreshAtATime() {
+        var gate = RefreshGate()
+        XCTAssertTrue(gate.begin())
+        XCTAssertFalse(gate.begin(), "a second refresh must wait for the first")
+        XCTAssertTrue(gate.isBusy)
+        gate.end()
+        XCTAssertTrue(gate.begin())
+    }
+
+    /// MON-10: an empty argument is kept, so later arguments do not shift.
+    func testArgumentParserKeepsEmptyArguments() {
+        var data = Data()
+        var argc = Int32(3)
+        withUnsafeBytes(of: &argc) { data.append(contentsOf: $0) }
+        data.append(Data("/usr/bin/tool".utf8))
+        data.append(contentsOf: [0, 0, 0])
+        for argument in ["tool", "", "last"] {
+            data.append(Data(argument.utf8))
+            data.append(0)
+        }
+        XCTAssertEqual(ProcessProbe.parseArguments(data), ["tool", "", "last"])
+    }
+
+    /// MON-11: a process name with a comma stays whole, and the numbers still line up.
+    func testNettopParserKeepsCommasInProcessNames() {
+        let parsed = MonitoringEngine.parseNettopCSV("""
+        time,process,bytes_in,bytes_out,bytes_in_per_s,bytes_out_per_s
+        2026-11-01 10:00:00,Acme,Ltd.123,4096,1024,512,128
+        """)
+        XCTAssertEqual(parsed.count, 1)
+        XCTAssertEqual(parsed.first?.name, "Acme,Ltd")
+        XCTAssertEqual(parsed.first?.pid, 123)
+        XCTAssertEqual(parsed.first?.downloadPerSecond, 512)
+        XCTAssertEqual(parsed.first?.uploadPerSecond, 128)
+    }
+
+    /// MON-13: per-app rows expire after 90 days; metric history keeps its retention.
+    func testPerAppHistoryExpiresBeforeMetricHistory() async throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MCP-History-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = try MetricsHistoryStore(databaseURL: dir.appendingPathComponent("history.sqlite"))
+        let old = Date().addingTimeInterval(-100 * 86_400)
+        let group = AppProcessGroup(
+            id: "app:fixture", name: "Fixture App", kind: .app, bundlePath: nil, bundleID: "com.example.fixture",
+            members: [ProcessSample(pid: 1, name: "Fixture App", cpuPercent: 40)])
+        await store.record(SystemSnapshot(timestamp: old, groups: [group]))
+        // A recent snapshot makes the next rollup pass fold the 100-day-old rows.
+        await store.record(SystemSnapshot(timestamp: Date(), groups: [group]))
+        let since = old.addingTimeInterval(-86_400)
+        await store.prune(olderThanDays: 365)
+        let metric = await store.series(metric: .cpu, from: since, to: Date())
+        XCTAssertFalse(metric.isEmpty, "metric history keeps its full retention")
+        // Before the prune the app series held two points: the 100-day-old rollup
+        // and today's raw row. Only today's row may remain.
+        let apps = await store.appSeries(metric: .cpu, appName: "Fixture App", from: since, to: Date())
+        XCTAssertEqual(apps.count, 1, "the 100-day-old app point must be gone")
+        XCTAssertGreaterThan(apps.first?.timestamp ?? .distantPast, Date().addingTimeInterval(-90 * 86_400))
     }
 }

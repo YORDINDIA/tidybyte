@@ -94,7 +94,7 @@ extension MonitorModel {
         guard let snapshot else { return metric.monitorTitle }
         switch metric {
         case .cpu:
-            return String(localized: "CPU \(Int(snapshot.cpu.usagePercent))%", comment: "Menu bar CPU")
+            return String(localized: "CPU \(MetricFormatting.whole(snapshot.cpu.usagePercent))%", comment: "Menu bar CPU")
         case .memory:
             return MetricFormatting.byteCount(snapshot.memory.usedBytes)
         case .network:
@@ -106,7 +106,7 @@ extension MonitorModel {
             return MetricFormatting.rate(snapshot.disk.readBytesPerSecond + snapshot.disk.writeBytesPerSecond)
         case .energy:
             let total = snapshot.groups.prefix(3).reduce(0.0) { $0 + $1.energyIndex }
-            return String(localized: "Energy \(Int(total))", comment: "Menu bar energy index")
+            return String(localized: "Energy \(MetricFormatting.whole(total))", comment: "Menu bar energy index")
         }
     }
 }
@@ -195,7 +195,7 @@ struct MonitorPanelView: View {
                         points: compact(model.livePoints(metric: .disk)))
                 }
                 BusiestListView(
-                    title: String(localized: "Busiest Right Now", comment: "Panel busiest heading"),
+                    title: String(localized: "Busiest right now", comment: "Panel busiest heading"),
                     groups: snapshot.busiest(metric: .cpu, limit: 5),
                     metric: .cpu,
                     onSelect: { group in
@@ -243,7 +243,7 @@ struct MonitorPanelView: View {
                 openWindow(id: "main")
                 NSApp.activate()
             } label: {
-                Label(String(localized: "Open Tidybyte", comment: "Panel action"), systemImage: "macwindow")
+                Label(String(localized: "Open", comment: "Panel action: open the main window"), systemImage: "macwindow")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)

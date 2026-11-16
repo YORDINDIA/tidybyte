@@ -46,7 +46,6 @@ enum LibProc {
         var pageIns: Int64
         var wakeups: Int64
         var energy: Double
-        var startedAt: Date?
     }
 
     /// Reads the per-pid usage report. Returns nil when the process is gone or
@@ -74,10 +73,7 @@ enum LibProc {
             wakeups: Int64(bitPattern: info.idleWakeups + info.interruptWakeups),
             // billedEnergy is already an energy reading in vendor units, not
             // a floating-point bit pattern; bit-casting it produced nonsense.
-            energy: Double(info.billedEnergy),
-            startedAt: date(
-                fromMachAbsTime: info.startAbsTime, timebase: timebase,
-                now: Date(), nowAbsTime: mach_absolute_time()))
+            energy: Double(info.billedEnergy))
     }
 
     /// Reads the task info block (thread count, page faults). Returns nil when
@@ -94,24 +90,32 @@ enum LibProc {
         return info
     }
 
+    /// PROC_PIDTBSDINFO and the size of struct proc_bsdinfo. The start time is
+    /// the last 16 bytes: pbi_start_tvsec at offset 120, pbi_start_tvusec at 128.
+    /// Tests check both offsets against the kernel process table.
+    static let procPIDTBSDInfo: Int32 = 3
+    static let bsdInfoSize = 136
+
+    /// The kernel start time of the live process at `pid`, or nil when it is gone
+    /// or not visible to this user. The same p_start value the process table carries.
+    static func startTime(pid: pid_t) -> (seconds: Int64, microseconds: Int64)? {
+        var raw = [UInt8](repeating: 0, count: bsdInfoSize)
+        let written = raw.withUnsafeMutableBytes { buffer in
+            procPIDInfo(pid, procPIDTBSDInfo, 0, buffer.baseAddress, Int32(bsdInfoSize))
+        }
+        guard written == Int32(bsdInfoSize) else { return nil }
+        return raw.withUnsafeBytes { bytes in
+            (seconds: Int64(bitPattern: bytes.loadUnaligned(fromByteOffset: 120, as: UInt64.self)),
+             microseconds: Int64(bitPattern: bytes.loadUnaligned(fromByteOffset: 128, as: UInt64.self)))
+        }
+    }
+
     static func machTimebase() -> (numer: UInt32, denom: UInt32) {
         var base = mach_timebase_info_data_t()
         mach_timebase_info(&base)
         return (base.numer, base.denom)
     }
 
-    /// Mach absolute time stops while the Mac sleeps, but boot time is wall
-    /// clock. Boot time plus mach time therefore drifted by every sleep (about
-    /// three days early on the test Mac). This measures the awake time since
-    /// the process started and subtracts it from the wall clock instead.
-    static func date(
-        fromMachAbsTime absTime: UInt64, timebase: (numer: UInt32, denom: UInt32),
-        now: Date, nowAbsTime: UInt64
-    ) -> Date? {
-        guard absTime > 0, absTime <= nowAbsTime else { return nil }
-        let awakeNanoseconds = Double(nowAbsTime - absTime) * Double(timebase.numer) / Double(timebase.denom)
-        return now.addingTimeInterval(-awakeNanoseconds / 1_000_000_000)
-    }
 }
 
 /// `struct rusage_info_v4` from the SDK, mirrored field for field. The uuid is

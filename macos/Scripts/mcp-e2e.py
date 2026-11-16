@@ -2,26 +2,32 @@
 """End-to-end test for the tidybyte-mcp server over stdio JSON-RPC.
 
 Builds a small duplicate fixture, drives the real server binary through the
-full agent flow — initialize, scan, inspect, mandatory dry-run, confirmed
-execute, history, confirmed undo — and verifies the on-disk effects of an
-APFS fold and its undo via inode/identity checks.
+full agent flow (initialize, scan, inspect, mandatory dry-run, confirmed
+execute, history, confirmed undo), and checks the on-disk effects of an APFS
+fold and its undo through inode identity.
+
+Containment. Every path the server sees is inside one fresh temporary
+directory (ROOT). The scan covers only ROOT/a and ROOT/b. HOME, TMPDIR and the
+history database also sit inside ROOT. A CANARY directory outside ROOT holds a
+byte-identical copy of the fixture; the run fails if the canary changes, and
+if anything appears under ROOT that the test did not create. Both directories
+are removed at the end.
 
 Usage: Scripts/mcp-e2e.py [path-to-tidybyte-mcp-binary]
 """
 
 import json
-import select
-
-REQUEST_TIMEOUT = 120.0  # seconds
 import os
+import re
+import select
 import shutil
-import stat
 import subprocess
 import sys
 import tempfile
 
-BINARY = sys.argv[1] if len(sys.argv) > 1 else ".build/debug/tidybyte-mcp"
+REQUEST_TIMEOUT = 120.0  # seconds
 OLD_TS = 1700000000  # any timestamp outside the fold's quiet period
+BINARY = sys.argv[1] if len(sys.argv) > 1 else ".build/debug/tidybyte-mcp"
 
 
 class MCPClient:
@@ -47,7 +53,7 @@ class MCPClient:
         ready, _, _ = select.select([self.proc.stdout], [], [], timeout)
         if not ready:
             self.proc.kill()
-            raise RuntimeError(f"server did not answer {timeout:.0f}s wait during a request")
+            raise RuntimeError(f"server sent no reply within {timeout:.0f} seconds")
         return self.proc.stdout.readline()
 
     def call(self, tool, arguments=None):
@@ -62,13 +68,43 @@ def identity(path):
     return (st.st_dev, st.st_ino)
 
 
+def tree(top):
+    """Every entry under top: relative path mapped to device, inode, size and mtime."""
+    entries = {}
+    for dirpath, dirnames, filenames in os.walk(top):
+        for name in dirnames + filenames:
+            path = os.path.join(dirpath, name)
+            st = os.lstat(path)
+            entries[os.path.relpath(path, top)] = (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns)
+    return entries
+
+
+def inside(root, path):
+    """True when path is root itself or lies below it."""
+    return path == root or path.startswith(root + os.sep)
+
+
 def main():
     if not os.path.exists(BINARY):
         print(f"FAIL: binary not found at {BINARY}; run swift build first")
         return 2
 
+    # Paths keep the tempfile spelling, which the server reports back in history.
+    # Containment checks compare resolved paths.
     root = tempfile.mkdtemp(prefix="mcp-e2e-")
+    canary = tempfile.mkdtemp(prefix="mcp-e2e-canary-")
+    temp_parent = os.path.realpath(tempfile.gettempdir())
+    root_real, canary_real = os.path.realpath(root), os.path.realpath(canary)
+    # Fail closed: both fresh directories must sit under the temp location,
+    # and neither may contain the other.
+    if not (inside(temp_parent, root_real) and inside(temp_parent, canary_real)) \
+            or inside(root_real, canary_real) or inside(canary_real, root_real):
+        print(f"FAIL: unsafe fixture layout root={root_real} canary={canary_real}")
+        return 2
+
     failures = []
+    proc = None
+    canary_before = None
 
     def check(name, condition, detail=""):
         status = "ok" if condition else "FAIL"
@@ -79,8 +115,10 @@ def main():
     try:
         a = os.path.join(root, "a")
         b = os.path.join(root, "b")
-        os.makedirs(a)
-        os.makedirs(b)
+        home = os.path.join(root, "home")
+        tmpdir = os.path.join(root, "tmp")
+        for directory in (a, b, home, tmpdir):
+            os.makedirs(directory)
         payload = os.urandom(200_000)
         first = os.path.join(a, "blob.bin")
         second = os.path.join(b, "blob.bin")
@@ -92,14 +130,25 @@ def main():
         before_first = identity(first)
         before_second = identity(second)
 
-        env = dict(os.environ)
+        # A byte-identical copy outside ROOT. A scan that reached it would fold it.
+        shutil.copyfile(first, os.path.join(canary, "blob.bin"))
+        canary_before = tree(canary)
+
         db_path = os.path.join(root, "mcp-e2e.sqlite")
-        env["TIDYBYTE_DB"] = db_path
+        env = {
+            "PATH": os.environ.get("PATH", ""),
+            "LANG": os.environ.get("LANG", "en_US.UTF-8"),
+            "HOME": home,
+            "TMPDIR": tmpdir,
+            "TIDYBYTE_DB": db_path,
+        }
         proc = subprocess.Popen(
             [BINARY], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            text=True, bufsize=1, env=env,
+            text=True, bufsize=1, env=env, cwd=root,
         )
         client = MCPClient(proc)
+        scan_paths = [a, b]
+        assert all(inside(root, p) for p in scan_paths), "scan paths must stay inside the fixture"
 
         init = client.request("initialize", {"protocolVersion": "2024-11-05"})
         check("initialize echoes protocol", init["result"]["protocolVersion"] == "2024-11-05")
@@ -111,7 +160,7 @@ def main():
                         "monitor_status", "monitor_top", "monitor_ports", "monitor_agents", "monitor_limits"],
               str(names))
 
-        is_error, text = client.call("scan", {"paths": [root]})
+        is_error, text = client.call("scan", {"paths": scan_paths})
         check("scan succeeds", not is_error, text)
 
         is_error, text = client.call("list_findings", {"query": "duplicate"})
@@ -142,9 +191,8 @@ def main():
         is_error, text = client.call("history")
         check("history lists the operation", not is_error and "clone" in text.lower(), text)
 
-        import re
-        # Match the operation that touched THIS run's fixture — earlier runs
-        # may have left records whose paths no longer exist.
+        # Match the operation that touched THIS run's fixture. Earlier runs may
+        # have left records whose paths no longer exist.
         match = re.search(rf"op \[([0-9a-fA-F-]+)\] unfoldClone {re.escape(duplicate)} ", text)
         check("history exposes an operation id", match is not None, text)
         if match:
@@ -161,11 +209,29 @@ def main():
             with open(duplicate, "rb") as f:
                 check("unfolded file keeps its contents", f.read() == payload)
     finally:
-        try:
-            proc.kill()
-        except Exception:
-            pass
+        if proc is not None:
+            try:
+                proc.kill()
+                proc.wait(timeout=10)
+            except Exception:
+                pass
+
+        # Containment checks. The canary must be untouched, and ROOT must hold
+        # only what the test made: the two fixture files, the database with its
+        # journal files, and the empty HOME and TMPDIR.
+        if os.path.isdir(canary):
+            check("canary outside the fixture is unchanged",
+                  canary_before is not None and tree(canary) == canary_before)
+        if os.path.isdir(root):
+            allowed = {"a/blob.bin", "b/blob.bin", "home", "tmp"}
+            stray = []
+            for rel in tree(root):
+                if rel in allowed or rel in ("a", "b") or rel.startswith("mcp-e2e.sqlite"):
+                    continue
+                stray.append(rel)
+            check("nothing outside the fixture layout was written", not stray, ", ".join(sorted(stray)))
         shutil.rmtree(root, ignore_errors=True)
+        shutil.rmtree(canary, ignore_errors=True)
 
     if failures:
         print(f"\nmcp-e2e: {len(failures)} check(s) failed: {failures}")

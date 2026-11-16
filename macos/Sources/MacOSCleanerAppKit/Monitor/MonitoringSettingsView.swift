@@ -18,6 +18,13 @@ struct MonitoringSettingsView: View {
     @AppStorage(MonitoringKeys.colorblindPalette) private var colorblindPalette = false
     @AppStorage(MonitoringKeys.hiddenTabs) private var hiddenTabsRaw = ""
     @AppStorage(MonitoringKeys.byteUnits) private var byteUnits = MetricFormatting.ByteUnitsStyle.automatic.rawValue
+    // The menu bar item switches, under the same keys MonitorMenuBarExtras binds.
+    // Observed here, so this view refreshes when a switch changes elsewhere.
+    @AppStorage(MonitoringKeys.menuBarCPU.key) private var cpuItem = MonitoringKeys.menuBarCPU.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarMemory.key) private var memoryItem = MonitoringKeys.menuBarMemory.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarNetwork.key) private var networkItem = MonitoringKeys.menuBarNetwork.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarDisk.key) private var diskItem = MonitoringKeys.menuBarDisk.defaultEnabled
+    @AppStorage(MonitoringKeys.menuBarEnergy.key) private var energyItem = MonitoringKeys.menuBarEnergy.defaultEnabled
 
     var body: some View {
         Form {
@@ -54,6 +61,11 @@ struct MonitoringSettingsView: View {
                     Text(String(localized: "6 months", comment: "History retention")).tag(180)
                     Text(String(localized: "1 year", comment: "History retention")).tag(365)
                 }
+                Text(String(
+                    localized: "Per-app history is kept for up to 90 days.",
+                    comment: "Per-app history retention note"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section(String(localized: "Alerts", comment: "Settings section")) {
@@ -71,7 +83,7 @@ struct MonitoringSettingsView: View {
                             comment: "CPU alert rule"),
                         value: $alertCPUPercent, in: 20...100, step: 5)
                     Stepper(
-                        String(localized: "Memory grows by \(Int(growthGB)) GB in an hour", comment: "Memory alert rule"),
+                        String(localized: "Memory grows by \(growthGB, specifier: "%.1f") GB in an hour", comment: "Memory alert rule"),
                         value: growthBinding, in: 0.5...16, step: 0.5)
                     Stepper(
                         String(localized: "Disk writes exceed \(Int(diskMB)) MB/s", comment: "Disk alert rule"),
@@ -154,11 +166,28 @@ struct MonitoringSettingsView: View {
     }
 
     private func metricBinding(_ metric: UsageMetric) -> Binding<Bool> {
-        // Same per-metric keys and defaults the menu bar extras bind to, so
-        // both surfaces stay in sync; the shared table is the one source.
-        let entry = MonitoringKeys.menuBarMetric(for: metric)
-        return Binding(
-            get: { UserDefaults.standard.object(forKey: entry.key) as? Bool ?? entry.defaultEnabled },
-            set: { UserDefaults.standard.set($0, forKey: entry.key) })
+        Binding(
+            get: { isMetricItemOn(metric) },
+            set: { setMetricItem($0, metric) })
+    }
+
+    private func isMetricItemOn(_ metric: UsageMetric) -> Bool {
+        switch metric {
+        case .cpu: cpuItem
+        case .memory: memoryItem
+        case .network: networkItem
+        case .disk: diskItem
+        case .energy: energyItem
+        }
+    }
+
+    private func setMetricItem(_ value: Bool, _ metric: UsageMetric) {
+        switch metric {
+        case .cpu: cpuItem = value
+        case .memory: memoryItem = value
+        case .network: networkItem = value
+        case .disk: diskItem = value
+        case .energy: energyItem = value
+        }
     }
 }

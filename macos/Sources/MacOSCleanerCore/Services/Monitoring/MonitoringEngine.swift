@@ -107,8 +107,8 @@ public actor MonitoringEngine {
     private var cachedDevServers: [DevServerReading] = []
     private var cachedPower = PowerReading()
     private var lastRecordAt: Date?
-    private var containersRefreshing = false
-    private var bluetoothRefreshing = false
+    private var containerRefresh = RefreshGate()
+    private var bluetoothRefresh = RefreshGate()
 
     /// Days of history the store keeps; Settings keeps this in sync.
     public var historyRetentionDays: Int = MonitoringDefaults.historyRetentionDays
@@ -232,18 +232,16 @@ public actor MonitoringEngine {
         // probe awaits and the tick cadence never hiccups.
         // One refresh in flight at a time: a slow docker or system_profiler must
         // not stack up a new process every cadence.
-        if tickCounter % 15 == 2, !isLightweight, !containersRefreshing {
-            containersRefreshing = true
+        if tickCounter % 15 == 2, !isLightweight, containerRefresh.begin() {
             Task {
                 cachedContainers = await ContainerProbe.containers()
-                containersRefreshing = false
+                containerRefresh.end()
             }
         }
-        if tickCounter % 30 == 3, !isLightweight, !bluetoothRefreshing {
-            bluetoothRefreshing = true
+        if tickCounter % 30 == 3, !isLightweight, bluetoothRefresh.begin() {
             Task {
                 cachedBluetooth = await BluetoothProbe.devices()
-                bluetoothRefreshing = false
+                bluetoothRefresh.end()
             }
         }
     }
@@ -297,10 +295,20 @@ public actor MonitoringEngine {
         let processIndex = column(["process"]) ?? 1
         let inIndex = column(["bytes_in_per_s", "bytes_in"]) ?? 2
         let outIndex = column(["bytes_out_per_s", "bytes_out"]) ?? 3
+        // Every column after the process name is numeric. Counting them from the
+        // end lets a process name that contains commas stay whole.
+        let trailing = max(0, header.count - processIndex - 1)
         for line in lines.dropFirst() {
             let columns = line.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-            guard columns.count > max(inIndex, outIndex, processIndex) else { continue }
-            let identifier = columns[processIndex]
+            guard columns.count > processIndex + trailing, trailing > 0 else { continue }
+            let identifier = columns[processIndex..<(columns.count - trailing)].joined(separator: ",")
+            let tail = Array(columns.suffix(trailing))
+            let inOffset = inIndex - processIndex - 1
+            let outOffset = outIndex - processIndex - 1
+            guard tail.indices.contains(inOffset), tail.indices.contains(outOffset),
+                  let bytesIn = Double(tail[inOffset]), let bytesOut = Double(tail[outOffset]) else {
+                continue
+            }
             // "Safari.123" → name "Safari", pid 123; a name that does not end
             // in a numeric pid stays whole.
             var name = identifier
@@ -311,9 +319,6 @@ public actor MonitoringEngine {
                     pid = value
                     name = String(identifier[identifier.startIndex..<lastDot])
                 }
-            }
-            guard let bytesIn = Double(columns[inIndex]), let bytesOut = Double(columns[outIndex]) else {
-                continue
             }
             result.append(
                 NettopRow(
@@ -348,6 +353,22 @@ public actor MonitoringEngine {
         updated.groups = AppProcessCatalog.group(
             snapshot.processes, mode: mode, networkUsage: cachedNetworkPerProcess)
         return updated
+    }
+}
+
+/// At most one background refresh at a time. begin() returns false while one is
+/// running, so a slow probe cannot stack processes on every cadence.
+struct RefreshGate {
+    private(set) var isBusy = false
+
+    mutating func begin() -> Bool {
+        guard !isBusy else { return false }
+        isBusy = true
+        return true
+    }
+
+    mutating func end() {
+        isBusy = false
     }
 }
 

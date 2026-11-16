@@ -222,12 +222,19 @@ public enum ProcessActions {
         signal(pid, confirmedStart: confirmedStart, SIGKILL)
     }
 
-    /// Pids are reused. Signal only while the live process still has the start
-    /// time the user saw in the confirmation. A missing start time fails closed.
+    /// The kernel start time of the live process at `pid`, or nil when it is gone.
+    static func liveStart(pid: pid_t) -> Date? {
+        guard let start = LibProc.startTime(pid: pid) else { return nil }
+        return ProcessProbe.startDate(seconds: start.seconds, microseconds: start.microseconds)
+    }
+
+    /// Pids are reused. The start time is checked and the signal sent in one
+    /// synchronous block, so no other work runs between them. Missing start time
+    /// fails closed. The window that remains is the gap between the start-time
+    /// read and the kill(2) call. macOS has no pidfd or other handle that would
+    /// close it, so it is documented here rather than removed.
     private static func signal(_ pid: pid_t, confirmedStart: Date?, _ signal: Int32) -> Bool {
-        guard pid > 0, let confirmedStart,
-              let live = LibProc.usageReport(pid: pid)?.startedAt,
-              ProcessProbe.sameProcess(confirmedStart, live) else { return false }
+        guard pid > 0, let confirmedStart, liveStart(pid: pid) == confirmedStart else { return false }
         return kill(pid, signal) == 0
     }
 }

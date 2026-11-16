@@ -106,9 +106,11 @@ enum MonitorTab: String, CaseIterable, Identifiable {
 @MainActor
 @Observable
 final class MonitorModel {
-    private(set) var snapshot: SystemSnapshot?
+    /// Internal setter: tests inject a snapshot so the views can be rendered.
+    var snapshot: SystemSnapshot?
     private(set) var isRunning = false
-    private(set) var lastError: String?
+    /// Internal setter: tests set this to render the history-failure banner.
+    var lastError: String?
 
     var selectedTab: MonitorTab = .overview
     var groupingMode: AppProcessCatalog.GroupingMode = .byApp
@@ -126,6 +128,9 @@ final class MonitorModel {
     private var history: MetricsHistoryStore?
     private var alertEngine: AlertEngine?
     private var samplingTask: Task<Void, Never>?
+    /// Surface attachment the running loop sampled under. A change restarts the loop.
+    private var loopAttached = false
+    private var defaultsObserver: NSObjectProtocol?
 
     /// The recent in-memory tick series, for live charts without hitting
     /// SQLite on every frame.
@@ -165,6 +170,18 @@ final class MonitorModel {
         samplingTask = Task { [weak self] in
             await self?.runLoop(engine: engine)
         }
+        observeSettings()
+    }
+
+    /// Any defaults change can attach or detach a surface (menu bar item, panel).
+    /// Restart the loop only when attachment actually flips.
+    private func observeSettings() {
+        guard defaultsObserver == nil else { return }
+        defaultsObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.attachmentMayHaveChanged() }
+        }
     }
 
     func stop() {
@@ -184,10 +201,20 @@ final class MonitorModel {
     /// side is read from settings every tick instead.
     func setWindowVisible(_ visible: Bool) {
         isWindowVisible = visible
-        // The loop sleeps out the 30 s heartbeat while no window is open. Restart
-        // it on open so the first sample is not half a minute away. The new loop
-        // waits for the old one to finish its current sample, so two never overlap.
-        guard visible, isRunning, let engine, let previous = samplingTask else { return }
+        attachmentMayHaveChanged()
+    }
+
+    /// Restarts the loop when a surface attaches or detaches, so the new cadence
+    /// applies now and not after the current 30 s heartbeat sleep.
+    private func attachmentMayHaveChanged() {
+        guard isRunning, isConsumerAttached() != loopAttached else { return }
+        restartSampling()
+    }
+
+    /// The old loop finishes its current sample before the new one starts, so two
+    /// samples never overlap.
+    private func restartSampling() {
+        guard let engine, let previous = samplingTask else { return }
         previous.cancel()
         samplingTask = Task { [weak self] in
             await previous.value
@@ -214,7 +241,9 @@ final class MonitorModel {
             // every iteration so Settings toggles apply from the next tick —
             // no observers, and no extra @AppStorage on the App struct (that
             // spins a 100% CPU update loop — see MacOSCleanerApp).
-            let interval = isConsumerAttached() ? max(1, settings.intervalSeconds) : Self.heartbeatSeconds
+            let attached = isConsumerAttached()
+            loopAttached = attached
+            let interval = attached ? max(1, settings.intervalSeconds) : Self.heartbeatSeconds
             let snapshot = await engine.sample(interval: interval)
             apply(snapshot: snapshot)
             // Thresholds and retention are read fresh every tick so changes
