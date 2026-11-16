@@ -243,9 +243,9 @@ public struct PathSafetyPolicy: Sendable {
     /// resolved here so literal paths cannot hide a protected location.
     /// `destination`, when provided, is validated with the same rules
     /// (move/archive/alias/symlink outputs).
-    /// `descendants` also denies a folder that holds protected content, because
-    /// trashing a folder takes everything inside it. Set it for destructive
-    /// targets only: a destination folder may hold anything.
+    /// `descendants` also denies a folder or package that holds credential
+    /// material, because trashing one takes everything inside it. Set it for
+    /// destructive directory-like targets only: a destination may hold anything.
     public func decide(target url: URL, isDirectory: Bool, destination: URL? = nil, descendants: Bool = false) -> PolicyDecision {
         let resolvedTarget = Self.resolved(url)
         let targetFlags = riskFlags(for: resolvedTarget, isDirectory: isDirectory)
@@ -256,7 +256,7 @@ public struct PathSafetyPolicy: Sendable {
         if Self.protectedFolders.contains(where: { $0.hasPrefix(folder) }) {
             return .deny(reason: "Contains protected data: \(resolvedTarget.path)")
         }
-        if descendants, isDirectory, let blocked = protectedDescendant(of: resolvedTarget) {
+        if descendants, let blocked = protectedDescendant(of: resolvedTarget) {
             return .deny(reason: "Contains protected data: \(blocked.path)")
         }
         guard let destination else {
@@ -286,9 +286,11 @@ public struct PathSafetyPolicy: Sendable {
         "id_rsa", "id_ed25519", "known_hosts"
     ]
     /// Always-secret containers and key formats (binary, no public look-alikes).
+    /// Provisioning profiles are not listed: every App Store app carries an
+    /// embedded.provisionprofile, and they are not secrets. A profile still
+    /// blocks when it is the target itself (see `protectedExtensions`).
     private static let credentialExtensions: Set<String> = [
-        "p12", "pfx", "p8", "jks", "keystore", "keychain", "keychain-db", "gpg", "pgp",
-        "mobileprovision", "provisionprofile"
+        "p12", "pfx", "p8", "jks", "keystore", "keychain", "keychain-db", "gpg", "pgp"
     ]
     /// Coding-agent memory and config folders. IDE folders such as .vscode are not listed.
     private static let codingAgentMemoryDirectoryNames: Set<String> = [

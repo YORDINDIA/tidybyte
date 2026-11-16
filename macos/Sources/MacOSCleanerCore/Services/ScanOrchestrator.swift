@@ -500,6 +500,7 @@ public actor ScanOrchestrator {
         // The session row carries what has no bulk table: scan diagnostics and
         // package candidates. A relaunch rebuilds the whole outcome from the
         // session plus the bulk rows, so these must ride along.
+        var notices = notices
         session.notices = notices
         session.packageCandidates = packageCandidates
 
@@ -507,7 +508,15 @@ public actor ScanOrchestrator {
         // are what made Stop look unresponsive (up to a million records in one
         // transaction). A stopped scan keeps its partial results in memory for
         // review and execution, so skip the bulk writes when asked.
-        try await store.saveScanSession(session)
+        // A failed status write must not discard the finished results in memory.
+        do {
+            try await store.saveScanSession(session)
+        } catch {
+            logger.error("Could not save the final scan status: \(error.localizedDescription, privacy: .public)")
+            notices.append(ScanNotice(message: String(
+                localized: "The scan finished, but its status could not be saved. Results stay available until you quit.",
+                comment: "Scan notice when the final session status write fails")))
+        }
         if persistRecords {
             // The five auxiliary loaders filter by session, so their bulk
             // saves must carry the session id explicitly.

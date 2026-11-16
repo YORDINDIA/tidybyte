@@ -343,7 +343,18 @@ public actor SQLiteStore {
         }
     }
 
+    /// Test seam: session rows written with these statuses fail, so the status-write
+    /// fallbacks in ScanOrchestrator can be exercised. Empty in production.
+    var failingSessionStatuses: Set<ScanSessionStatus> = []
+
+    func setFailingSessionStatuses(_ statuses: Set<ScanSessionStatus>) {
+        failingSessionStatuses = statuses
+    }
+
     public func saveScanSession(_ session: ScanSession) throws {
+        if failingSessionStatuses.contains(session.status) {
+            throw DatabaseError.stepFailed("injected fault for status \(session.status.rawValue)")
+        }
         try upsert(session, id: session.id, table: .scanSessions)
     }
 
@@ -751,6 +762,15 @@ public actor SQLiteStore {
             values: [.integer(Int64(limit))],
             as: Plan.self
         )
+    }
+
+    /// One snapshot by ID, however old. Nil when no such snapshot exists.
+    public func storageSnapshot(id: String) throws -> StorageSnapshot? {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.storageSnapshots.rawValue) WHERE id = ? LIMIT 1",
+            values: [.text(id)],
+            as: StorageSnapshot.self
+        ).first
     }
 
     public func recentSnapshots(limit: Int = 30) throws -> [StorageSnapshot] {

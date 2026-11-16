@@ -73,9 +73,9 @@ public actor SnapshotService {
         guard olderID != newerID else {
             throw SnapshotServiceError.sameSnapshot
         }
-        let snapshots = try await store.recentSnapshots(limit: 200)
-        guard let older = snapshots.first(where: { $0.id == olderID }),
-              let newer = snapshots.first(where: { $0.id == newerID }) else {
+        // Looked up by ID, not from the newest rows: an older snapshot is still a valid choice.
+        guard let older = try await store.storageSnapshot(id: olderID),
+              let newer = try await store.storageSnapshot(id: newerID) else {
             throw SnapshotServiceError.snapshotMissing
         }
         // Chronological order regardless of which the user picked first, so

@@ -3,7 +3,7 @@ import SQLite3
 import XCTest
 @testable import MacOSCleanerCore
 
-// swiftlint:disable type_body_length
+// swiftlint:disable type_body_length file_length
 /// Regression tests for the macOS core audit. Every filesystem fixture lives
 /// under a temporary directory; nothing here touches the user's real files or Trash.
 final class MacCoreScanTests: XCTestCase {
@@ -526,6 +526,86 @@ final class MacCoreScanTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: protected.path))
     }
 
+    // MARK: - Round 3: packages, cache sections, snapshots, faults
+
+    func testPackageWithCredentialInsideIsNotDescendantSafe() throws {
+        let package = try makeFolder("Notes.keynote")
+        try FileManager.default.createDirectory(at: package.appendingPathComponent(".ssh"), withIntermediateDirectories: true)
+        XCTAssertNotEqual(PathSafetyPolicy().decide(target: package, isDirectory: false, descendants: true), .allow)
+    }
+
+    func testAppBundleWithEmbeddedProvisioningProfileIsStillRemovable() throws {
+        let app = try makeFolder("Shop.app/Contents")
+        try Data("profile".utf8).write(to: app.appendingPathComponent("embedded.provisionprofile"))
+        XCTAssertEqual(PathSafetyPolicy().decide(target: app.deletingLastPathComponent(), isDirectory: false, descendants: true), .allow,
+                       "Every App Store app carries a provisioning profile; it must not block uninstall")
+    }
+
+    func testDockerVirtualMachineFolderIsReviewOnlyAndBunIsNotASweepTarget() {
+        let home = URL(fileURLWithPath: "/Users/tester", isDirectory: true)
+        let docker = home.appendingPathComponent("Library/Containers/com.docker.docker").path
+        XCTAssertTrue(MoCleanScanner.isReviewOnlyRoot(docker, home: home),
+                      "The Docker VM disk holds every image and volume; it is never a trash candidate")
+        let developer = MoCleanScanner.SystemCleanSection.developerTools.knownPaths(home: home).map(\.path)
+        XCTAssertFalse(developer.contains { $0.hasSuffix("/.bundle") }, "~/.bundle holds Bundler credentials")
+    }
+
+    func testLargeFileSettingCannotTrapTheCandidateFilter() {
+        var settings = CleanupSettings()
+        settings.largeMegabytes = 1e300
+        let item = ReviewItem(id: "big", source: .file(URL(fileURLWithPath: "/tmp/tidybyte-test/big.mov")),
+                              name: "big.mov", kind: .video, bytes: 5_000_000_000)
+        let result = AnalysisResult(generation: UUID(), scopeID: "scope", settings: settings,
+                                    items: [item], groups: [])
+        XCTAssertEqual(MediaAnalysisService.candidates(.large, in: result).count, 0)
+    }
+
+    func testSnapshotDiffFindsAnOlderSnapshotBeyondTheNewestRows() async throws {
+        let store = try SQLiteStore.inMemory()
+        let oldest = StorageSnapshot(id: "oldest", createdAt: Date(timeIntervalSinceNow: -100_000), totalBytes: 1,
+                                     bytesByCategory: [:], bytesByRootPath: [:], bytesByProject: [:],
+                                     removedBytesThroughApp: 0)
+        try await store.saveStorageSnapshot(oldest)
+        for index in 0..<205 {
+            try await store.saveStorageSnapshot(StorageSnapshot(
+                id: "s\(index)", createdAt: Date(), totalBytes: Int64(index), bytesByCategory: [:],
+                bytesByRootPath: [:], bytesByProject: [:], removedBytesThroughApp: 0))
+        }
+        let diff = try await SnapshotService(store: store).diffSnapshot(olderID: "oldest", newerID: "s204")
+        XCTAssertEqual(diff.older.id, "oldest")
+    }
+
+    func testKeychainReadFailureIsNotReportedAsNoKey() async throws {
+        let keychain = KeychainStore(inMemory: true, injectedLoadError: .unexpectedStatus(-25300))
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [MockURLProtocol.self]
+        let gateway = AIGateway(keychain: keychain, session: URLSession(configuration: config))
+        do {
+            _ = try await gateway.classify(findings: [], filesByID: [:], settings: ProviderSettings(privacyMode: .metadataOnlyAI))
+            XCTFail("A Keychain read failure must surface")
+        } catch let error as KeychainError {
+            guard case .unexpectedStatus(-25300) = error else { return XCTFail("Unexpected keychain error \(error)") }
+        } catch {
+            XCTFail("Expected the Keychain error, got \(error)")
+        }
+    }
+
+    func testFinalStatusWriteFailureKeepsTheFinishedScan() async throws {
+        let store = try SQLiteStore.inMemory()
+        await store.setFailingSessionStatuses([.completed])
+        let orchestrator = ScanOrchestrator(store: store, memory: MemoryEngine(store: store))
+        let folder = try root.appendingPathComponent("small", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("x".utf8).write(to: folder.appendingPathComponent("a.txt"))
+
+        let (outcome, _) = try await orchestrator.scan(
+            mode: .selectedFolders, selectedFolders: [folder], providerSettings: ProviderSettings(), includeAI: false)
+
+        XCTAssertFalse(outcome.wasCancelled)
+        XCTAssertTrue(outcome.notices.contains { $0.message.contains("status could not be saved") },
+                      "The user must be told the status was not saved")
+    }
+
     // MARK: - Child processes are bounded even when they ignore SIGTERM
 
     func testProcessRunnerKillsChildThatIgnoresTerminate() async {
@@ -568,4 +648,4 @@ private final class RecordingPhotoService: PhotoMutationService, @unchecked Send
     func replace(_ item: ReviewItem, with url: URL, kind: MediaKind) async throws -> String { "" }
     func delete(_ item: ReviewItem) async throws { deleteCalls += 1 }
 }
-// swiftlint:enable type_body_length
+// swiftlint:enable type_body_length file_length

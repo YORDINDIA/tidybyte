@@ -154,7 +154,6 @@ public actor MoCleanScanner {
                     home.appendingPathComponent(".bun", isDirectory: true),
                     home.appendingPathComponent(".local/share/pnpm", isDirectory: true),
                     home.appendingPathComponent(".dart_tool", isDirectory: true),
-                    home.appendingPathComponent(".bundle", isDirectory: true),
                     lib.appendingPathComponent("Developer/CoreSimulator/Caches", isDirectory: true),
                     lib.appendingPathComponent("Caches/Homebrew", isDirectory: true),
                     caches.appendingPathComponent("com.anthropic.antigravity", isDirectory: true),
@@ -351,10 +350,13 @@ public actor MoCleanScanner {
     /// Roots that are never proposed for trashing, even inside a cache section.
     /// Xcode Archives hold dSYMs for shipped builds; the Bun folder is a global
     /// package store. Both are surfaced as inspect-only findings.
-    private static func isReviewOnlyRoot(_ rootPath: String, home: URL) -> Bool {
+    static func isReviewOnlyRoot(_ rootPath: String, home: URL) -> Bool {
         let lib = home.appendingPathComponent("Library", isDirectory: true)
+        // Docker's container folder holds the VM disk image with every image and
+        // volume, so it is review-only. ~/.bun is listed so it stays out of trash moves.
         let reviewOnlyPaths = [
             lib.appendingPathComponent("Developer/Xcode/Archives", isDirectory: true),
+            lib.appendingPathComponent("Containers/com.docker.docker", isDirectory: true),
             home.appendingPathComponent(".bun", isDirectory: true)
         ].map { $0.standardizedFileURL.path }
         return reviewOnlyPaths.contains(rootPath)
