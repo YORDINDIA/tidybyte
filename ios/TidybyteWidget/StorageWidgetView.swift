@@ -114,7 +114,7 @@ struct StorageWidgetView: View {
         let days = Int(age / 86_400)
         return days >= 7
             ? L10n.string("Open TidyByte to refresh")
-            : L10n.format("Updated %lldd ago", days)
+            : L10n.format("Updated %lld day ago", fallback: "Updated %lld days ago", days)
     }
 
     // MARK: - Pieces

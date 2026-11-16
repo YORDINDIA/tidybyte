@@ -598,10 +598,11 @@ final class SwipeSessionViewModel {
     /// appended "s".
     nonisolated static func deletionFailureMessage(count: Int, error: Error) -> String {
         L10n.format(
-            "Failed to delete %lld photo",
-            fallback: "Failed to delete %lld photos",
-            count
-        ) + ": \(error.localizedDescription)"
+            "Failed to delete %lld photo: %@",
+            fallback: "Failed to delete %lld photos: %@",
+            count,
+            error.localizedDescription
+        )
     }
 
     func discardPendingDeletions() {
