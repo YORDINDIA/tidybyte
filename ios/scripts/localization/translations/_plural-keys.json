@@ -274,5 +274,17 @@
   "reviewed %lld item": {
     "one": "reviewed %lld item",
     "other": "reviewed %lld items"
+  },
+  "%lld burst group": {
+    "one": "%lld burst group",
+    "other": "%lld burst groups"
+  },
+  "%lld group": {
+    "one": "%lld group",
+    "other": "%lld groups"
+  },
+  "%lld group found": {
+    "one": "%lld group found",
+    "other": "%lld groups found"
   }
 }

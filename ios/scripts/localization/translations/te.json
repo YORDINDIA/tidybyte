@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " ఇష్టమైనవి ఉంచబడతాయి.",
-    " in selected photos": " ఎంచుకున్న ఫోటోలలో",
     " known · %lld sizes unavailable": " తెలిసినవి · %lld పరిమాణాలు అందుబాటులో లేవు",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "అతిపెద్దవి",
     "Largest First": "పెద్దవి మొదట",
     "Last 30 Days": "గత 30 రోజులు",
-    "Last scan, %@: %@ to review%@.": "చివరి స్కాన్, %@%@: సమీక్షించడానికి %@.",
     "Leaves this photo unchanged and shows the next one": "ఈ ఫోటోను మార్చకుండా తదుపరిది చూపిస్తుంది",
     "Lens Smudge (%lld)": "లెన్స్ మరక (%lld)",
     "Lens smudge analysis is unavailable on this device.": "ఈ పరికరంలో లెన్స్ మరక విశ్లేషణ అందుబాటులో లేదు.",
@@ -794,7 +792,17 @@
     "to": "నుండి",
     "today": "ఈరోజు",
     "used": "వాడబడింది",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "వీడియోను లోడ్ చేయలేకపోయాం: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "తొలగించడానికి గుర్తించిన ఫ్రేమ్‌లను తొలగిస్తుంది. ప్రతి బర్స్ట్‌లోని నక్షత్ర గుర్తు ఫ్రేమ్ ఉంచబడుతుంది.",
+    "The best photo from each group will be kept. %@": "ప్రతి గ్రూప్‌లోని ఉత్తమ ఫోటో ఉంచబడుతుంది. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "యాప్ ఫోర్‌గ్రౌండ్ నుండి వెళ్లిపోవడంతో TidyByte కుదింపును ఆపింది. కుదించేటప్పుడు TidyByte ను తెరిచి ఉంచి, మళ్లీ ప్రయత్నించండి.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "చివరి స్కాన్, %@: సమీక్షించాల్సినవి %@.",
+    "Last scan, %@: %@ to review in selected photos.": "చివరి స్కాన్, %@: ఎంచుకున్న ఫోటోలలో సమీక్షించాల్సినవి %@.",
+    "Bad URL.": "చెల్లని URL.",
+    "Sign-in failed.": "సైన్-ఇన్ విఫలమైంది.",
+    "Couldn't save your Google sign-in on this device. Try again.": "ఈ పరికరంలో మీ Google సైన్-ఇన్‌ను సేవ్ చేయలేకపోయాం. మళ్లీ ప్రయత్నించండి."
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld వీడియో %lld MB కంటే పెద్దది",
       "other": "%lld వీడియోలు %lld MB కంటే పెద్దవి"
+    },
+    "%lld burst group": {
+      "one": "%lld బరస్ట్ సమూహం",
+      "other": "%lld బరస్ట్ సమూహాలు"
+    },
+    "%lld group": {
+      "one": "%lld సమూహం",
+      "other": "%lld సమూహాలు"
+    },
+    "%lld group found": {
+      "one": "%lld సమూహం కనుగొనబడింది",
+      "other": "%lld సమూహాలు కనుగొనబడ్డాయి"
     }
   }
 }

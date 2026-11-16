@@ -64,14 +64,14 @@ enum SavedFromAppMarkers {
     /// filename contains it by accident.
     static let substrings: [String] = [
         // Global
-        "-WA",          // WhatsApp: IMG-20240101-WA0001.jpg, VID-20240101-WA0001.mp4
+        // WhatsApp's `-WA` marker is matched by `hasWhatsAppMarker`, which requires a digit after it.
         "WHATSAPP",     // spelled out, seen in some Android exports
         "FB_IMG",       // Facebook
         "MESSENGER",    // Facebook Messenger
-        "INSTA",        // Instagram
+        "INSTA_",       // Instagram: the underscore keeps INSTANT and INSTALL from matching
         "TELEGRAM",     // Telegram
         "SNAPCHAT",     // Snapchat
-        "SIGNAL",       // Signal: signal-2024-01-01-120000.jpg
+        "SIGNAL-",      // Signal: signal-2024-01-01-120000.jpg (the hyphen keeps SIGNALS and SIGNAL_TOWER out)
         "DISCORD",      // Discord
         "TIKTOK",       // TikTok
 
@@ -106,6 +106,19 @@ enum SavedFromAppMarkers {
         guard let filename, !filename.isEmpty else { return false }
         let name = filename.uppercased()
         if prefixes.contains(where: { name.hasPrefix($0) }) { return true }
+        if hasWhatsAppMarker(name) { return true }
         return substrings.contains { name.contains($0) }
+    }
+
+    /// True for `-WA` followed by a digit, as in `IMG-20240101-WA0001.jpg`. A bare
+    /// `-WA` also matches names such as `Photo-WALL.jpg`, so the digit is required.
+    /// Plain string search, not a regex: this runs once per asset in a library scan.
+    static func hasWhatsAppMarker(_ uppercasedName: String) -> Bool {
+        var rest = Substring(uppercasedName)
+        while let found = rest.range(of: "-WA") {
+            if let next = rest[found.upperBound...].first, next.isASCII, next.isNumber { return true }
+            rest = rest[found.upperBound...]
+        }
+        return false
     }
 }

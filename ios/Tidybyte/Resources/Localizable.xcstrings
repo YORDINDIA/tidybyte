@@ -131,136 +131,6 @@
         }
       }
     },
-    " in selected photos": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " in selected photos"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " चयनित फ़ोटो में"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " নির্বাচিত ফটোতে"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " தேர்ந்தெடுத்த புகைப்படங்களில்"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " ఎంచుకున్న ఫోటోలలో"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " निवडलेल्या फोटोंमध्ये"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " પસંદ કરેલા ફોટામાં"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " ಆಯ್ಕೆಮಾಡಿದ ಫೋಟೋಗಳಲ್ಲಿ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " തിരഞ്ഞെടുത്ത ഫോട്ടോകളിൽ"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " ਚੁਣੀਆਂ ਫ਼ੋਟੋਆਂ ਵਿੱਚ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " en las fotos seleccionadas"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " dans les photos sélectionnées"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " in ausgewählten Fotos"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " em fotos selecionadas"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " nelle foto selezionate"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "（選択した写真内）"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "(선택한 사진 내)"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在所选照片中"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " среди выбранных фото"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " في الصور المحددة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " בתמונות הנבחרות"
-          }
-        }
-      }
-    },
     " known · %lld sizes unavailable": {
       "localizations": {
         "en": {
@@ -387,6 +257,136 @@
           "stringUnit": {
             "state": "translated",
             "value": " ידוע · %lld גדלים לא זמינים"
+          }
+        }
+      }
+    },
+    "%@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@%@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
           }
         }
       }
@@ -4324,129 +4324,429 @@
     "%lld burst group": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld burst group"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld burst groups"
+                }
+              }
+            }
           }
         },
         "hi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld बर्स्ट समूह"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld बर्स्ट समूह"
+                }
+              }
+            }
           }
         },
         "bn": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld বার্স্ট গ্রুপ"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld বার্স্ট গ্রুপ"
+                }
+              }
+            }
           }
         },
         "ta": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld பர்ஸ்ட் குழு"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld பர்ஸ்ட் குழுக்கள்"
+                }
+              }
+            }
           }
         },
         "te": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld బరస్ట్ సమూహం"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld బరస్ట్ సమూహాలు"
+                }
+              }
+            }
           }
         },
         "mr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld बर्स्ट गट"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld बर्स्ट गट"
+                }
+              }
+            }
           }
         },
         "gu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld બર્સ્ટ જૂથ"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld બર્સ્ટ જૂથ"
+                }
+              }
+            }
           }
         },
         "kn": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಬರ್ಸ್ಟ್ ಗುಂಪು"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಬರ್ಸ್ಟ್ ಗುಂಪುಗಳು"
+                }
+              }
+            }
           }
         },
         "ml": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ബർസ്റ്റ് ഗ്രൂപ്പ്"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ബർസ്റ്റ് ഗ്രൂപ്പുകൾ"
+                }
+              }
+            }
           }
         },
         "pa": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਬਰਸਟ ਗਰੁੱਪ"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਬਰਸਟ ਗਰੁੱਪ"
+                }
+              }
+            }
           }
         },
         "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupo de ráfaga"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos de ráfaga"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos de ráfaga"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupe de rafale"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupes de rafale"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupes de rafale"
+                }
+              }
+            }
           }
         },
         "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Seriengruppe"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Seriengruppen"
+                }
+              }
+            }
           }
         },
         "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupo de rajada"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos de rajadas"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos de rajadas"
+                }
+              }
+            }
           }
         },
         "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppo in raffica"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppi in raffica"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppi in raffica"
+                }
+              }
+            }
           }
         },
         "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld個のバースト"
+                }
+              }
+            }
           }
         },
         "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld개 버스트"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld 个连拍组"
+                }
+              }
+            }
           }
         },
         "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld серия"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld серии"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld серий"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld серии"
+                }
+              }
+            }
           }
         },
         "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "zero": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعات متتابعة"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعة متتابعة"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعتان متتابعتان"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعات متتابعة"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعة متتابعة"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعة متتابعة"
+                }
+              }
+            }
           }
         },
         "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld burst group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld רצף"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld רצפים"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld רצפים"
+                }
+              }
+            }
           }
         }
       }
@@ -7594,129 +7894,429 @@
     "%lld group": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld group"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groups"
+                }
+              }
+            }
           }
         },
         "hi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld समूह"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld समूह"
+                }
+              }
+            }
           }
         },
         "bn": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld গ্রুপ"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld গ্রুপ"
+                }
+              }
+            }
           }
         },
         "ta": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld குழு"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld குழுக்கள்"
+                }
+              }
+            }
           }
         },
         "te": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld సమూహం"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld సమూహాలు"
+                }
+              }
+            }
           }
         },
         "mr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld गट"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld गट"
+                }
+              }
+            }
           }
         },
         "gu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld જૂથ"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld જૂથ"
+                }
+              }
+            }
           }
         },
         "kn": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಗುಂಪು"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಗುಂಪುಗಳು"
+                }
+              }
+            }
           }
         },
         "ml": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ഗ്രൂപ്പ്"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ഗ്രൂപ്പുകൾ"
+                }
+              }
+            }
           }
         },
         "pa": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਗਰੁੱਪ"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਗਰੁੱਪ"
+                }
+              }
+            }
           }
         },
         "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupo"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupe"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupes"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupes"
+                }
+              }
+            }
           }
         },
         "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Gruppe"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Gruppen"
+                }
+              }
+            }
           }
         },
         "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupo"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos"
+                }
+              }
+            }
           }
         },
         "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppo"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppi"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppi"
+                }
+              }
+            }
           }
         },
         "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld個のグループ"
+                }
+              }
+            }
           }
         },
         "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld개 그룹"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld 个组"
+                }
+              }
+            }
           }
         },
         "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld группа"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld группы"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld групп"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld группы"
+                }
+              }
+            }
           }
         },
         "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "zero": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعات"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعة"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعتان"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعات"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعة"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld مجموعة"
+                }
+              }
+            }
           }
         },
         "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld קבוצה"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld קבוצות"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld קבוצות"
+                }
+              }
+            }
           }
         }
       }
@@ -7724,129 +8324,429 @@
     "%lld group found": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld group found"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groups found"
+                }
+              }
+            }
           }
         },
         "hi": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld समूह मिले"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld समूह मिले"
+                }
+              }
+            }
           }
         },
         "bn": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld গ্রুপ পাওয়া গেছে"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld গ্রুপ পাওয়া গেছে"
+                }
+              }
+            }
           }
         },
         "ta": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld குழு கண்டறியப்பட்டது"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld குழுக்கள் கண்டறியப்பட்டன"
+                }
+              }
+            }
           }
         },
         "te": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld సమూహం కనుగొనబడింది"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld సమూహాలు కనుగొనబడ్డాయి"
+                }
+              }
+            }
           }
         },
         "mr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld गट सापडला"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld गट सापडले"
+                }
+              }
+            }
           }
         },
         "gu": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld જૂથ મળ્યું"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld જૂથ મળ્યાં"
+                }
+              }
+            }
           }
         },
         "kn": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಗುಂಪು ಸಿಕ್ಕಿತು"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಗುಂಪುಗಳು ಸಿಕ್ಕಿವೆ"
+                }
+              }
+            }
           }
         },
         "ml": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ഗ്രൂപ്പ് കണ്ടെത്തി"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ഗ്രൂപ്പുകൾ കണ്ടെത്തി"
+                }
+              }
+            }
           }
         },
         "pa": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਗਰੁੱਪ ਲੱਭਾ"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਗਰੁੱਪ ਲੱਭੇ"
+                }
+              }
+            }
           }
         },
         "es": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupo encontrado"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos encontrados"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos encontrados"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupe trouvé"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupes trouvés"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld groupes trouvés"
+                }
+              }
+            }
           }
         },
         "de": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Gruppe gefunden"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Gruppen gefunden"
+                }
+              }
+            }
           }
         },
         "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupo encontrado"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos encontrados"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld grupos encontrados"
+                }
+              }
+            }
           }
         },
         "it": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppo trovato"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppi trovati"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gruppi trovati"
+                }
+              }
+            }
           }
         },
         "ja": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld個のグループが見つかりました"
+                }
+              }
+            }
           }
         },
         "ko": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld개 그룹 발견"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "找到 %lld 个组"
+                }
+              }
+            }
           }
         },
         "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Найдена %lld группа"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Найдено %lld группы"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Найдено %lld групп"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Найдено %lld группы"
+                }
+              }
+            }
           }
         },
         "ar": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "zero": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تم العثور على %lld مجموعات"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تم العثور على %lld مجموعة"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تم العثور على %lld مجموعتين"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تم العثور على %lld مجموعات"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تم العثور على %lld مجموعة"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تم العثور على %lld مجموعة"
+                }
+              }
+            }
           }
         },
         "he": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "%lld group found"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "נמצאה %lld קבוצה"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "נמצאו %lld קבוצות"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "נמצאו %lld קבוצות"
+                }
+              }
+            }
           }
         }
       }
@@ -27981,6 +28881,136 @@
         }
       }
     },
+    "Bad URL.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bad URL."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अमान्य URL।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবৈধ URL।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "தவறான URL."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "చెల్లని URL."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अवैध URL."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "અમાન્ય URL."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಅಮಾನ್ಯ URL."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "അസാധുവായ URL."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਗਲਤ URL।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL no válida."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL incorrecte."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültige URL."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL inválido."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL non valido."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無効な URL です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잘못된 URL입니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无效的 URL。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Некорректный URL."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عنوان URL غير صالح."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כתובת URL לא תקינה."
+          }
+        }
+      }
+    },
     "Bad image URL.": {
       "localizations": {
         "en": {
@@ -38471,122 +39501,122 @@
         },
         "hi": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "वीडियो लोड नहीं हो सका: %@"
           }
         },
         "bn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "ভিডিও লোড করা যায়নি: %@"
           }
         },
         "ta": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "வீடியோவை ஏற்ற முடியவில்லை: %@"
           }
         },
         "te": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "వీడియోను లోడ్ చేయలేకపోయాం: %@"
           }
         },
         "mr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "व्हिडिओ लोड करता आला नाही: %@"
           }
         },
         "gu": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "વિડિઓ લોડ કરી શકાયો નથી: %@"
           }
         },
         "kn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "ವೀಡಿಯೊ ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ: %@"
           }
         },
         "ml": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "വീഡിയോ ലോഡ് ചെയ്യാനായില്ല: %@"
           }
         },
         "pa": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "ਵੀਡੀਓ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ: %@"
           }
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "No se pudo cargar el video: %@"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "Impossible de charger la vidéo : %@"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "Video konnte nicht geladen werden: %@"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "Não foi possível carregar o vídeo: %@"
           }
         },
         "it": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "Impossibile caricare il video: %@"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "動画を読み込めませんでした: %@"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "동영상을 불러올 수 없습니다: %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "无法加载视频：%@"
           }
         },
         "ru": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "Не удалось загрузить видео: %@"
           }
         },
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "تعذّر تحميل الفيديو: %@"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Couldn't load the video: %@"
+            "state": "translated",
+            "value": "לא ניתן לטעון את הסרטון: %@"
           }
         }
       }
@@ -39107,6 +40137,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "לא ניתן היה להכין את הפריטים שנבחרו לשיתוף."
+          }
+        }
+      }
+    },
+    "Couldn't save your Google sign-in on this device. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save your Google sign-in on this device. Try again."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस डिवाइस पर आपका Google साइन-इन सहेजा नहीं जा सका। फिर से कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ডিভাইসে আপনার Google সাইন-ইন সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இந்தச் சாதனத்தில் உங்கள் Google உள்நுழைவைச் சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఈ పరికరంలో మీ Google సైన్-ఇన్‌ను సేవ్ చేయలేకపోయాం. మళ్లీ ప్రయత్నించండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "या डिव्हाइसवर तुमचे Google साइन-इन सेव्ह करता आले नाही. पुन्हा प्रयत्न करा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "આ ડિવાઇસ પર તમારું Google સાઇન-ઇન સાચવી શકાયું નહીં. ફરી પ્રયાસ કરો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಈ ಸಾಧನದಲ್ಲಿ ನಿಮ್ಮ Google ಸೈನ್-ಇನ್ ಉಳಿಸಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഈ ഉപകരണത്തിൽ നിങ്ങളുടെ Google സൈൻ ഇൻ സേവ് ചെയ്യാനായില്ല. വീണ്ടും ശ്രമിക്കുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਇਸ ਡਿਵਾਈਸ 'ਤੇ ਤੁਹਾਡਾ Google ਸਾਈਨ-ਇਨ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar tu inicio de sesión de Google en este dispositivo. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d'enregistrer votre connexion Google sur cet appareil. Réessayez."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Google-Anmeldung konnte auf diesem Gerät nicht gespeichert werden. Versuche es erneut."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar seu login do Google neste dispositivo. Tente novamente."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile salvare l'accesso a Google su questo dispositivo. Riprova."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この端末に Google へのサインイン情報を保存できませんでした。もう一度お試しください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기기에 Google 로그인 정보를 저장하지 못했습니다. 다시 시도하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在此设备上保存你的 Google 登录信息。请重试。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось сохранить вход в Google на этом устройстве. Попробуйте ещё раз."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر حفظ تسجيل دخولك إلى Google على هذا الجهاز. حاول مرة أخرى."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא ניתן לשמור את ההתחברות שלך ל-Google במכשיר הזה. נסה שוב."
           }
         }
       }
@@ -48111,122 +49271,122 @@
         },
         "hi": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "हटाने के लिए चिह्नित फ़्रेम हटाए जाते हैं। हर बर्स्ट का तारांकित फ़्रेम रखा जाता है।"
           }
         },
         "bn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "মুছে ফেলার জন্য চিহ্নিত ফ্রেমগুলো মুছে ফেলা হয়। প্রতিটি বার্স্টের তারকা-চিহ্নিত ফ্রেম রাখা হয়।"
           }
         },
         "ta": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "நீக்க குறிக்கப்பட்ட சட்டங்கள் நீக்கப்படும். ஒவ்வொரு பர்ஸ்டின் நட்சத்திரக் குறியிட்ட சட்டம் வைக்கப்படும்."
           }
         },
         "te": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "తొలగించడానికి గుర్తించిన ఫ్రేమ్‌లను తొలగిస్తుంది. ప్రతి బర్స్ట్‌లోని నక్షత్ర గుర్తు ఫ్రేమ్ ఉంచబడుతుంది."
           }
         },
         "mr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "हटवण्यासाठी चिन्हांकित केलेले फ्रेम हटवले जातात. प्रत्येक बर्स्टमधील तारांकित फ्रेम ठेवली जाते."
           }
         },
         "gu": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "કાઢી નાખવા માટે ચિહ્નિત ફ્રેમ્સ કાઢી નાખે છે. દરેક બર્સ્ટની સ્ટાર કરેલી ફ્રેમ રાખવામાં આવે છે."
           }
         },
         "kn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "ಅಳಿಸಲು ಗುರುತಿಸಿದ ಫ್ರೇಮ್‌ಗಳನ್ನು ಅಳಿಸಲಾಗುತ್ತದೆ. ಪ್ರತಿ ಬರ್ಸ್ಟ್‌ನ ನಕ್ಷತ್ರ ಗುರುತಿನ ಫ್ರೇಮ್ ಉಳಿಯುತ್ತದೆ."
           }
         },
         "ml": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "ഇല്ലാതാക്കാൻ അടയാളപ്പെടുത്തിയ ഫ്രെയിമുകൾ ഇല്ലാതാക്കുന്നു. ഓരോ ബർസ്റ്റിലെയും നക്ഷത്രം അടയാളപ്പെടുത്തിയ ഫ്രെയിം നിലനിർത്തുന്നു."
           }
         },
         "pa": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "ਮਿਟਾਉਣ ਲਈ ਨਿਸ਼ਾਨ ਲਗਾਏ ਫ਼ਰੇਮ ਮਿਟਾਏ ਜਾਂਦੇ ਹਨ। ਹਰ ਬਰਸਟ ਦਾ ਤਾਰੇ ਵਾਲਾ ਫ਼ਰੇਮ ਰੱਖਿਆ ਜਾਂਦਾ ਹੈ।"
           }
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "Elimina los fotogramas marcados para borrar. Se conserva el fotograma marcado con estrella de cada ráfaga."
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "Supprime les images marquées pour suppression. L'image marquée d'une étoile de chaque rafale est conservée."
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "Löscht die zum Löschen markierten Bilder. Das mit einem Stern markierte Bild jeder Serie bleibt erhalten."
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "Exclui os quadros marcados para exclusão. O quadro com estrela de cada sequência é mantido."
           }
         },
         "it": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "Elimina i fotogrammi contrassegnati per l'eliminazione. Viene conservato il fotogramma con la stella di ogni raffica."
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "削除対象としてマークされたフレームを削除します。各連写の星印付きフレームは残ります。"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "삭제 표시된 프레임을 삭제합니다. 각 연속 촬영에서 별표가 표시된 프레임은 유지됩니다."
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "删除标记为删除的帧。每组连拍中加星标的帧会保留。"
           }
         },
         "ru": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "Удаляет кадры, отмеченные для удаления. Кадр со звёздочкой в каждой серии сохраняется."
           }
         },
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "يحذف الإطارات المحددة للحذف. يُحتفظ بالإطار المميَّز بنجمة في كل سلسلة."
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Deletes the frames marked for deletion. The starred frame of each burst is kept."
+            "state": "translated",
+            "value": "מוחק את הפריימים שסומנו למחיקה. הפריים המסומן בכוכב בכל רצף נשמר."
           }
         }
       }
@@ -62961,132 +64121,262 @@
         }
       }
     },
-    "Last scan, %@: %@ to review%@.": {
+    "Last scan, %@: %@ to review in selected photos.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last scan, %@: %@ to review%@."
+            "value": "Last scan, %@: %@ to review in selected photos."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "पिछला स्कैन, %@%@: समीक्षा के लिए %@."
+            "value": "पिछला स्कैन, %@: चुनी गई फ़ोटो में समीक्षा के लिए %@।"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "শেষ স্ক্যান, %@%@: দেখার জন্য %@."
+            "value": "শেষ স্ক্যান, %@: নির্বাচিত ছবিতে পর্যালোচনার জন্য %@।"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "கடைசி ஸ்கேன், %@%@: பார்க்க %@."
+            "value": "கடைசி ஸ்கேன், %@: தேர்ந்தெடுத்த புகைப்படங்களில் மதிப்பாய்வு செய்ய %@."
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "చివరి స్కాన్, %@%@: సమీక్షించడానికి %@."
+            "value": "చివరి స్కాన్, %@: ఎంచుకున్న ఫోటోలలో సమీక్షించాల్సినవి %@."
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "शेवटचा स्कॅन, %@: पुनरावलोकनासाठी %@%@."
+            "value": "शेवटचे स्कॅन, %@: निवडलेल्या फोटोंमध्ये पुनरावलोकनासाठी %@."
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "છેલ્લું સ્કેન, %@: સમીક્ષા માટે %@%@."
+            "value": "છેલ્લું સ્કેન, %@: પસંદ કરેલા ફોટોમાં સમીક્ષા માટે %@."
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್, %@: ಪರಿಶೀಲಿಸಲು %@%@."
+            "value": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್, %@: ಆಯ್ಕೆ ಮಾಡಿದ ಫೋಟೋಗಳಲ್ಲಿ ಪರಿಶೀಲಿಸಬೇಕಾದವು %@."
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "അവസാന സ്കാൻ, %@: പരിശോധിക്കാൻ %@%@."
+            "value": "അവസാന സ്കാൻ, %@: തിരഞ്ഞെടുത്ത ഫോട്ടോകളിൽ പരിശോധിക്കേണ്ടത് %@."
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਪਿਛਲੀ ਸਕੈਨ, %@: %@ ਸਮੀਖਿਆ ਲਈ%@."
+            "value": "ਆਖਰੀ ਸਕੈਨ, %@: ਚੁਣੀਆਂ ਫ਼ੋਟੋਆਂ ਵਿੱਚ ਸਮੀਖਿਆ ਲਈ %@."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Último análisis, %@: %@ por revisar%@."
+            "value": "Último análisis, %@: %@ para revisar en las fotos seleccionadas."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dernière analyse, %@ : %@ à examiner%@."
+            "value": "Dernière analyse, %@ : %@ à examiner dans les photos sélectionnées."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Letzter Scan, %@: %@ zu prüfen%@."
+            "value": "Letzter Scan, %@: %@ in ausgewählten Fotos zu prüfen."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Última varredura, %@: %@ para revisar%@."
+            "value": "Última análise, %@: %@ para revisar nas fotos selecionadas."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ultima scansione, %@: %@ da esaminare%@."
+            "value": "Ultima analisi, %@: %@ da esaminare nelle foto selezionate."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "前回のスキャン %@: 確認する%@は%@。"
+            "value": "前回のスキャン（%@）：選択した写真のうち確認対象 %@。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "마지막 스캔 %@: 검토할 %@ %@."
+            "value": "마지막 스캔, %@: 선택한 사진 중 검토할 항목 %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次扫描，%@：%@ 待查看%@。"
+            "value": "上次扫描，%@：所选照片中待检查 %@。"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Последнее сканирование, %@: %@ для просмотра%@."
+            "value": "Последнее сканирование, %@: %@ для проверки в выбранных фото."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "آخر فحص، %@: %@ للمراجعة%@."
+            "value": "آخر فحص، %@: %@ للمراجعة في الصور المحددة."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "סריקה אחרונה, %@: %@ לסקירה%@."
+            "value": "סריקה אחרונה, %@: %@ לבדיקה בתמונות שנבחרו."
+          }
+        }
+      }
+    },
+    "Last scan, %@: %@ to review.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last scan, %@: %@ to review."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछला स्कैन, %@: समीक्षा के लिए %@।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ স্ক্যান, %@: পর্যালোচনার জন্য %@।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "கடைசி ஸ்கேன், %@: மதிப்பாய்வு செய்ய %@."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "చివరి స్కాన్, %@: సమీక్షించాల్సినవి %@."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेवटचे स्कॅन, %@: पुनरावलोकनासाठी %@."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "છેલ્લું સ્કેન, %@: સમીક્ષા માટે %@."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್, %@: ಪರಿಶೀಲಿಸಬೇಕಾದವು %@."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "അവസാന സ്കാൻ, %@: പരിശോധിക്കേണ്ടത് %@."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਆਖਰੀ ਸਕੈਨ, %@: ਸਮੀਖਿਆ ਲਈ %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último análisis, %@: %@ para revisar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière analyse, %@ : %@ à examiner."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Scan, %@: %@ zu prüfen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última análise, %@: %@ para revisar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultima analisi, %@: %@ da esaminare."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回のスキャン（%@）：確認対象 %@。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마지막 스캔, %@: 검토할 항목 %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次扫描，%@：待检查 %@。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последнее сканирование, %@: %@ для проверки."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر فحص، %@: %@ للمراجعة."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סריקה אחרונה, %@: %@ לבדיקה."
           }
         }
       }
@@ -100571,6 +101861,136 @@
         }
       }
     },
+    "Sign-in failed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in failed."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइन-इन विफल रहा।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাইন-ইন ব্যর্থ হয়েছে।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உள்நுழைவு தோல்வியடைந்தது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "సైన్-ఇన్ విఫలమైంది."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइन-इन अयशस्वी झाले."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સાઇન-ઇન નિષ્ફળ ગયું."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸೈನ್-ಇನ್ ವಿಫಲವಾಗಿದೆ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സൈൻ ഇൻ പരാജയപ്പെട്ടു."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਾਈਨ-ਇਨ ਅਸਫਲ ਰਿਹਾ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al iniciar sesión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de la connexion."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung fehlgeschlagen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falha no login."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso non riuscito."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サインインに失敗しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인하지 못했습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录失败。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось войти."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر تسجيل الدخول."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ההתחברות נכשלה."
+          }
+        }
+      }
+    },
     "Similar": {
       "localizations": {
         "en": {
@@ -107991,122 +109411,122 @@
         },
         "hi": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "हर समूह की सबसे अच्छी फ़ोटो रखी जाएगी। %@"
           }
         },
         "bn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "প্রতিটি গ্রুপের সেরা ছবিটি রাখা হবে। %@"
           }
         },
         "ta": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "ஒவ்வொரு குழுவிலும் சிறந்த புகைப்படம் வைக்கப்படும். %@"
           }
         },
         "te": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "ప్రతి గ్రూప్‌లోని ఉత్తమ ఫోటో ఉంచబడుతుంది. %@"
           }
         },
         "mr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "प्रत्येक गटातील सर्वोत्तम फोटो ठेवला जाईल. %@"
           }
         },
         "gu": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "દરેક જૂથનો શ્રેષ્ઠ ફોટો રાખવામાં આવશે. %@"
           }
         },
         "kn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "ಪ್ರತಿ ಗುಂಪಿನ ಅತ್ಯುತ್ತಮ ಫೋಟೋ ಉಳಿಸಲಾಗುತ್ತದೆ. %@"
           }
         },
         "ml": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "ഓരോ ഗ്രൂപ്പിലെയും മികച്ച ഫോട്ടോ നിലനിർത്തും. %@"
           }
         },
         "pa": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "ਹਰ ਸਮੂਹ ਦੀ ਸਭ ਤੋਂ ਵਧੀਆ ਫ਼ੋਟੋ ਰੱਖੀ ਜਾਵੇਗੀ। %@"
           }
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "La mejor foto de cada grupo se conservará. %@"
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "La meilleure photo de chaque groupe sera conservée. %@"
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "Das beste Foto jeder Gruppe wird behalten. %@"
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "A melhor foto de cada grupo será mantida. %@"
           }
         },
         "it": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "La foto migliore di ogni gruppo verrà conservata. %@"
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "各グループのベストな写真は残されます。%@"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "각 그룹에서 가장 좋은 사진은 유지됩니다. %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "每组中最佳的照片将被保留。%@"
           }
         },
         "ru": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "Лучшее фото из каждой группы будет сохранено. %@"
           }
         },
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "سيُحتفظ بأفضل صورة من كل مجموعة. %@"
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "The best photo from each group will be kept. %@"
+            "state": "translated",
+            "value": "התמונה הטובה ביותר מכל קבוצה תישמר. %@"
           }
         }
       }
@@ -114271,122 +115691,122 @@
         },
         "hi": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "ऐप फ़ोरग्राउंड से हट गया, इसलिए TidyByte ने कंप्रेशन रोक दिया। कंप्रेस होते समय TidyByte खुला रखें, फिर दोबारा कोशिश करें।"
           }
         },
         "bn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "অ্যাপটি ফোরগ্রাউন্ড ছেড়ে যাওয়ায় TidyByte কমপ্রেশন বন্ধ করেছে। কমপ্রেস করার সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
           }
         },
         "ta": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "பயன்பாடு முன்னணியிலிருந்து வெளியேறியதால் TidyByte சுருக்குதலை நிறுத்தியது. சுருக்கும் போது TidyByte-ஐ திறந்து வைத்திருந்து, மீண்டும் முயற்சிக்கவும்."
           }
         },
         "te": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "యాప్ ఫోర్‌గ్రౌండ్ నుండి వెళ్లిపోవడంతో TidyByte కుదింపును ఆపింది. కుదించేటప్పుడు TidyByte ను తెరిచి ఉంచి, మళ్లీ ప్రయత్నించండి."
           }
         },
         "mr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "अ‍ॅप फोरग्राउंडमधून बाहेर गेल्यामुळे TidyByte ने कंप्रेशन थांबवले. कंप्रेस होत असताना TidyByte उघडे ठेवा, नंतर पुन्हा प्रयत्न करा."
           }
         },
         "gu": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "એપ ફોરગ્રાઉન્ડમાંથી નીકળી જવાથી TidyByte એ કોમ્પ્રેશન બંધ કર્યું. કોમ્પ્રેસ થતી વખતે TidyByte ખુલ્લું રાખો, પછી ફરી પ્રયાસ કરો."
           }
         },
         "kn": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "ಆ್ಯಪ್ ಮುಂಚೂಣಿಯಿಂದ ಹೊರಹೋದ ಕಾರಣ TidyByte ಸಂಕುಚನವನ್ನು ನಿಲ್ಲಿಸಿತು. ಸಂಕುಚಿಸುವಾಗ TidyByte ಅನ್ನು ತೆರೆದಿಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
           }
         },
         "ml": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "ആപ്പ് ഫോർഗ്രൗണ്ടിൽ നിന്ന് മാറിയതിനാൽ TidyByte കംപ്രഷൻ നിർത്തി. കംപ്രസ് ചെയ്യുമ്പോൾ TidyByte തുറന്നുവെച്ച് വീണ്ടും ശ്രമിക്കുക."
           }
         },
         "pa": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "ਐਪ ਫ਼ੋਰਗਰਾਊਂਡ ਤੋਂ ਬਾਹਰ ਚਲੀ ਜਾਣ ਕਰਕੇ TidyByte ਨੇ ਕੰਪ੍ਰੈਸ਼ਨ ਰੋਕ ਦਿੱਤੀ। ਕੰਪ੍ਰੈਸ ਹੋਣ ਦੌਰਾਨ TidyByte ਨੂੰ ਖੁੱਲ੍ਹਾ ਰੱਖੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
           }
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "TidyByte detuvo la compresión porque salió del primer plano. Mantén TidyByte abierto mientras comprime y vuelve a intentarlo."
           }
         },
         "fr": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "TidyByte a arrêté la compression car l'app a quitté le premier plan. Gardez TidyByte ouvert pendant la compression, puis réessayez."
           }
         },
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "TidyByte hat die Komprimierung beendet, weil die App in den Hintergrund gewechselt ist. Lass TidyByte geöffnet, während komprimiert wird, und versuche es dann erneut."
           }
         },
         "pt-BR": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "O TidyByte interrompeu a compactação porque saiu do primeiro plano. Mantenha o TidyByte aberto enquanto ele compacta e tente novamente."
           }
         },
         "it": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "TidyByte ha interrotto la compressione perché è uscito dal primo piano. Tieni TidyByte aperto durante la compressione, quindi riprova."
           }
         },
         "ja": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "アプリがフォアグラウンドから離れたため、TidyByte は圧縮を停止しました。圧縮中は TidyByte を開いたままにして、もう一度お試しください。"
           }
         },
         "ko": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "앱이 포그라운드를 벗어나 TidyByte가 압축을 중지했습니다. 압축하는 동안 TidyByte를 열어 두고 다시 시도하세요."
           }
         },
         "zh-Hans": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "由于 TidyByte 离开了前台，压缩已停止。压缩时请保持 TidyByte 打开，然后重试。"
           }
         },
         "ru": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "TidyByte остановил сжатие, потому что приложение ушло в фон. Держите TidyByte открытым во время сжатия и попробуйте снова."
           }
         },
         "ar": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "أوقف TidyByte الضغط لأن التطبيق غادر الواجهة. أبقِ TidyByte مفتوحًا أثناء الضغط، ثم أعد المحاولة."
           }
         },
         "he": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again."
+            "state": "translated",
+            "value": "TidyByte עצר את הדחיסה כי האפליקציה יצאה מהמסך הפעיל. השאר את TidyByte פתוח בזמן הדחיסה, ואז נסה שוב."
           }
         }
       }

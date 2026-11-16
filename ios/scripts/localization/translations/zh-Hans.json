@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " 收藏的照片会保留。",
-    " in selected photos": "在所选照片中",
     " known · %lld sizes unavailable": " 已知 · %lld 项大小不可用",
     "%@ (%@)": "%@（%@）",
     "%@ (%lld)": "%@（%lld）",
@@ -309,7 +308,6 @@
     "Largest": "最大",
     "Largest First": "从大到小",
     "Last 30 Days": "过去 30 天",
-    "Last scan, %@: %@ to review%@.": "上次扫描，%@：%@ 待查看%@。",
     "Leaves this photo unchanged and shows the next one": "不更改此照片并显示下一张",
     "Lens Smudge (%lld)": "镜头污渍（%lld）",
     "Lens smudge analysis is unavailable on this device.": "此设备不支持镜头污渍分析。",
@@ -794,7 +792,17 @@
     "to": "至",
     "today": "今天",
     "used": "已用",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "无法加载视频：%@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "删除标记为删除的帧。每组连拍中加星标的帧会保留。",
+    "The best photo from each group will be kept. %@": "每组中最佳的照片将被保留。%@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "由于 TidyByte 离开了前台，压缩已停止。压缩时请保持 TidyByte 打开，然后重试。",
+    "%@ %@": "%@%@",
+    "Last scan, %@: %@ to review.": "上次扫描，%@：待检查 %@。",
+    "Last scan, %@: %@ to review in selected photos.": "上次扫描，%@：所选照片中待检查 %@。",
+    "Bad URL.": "无效的 URL。",
+    "Sign-in failed.": "登录失败。",
+    "Couldn't save your Google sign-in on this device. Try again.": "无法在此设备上保存你的 Google 登录信息。请重试。"
   },
   "plurals": {
     "%lld issues found": {
@@ -1003,6 +1011,15 @@
     },
     "%lld videos over %lld MB": {
       "other": "%lld 个超过 %lld MB 的视频"
+    },
+    "%lld burst group": {
+      "other": "%lld 个连拍组"
+    },
+    "%lld group": {
+      "other": "%lld 个组"
+    },
+    "%lld group found": {
+      "other": "找到 %lld 个组"
     }
   }
 }

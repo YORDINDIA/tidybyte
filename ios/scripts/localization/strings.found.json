@@ -5,10 +5,6 @@
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
-      "key": " in selected photos",
-      "file": "Tidybyte/Services/NotificationService.swift"
-    },
-    {
       "key": " known · %lld sizes unavailable",
       "file": "Tidybyte/Features/Cleanup/MediaCleanerViewModel.swift"
     },
@@ -27,6 +23,10 @@
     {
       "key": "%@ (%lld)",
       "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
+    },
+    {
+      "key": "%@ %@",
+      "file": "Tidybyte/Services/LocalPhotoIntelligence.swift"
     },
     {
       "key": "%@ and %@",
@@ -439,6 +439,10 @@
       "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
     },
     {
+      "key": "Bad URL.",
+      "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
+    },
+    {
       "key": "Balanced",
       "file": "Tidybyte/Services/PhotoCompressionService.swift"
     },
@@ -783,6 +787,10 @@
     {
       "key": "Couldn't save your changes. Please try again.",
       "file": "Tidybyte/Features/Swipe/SwipeSessionViewModel.swift"
+    },
+    {
+      "key": "Couldn't save your Google sign-in on this device. Try again.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
     },
     {
       "key": "Couldn't Send Feedback",
@@ -1360,8 +1368,11 @@
       "file": "Tidybyte/Features/Activity/ActivityView.swift"
     },
     {
-      "key": "Last scan, %@: %@ to review%@.",
-      "fallback": "Last scan, %@: %@ to review%@.",
+      "key": "Last scan, %@: %@ to review in selected photos.",
+      "file": "Tidybyte/Services/NotificationService.swift"
+    },
+    {
+      "key": "Last scan, %@: %@ to review.",
       "file": "Tidybyte/Services/NotificationService.swift"
     },
     {
@@ -2173,6 +2184,10 @@
       "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
     },
     {
+      "key": "Sign-in failed.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
       "key": "Similar Photo Time Window",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
@@ -2734,5 +2749,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 675
+  "total": 679
 }

@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " Favoriten werden behalten.",
-    " in selected photos": " in ausgewählten Fotos",
     " known · %lld sizes unavailable": " bekannt · %lld Größen nicht verfügbar",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "Größte",
     "Largest First": "Größte zuerst",
     "Last 30 Days": "Letzte 30 Tage",
-    "Last scan, %@: %@ to review%@.": "Letzter Scan, %@: %@ zu prüfen%@.",
     "Leaves this photo unchanged and shows the next one": "Lässt dieses Foto unverändert und zeigt das nächste",
     "Lens Smudge (%lld)": "Verschmutzte Linse (%lld)",
     "Lens smudge analysis is unavailable on this device.": "Die Analyse verschmutzter Linsen ist auf diesem Gerät nicht verfügbar.",
@@ -794,7 +792,17 @@
     "to": "bis",
     "today": "heute",
     "used": "belegt",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "Video konnte nicht geladen werden: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Löscht die zum Löschen markierten Bilder. Das mit einem Stern markierte Bild jeder Serie bleibt erhalten.",
+    "The best photo from each group will be kept. %@": "Das beste Foto jeder Gruppe wird behalten. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte hat die Komprimierung beendet, weil die App in den Hintergrund gewechselt ist. Lass TidyByte geöffnet, während komprimiert wird, und versuche es dann erneut.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "Letzter Scan, %@: %@ zu prüfen.",
+    "Last scan, %@: %@ to review in selected photos.": "Letzter Scan, %@: %@ in ausgewählten Fotos zu prüfen.",
+    "Bad URL.": "Ungültige URL.",
+    "Sign-in failed.": "Anmeldung fehlgeschlagen.",
+    "Couldn't save your Google sign-in on this device. Try again.": "Deine Google-Anmeldung konnte auf diesem Gerät nicht gespeichert werden. Versuche es erneut."
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld Video über %lld MB",
       "other": "%lld Videos über %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld Seriengruppe",
+      "other": "%lld Seriengruppen"
+    },
+    "%lld group": {
+      "one": "%lld Gruppe",
+      "other": "%lld Gruppen"
+    },
+    "%lld group found": {
+      "one": "%lld Gruppe gefunden",
+      "other": "%lld Gruppen gefunden"
     }
   }
 }

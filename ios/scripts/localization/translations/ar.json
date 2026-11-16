@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " المفضلة محتفظ بها.",
-    " in selected photos": " في الصور المحددة",
     " known · %lld sizes unavailable": " معروف · %lld أحجام غير متاحة",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "الأكبر",
     "Largest First": "الأكبر أولًا",
     "Last 30 Days": "آخر 30 يومًا",
-    "Last scan, %@: %@ to review%@.": "آخر فحص، %@: %@ للمراجعة%@.",
     "Leaves this photo unchanged and shows the next one": "يترك هذه الصورة دون تغيير ويعرض التالية",
     "Lens Smudge (%lld)": "اتساخ العدسة (%lld)",
     "Lens smudge analysis is unavailable on this device.": "تحليل اتساخ العدسة غير متاح على هذا الجهاز.",
@@ -794,7 +792,17 @@
     "to": "إلى",
     "today": "اليوم",
     "used": "مستخدم",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "تعذّر تحميل الفيديو: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "يحذف الإطارات المحددة للحذف. يُحتفظ بالإطار المميَّز بنجمة في كل سلسلة.",
+    "The best photo from each group will be kept. %@": "سيُحتفظ بأفضل صورة من كل مجموعة. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "أوقف TidyByte الضغط لأن التطبيق غادر الواجهة. أبقِ TidyByte مفتوحًا أثناء الضغط، ثم أعد المحاولة.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "آخر فحص، %@: %@ للمراجعة.",
+    "Last scan, %@: %@ to review in selected photos.": "آخر فحص، %@: %@ للمراجعة في الصور المحددة.",
+    "Bad URL.": "عنوان URL غير صالح.",
+    "Sign-in failed.": "تعذّر تسجيل الدخول.",
+    "Couldn't save your Google sign-in on this device. Try again.": "تعذّر حفظ تسجيل دخولك إلى Google على هذا الجهاز. حاول مرة أخرى."
   },
   "plurals": {
     "%lld issues found": {
@@ -1348,6 +1356,30 @@
       "few": "%lld فيديوهات أكبر من %lld MB",
       "many": "%lld فيديو أكبر من %lld MB",
       "other": "%lld فيديو أكبر من %lld MB"
+    },
+    "%lld burst group": {
+      "zero": "%lld مجموعات متتابعة",
+      "one": "%lld مجموعة متتابعة",
+      "two": "%lld مجموعتان متتابعتان",
+      "few": "%lld مجموعات متتابعة",
+      "many": "%lld مجموعة متتابعة",
+      "other": "%lld مجموعة متتابعة"
+    },
+    "%lld group": {
+      "zero": "%lld مجموعات",
+      "one": "%lld مجموعة",
+      "two": "%lld مجموعتان",
+      "few": "%lld مجموعات",
+      "many": "%lld مجموعة",
+      "other": "%lld مجموعة"
+    },
+    "%lld group found": {
+      "zero": "تم العثور على %lld مجموعات",
+      "one": "تم العثور على %lld مجموعة",
+      "two": "تم العثور على %lld مجموعتين",
+      "few": "تم العثور على %lld مجموعات",
+      "many": "تم العثور على %lld مجموعة",
+      "other": "تم العثور على %lld مجموعة"
     }
   }
 }

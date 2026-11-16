@@ -98,7 +98,13 @@ final class GoogleAuthService: NSObject {
             "grant_type": "authorization_code",
             "code_verifier": verifier
         ])
-        store(response, keepingRefreshToken: nil)
+        do {
+            try store(response, keepingRefreshToken: nil)
+        } catch {
+            // The grant is unusable without stored tokens: revoke it, then report.
+            _ = await revoke(response.access_token)
+            throw error
+        }
     }
 
     /// A valid access token, refreshed when it is about to expire.
@@ -112,7 +118,7 @@ final class GoogleAuthService: NSObject {
                 "client_id": Self.clientID,
                 "grant_type": "refresh_token"
             ])
-            store(response, keepingRefreshToken: refresh)
+            try store(response, keepingRefreshToken: refresh)
             return self.tokens?.accessToken ?? ""
         } catch GoogleAuthError.http(400), GoogleAuthError.http(401) {
             // Revoked or expired grant: the user must sign in again.
@@ -130,15 +136,21 @@ final class GoogleAuthService: NSObject {
             clearTokens()
             return true
         }
+        guard await revoke(token) else { return false }
+        clearTokens()
+        return true
+    }
+
+    /// Asks Google to drop the grant behind `token`. True when Google accepted it,
+    /// or already had dropped it (400).
+    private func revoke(_ token: String) async -> Bool {
         var request = URLRequest(url: URL(string: "https://oauth2.googleapis.com/revoke")!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = Self.formBody(["token": token])
         guard let (_, response) = try? await URLSession.shared.data(for: request) else { return false }
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-        guard status == 200 || status == 400 else { return false }
-        clearTokens()
-        return true
+        return status == 200 || status == 400
     }
 
     // MARK: - Helpers
@@ -160,14 +172,16 @@ final class GoogleAuthService: NSObject {
         return try JSONDecoder().decode(TokenResponse.self, from: data)
     }
 
-    private func store(_ response: TokenResponse, keepingRefreshToken previous: String?) {
+    /// Keeps the tokens only once they reached the Keychain. Until then the app
+    /// does not hold them, so a failed write is never reported as signed in.
+    private func store(_ response: TokenResponse, keepingRefreshToken previous: String?) throws {
         let tokens = Tokens(
             accessToken: response.access_token,
             refreshToken: response.refresh_token ?? previous,
             expiresAt: Date().addingTimeInterval(response.expires_in)
         )
+        guard GoogleKeychain.save(tokens) else { throw GoogleAuthError.keychainWriteFailed }
         self.tokens = tokens
-        GoogleKeychain.save(tokens)
     }
 
     private func clearTokens() {
@@ -202,6 +216,8 @@ enum GoogleAuthError: LocalizedError, Equatable {
     case signedOut
     case http(Int)
     case failed(String)
+    /// The sign-in worked, but the Keychain would not keep it. Shown to the user.
+    case keychainWriteFailed
 
     var errorDescription: String? {
         switch self {
@@ -209,7 +225,9 @@ enum GoogleAuthError: LocalizedError, Equatable {
         case .cancelled: L10n.string("Sign-in cancelled.")
         case .signedOut: L10n.string("Your Google session ended. Sign in again.")
         case .http(let code): L10n.format("Google returned an error (%lld).", code)
-        case .failed(let message): message
+        // An empty message would leave the error banner blank.
+        case .failed(let message): message.isEmpty ? L10n.string("Sign-in failed.") : message
+        case .keychainWriteFailed: L10n.string("Couldn't save your Google sign-in on this device. Try again.")
         }
     }
 }
@@ -243,19 +261,22 @@ enum GoogleKeychain {
         kSecAttrAccount: "oauth"
     ]
 
-    static func save(_ tokens: GoogleAuthService.Tokens) {
-        guard let data = try? JSONEncoder().encode(tokens) else { return }
+    /// Returns false when the tokens were not written. A sign-in that is not stored
+    /// is gone at relaunch, so callers must not report it as durable.
+    @discardableResult
+    static func save(_ tokens: GoogleAuthService.Tokens) -> Bool {
+        guard let data = try? JSONEncoder().encode(tokens) else { return false }
         SecItemDelete(query as CFDictionary)
         var item = query
         item[kSecValueData] = data
         item[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         let status = SecItemAdd(item as CFDictionary, nil)
-        // The session still works until relaunch, but a failed write means the
-        // user is signed out on the next launch. Log it, since the status is the
-        // only clue (no token text is logged).
-        if status != errSecSuccess {
+        // Logged with the status only: no token text reaches the log.
+        guard status == errSecSuccess else {
             AppLog.app.error("Failed to store Google sign-in: OSStatus \(status, privacy: .public)")
+            return false
         }
+        return true
     }
 
     static func load() -> GoogleAuthService.Tokens? {

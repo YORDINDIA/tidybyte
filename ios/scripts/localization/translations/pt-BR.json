@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " Os favoritos são mantidos.",
-    " in selected photos": " em fotos selecionadas",
     " known · %lld sizes unavailable": " conhecidos · %lld tamanhos indisponíveis",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "Maiores",
     "Largest First": "Maiores primeiro",
     "Last 30 Days": "Últimos 30 dias",
-    "Last scan, %@: %@ to review%@.": "Última varredura, %@: %@ para revisar%@.",
     "Leaves this photo unchanged and shows the next one": "Deixa esta foto como está e mostra a próxima",
     "Lens Smudge (%lld)": "Mancha na lente (%lld)",
     "Lens smudge analysis is unavailable on this device.": "A análise de manchas na lente não está disponível neste dispositivo.",
@@ -794,7 +792,17 @@
     "to": "a",
     "today": "hoje",
     "used": "usado",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "Não foi possível carregar o vídeo: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Exclui os quadros marcados para exclusão. O quadro com estrela de cada sequência é mantido.",
+    "The best photo from each group will be kept. %@": "A melhor foto de cada grupo será mantida. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "O TidyByte interrompeu a compactação porque saiu do primeiro plano. Mantenha o TidyByte aberto enquanto ele compacta e tente novamente.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "Última análise, %@: %@ para revisar.",
+    "Last scan, %@: %@ to review in selected photos.": "Última análise, %@: %@ para revisar nas fotos selecionadas.",
+    "Bad URL.": "URL inválido.",
+    "Sign-in failed.": "Falha no login.",
+    "Couldn't save your Google sign-in on this device. Try again.": "Não foi possível salvar seu login do Google neste dispositivo. Tente novamente."
   },
   "plurals": {
     "%lld issues found": {
@@ -1141,6 +1149,21 @@
       "one": "%lld vídeo acima de %lld MB",
       "many": "%lld vídeos acima de %lld MB",
       "other": "%lld vídeos acima de %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld grupo de rajada",
+      "many": "%lld grupos de rajadas",
+      "other": "%lld grupos de rajadas"
+    },
+    "%lld group": {
+      "one": "%lld grupo",
+      "many": "%lld grupos",
+      "other": "%lld grupos"
+    },
+    "%lld group found": {
+      "one": "%lld grupo encontrado",
+      "many": "%lld grupos encontrados",
+      "other": "%lld grupos encontrados"
     }
   }
 }

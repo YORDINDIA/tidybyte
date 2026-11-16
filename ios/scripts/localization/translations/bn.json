@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " প্রিয় আইটেম রাখা হয়.",
-    " in selected photos": " নির্বাচিত ফটোতে",
     " known · %lld sizes unavailable": " জানা · %lld আকার অনুপলব্ধ",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "সবচেয়ে বড়",
     "Largest First": "সবচেয়ে বড় আগে",
     "Last 30 Days": "গত 30 দিন",
-    "Last scan, %@: %@ to review%@.": "শেষ স্ক্যান, %@%@: দেখার জন্য %@.",
     "Leaves this photo unchanged and shows the next one": "এই ফটো অপরিবর্তিত রেখে পরেরটি দেখায়",
     "Lens Smudge (%lld)": "লেন্সে দাগ (%lld)",
     "Lens smudge analysis is unavailable on this device.": "এই ডিভাইসে লেন্সের দাগ বিশ্লেষণ উপলব্ধ নয়.",
@@ -794,7 +792,17 @@
     "to": "থেকে",
     "today": "আজ",
     "used": "ব্যবহৃত",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "ভিডিও লোড করা যায়নি: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "মুছে ফেলার জন্য চিহ্নিত ফ্রেমগুলো মুছে ফেলা হয়। প্রতিটি বার্স্টের তারকা-চিহ্নিত ফ্রেম রাখা হয়।",
+    "The best photo from each group will be kept. %@": "প্রতিটি গ্রুপের সেরা ছবিটি রাখা হবে। %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "অ্যাপটি ফোরগ্রাউন্ড ছেড়ে যাওয়ায় TidyByte কমপ্রেশন বন্ধ করেছে। কমপ্রেস করার সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "শেষ স্ক্যান, %@: পর্যালোচনার জন্য %@।",
+    "Last scan, %@: %@ to review in selected photos.": "শেষ স্ক্যান, %@: নির্বাচিত ছবিতে পর্যালোচনার জন্য %@।",
+    "Bad URL.": "অবৈধ URL।",
+    "Sign-in failed.": "সাইন-ইন ব্যর্থ হয়েছে।",
+    "Couldn't save your Google sign-in on this device. Try again.": "এই ডিভাইসে আপনার Google সাইন-ইন সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।"
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld ভিডিও %lld MB এর বেশি",
       "other": "%lld ভিডিও %lld MB এর বেশি"
+    },
+    "%lld burst group": {
+      "one": "%lld বার্স্ট গ্রুপ",
+      "other": "%lld বার্স্ট গ্রুপ"
+    },
+    "%lld group": {
+      "one": "%lld গ্রুপ",
+      "other": "%lld গ্রুপ"
+    },
+    "%lld group found": {
+      "one": "%lld গ্রুপ পাওয়া গেছে",
+      "other": "%lld গ্রুপ পাওয়া গেছে"
     }
   }
 }

@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " מועדפים נשמרים.",
-    " in selected photos": " בתמונות הנבחרות",
     " known · %lld sizes unavailable": " ידוע · %lld גדלים לא זמינים",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "הגדול ביותר",
     "Largest First": "הגדולים קודם",
     "Last 30 Days": "30 הימים האחרונים",
-    "Last scan, %@: %@ to review%@.": "סריקה אחרונה, %@: %@ לסקירה%@.",
     "Leaves this photo unchanged and shows the next one": "משאיר תמונה זו ללא שינוי ומציג את הבאה",
     "Lens Smudge (%lld)": "לכלוך על העדשה (%lld)",
     "Lens smudge analysis is unavailable on this device.": "ניתוח לכלוך על העדשה אינו זמין במכשיר זה.",
@@ -794,7 +792,17 @@
     "to": "עד",
     "today": "היום",
     "used": "בשימוש",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "לא ניתן לטעון את הסרטון: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "מוחק את הפריימים שסומנו למחיקה. הפריים המסומן בכוכב בכל רצף נשמר.",
+    "The best photo from each group will be kept. %@": "התמונה הטובה ביותר מכל קבוצה תישמר. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte עצר את הדחיסה כי האפליקציה יצאה מהמסך הפעיל. השאר את TidyByte פתוח בזמן הדחיסה, ואז נסה שוב.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "סריקה אחרונה, %@: %@ לבדיקה.",
+    "Last scan, %@: %@ to review in selected photos.": "סריקה אחרונה, %@: %@ לבדיקה בתמונות שנבחרו.",
+    "Bad URL.": "כתובת URL לא תקינה.",
+    "Sign-in failed.": "ההתחברות נכשלה.",
+    "Couldn't save your Google sign-in on this device. Try again.": "לא ניתן לשמור את ההתחברות שלך ל-Google במכשיר הזה. נסה שוב."
   },
   "plurals": {
     "%lld issues found": {
@@ -1141,6 +1149,21 @@
       "one": "%lld סרטון מעל %lld MB",
       "two": "%lld סרטונים מעל %lld MB",
       "other": "%lld סרטונים מעל %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld רצף",
+      "two": "%lld רצפים",
+      "other": "%lld רצפים"
+    },
+    "%lld group": {
+      "one": "%lld קבוצה",
+      "two": "%lld קבוצות",
+      "other": "%lld קבוצות"
+    },
+    "%lld group found": {
+      "one": "נמצאה %lld קבוצה",
+      "two": "נמצאו %lld קבוצות",
+      "other": "נמצאו %lld קבוצות"
     }
   }
 }

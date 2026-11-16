@@ -62,14 +62,13 @@ enum NotificationService {
         }
         guard !parts.isEmpty else { return reminderBody(snapshot: nil) }
         let date = Formatters.mediumDate(snapshot.date)
-        let scope = snapshot.isLimited ? L10n.string(" in selected photos") : ""
         // `Formatters.list` supplies the locale's conjunction ("and", "und",
-        // "y", "و") rather than a hardcoded comma.
-        return L10n.format(
-            "Last scan, %@: %@ to review%@.",
-            fallback: "Last scan, %@: %@ to review%@.",
-            date, Formatters.list(parts), scope
-        )
+        // "y", "و") rather than a hardcoded comma. The limited-access wording is
+        // a whole sentence, not a suffix a translator cannot place.
+        if snapshot.isLimited {
+            return L10n.format("Last scan, %@: %@ to review in selected photos.", date, Formatters.list(parts))
+        }
+        return L10n.format("Last scan, %@: %@ to review.", date, Formatters.list(parts))
     }
 
     /// Serialize replacements so an older add cannot overwrite a newer setting.

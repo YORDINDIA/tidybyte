@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " പ്രിയപ്പെട്ടവ നിലനിർത്തുന്നു.",
-    " in selected photos": " തിരഞ്ഞെടുത്ത ഫോട്ടോകളിൽ",
     " known · %lld sizes unavailable": " അറിയാം · %lld വലിപ്പങ്ങൾ ലഭ്യമല്ല",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "ഏറ്റവും വലിയത്",
     "Largest First": "ഏറ്റവും വലിയത് ആദ്യം",
     "Last 30 Days": "കഴിഞ്ഞ 30 ദിവസം",
-    "Last scan, %@: %@ to review%@.": "അവസാന സ്കാൻ, %@: പരിശോധിക്കാൻ %@%@.",
     "Leaves this photo unchanged and shows the next one": "ഈ ഫോട്ടോ മാറ്റാതെ അടുത്തത് കാണിക്കുന്നു",
     "Lens Smudge (%lld)": "ലെൻസിലെ പാട് (%lld)",
     "Lens smudge analysis is unavailable on this device.": "ഈ ഉപകരണത്തിൽ ലെൻസ് പാട് വിശകലനം ലഭ്യമല്ല.",
@@ -794,7 +792,17 @@
     "to": "മുതൽ",
     "today": "ഇന്ന്",
     "used": "ഉപയോഗിച്ചു",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "വീഡിയോ ലോഡ് ചെയ്യാനായില്ല: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "ഇല്ലാതാക്കാൻ അടയാളപ്പെടുത്തിയ ഫ്രെയിമുകൾ ഇല്ലാതാക്കുന്നു. ഓരോ ബർസ്റ്റിലെയും നക്ഷത്രം അടയാളപ്പെടുത്തിയ ഫ്രെയിം നിലനിർത്തുന്നു.",
+    "The best photo from each group will be kept. %@": "ഓരോ ഗ്രൂപ്പിലെയും മികച്ച ഫോട്ടോ നിലനിർത്തും. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "ആപ്പ് ഫോർഗ്രൗണ്ടിൽ നിന്ന് മാറിയതിനാൽ TidyByte കംപ്രഷൻ നിർത്തി. കംപ്രസ് ചെയ്യുമ്പോൾ TidyByte തുറന്നുവെച്ച് വീണ്ടും ശ്രമിക്കുക.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "അവസാന സ്കാൻ, %@: പരിശോധിക്കേണ്ടത് %@.",
+    "Last scan, %@: %@ to review in selected photos.": "അവസാന സ്കാൻ, %@: തിരഞ്ഞെടുത്ത ഫോട്ടോകളിൽ പരിശോധിക്കേണ്ടത് %@.",
+    "Bad URL.": "അസാധുവായ URL.",
+    "Sign-in failed.": "സൈൻ ഇൻ പരാജയപ്പെട്ടു.",
+    "Couldn't save your Google sign-in on this device. Try again.": "ഈ ഉപകരണത്തിൽ നിങ്ങളുടെ Google സൈൻ ഇൻ സേവ് ചെയ്യാനായില്ല. വീണ്ടും ശ്രമിക്കുക."
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld വീഡിയോ %lld MB-ൽ കൂടുതൽ",
       "other": "%lld വീഡിയോകൾ %lld MB-ൽ കൂടുതൽ"
+    },
+    "%lld burst group": {
+      "one": "%lld ബർസ്റ്റ് ഗ്രൂപ്പ്",
+      "other": "%lld ബർസ്റ്റ് ഗ്രൂപ്പുകൾ"
+    },
+    "%lld group": {
+      "one": "%lld ഗ്രൂപ്പ്",
+      "other": "%lld ഗ്രൂപ്പുകൾ"
+    },
+    "%lld group found": {
+      "one": "%lld ഗ്രൂപ്പ് കണ്ടെത്തി",
+      "other": "%lld ഗ്രൂപ്പുകൾ കണ്ടെത്തി"
     }
   }
 }

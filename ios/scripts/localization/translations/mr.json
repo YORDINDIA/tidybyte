@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " आवडते ठेवले जातात.",
-    " in selected photos": " निवडलेल्या फोटोंमध्ये",
     " known · %lld sizes unavailable": " माहीत · %lld आकार उपलब्ध नाहीत",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "सर्वात मोठे",
     "Largest First": "सर्वात मोठे आधी",
     "Last 30 Days": "गेले 30 दिवस",
-    "Last scan, %@: %@ to review%@.": "शेवटचा स्कॅन, %@: पुनरावलोकनासाठी %@%@.",
     "Leaves this photo unchanged and shows the next one": "हा फोटो बदलत नाही आणि पुढचा दाखवते",
     "Lens Smudge (%lld)": "लेन्सवरील डाग (%lld)",
     "Lens smudge analysis is unavailable on this device.": "या डिव्हाइसवर लेन्स डाग विश्लेषण उपलब्ध नाही.",
@@ -794,7 +792,17 @@
     "to": "ते",
     "today": "आज",
     "used": "वापरले",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "व्हिडिओ लोड करता आला नाही: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "हटवण्यासाठी चिन्हांकित केलेले फ्रेम हटवले जातात. प्रत्येक बर्स्टमधील तारांकित फ्रेम ठेवली जाते.",
+    "The best photo from each group will be kept. %@": "प्रत्येक गटातील सर्वोत्तम फोटो ठेवला जाईल. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "अ‍ॅप फोरग्राउंडमधून बाहेर गेल्यामुळे TidyByte ने कंप्रेशन थांबवले. कंप्रेस होत असताना TidyByte उघडे ठेवा, नंतर पुन्हा प्रयत्न करा.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "शेवटचे स्कॅन, %@: पुनरावलोकनासाठी %@.",
+    "Last scan, %@: %@ to review in selected photos.": "शेवटचे स्कॅन, %@: निवडलेल्या फोटोंमध्ये पुनरावलोकनासाठी %@.",
+    "Bad URL.": "अवैध URL.",
+    "Sign-in failed.": "साइन-इन अयशस्वी झाले.",
+    "Couldn't save your Google sign-in on this device. Try again.": "या डिव्हाइसवर तुमचे Google साइन-इन सेव्ह करता आले नाही. पुन्हा प्रयत्न करा."
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld व्हिडिओ %lld MB पेक्षा मोठा",
       "other": "%lld व्हिडिओ %lld MB पेक्षा मोठे"
+    },
+    "%lld burst group": {
+      "one": "%lld बर्स्ट गट",
+      "other": "%lld बर्स्ट गट"
+    },
+    "%lld group": {
+      "one": "%lld गट",
+      "other": "%lld गट"
+    },
+    "%lld group found": {
+      "one": "%lld गट सापडला",
+      "other": "%lld गट सापडले"
     }
   }
 }

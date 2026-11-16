@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " Los favoritos se conservan.",
-    " in selected photos": " en las fotos seleccionadas",
     " known · %lld sizes unavailable": " conocidos · %lld tamaños no disponibles",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "Más grandes",
     "Largest First": "Más grandes primero",
     "Last 30 Days": "Últimos 30 días",
-    "Last scan, %@: %@ to review%@.": "Último análisis, %@: %@ por revisar%@.",
     "Leaves this photo unchanged and shows the next one": "Deja esta foto sin cambios y muestra la siguiente",
     "Lens Smudge (%lld)": "Manchas en la lente (%lld)",
     "Lens smudge analysis is unavailable on this device.": "El análisis de manchas en la lente no está disponible en este dispositivo.",
@@ -794,7 +792,17 @@
     "to": "a",
     "today": "hoy",
     "used": "usado",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "No se pudo cargar el video: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Elimina los fotogramas marcados para borrar. Se conserva el fotograma marcado con estrella de cada ráfaga.",
+    "The best photo from each group will be kept. %@": "La mejor foto de cada grupo se conservará. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte detuvo la compresión porque salió del primer plano. Mantén TidyByte abierto mientras comprime y vuelve a intentarlo.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "Último análisis, %@: %@ para revisar.",
+    "Last scan, %@: %@ to review in selected photos.": "Último análisis, %@: %@ para revisar en las fotos seleccionadas.",
+    "Bad URL.": "URL no válida.",
+    "Sign-in failed.": "Error al iniciar sesión.",
+    "Couldn't save your Google sign-in on this device. Try again.": "No se pudo guardar tu inicio de sesión de Google en este dispositivo. Inténtalo de nuevo."
   },
   "plurals": {
     "%lld issues found": {
@@ -1141,6 +1149,21 @@
       "one": "%lld vídeo de más de %lld MB",
       "many": "%lld vídeos de más de %lld MB",
       "other": "%lld vídeos de más de %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld grupo de ráfaga",
+      "many": "%lld grupos de ráfaga",
+      "other": "%lld grupos de ráfaga"
+    },
+    "%lld group": {
+      "one": "%lld grupo",
+      "many": "%lld grupos",
+      "other": "%lld grupos"
+    },
+    "%lld group found": {
+      "one": "%lld grupo encontrado",
+      "many": "%lld grupos encontrados",
+      "other": "%lld grupos encontrados"
     }
   }
 }

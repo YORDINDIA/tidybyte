@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " ಮೆಚ್ಚಿನವು ಇರಿಸಲಾಗುತ್ತವೆ.",
-    " in selected photos": " ಆಯ್ಕೆಮಾಡಿದ ಫೋಟೋಗಳಲ್ಲಿ",
     " known · %lld sizes unavailable": " ತಿಳಿದಿದೆ · %lld ಗಾತ್ರಗಳು ಲಭ್ಯವಿಲ್ಲ",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "ಅತಿದೊಡ್ಡವು",
     "Largest First": "ಅತಿದೊಡ್ಡವು ಮೊದಲು",
     "Last 30 Days": "ಕಳೆದ 30 ದಿನಗಳು",
-    "Last scan, %@: %@ to review%@.": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್, %@: ಪರಿಶೀಲಿಸಲು %@%@.",
     "Leaves this photo unchanged and shows the next one": "ಈ ಫೋಟೋ ಬದಲಾಗದೆ ಮುಂದಿನದನ್ನು ತೋರಿಸುತ್ತದೆ",
     "Lens Smudge (%lld)": "ಲೆನ್ಸ್ ಕಲೆ (%lld)",
     "Lens smudge analysis is unavailable on this device.": "ಈ ಸಾಧನದಲ್ಲಿ ಲೆನ್ಸ್ ಕಲೆ ವಿಶ್ಲೇಷಣೆ ಲಭ್ಯವಿಲ್ಲ.",
@@ -794,7 +792,17 @@
     "to": "ರಿಂದ",
     "today": "ಇಂದು",
     "used": "ಬಳಸಲಾಗಿದೆ",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "ವೀಡಿಯೊ ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "ಅಳಿಸಲು ಗುರುತಿಸಿದ ಫ್ರೇಮ್‌ಗಳನ್ನು ಅಳಿಸಲಾಗುತ್ತದೆ. ಪ್ರತಿ ಬರ್ಸ್ಟ್‌ನ ನಕ್ಷತ್ರ ಗುರುತಿನ ಫ್ರೇಮ್ ಉಳಿಯುತ್ತದೆ.",
+    "The best photo from each group will be kept. %@": "ಪ್ರತಿ ಗುಂಪಿನ ಅತ್ಯುತ್ತಮ ಫೋಟೋ ಉಳಿಸಲಾಗುತ್ತದೆ. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "ಆ್ಯಪ್ ಮುಂಚೂಣಿಯಿಂದ ಹೊರಹೋದ ಕಾರಣ TidyByte ಸಂಕುಚನವನ್ನು ನಿಲ್ಲಿಸಿತು. ಸಂಕುಚಿಸುವಾಗ TidyByte ಅನ್ನು ತೆರೆದಿಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್, %@: ಪರಿಶೀಲಿಸಬೇಕಾದವು %@.",
+    "Last scan, %@: %@ to review in selected photos.": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್, %@: ಆಯ್ಕೆ ಮಾಡಿದ ಫೋಟೋಗಳಲ್ಲಿ ಪರಿಶೀಲಿಸಬೇಕಾದವು %@.",
+    "Bad URL.": "ಅಮಾನ್ಯ URL.",
+    "Sign-in failed.": "ಸೈನ್-ಇನ್ ವಿಫಲವಾಗಿದೆ.",
+    "Couldn't save your Google sign-in on this device. Try again.": "ಈ ಸಾಧನದಲ್ಲಿ ನಿಮ್ಮ Google ಸೈನ್-ಇನ್ ಉಳಿಸಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld ವೀಡಿಯೊ %lld MB ಗಿಂತ ಹೆಚ್ಚು",
       "other": "%lld ವೀಡಿಯೊಗಳು %lld MB ಗಿಂತ ಹೆಚ್ಚು"
+    },
+    "%lld burst group": {
+      "one": "%lld ಬರ್ಸ್ಟ್ ಗುಂಪು",
+      "other": "%lld ಬರ್ಸ್ಟ್ ಗುಂಪುಗಳು"
+    },
+    "%lld group": {
+      "one": "%lld ಗುಂಪು",
+      "other": "%lld ಗುಂಪುಗಳು"
+    },
+    "%lld group found": {
+      "one": "%lld ಗುಂಪು ಸಿಕ್ಕಿತು",
+      "other": "%lld ಗುಂಪುಗಳು ಸಿಕ್ಕಿವೆ"
     }
   }
 }

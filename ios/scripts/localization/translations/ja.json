@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " お気に入りは残されます。",
-    " in selected photos": "（選択した写真内）",
     " known · %lld sizes unavailable": " 判明分 · %lld件はサイズ不明",
     "%@ (%@)": "%@（%@）",
     "%@ (%lld)": "%@（%lld）",
@@ -309,7 +308,6 @@
     "Largest": "大きい順",
     "Largest First": "大きい順",
     "Last 30 Days": "過去30日間",
-    "Last scan, %@: %@ to review%@.": "前回のスキャン %@: 確認する%@は%@。",
     "Leaves this photo unchanged and shows the next one": "この写真を変更せずに次を表示します",
     "Lens Smudge (%lld)": "レンズの汚れ (%lld)",
     "Lens smudge analysis is unavailable on this device.": "このデバイスではレンズの汚れ解析を利用できません。",
@@ -794,7 +792,17 @@
     "to": "〜",
     "today": "今日",
     "used": "使用中",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "動画を読み込めませんでした: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "削除対象としてマークされたフレームを削除します。各連写の星印付きフレームは残ります。",
+    "The best photo from each group will be kept. %@": "各グループのベストな写真は残されます。%@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "アプリがフォアグラウンドから離れたため、TidyByte は圧縮を停止しました。圧縮中は TidyByte を開いたままにして、もう一度お試しください。",
+    "%@ %@": "%@%@",
+    "Last scan, %@: %@ to review.": "前回のスキャン（%@）：確認対象 %@。",
+    "Last scan, %@: %@ to review in selected photos.": "前回のスキャン（%@）：選択した写真のうち確認対象 %@。",
+    "Bad URL.": "無効な URL です。",
+    "Sign-in failed.": "サインインに失敗しました。",
+    "Couldn't save your Google sign-in on this device. Try again.": "この端末に Google へのサインイン情報を保存できませんでした。もう一度お試しください。"
   },
   "plurals": {
     "%lld issues found": {
@@ -1003,6 +1011,15 @@
     },
     "%lld videos over %lld MB": {
       "other": "%lld MB を超えるビデオ %lld本"
+    },
+    "%lld burst group": {
+      "other": "%lld個のバースト"
+    },
+    "%lld group": {
+      "other": "%lld個のグループ"
+    },
+    "%lld group found": {
+      "other": "%lld個のグループが見つかりました"
     }
   }
 }

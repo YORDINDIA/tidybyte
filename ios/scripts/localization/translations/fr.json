@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " Les favoris sont conservés.",
-    " in selected photos": " dans les photos sélectionnées",
     " known · %lld sizes unavailable": " connu · %lld tailles indisponibles",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "Plus volumineux",
     "Largest First": "Les plus volumineux d’abord",
     "Last 30 Days": "30 derniers jours",
-    "Last scan, %@: %@ to review%@.": "Dernière analyse, %@ : %@ à examiner%@.",
     "Leaves this photo unchanged and shows the next one": "Laisse cette photo inchangée et affiche la suivante",
     "Lens Smudge (%lld)": "Traces sur l'objectif (%lld)",
     "Lens smudge analysis is unavailable on this device.": "L'analyse des traces sur l'objectif n'est pas disponible sur cet appareil.",
@@ -794,7 +792,17 @@
     "to": "à",
     "today": "aujourd'hui",
     "used": "utilisé",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "Impossible de charger la vidéo : %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Supprime les images marquées pour suppression. L'image marquée d'une étoile de chaque rafale est conservée.",
+    "The best photo from each group will be kept. %@": "La meilleure photo de chaque groupe sera conservée. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte a arrêté la compression car l'app a quitté le premier plan. Gardez TidyByte ouvert pendant la compression, puis réessayez.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "Dernière analyse, %@ : %@ à examiner.",
+    "Last scan, %@: %@ to review in selected photos.": "Dernière analyse, %@ : %@ à examiner dans les photos sélectionnées.",
+    "Bad URL.": "URL incorrecte.",
+    "Sign-in failed.": "Échec de la connexion.",
+    "Couldn't save your Google sign-in on this device. Try again.": "Impossible d'enregistrer votre connexion Google sur cet appareil. Réessayez."
   },
   "plurals": {
     "%lld issues found": {
@@ -1141,6 +1149,21 @@
       "one": "%lld vidéo de plus de %lld MB",
       "many": "%lld vidéos de plus de %lld MB",
       "other": "%lld vidéos de plus de %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld groupe de rafale",
+      "many": "%lld groupes de rafale",
+      "other": "%lld groupes de rafale"
+    },
+    "%lld group": {
+      "one": "%lld groupe",
+      "many": "%lld groupes",
+      "other": "%lld groupes"
+    },
+    "%lld group found": {
+      "one": "%lld groupe trouvé",
+      "many": "%lld groupes trouvés",
+      "other": "%lld groupes trouvés"
     }
   }
 }

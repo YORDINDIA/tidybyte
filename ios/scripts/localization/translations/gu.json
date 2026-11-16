@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " પસંદ રાખવામાં આવે છે.",
-    " in selected photos": " પસંદ કરેલા ફોટામાં",
     " known · %lld sizes unavailable": " જાણીતું · %lld સાઇઝ ઉપલબ્ધ નથી",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "સૌથી મોટા",
     "Largest First": "સૌથી મોટા પહેલા",
     "Last 30 Days": "છેલ્લા 30 દિવસ",
-    "Last scan, %@: %@ to review%@.": "છેલ્લું સ્કેન, %@: સમીક્ષા માટે %@%@.",
     "Leaves this photo unchanged and shows the next one": "આ ફોટો બદલતું નથી અને આગલો બતાવે છે",
     "Lens Smudge (%lld)": "લેન્સ પર ડાઘ (%lld)",
     "Lens smudge analysis is unavailable on this device.": "આ ડિવાઇસ પર લેન્સ ડાઘ વિશ્લેષણ ઉપલબ્ધ નથી.",
@@ -794,7 +792,17 @@
     "to": "થી",
     "today": "આજે",
     "used": "વપરાયું",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "વિડિઓ લોડ કરી શકાયો નથી: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "કાઢી નાખવા માટે ચિહ્નિત ફ્રેમ્સ કાઢી નાખે છે. દરેક બર્સ્ટની સ્ટાર કરેલી ફ્રેમ રાખવામાં આવે છે.",
+    "The best photo from each group will be kept. %@": "દરેક જૂથનો શ્રેષ્ઠ ફોટો રાખવામાં આવશે. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "એપ ફોરગ્રાઉન્ડમાંથી નીકળી જવાથી TidyByte એ કોમ્પ્રેશન બંધ કર્યું. કોમ્પ્રેસ થતી વખતે TidyByte ખુલ્લું રાખો, પછી ફરી પ્રયાસ કરો.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "છેલ્લું સ્કેન, %@: સમીક્ષા માટે %@.",
+    "Last scan, %@: %@ to review in selected photos.": "છેલ્લું સ્કેન, %@: પસંદ કરેલા ફોટોમાં સમીક્ષા માટે %@.",
+    "Bad URL.": "અમાન્ય URL.",
+    "Sign-in failed.": "સાઇન-ઇન નિષ્ફળ ગયું.",
+    "Couldn't save your Google sign-in on this device. Try again.": "આ ડિવાઇસ પર તમારું Google સાઇન-ઇન સાચવી શકાયું નહીં. ફરી પ્રયાસ કરો."
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld વિડિયો %lld MB થી વધુ",
       "other": "%lld વિડિયો %lld MB થી વધુ"
+    },
+    "%lld burst group": {
+      "one": "%lld બર્સ્ટ જૂથ",
+      "other": "%lld બર્સ્ટ જૂથ"
+    },
+    "%lld group": {
+      "one": "%lld જૂથ",
+      "other": "%lld જૂથ"
+    },
+    "%lld group found": {
+      "one": "%lld જૂથ મળ્યું",
+      "other": "%lld જૂથ મળ્યાં"
     }
   }
 }

@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " பிடித்தவை வைக்கப்படும்.",
-    " in selected photos": " தேர்ந்தெடுத்த புகைப்படங்களில்",
     " known · %lld sizes unavailable": " தெரிந்தது · %lld அளவுகள் கிடைக்கவில்லை",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "மிகப் பெரியது",
     "Largest First": "பெரியவை முதலில்",
     "Last 30 Days": "கடந்த 30 நாட்கள்",
-    "Last scan, %@: %@ to review%@.": "கடைசி ஸ்கேன், %@%@: பார்க்க %@.",
     "Leaves this photo unchanged and shows the next one": "இந்தப் புகைப்படத்தை மாற்றாமல் அடுத்ததைக் காட்டுகிறது",
     "Lens Smudge (%lld)": "லென்ஸ் கறை (%lld)",
     "Lens smudge analysis is unavailable on this device.": "இந்தச் சாதனத்தில் லென்ஸ் கறை பரிசோதனை கிடைக்கவில்லை.",
@@ -794,7 +792,17 @@
     "to": "முதல்",
     "today": "இன்று",
     "used": "பயன்படுத்தப்பட்டது",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "வீடியோவை ஏற்ற முடியவில்லை: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "நீக்க குறிக்கப்பட்ட சட்டங்கள் நீக்கப்படும். ஒவ்வொரு பர்ஸ்டின் நட்சத்திரக் குறியிட்ட சட்டம் வைக்கப்படும்.",
+    "The best photo from each group will be kept. %@": "ஒவ்வொரு குழுவிலும் சிறந்த புகைப்படம் வைக்கப்படும். %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "பயன்பாடு முன்னணியிலிருந்து வெளியேறியதால் TidyByte சுருக்குதலை நிறுத்தியது. சுருக்கும் போது TidyByte-ஐ திறந்து வைத்திருந்து, மீண்டும் முயற்சிக்கவும்.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "கடைசி ஸ்கேன், %@: மதிப்பாய்வு செய்ய %@.",
+    "Last scan, %@: %@ to review in selected photos.": "கடைசி ஸ்கேன், %@: தேர்ந்தெடுத்த புகைப்படங்களில் மதிப்பாய்வு செய்ய %@.",
+    "Bad URL.": "தவறான URL.",
+    "Sign-in failed.": "உள்நுழைவு தோல்வியடைந்தது.",
+    "Couldn't save your Google sign-in on this device. Try again.": "இந்தச் சாதனத்தில் உங்கள் Google உள்நுழைவைச் சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்."
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld வீடியோ %lld MB க்கு மேல்",
       "other": "%lld வீடியோக்கள் %lld MB க்கு மேல்"
+    },
+    "%lld burst group": {
+      "one": "%lld பர்ஸ்ட் குழு",
+      "other": "%lld பர்ஸ்ட் குழுக்கள்"
+    },
+    "%lld group": {
+      "one": "%lld குழு",
+      "other": "%lld குழுக்கள்"
+    },
+    "%lld group found": {
+      "one": "%lld குழு கண்டறியப்பட்டது",
+      "other": "%lld குழுக்கள் கண்டறியப்பட்டன"
     }
   }
 }

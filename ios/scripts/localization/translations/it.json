@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " I preferiti vengono conservati.",
-    " in selected photos": " nelle foto selezionate",
     " known · %lld sizes unavailable": " noti · %lld dimensioni non disponibili",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "Più grandi",
     "Largest First": "Prima i più grandi",
     "Last 30 Days": "Ultimi 30 giorni",
-    "Last scan, %@: %@ to review%@.": "Ultima scansione, %@: %@ da esaminare%@.",
     "Leaves this photo unchanged and shows the next one": "Lascia questa foto invariata e mostra la successiva",
     "Lens Smudge (%lld)": "Impronte sull'obiettivo (%lld)",
     "Lens smudge analysis is unavailable on this device.": "L'analisi delle impronte sull'obiettivo non è disponibile su questo dispositivo.",
@@ -794,7 +792,17 @@
     "to": "a",
     "today": "oggi",
     "used": "usato",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "Impossibile caricare il video: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Elimina i fotogrammi contrassegnati per l'eliminazione. Viene conservato il fotogramma con la stella di ogni raffica.",
+    "The best photo from each group will be kept. %@": "La foto migliore di ogni gruppo verrà conservata. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte ha interrotto la compressione perché è uscito dal primo piano. Tieni TidyByte aperto durante la compressione, quindi riprova.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "Ultima analisi, %@: %@ da esaminare.",
+    "Last scan, %@: %@ to review in selected photos.": "Ultima analisi, %@: %@ da esaminare nelle foto selezionate.",
+    "Bad URL.": "URL non valido.",
+    "Sign-in failed.": "Accesso non riuscito.",
+    "Couldn't save your Google sign-in on this device. Try again.": "Impossibile salvare l'accesso a Google su questo dispositivo. Riprova."
   },
   "plurals": {
     "%lld issues found": {
@@ -1141,6 +1149,21 @@
       "one": "%lld video oltre %lld MB",
       "many": "%lld video oltre %lld MB",
       "other": "%lld video oltre %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld gruppo in raffica",
+      "many": "%lld gruppi in raffica",
+      "other": "%lld gruppi in raffica"
+    },
+    "%lld group": {
+      "one": "%lld gruppo",
+      "many": "%lld gruppi",
+      "other": "%lld gruppi"
+    },
+    "%lld group found": {
+      "one": "%lld gruppo trovato",
+      "many": "%lld gruppi trovati",
+      "other": "%lld gruppi trovati"
     }
   }
 }

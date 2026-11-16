@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " 즐겨찾기는 남습니다.",
-    " in selected photos": "(선택한 사진 내)",
     " known · %lld sizes unavailable": " 확인됨 · %lld개는 크기를 알 수 없음",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "용량순",
     "Largest First": "용량순",
     "Last 30 Days": "최근 30일",
-    "Last scan, %@: %@ to review%@.": "마지막 스캔 %@: 검토할 %@ %@.",
     "Leaves this photo unchanged and shows the next one": "이 사진을 그대로 두고 다음 항목을 표시합니다",
     "Lens Smudge (%lld)": "렌즈 얼룩 (%lld)",
     "Lens smudge analysis is unavailable on this device.": "이 기기에서는 렌즈 얼룩 분석을 사용할 수 없습니다.",
@@ -794,7 +792,17 @@
     "to": "~",
     "today": "오늘",
     "used": "사용됨",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "동영상을 불러올 수 없습니다: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "삭제 표시된 프레임을 삭제합니다. 각 연속 촬영에서 별표가 표시된 프레임은 유지됩니다.",
+    "The best photo from each group will be kept. %@": "각 그룹에서 가장 좋은 사진은 유지됩니다. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "앱이 포그라운드를 벗어나 TidyByte가 압축을 중지했습니다. 압축하는 동안 TidyByte를 열어 두고 다시 시도하세요.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "마지막 스캔, %@: 검토할 항목 %@.",
+    "Last scan, %@: %@ to review in selected photos.": "마지막 스캔, %@: 선택한 사진 중 검토할 항목 %@.",
+    "Bad URL.": "잘못된 URL입니다.",
+    "Sign-in failed.": "로그인하지 못했습니다.",
+    "Couldn't save your Google sign-in on this device. Try again.": "이 기기에 Google 로그인 정보를 저장하지 못했습니다. 다시 시도하세요."
   },
   "plurals": {
     "%lld issues found": {
@@ -1003,6 +1011,15 @@
     },
     "%lld videos over %lld MB": {
       "other": "%lld MB 초과 동영상 %lld개"
+    },
+    "%lld burst group": {
+      "other": "%lld개 버스트"
+    },
+    "%lld group": {
+      "other": "%lld개 그룹"
+    },
+    "%lld group found": {
+      "other": "%lld개 그룹 발견"
     }
   }
 }

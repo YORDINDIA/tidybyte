@@ -82,9 +82,16 @@ struct GooglePhotosAPI {
             components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
             let page = try await decode(MediaItemsPage.self, request(components.string ?? ""))
             items += page.mediaItems?.compactMap(\.cloudItem) ?? []
-            pageToken = page.nextPageToken
+            pageToken = Self.nextPageToken(after: pageToken, returned: page.nextPageToken)
         } while pageToken != nil
         return items
+    }
+
+    /// The token for the next page, or nil when the listing is done. Google omits
+    /// the token on the last page. An empty or repeated token would loop forever.
+    nonisolated static func nextPageToken(after current: String?, returned: String?) -> String? {
+        guard let returned, !returned.isEmpty, returned != current else { return nil }
+        return returned
     }
 
     func storageQuota() async throws -> GoogleStorageQuota {
@@ -111,7 +118,7 @@ struct GooglePhotosAPI {
     // MARK: - Transport
 
     private func request(_ url: String, method: String = "GET", body: Data? = nil) async throws -> URLRequest {
-        guard let url = URL(string: url) else { throw GoogleAuthError.failed("Bad URL.") }
+        guard let url = URL(string: url) else { throw GoogleAuthError.failed(L10n.string("Bad URL.")) }
         var request = URLRequest(url: url)
         request.httpMethod = method
         if let body {

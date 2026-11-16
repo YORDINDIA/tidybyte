@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " Избранное остается.",
-    " in selected photos": " среди выбранных фото",
     " known · %lld sizes unavailable": " учтено · %lld размеров недоступно",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "Сначала большие",
     "Largest First": "Сначала большие",
     "Last 30 Days": "Последние 30 дней",
-    "Last scan, %@: %@ to review%@.": "Последнее сканирование, %@: %@ для просмотра%@.",
     "Leaves this photo unchanged and shows the next one": "Оставляет это фото без изменений и показывает следующее",
     "Lens Smudge (%lld)": "Загрязнение объектива (%lld)",
     "Lens smudge analysis is unavailable on this device.": "Анализ загрязнения объектива недоступен на этом устройстве.",
@@ -794,7 +792,17 @@
     "to": "до",
     "today": "сегодня",
     "used": "занято",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "Не удалось загрузить видео: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Удаляет кадры, отмеченные для удаления. Кадр со звёздочкой в каждой серии сохраняется.",
+    "The best photo from each group will be kept. %@": "Лучшее фото из каждой группы будет сохранено. %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte остановил сжатие, потому что приложение ушло в фон. Держите TidyByte открытым во время сжатия и попробуйте снова.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "Последнее сканирование, %@: %@ для проверки.",
+    "Last scan, %@: %@ to review in selected photos.": "Последнее сканирование, %@: %@ для проверки в выбранных фото.",
+    "Bad URL.": "Некорректный URL.",
+    "Sign-in failed.": "Не удалось войти.",
+    "Couldn't save your Google sign-in on this device. Try again.": "Не удалось сохранить вход в Google на этом устройстве. Попробуйте ещё раз."
   },
   "plurals": {
     "%lld issues found": {
@@ -1210,6 +1218,24 @@
       "few": "%lld видео больше %lld MB",
       "many": "%lld видео больше %lld MB",
       "other": "%lld видео больше %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld серия",
+      "few": "%lld серии",
+      "many": "%lld серий",
+      "other": "%lld серии"
+    },
+    "%lld group": {
+      "one": "%lld группа",
+      "few": "%lld группы",
+      "many": "%lld групп",
+      "other": "%lld группы"
+    },
+    "%lld group found": {
+      "one": "Найдена %lld группа",
+      "few": "Найдено %lld группы",
+      "many": "Найдено %lld групп",
+      "other": "Найдено %lld группы"
     }
   }
 }

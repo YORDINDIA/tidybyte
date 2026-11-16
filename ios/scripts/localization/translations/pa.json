@@ -2,7 +2,6 @@
   "strings": {
     "": "",
     " Favorites are kept.": " ਪਸੰਦੀਦਾ ਰੱਖੇ ਜਾਂਦੇ ਹਨ.",
-    " in selected photos": " ਚੁਣੀਆਂ ਫ਼ੋਟੋਆਂ ਵਿੱਚ",
     " known · %lld sizes unavailable": " ਪਤਾ ਹੈ · %lld ਆਕਾਰ ਉਪਲਬਧ ਨਹੀਂ",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -309,7 +308,6 @@
     "Largest": "ਸਭ ਤੋਂ ਵੱਡੇ",
     "Largest First": "ਸਭ ਤੋਂ ਵੱਡੇ ਪਹਿਲਾਂ",
     "Last 30 Days": "ਪਿਛਲੇ 30 ਦਿਨ",
-    "Last scan, %@: %@ to review%@.": "ਪਿਛਲੀ ਸਕੈਨ, %@: %@ ਸਮੀਖਿਆ ਲਈ%@.",
     "Leaves this photo unchanged and shows the next one": "ਇਸ ਫ਼ੋਟੋ ਨੂੰ ਬਦਲੇ ਬਿਨਾਂ ਅਗਲੀ ਦਿਖਾਉਂਦਾ ਹੈ",
     "Lens Smudge (%lld)": "ਲੈਂਸ ਦੇ ਧੱਬੇ (%lld)",
     "Lens smudge analysis is unavailable on this device.": "ਲੈਂਸ ਦੇ ਧੱਬਿਆਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਇਸ ਡੀਵਾਈਸ ਉੱਤੇ ਉਪਲਬਧ ਨਹੀਂ ਹੈ.",
@@ -794,7 +792,17 @@
     "to": "ਤੋਂ",
     "today": "ਅੱਜ",
     "used": "ਵਰਤੀ",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "ਵੀਡੀਓ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "ਮਿਟਾਉਣ ਲਈ ਨਿਸ਼ਾਨ ਲਗਾਏ ਫ਼ਰੇਮ ਮਿਟਾਏ ਜਾਂਦੇ ਹਨ। ਹਰ ਬਰਸਟ ਦਾ ਤਾਰੇ ਵਾਲਾ ਫ਼ਰੇਮ ਰੱਖਿਆ ਜਾਂਦਾ ਹੈ।",
+    "The best photo from each group will be kept. %@": "ਹਰ ਸਮੂਹ ਦੀ ਸਭ ਤੋਂ ਵਧੀਆ ਫ਼ੋਟੋ ਰੱਖੀ ਜਾਵੇਗੀ। %@",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "ਐਪ ਫ਼ੋਰਗਰਾਊਂਡ ਤੋਂ ਬਾਹਰ ਚਲੀ ਜਾਣ ਕਰਕੇ TidyByte ਨੇ ਕੰਪ੍ਰੈਸ਼ਨ ਰੋਕ ਦਿੱਤੀ। ਕੰਪ੍ਰੈਸ ਹੋਣ ਦੌਰਾਨ TidyByte ਨੂੰ ਖੁੱਲ੍ਹਾ ਰੱਖੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "ਆਖਰੀ ਸਕੈਨ, %@: ਸਮੀਖਿਆ ਲਈ %@.",
+    "Last scan, %@: %@ to review in selected photos.": "ਆਖਰੀ ਸਕੈਨ, %@: ਚੁਣੀਆਂ ਫ਼ੋਟੋਆਂ ਵਿੱਚ ਸਮੀਖਿਆ ਲਈ %@.",
+    "Bad URL.": "ਗਲਤ URL।",
+    "Sign-in failed.": "ਸਾਈਨ-ਇਨ ਅਸਫਲ ਰਿਹਾ।",
+    "Couldn't save your Google sign-in on this device. Try again.": "ਇਸ ਡਿਵਾਈਸ 'ਤੇ ਤੁਹਾਡਾ Google ਸਾਈਨ-ਇਨ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
   },
   "plurals": {
     "%lld issues found": {
@@ -1072,6 +1080,18 @@
     "%lld videos over %lld MB": {
       "one": "%lld ਵੀਡੀਓ %lld MB ਤੋਂ ਵੱਧ",
       "other": "%lld ਵੀਡੀਓ %lld MB ਤੋਂ ਵੱਧ"
+    },
+    "%lld burst group": {
+      "one": "%lld ਬਰਸਟ ਗਰੁੱਪ",
+      "other": "%lld ਬਰਸਟ ਗਰੁੱਪ"
+    },
+    "%lld group": {
+      "one": "%lld ਗਰੁੱਪ",
+      "other": "%lld ਗਰੁੱਪ"
+    },
+    "%lld group found": {
+      "one": "%lld ਗਰੁੱਪ ਲੱਭਾ",
+      "other": "%lld ਗਰੁੱਪ ਲੱਭੇ"
     }
   }
 }

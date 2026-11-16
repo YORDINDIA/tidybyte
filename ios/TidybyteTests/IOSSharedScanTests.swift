@@ -137,5 +137,50 @@ final class ContinuationResumerTests: XCTestCase {
         XCTAssertEqual(value, 1)
         XCTAssertEqual(counter.cleanups, 1)
     }
+
+    /// The export path uses the return value to tell a late success from a stall.
+    func testResumeReportsWhichCallLanded() async {
+        let value: Int = await withCheckedContinuation { continuation in
+            let resumer = ContinuationResumer<Int>(continuation)
+            XCTAssertTrue(resumer.resume(7))
+            XCTAssertFalse(resumer.resume(8))
+        }
+        XCTAssertEqual(value, 7)
+    }
 }
 
+// MARK: - Round 2: pagination, markers, error text
+
+final class SharedRound2Tests: XCTestCase {
+
+    /// Google omits the token on the last page. An empty or repeated token must
+    /// end the listing, or the loop never finishes.
+    func testNextPageTokenStopsOnEmptyOrRepeatedToken() {
+        XCTAssertNil(GooglePhotosAPI.nextPageToken(after: nil, returned: nil))
+        XCTAssertNil(GooglePhotosAPI.nextPageToken(after: "a", returned: ""))
+        XCTAssertNil(GooglePhotosAPI.nextPageToken(after: "a", returned: "a"))
+        XCTAssertEqual(GooglePhotosAPI.nextPageToken(after: nil, returned: "b"), "b")
+        XCTAssertEqual(GooglePhotosAPI.nextPageToken(after: "a", returned: "b"), "b")
+    }
+
+    /// The bare `-WA`, `INSTA` and `SIGNAL` markers matched ordinary words.
+    func testMarkersDoNotMatchInsideOrdinaryWords() {
+        for name in ["INSTANT_1.JPG", "INSTALL.JPG", "SIGNALS_1.JPG", "PHOTO-WALL.JPG", "PHOTO-WA.JPG"] {
+            XCTAssertFalse(SavedFromAppMarkers.matches(filename: name), name)
+        }
+    }
+
+    func testMarkersStillMatchRealExportNames() {
+        for name in ["IMG-20240101-WA0001.JPG", "VID-20240101-WA0002.MP4", "INSTA_1704067200000.JPG",
+                     "signal-2024-01-01-120000.jpg", "LINE_ALBUM_1.JPG"] {
+            XCTAssertTrue(SavedFromAppMarkers.matches(filename: name), name)
+        }
+    }
+
+    /// An empty failure message left the sign-in banner blank.
+    func testFailedAndKeychainErrorsAlwaysHaveText() {
+        XCTAssertFalse((GoogleAuthError.failed("").errorDescription ?? "").isEmpty)
+        XCTAssertFalse((GoogleAuthError.keychainWriteFailed.errorDescription ?? "").isEmpty)
+        XCTAssertEqual(GoogleAuthError.failed("Boom").errorDescription, "Boom")
+    }
+}
