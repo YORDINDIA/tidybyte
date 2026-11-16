@@ -87,12 +87,10 @@ struct BurstCleanerView: View {
         .alert("Delete Selected Burst Photos", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
             Button("Delete \(viewModel.selectedCount) Photos", role: .destructive) {
-                let count = viewModel.selectedCount
                 Task {
-                    await viewModel.deleteSelected()
-                    // Same no-op rule: a selection emptied before the confirm
-                    // is not a success (defense in depth — the trigger is
-                    // disabled at zero).
+                    // Celebrate only what PhotoKit really deleted: ids that
+                    // were already gone leave the list but are not a success.
+                    let count = await viewModel.deleteSelected()
                     guard count > 0, viewModel.errorMessage == nil else { return }
                     HappyPathReporter.fire(
                         isCelebrating: $isCelebrating,

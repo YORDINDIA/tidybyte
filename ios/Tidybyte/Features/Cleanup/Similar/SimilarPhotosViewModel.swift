@@ -371,6 +371,9 @@ final class SimilarPhotosViewModel {
     }
 
     func deleteSelected() async {
+        // Reset first: an early return must not leave the last run's count
+        // for the view to celebrate.
+        deletedCount = 0
         guard !selectedForDeletion.isEmpty, !isDeleting else { return }
         errorMessage = nil
         isDeleting = true

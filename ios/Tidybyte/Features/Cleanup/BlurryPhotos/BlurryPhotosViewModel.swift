@@ -288,6 +288,9 @@ final class BlurryPhotosViewModel {
     }
 
     func deleteSelected() async {
+        // Reset first: an early return must not leave the last run's count
+        // for the view to celebrate.
+        deletedCount = 0
         // C11: delete across ALL tabs' selections — a batch isn't limited to
         // the visible tab.
         let allSelected = selectedIds

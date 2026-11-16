@@ -186,8 +186,11 @@ final class BurstCleanerViewModel {
         // oldBest stays in (or out of) the selection exactly as the user left it.
     }
 
-    func deleteSelected() async {
-        guard !selectedForDeletion.isEmpty, !isDeleting else { return }
+    /// Returns how many frames PhotoKit really deleted (0 on a decline, a
+    /// failure, or ids that were already gone).
+    @discardableResult
+    func deleteSelected() async -> Int {
+        guard !selectedForDeletion.isEmpty, !isDeleting else { return 0 }
         errorMessage = nil
         isDeleting = true
         defer { isDeleting = false }
@@ -208,6 +211,7 @@ final class BurstCleanerViewModel {
             apply: { applyPostDeleteState(removed: $0, previousSelection: oldSelection) }
         )
         errorMessage = outcome.errorMessage
+        return outcome.deleted.count
     }
 
     /// The notice for bursts that shrank to a single frame — `nil` when none
@@ -294,10 +298,9 @@ final class BurstCleanerViewModel {
         )
         guard !armed.isEmpty else { return 0 }
         selectedForDeletion = armed
-        await deleteSelected()
-        let survivors = Set(groups.flatMap { $0.assets.map(\.id) })
-        let removed = armed.subtracting(survivors).count
+        let removed = await deleteSelected()
         if removed == 0 {
+            let survivors = Set(groups.flatMap { $0.assets.map(\.id) })
             selectedForDeletion = previousSelection.intersection(survivors)
         }
         return removed

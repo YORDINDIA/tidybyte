@@ -127,15 +127,10 @@ struct LargeFilesView: View {
         .alert("Delete Files", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
             Button("Delete \(viewModel.selectedVisibleCount) Files", role: .destructive) {
-                // Captured before the await — the selection clears on success.
-                let count = viewModel.selectedVisibleCount
                 Task {
-                    await viewModel.deleteSelected()
-                    // This tool fired no success feedback before; parity with
-                    // the other cleanup tools (haptic every time, rating
-                    // prompt only on milestones).
-                    // Guard the count: the VM no-ops an empty selection
-                    // without setting an error, and a no-op is not a success.
+                    // Celebrate only what PhotoKit really deleted: a no-op or
+                    // ids that were already gone are not a success.
+                    let count = await viewModel.deleteSelected()
                     guard count > 0, viewModel.errorMessage == nil else { return }
                     HappyPathReporter.fire(
                         isCelebrating: $isCelebrating,
