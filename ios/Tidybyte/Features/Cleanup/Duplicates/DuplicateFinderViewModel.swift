@@ -157,6 +157,9 @@ final class DuplicateFinderViewModel {
     // MARK: - Deletion
 
     func deleteSelected() async {
+        // Reset first: an early return must not leave the last run's count
+        // for the view to celebrate.
+        deletedCount = 0
         guard !selectedForDeletion.isEmpty, !isDeleting else { return }
         errorMessage = nil
         isDeleting = true
@@ -183,6 +186,9 @@ final class DuplicateFinderViewModel {
     /// the rest of this group's ids really were deleted (re-arming them would
     /// leave ghosts that inflate counts and report as deleted a second time).
     func delete(group: DuplicateGroup) async {
+        // Reset first: an early return must not leave the last run's count
+        // for the view to celebrate.
+        deletedCount = 0
         // Only what the user has checked in this group: an unchecked copy was
         // a deliberate "keep".
         let ids = checkedIds(in: group)

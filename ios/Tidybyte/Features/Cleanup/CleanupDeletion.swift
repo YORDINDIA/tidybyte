@@ -17,6 +17,9 @@ enum CleanupDeletion {
     struct Outcome {
         let removed: Set<String>       // confirmed deleted or already absent
         let errorMessage: String?      // nil on full success; set on partial + hard failure
+        /// Only ids PhotoKit really deleted. Gate success UI on this, not on
+        /// `removed`: an all-absent run deletes nothing and shows no prompt.
+        var deleted: Set<String> = []
     }
 
     /// `requestedIds` must be pre-resolved by the caller (tab-union, or
@@ -32,7 +35,10 @@ enum CleanupDeletion {
         apply: (Set<String>) -> Void,
         recordDeleted: ((Int) -> Void)? = nil
     ) async -> Outcome {
+        // Every path that deletes nothing reports 0, so a tool's
+        // `deletedCount` never keeps a stale value from an earlier delete.
         guard !requestedIds.isEmpty else {
+            recordDeleted?(0)
             return Outcome(removed: [], errorMessage: nil)
         }
         do {
@@ -41,11 +47,12 @@ enum CleanupDeletion {
             recordDeleted?(deletedIds.count)
             CleanupLedger.shared.record(kind: kind, deletedIds: deletedIds, sizeOf: { sizeById[$0] ?? 0 })
             apply(result.removedIds)
-            return Outcome(removed: result.removedIds, errorMessage: nil)
+            return Outcome(removed: result.removedIds, errorMessage: nil, deleted: deletedIds)
         } catch is CancellationError {
             // A cancel is not a deletion failure: nothing was deleted, so stay
             // quiet rather than reporting "Deleted 0 of N items. N couldn't be
             // deleted. Try again." and inviting a pointless re-confirm.
+            recordDeleted?(0)
             return Outcome(removed: [], errorMessage: nil)
         } catch let error as PhotoServiceError {
             if let result = error.deletionOutcome {
@@ -53,12 +60,14 @@ enum CleanupDeletion {
                 recordDeleted?(succeededIds.count)
                 CleanupLedger.shared.record(kind: kind, deletedIds: succeededIds, sizeOf: { sizeById[$0] ?? 0 })
                 apply(result.removedIds)
-                return Outcome(removed: result.removedIds, errorMessage: error.localizedDescription)
+                return Outcome(removed: result.removedIds, errorMessage: error.localizedDescription, deleted: succeededIds)
             }
             // "Don't Allow" keeps its "Nothing was deleted." message: the
             // views gate the success celebration on `errorMessage == nil`.
+            recordDeleted?(0)
             return Outcome(removed: [], errorMessage: error.localizedDescription)
         } catch {
+            recordDeleted?(0)
             return Outcome(removed: [], errorMessage: error.localizedDescription)
         }
     }

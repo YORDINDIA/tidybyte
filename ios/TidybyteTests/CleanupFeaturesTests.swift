@@ -288,6 +288,44 @@ final class CleanupFeaturesTests: XCTestCase {
         XCTAssertEqual(CleanupLedger.shared.deletionNotice?.knownBytes, 3_000)
     }
 
+    /// Burst bug: frames PhotoKit could not find were reported as a successful
+    /// delete with no iOS prompt. Already-absent ids leave the list but must
+    /// not count as deleted.
+    func testAllAbsentDeleteReportsZeroDeleted() async {
+        CleanupLedger.shared.detach()
+        defer { CleanupLedger.shared.detach() }
+        var removed = Set<String>()
+        // Start stale: every run must overwrite it, even one that deletes nothing.
+        var recorded = 5
+        let outcome = await CleanupDeletion.delete(requestedIds: ["a"], kind: .bursts,
+            sizeById: ["a": 1_000], performDelete: { _ in
+                PhotoDeletionOutcome(deletedIds: [], alreadyAbsentIds: ["a"])
+            }, apply: { removed = $0 }, recordDeleted: { recorded = $0 })
+        XCTAssertEqual(removed, ["a"])
+        XCTAssertEqual(outcome.removed, ["a"])
+        XCTAssertTrue(outcome.deleted.isEmpty)
+        XCTAssertNil(outcome.errorMessage)
+        XCTAssertEqual(recorded, 0)
+
+        recorded = 5
+        _ = await CleanupDeletion.delete(requestedIds: ["a"], kind: .bursts,
+            sizeById: [:], performDelete: { _ in throw CancellationError() },
+            apply: { _ in }, recordDeleted: { recorded = $0 })
+        XCTAssertEqual(recorded, 0, "A cancelled delete must not keep a stale count")
+
+        recorded = 5
+        _ = await CleanupDeletion.delete(requestedIds: ["a"], kind: .bursts,
+            sizeById: [:], performDelete: { _ in throw PhotoServiceError.userDeclined(alreadyAbsentIds: []) },
+            apply: { _ in }, recordDeleted: { recorded = $0 })
+        XCTAssertEqual(recorded, 0)
+
+        let partial = await CleanupDeletion.delete(requestedIds: ["ok", "bad"], kind: .bursts,
+            sizeById: [:], performDelete: { _ in
+                throw PhotoServiceError.partialDeletion(succeededIds: ["ok"], failedCount: 1)
+            }, apply: { _ in })
+        XCTAssertEqual(partial.deleted, ["ok"])
+    }
+
     func testSearchSurvivesUnchangedAndReducedIndex() async {
         defer { ScanResults.resetForTesting() }
         let vm = SmartCategoriesViewModel(search: { _, _ in

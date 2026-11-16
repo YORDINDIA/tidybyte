@@ -128,7 +128,7 @@ actor PhotoLibraryService {
     func existingIds(_ ids: [String]) -> Set<String> {
         guard !ids.isEmpty else { return [] }
         var present = Set<String>()
-        PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
+        PHAsset.fetchAssets(withLocalIdentifiers: ids, options: allAssetsFetchOptions())
             .enumerateObjects { asset, _, _ in present.insert(asset.localIdentifier) }
         return present
     }
@@ -276,7 +276,7 @@ actor PhotoLibraryService {
             return (PHAsset.fetchAssets(with: options), [])
 
         case .customAssetIds(let ids):
-            return (PHAsset.fetchAssets(withLocalIdentifiers: Array(ids), options: nil), [])
+            return (PHAsset.fetchAssets(withLocalIdentifiers: Array(ids), options: allAssetsFetchOptions()), [])
         }
     }
 
@@ -303,7 +303,7 @@ actor PhotoLibraryService {
     nonisolated func fetchSummaries(for ids: [String]) -> [String: AssetSummary] {
         guard !ids.isEmpty else { return [:] }
         var summaries: [String: AssetSummary] = [:]
-        PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil).enumerateObjects { asset, _, _ in
+        PHAsset.fetchAssets(withLocalIdentifiers: ids, options: allAssetsFetchOptions()).enumerateObjects { asset, _, _ in
             summaries[asset.localIdentifier] = Self.makeSummary(from: asset)
         }
         return summaries
@@ -339,7 +339,7 @@ actor PhotoLibraryService {
     func unchangedAssetIDs(_ scanned: [AssetSummary]) -> Set<String> {
         guard !scanned.isEmpty else { return [] }
         let byID = Dictionary(scanned.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let current = PHAsset.fetchAssets(withLocalIdentifiers: Array(byID.keys), options: nil)
+        let current = PHAsset.fetchAssets(withLocalIdentifiers: Array(byID.keys), options: allAssetsFetchOptions())
         var unchanged = Set<String>()
         current.enumerateObjects { asset, _, _ in
             if let previous = byID[asset.localIdentifier], previous.modificationDate == asset.modificationDate {
@@ -406,7 +406,7 @@ actor PhotoLibraryService {
     // MARK: - Image Loading
 
     func loadImage(for assetId: String, targetSize: CGSize, contentMode: PHImageContentMode = .aspectFill) async -> UIImage? {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject else {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject else {
             return nil
         }
         return await loadImage(for: asset, targetSize: targetSize, contentMode: contentMode)
@@ -432,7 +432,7 @@ actor PhotoLibraryService {
     /// fetched later (after iCloud download) replaces the soft one instead of
     /// being blocked by it for the whole session.
     func loadThumbnailWithQuality(for assetId: String, size: CGSize = CGSize(width: 200, height: 200)) async -> (image: UIImage?, isDegraded: Bool) {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject else {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject else {
             return (nil, false)
         }
         return await loadThumbnailWithQuality(for: asset, size: size)
@@ -458,7 +458,7 @@ actor PhotoLibraryService {
     /// callers should fall back to `loadThumbnail` when this returns `nil` (the
     /// asset's full resolution lives only in iCloud).
     func loadAnalysisImage(for assetId: String, targetSize: CGSize) async -> UIImage? {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject else {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject else {
             return nil
         }
         return await loadAnalysisImage(for: asset, targetSize: targetSize)
@@ -483,7 +483,7 @@ actor PhotoLibraryService {
     /// on the terminal callback and falls back to `nil` after
     /// `requestTimeoutSeconds` so a stalled iCloud download cannot hang callers.
     func loadLivePhoto(for assetId: String, targetSize: CGSize) async -> PHLivePhoto? {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject,
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject,
               asset.mediaSubtypes.contains(.photoLive) else {
             return nil
         }
@@ -496,7 +496,7 @@ actor PhotoLibraryService {
     /// `UncheckedSendableBox` so it can safely cross from this actor to the
     /// `@MainActor` caller that builds the player; the caller unwraps `.value`.
     func loadPlayerItem(for assetId: String) async -> UncheckedSendableBox<AVPlayerItem>? {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject,
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject,
               asset.mediaType == .video else {
             return nil
         }
@@ -730,7 +730,7 @@ actor PhotoLibraryService {
     // MARK: - Pre-fetching
 
     func startCaching(assetIds: [String], targetSize: CGSize) {
-        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIds, options: nil)
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIds, options: allAssetsFetchOptions())
         var phAssets: [PHAsset] = []
         assets.enumerateObjects { asset, _, _ in
             phAssets.append(asset)
@@ -739,7 +739,7 @@ actor PhotoLibraryService {
     }
 
     func stopCaching(assetIds: [String], targetSize: CGSize) {
-        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIds, options: nil)
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIds, options: allAssetsFetchOptions())
         var phAssets: [PHAsset] = []
         assets.enumerateObjects { asset, _, _ in
             phAssets.append(asset)
@@ -758,7 +758,7 @@ actor PhotoLibraryService {
     @discardableResult
     func deleteAssets(identifiers: [String]) async throws -> PhotoDeletionOutcome {
         let requested = Set(identifiers)
-        let assets = PHAsset.fetchAssets(withLocalIdentifiers: Array(requested), options: nil)
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: Array(requested), options: allAssetsFetchOptions())
         var present = Set<String>()
         assets.enumerateObjects { asset, _, _ in present.insert(asset.localIdentifier) }
         var absent = requested.subtracting(present)
@@ -783,7 +783,7 @@ actor PhotoLibraryService {
                         alreadyAbsentIds: absent
                     )
                 }
-                guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject else {
+                guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: allAssetsFetchOptions()).firstObject else {
                     absent.insert(id)
                     continue
                 }
@@ -811,7 +811,7 @@ actor PhotoLibraryService {
     }
 
     func addToAlbum(assetIdentifiers: [String], albumIdentifier: String) async throws {
-        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIdentifiers, options: nil)
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIdentifiers, options: allAssetsFetchOptions())
         guard let album = PHAssetCollection.fetchAssetCollections(
             withLocalIdentifiers: [albumIdentifier], options: nil
         ).firstObject else {
@@ -832,7 +832,7 @@ actor PhotoLibraryService {
     }
 
     func removeFromAlbum(assetIdentifiers: [String], albumIdentifier: String) async throws {
-        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIdentifiers, options: nil)
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: assetIdentifiers, options: allAssetsFetchOptions())
         guard let album = PHAssetCollection.fetchAssetCollections(
             withLocalIdentifiers: [albumIdentifier], options: nil
         ).firstObject else {
@@ -871,7 +871,7 @@ actor PhotoLibraryService {
     /// hashing it, this keeps only one chunk in memory at a time — essential for
     /// large videos, which could otherwise exhaust memory during duplicate scans.
     func sha256ForPrimaryResource(of assetId: String) async -> String? {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject else {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject else {
             return nil
         }
         return await sha256ForPrimaryResource(of: asset)
@@ -924,7 +924,7 @@ actor PhotoLibraryService {
     }
 
     nonisolated func getPHAsset(for identifier: String) -> PHAsset? {
-        PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil).firstObject
+        PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: allAssetsFetchOptions()).firstObject
     }
 
     /// Resolves a batch of identifiers with ONE PhotoKit fetch. Scan loops
@@ -934,7 +934,7 @@ actor PhotoLibraryService {
     /// Missing ids (deleted externally mid-scan) are simply absent.
     nonisolated func phAssetsById(_ ids: [String]) -> [String: PHAsset] {
         guard !ids.isEmpty else { return [:] }
-        let fetched = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
+        let fetched = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: allAssetsFetchOptions())
         var byId: [String: PHAsset] = [:]
         byId.reserveCapacity(fetched.count)
         fetched.enumerateObjects { asset, _, _ in
@@ -948,7 +948,7 @@ actor PhotoLibraryService {
     /// Mirrors `requestImage`'s single-resume / timeout behaviour so a stalled
     /// iCloud download can't hang the caller.
     func loadFullImageData(for assetId: String) async -> Data? {
-        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject else {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject else {
             return nil
         }
         return await loadFullImageData(for: asset)

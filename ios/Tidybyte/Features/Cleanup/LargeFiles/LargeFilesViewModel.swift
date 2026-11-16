@@ -248,9 +248,12 @@ final class LargeFilesViewModel {
         selectedIds.subtract(filteredAssets.map(\.id))
     }
 
-    func deleteSelected() async {
+    /// Returns how many files PhotoKit really deleted (0 on a decline, a
+    /// failure, or ids that were already gone).
+    @discardableResult
+    func deleteSelected() async -> Int {
         let visibleSelectedIds = Set(filteredAssets.map(\.id)).intersection(selectedIds)
-        guard !visibleSelectedIds.isEmpty, !isDeleting else { return }
+        guard !visibleSelectedIds.isEmpty, !isDeleting else { return 0 }
         errorMessage = nil
         isDeleting = true
         defer { isDeleting = false }
@@ -268,6 +271,7 @@ final class LargeFilesViewModel {
             }
         )
         errorMessage = outcome.errorMessage
+        return outcome.deleted.count
     }
 
     /// Deletes a single asset (used by the per-row trash button and the

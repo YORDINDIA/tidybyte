@@ -293,6 +293,9 @@ final class SmartCategoriesViewModel {
     }
 
     func deleteSelected() async {
+        // Reset first: an early return must not leave the last run's count
+        // for the view to celebrate.
+        deletedCount = 0
         // C11: delete across ALL categories' selections.
         let allSelected = selectedIds
         guard !allSelected.isEmpty, !isDeleting else { return }
