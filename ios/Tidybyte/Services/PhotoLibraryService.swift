@@ -712,8 +712,9 @@ actor PhotoLibraryService {
         guard !assetIds.isEmpty else { return [:] }
         var result: [String: [String]] = Dictionary(uniqueKeysWithValues: assetIds.map { ($0, [String]()) })
         let userAlbums = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: nil)
+        let options = allAssetsFetchOptions()
         userAlbums.enumerateObjects { collection, _, _ in
-            let fetched = PHAsset.fetchAssets(in: collection, options: nil)
+            let fetched = PHAsset.fetchAssets(in: collection, options: options)
             var memberIds = Set<String>()
             fetched.enumerateObjects { asset, _, _ in
                 if assetIds.contains(asset.localIdentifier) {
@@ -1234,8 +1235,9 @@ actor PhotoLibraryService {
     nonisolated private func collectAssetsInUserAlbums() -> Set<String> {
         var inAlbum = Set<String>()
         let userAlbums = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: nil)
+        let options = allAssetsFetchOptions()
         userAlbums.enumerateObjects { collection, _, _ in
-            let assets = PHAsset.fetchAssets(in: collection, options: nil)
+            let assets = PHAsset.fetchAssets(in: collection, options: options)
             assets.enumerateObjects { asset, _, _ in
                 inAlbum.insert(asset.localIdentifier)
             }
