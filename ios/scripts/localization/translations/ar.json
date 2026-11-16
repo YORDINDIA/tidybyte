@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "سيتم حذف لقطات الشاشة المحددة من تطبيق الصور.",
     "This item will be deleted from Photos.": "سيتم حذف هذا العنصر من تطبيق الصور.",
     "This photo will be deleted from Photos.": "ستُحذف هذه الصورة من تطبيق الصور.",
-    "This screenshot will be deleted from Photos.": "سيتم حذف لقطة الشاشة هذه من تطبيق الصور."
+    "This screenshot will be deleted from Photos.": "سيتم حذف لقطة الشاشة هذه من تطبيق الصور.",
+    "%lld of %lld items couldn't be prepared to share.": "تعذّر تجهيز %lld من أصل %lld عنصرًا للمشاركة."
   },
   "plurals": {
     "%lld issues found": {

@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "選択したスクリーンショットを写真から削除します。",
     "This item will be deleted from Photos.": "この項目を写真から削除します。",
     "This photo will be deleted from Photos.": "この写真を写真アプリから削除します。",
-    "This screenshot will be deleted from Photos.": "このスクリーンショットを写真から削除します。"
+    "This screenshot will be deleted from Photos.": "このスクリーンショットを写真から削除します。",
+    "%lld of %lld items couldn't be prepared to share.": "%lld 件（全 %lld 件中）を共有用に準備できませんでした。"
   },
   "plurals": {
     "%lld issues found": {

@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "ఎంచుకున్న స్క్రీన్‌షాట్‌లు ఫోటోల నుండి తొలగించబడతాయి.",
     "This item will be deleted from Photos.": "ఈ అంశం ఫోటోల నుండి తొలగించబడుతుంది.",
     "This photo will be deleted from Photos.": "ఈ ఫోటో ఫోటోల నుండి తొలగించబడుతుంది.",
-    "This screenshot will be deleted from Photos.": "ఈ స్క్రీన్‌షాట్ ఫోటోల నుండి తొలగించబడుతుంది."
+    "This screenshot will be deleted from Photos.": "ఈ స్క్రీన్‌షాట్ ఫోటోల నుండి తొలగించబడుతుంది.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld అంశాలను (మొత్తం %lld లో) షేర్ చేయడానికి సిద్ధం చేయలేకపోయాం."
   },
   "plurals": {
     "%lld issues found": {

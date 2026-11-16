@@ -505,3 +505,27 @@ final class PruneNeedsLibraryAccessTests: XCTestCase {
         XCTAssertEqual(vm.groups.count, 1)
     }
 }
+
+// MARK: - Share shortfall (LargeFiles)
+
+@MainActor
+final class ShareShortfallTests: XCTestCase {
+
+    func testNoShortfallWhenEveryItemCameBack() {
+        XCTAssertNil(LargeFilesViewModel.shareShortfallMessage(requested: 5, returned: 5))
+    }
+
+    func testShortfallNamesHowManyFailed() {
+        XCTAssertEqual(
+            LargeFilesViewModel.shareShortfallMessage(requested: 5, returned: 3),
+            "2 of 5 items couldn't be prepared to share."
+        )
+    }
+
+    func testOneItemFailingIsNamedAsOne() {
+        XCTAssertEqual(
+            LargeFilesViewModel.shareShortfallMessage(requested: 3, returned: 2),
+            "1 of 3 items couldn't be prepared to share."
+        )
+    }
+}

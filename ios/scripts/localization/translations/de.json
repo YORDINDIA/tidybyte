@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "Die ausgewählten Screenshots werden aus Fotos gelöscht.",
     "This item will be deleted from Photos.": "Dieses Objekt wird aus Fotos gelöscht.",
     "This photo will be deleted from Photos.": "Dieses Foto wird aus Fotos gelöscht.",
-    "This screenshot will be deleted from Photos.": "Dieser Screenshot wird aus Fotos gelöscht."
+    "This screenshot will be deleted from Photos.": "Dieser Screenshot wird aus Fotos gelöscht.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld von %lld Objekten konnten nicht zum Teilen vorbereitet werden."
   },
   "plurals": {
     "%lld issues found": {

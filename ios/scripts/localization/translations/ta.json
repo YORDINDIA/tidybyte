@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "தேர்ந்தெடுத்த ஸ்கிரீன்ஷாட்கள் புகைப்படங்களிலிருந்து நீக்கப்படும்.",
     "This item will be deleted from Photos.": "இந்த உருப்படி புகைப்படங்களிலிருந்து நீக்கப்படும்.",
     "This photo will be deleted from Photos.": "இந்தப் புகைப்படம் புகைப்படங்களிலிருந்து நீக்கப்படும்.",
-    "This screenshot will be deleted from Photos.": "இந்த ஸ்கிரீன்ஷாட் புகைப்படங்களிலிருந்து நீக்கப்படும்."
+    "This screenshot will be deleted from Photos.": "இந்த ஸ்கிரீன்ஷாட் புகைப்படங்களிலிருந்து நீக்கப்படும்.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld உருப்படிகளை (மொத்தம் %lld) பகிர தயார் செய்ய முடியவில்லை."
   },
   "plurals": {
     "%lld issues found": {

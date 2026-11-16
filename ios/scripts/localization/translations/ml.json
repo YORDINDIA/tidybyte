@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "തിരഞ്ഞെടുത്ത സ്ക്രീൻഷോട്ടുകൾ ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
     "This item will be deleted from Photos.": "ഈ ഇനം ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
     "This photo will be deleted from Photos.": "ഈ ഫോട്ടോ ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
-    "This screenshot will be deleted from Photos.": "ഈ സ്ക്രീൻഷോട്ട് ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും."
+    "This screenshot will be deleted from Photos.": "ഈ സ്ക്രീൻഷോട്ട് ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld ഇനങ്ങൾ (ആകെ %lld) പങ്കിടാൻ തയ്യാറാക്കാനായില്ല."
   },
   "plurals": {
     "%lld issues found": {

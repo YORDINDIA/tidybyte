@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "निवडलेले स्क्रीनशॉट फोटोंमधून हटवले जातील.",
     "This item will be deleted from Photos.": "हा आयटम फोटोंमधून हटवला जाईल.",
     "This photo will be deleted from Photos.": "हा फोटो फोटोंमधून हटवला जाईल.",
-    "This screenshot will be deleted from Photos.": "हा स्क्रीनशॉट फोटोंमधून हटवला जाईल."
+    "This screenshot will be deleted from Photos.": "हा स्क्रीनशॉट फोटोंमधून हटवला जाईल.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld आयटम (एकूण %lld पैकी) शेअर करण्यासाठी तयार करता आले नाहीत."
   },
   "plurals": {
     "%lld issues found": {

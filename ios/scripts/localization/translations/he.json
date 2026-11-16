@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "צילומי המסך שנבחרו יימחקו מהתמונות.",
     "This item will be deleted from Photos.": "פריט זה יימחק מהתמונות.",
     "This photo will be deleted from Photos.": "תמונה זו תימחק מהתמונות.",
-    "This screenshot will be deleted from Photos.": "צילום מסך זה יימחק מהתמונות."
+    "This screenshot will be deleted from Photos.": "צילום מסך זה יימחק מהתמונות.",
+    "%lld of %lld items couldn't be prepared to share.": "לא ניתן להכין לשיתוף %lld מתוך %lld פריטים."
   },
   "plurals": {
     "%lld issues found": {

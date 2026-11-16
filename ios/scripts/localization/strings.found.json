@@ -198,6 +198,10 @@
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
     },
     {
+      "key": "%lld of %lld items couldn't be prepared to share.",
+      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
+    },
+    {
       "key": "%lld percent",
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
     },
@@ -2726,5 +2730,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 673
+  "total": 674
 }

@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "所选截图将从照片中删除。",
     "This item will be deleted from Photos.": "此项目将从照片中删除。",
     "This photo will be deleted from Photos.": "此照片将从照片中删除。",
-    "This screenshot will be deleted from Photos.": "此截图将从照片中删除。"
+    "This screenshot will be deleted from Photos.": "此截图将从照片中删除。",
+    "%lld of %lld items couldn't be prepared to share.": "%lld 项（共 %lld 项）无法准备分享。"
   },
   "plurals": {
     "%lld issues found": {

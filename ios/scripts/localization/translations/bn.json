@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "নির্বাচিত স্ক্রিনশটগুলো ফটো থেকে মুছে ফেলা হবে।",
     "This item will be deleted from Photos.": "এই আইটেমটি ফটো থেকে মুছে ফেলা হবে।",
     "This photo will be deleted from Photos.": "এই ছবিটি ফটো থেকে মুছে ফেলা হবে।",
-    "This screenshot will be deleted from Photos.": "এই স্ক্রিনশটটি ফটো থেকে মুছে ফেলা হবে।"
+    "This screenshot will be deleted from Photos.": "এই স্ক্রিনশটটি ফটো থেকে মুছে ফেলা হবে।",
+    "%lld of %lld items couldn't be prepared to share.": "%lld টি আইটেম (মোট %lld টির মধ্যে) শেয়ার করার জন্য প্রস্তুত করা যায়নি।"
   },
   "plurals": {
     "%lld issues found": {

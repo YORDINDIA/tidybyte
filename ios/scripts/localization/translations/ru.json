@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "Выбранные скриншоты будут удалены из «Фото».",
     "This item will be deleted from Photos.": "Этот элемент будет удалён из «Фото».",
     "This photo will be deleted from Photos.": "Это фото будет удалено из «Фото».",
-    "This screenshot will be deleted from Photos.": "Этот скриншот будет удалён из «Фото»."
+    "This screenshot will be deleted from Photos.": "Этот скриншот будет удалён из «Фото».",
+    "%lld of %lld items couldn't be prepared to share.": "Не удалось подготовить к отправке %lld из %lld элементов."
   },
   "plurals": {
     "%lld issues found": {

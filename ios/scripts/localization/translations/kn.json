@@ -794,7 +794,8 @@
     "The selected screenshots will be deleted from Photos.": "ಆಯ್ಕೆ ಮಾಡಿದ ಸ್ಕ್ರೀನ್‌ಶಾಟ್‌ಗಳನ್ನು ಫೋಟೋಗಳಿಂದ ಅಳಿಸಲಾಗುತ್ತದೆ.",
     "This item will be deleted from Photos.": "ಈ ಐಟಂ ಅನ್ನು ಫೋಟೋಗಳಿಂದ ಅಳಿಸಲಾಗುತ್ತದೆ.",
     "This photo will be deleted from Photos.": "ಈ ಫೋಟೋ ಅನ್ನು ಫೋಟೋಗಳಿಂದ ಅಳಿಸಲಾಗುತ್ತದೆ.",
-    "This screenshot will be deleted from Photos.": "ಈ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅನ್ನು ಫೋಟೋಗಳಿಂದ ಅಳಿಸಲಾಗುತ್ತದೆ."
+    "This screenshot will be deleted from Photos.": "ಈ ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅನ್ನು ಫೋಟೋಗಳಿಂದ ಅಳಿಸಲಾಗುತ್ತದೆ.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld ಐಟಂಗಳನ್ನು (ಒಟ್ಟು %lld ರಲ್ಲಿ) ಹಂಚಿಕೊಳ್ಳಲು ಸಿದ್ಧಪಡಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ."
   },
   "plurals": {
     "%lld issues found": {
