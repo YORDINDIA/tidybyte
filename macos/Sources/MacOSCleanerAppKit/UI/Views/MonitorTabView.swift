@@ -23,7 +23,7 @@ struct MonitorTabView: View {
     /// A first visit loads async; until it finishes, neither card may claim
     /// "not enough history" — that is a conclusion, not a loading state.
     private var isLoading: Bool {
-        model.isLoadingSnapshots
+        model.isLoadingSnapshots || model.isLoadingTimeline
     }
 
     @ViewBuilder

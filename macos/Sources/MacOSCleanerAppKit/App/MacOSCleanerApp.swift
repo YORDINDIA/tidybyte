@@ -133,7 +133,9 @@ struct MenuBarView: View {
         Divider()
         SettingsLink { Text(String(localized: "Settings…")) }
         Button(String(localized: "Quit Tidybyte", comment: "Menu bar: quit application")) {
-            NSApplication.shared.terminate(nil)
+            // Same sheet-aware path as the app menu (O-01); terminate(nil) is a
+            // silent no-op while a sheet is open.
+            AppDelegate.shared?.requestQuit()
         }
         .keyboardShortcut("q", modifiers: [.command])
     }
@@ -265,8 +267,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             await route(strings)
             openMainWindow?()
             // MB-F1: a status-item interaction confers no activation rights,
-        // and the macOS 14+ no-argument activate() does not steal focus.
-        NSApp.activate(ignoringOtherApps: true)
+            // and the macOS 14+ no-argument activate() does not steal focus.
+            NSApp.activate(ignoringOtherApps: true)
             NSApp.windows.first(where: \.canBecomeKey)?.makeKeyAndOrderFront(nil)
         }
         completionHandler()

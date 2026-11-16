@@ -54,16 +54,9 @@ struct CleanupSettingsView: View {
         }
             .formStyle(.grouped)
             .onChange(of: model.settings.defaultFilter) { model.filter = model.settings.defaultFilter }
-            // Reminder changes must schedule/cancel the notification
-            // immediately; saveSettings() is what (re)registers it, and the
-            // window can stay open indefinitely.
-            .onChange(of: model.settings.reminderEnabled) { _, _ in
-                Task { await model.saveSettings() }
-            }
-            .onChange(of: model.settings.reminderWeekday) { _, _ in
-                Task { await model.saveSettings() }
-            }
-            .onDisappear { Task { await model.saveSettings() } }
+            // MAC-29: save on every change, not only on disappear. A quit with the
+            // window open otherwise lost the change. Reminder changes re-register the notification here too.
+            .onChange(of: model.settings) { Task { await model.saveSettings() } }
             .confirmationDialog(
                 String(
                     localized: """

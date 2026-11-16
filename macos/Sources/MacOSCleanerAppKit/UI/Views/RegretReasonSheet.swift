@@ -14,11 +14,14 @@ struct RegretReasonSheet: View {
         VStack(alignment: .leading, spacing: Spacing.elementSection) {
             Text(String(localized: "Restore this change?")).font(.title2.bold())
             Text(subject)
+                .appFont(.filePath)
                 .textSelection(.enabled)
+                .lineLimit(3)
+                .truncationMode(.middle)
             Text(String(localized: "Optional: tell Tidybyte why you want to restore it."))
                 .foregroundStyle(.secondary)
             ForEach(AppViewModel.RegretReason.allCases, id: \.self) { reason in
-                Button(reason.rawValue) { restore(reason) }
+                Button(reason.title) { restore(reason) }
             }
             HStack {
                 Button(String(localized: "Cancel")) { onCancel() }

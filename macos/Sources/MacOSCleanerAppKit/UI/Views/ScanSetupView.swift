@@ -111,7 +111,7 @@ struct ScanSetupView: View {
     }
 
     private var canScan: Bool {
-        !model.isScanning && !model.isExecuting
+        !model.isScanning && !model.isExecuting && !model.isPlanning
             && (model.selectedMode != .selectedFolders || !model.selectedFolders.isEmpty)
     }
 }

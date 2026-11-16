@@ -11,6 +11,7 @@ struct MindMapView: View {
     var maxDepth: Int
     var nameFilter: String
 
+    @State private var memo = ExploreTreeMemo()
     @State private var selectedID: String?
     private let branchLimit = 10
 
@@ -19,7 +20,7 @@ struct MindMapView: View {
     }
 
     private var groups: [ExploreGroup] {
-        let roots = ExploreTreeBuilder.build(files: filtered, grouping: grouping, maxDepth: maxDepth)
+        let roots = memo.groups(files: files, grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
         return Array(roots.sorted { $0.bytes > $1.bytes }.prefix(branchLimit))
     }
 
@@ -64,8 +65,8 @@ struct MindMapView: View {
                         )
                         .frame(width: width, height: height)
                         rootNode(at: center)
-                        ForEach(groups) { group in
-                            if let index = groups.firstIndex(of: group) {
+                        ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
+                            if index < positions.count {
                                 branchNode(
                                     group,
                                     at: CGPoint(x: positions[index].x * width, y: positions[index].y * height)
@@ -134,7 +135,7 @@ struct MindMapView: View {
                 if group.fileCount > 0 {
                     Text(String(localized: "\(group.fileCount) files", comment: "Explore group file count"))
                         .appFont(.caption)
-                        .foregroundStyle(Color(nsColor: .tertiaryLabelColor))
+                        .foregroundStyle(Color.secondary)
                 }
             }
             .padding(.horizontal, 10)
@@ -149,9 +150,9 @@ struct MindMapView: View {
         }
         .buttonStyle(.plain)
         .position(point)
-        .help("\(group.name), \(group.bytes.formattedByteCount)")
+        .help(String(localized: "\(group.name), \(group.bytes.formattedByteCount)"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(group.name), \(group.bytes.formattedByteCount), \(group.fileCount) files"))
+        .accessibilityLabel(Text(String(localized: "\(group.name), \(group.bytes.formattedByteCount), \(group.fileCount) files")))
         .accessibilityHint(String(localized: "Shows group details"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
@@ -165,7 +166,7 @@ struct MindMapView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
             Spacer()
-            Text("\(group.bytes.formattedByteCount) · \(group.fileCount) files")
+            Text(String(localized: "\(group.bytes.formattedByteCount) · \(group.fileCount) files"))
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)

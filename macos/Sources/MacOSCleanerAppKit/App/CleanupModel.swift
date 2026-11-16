@@ -181,9 +181,15 @@ final class CleanupModel {
                 if analyzed.isFresh { try await store.saveCleanupSnapshot(snapshot) }
                 try await reloadHistory()
                 startMonitoring()
-                try await updateReminder()
+                await refreshReminderAfterScan()
             } catch is CancellationError { result?.isFresh = false } catch { surfaceError(error) }
         }
+    }
+
+    /// The scan itself succeeded; a denied reminder permission must not turn it
+    /// into a failed scan, so the reminder error becomes a notice.
+    private func refreshReminderAfterScan() async {
+        do { try await updateReminder() } catch { notice = error.localizedDescription }
     }
 
     func cancel() { task?.cancel() }
@@ -337,7 +343,10 @@ extension CleanupModel {
         _ decisions: [ReviewDecision], tool: CleanupTool, batchID: String,
         completion: @escaping @MainActor () async throws -> Void
     ) {
-        guard !isBusy else { return }
+        guard !isBusy else {
+            error = String(localized: "Wait until the current cleanup finishes, then try again.")
+            return
+        }
         isBusy = true
         error = nil
         notice = nil
@@ -449,7 +458,10 @@ extension CleanupModel {
     }
 
     func restore(_ event: ActivityEvent) async {
-        guard !isBusy, !isSaving else { return }
+        guard !isBusy, !isSaving else {
+            error = String(localized: "Wait until the current cleanup finishes, then restore again.")
+            return
+        }
         isBusy = true
         defer { isBusy = false }
         do {

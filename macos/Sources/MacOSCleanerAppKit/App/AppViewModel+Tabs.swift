@@ -1,7 +1,7 @@
 import Foundation
 import MacOSCleanerCore
 
-// MARK: - Top-level tabs (Agent 6)
+// MARK: - Top-level tabs
 
 /// Tab, uninstall-staging, and snapshot-diff behavior for AppViewModel.
 /// Stored tab/snapshot state lives on the main type (the `@Observable` macro
@@ -64,6 +64,21 @@ extension AppViewModel {
         }
     }
 
+    /// Creates the standalone session that staged actions attach to when no scan exists.
+    private func startStandaloneReview(for name: String) async -> Bool {
+        let session = ScanSession(
+            scanType: .selectedFolders, rootURLs: [], permissionsSnapshot: "staged", status: .completed)
+        do {
+            try await store.saveScanSession(session)
+        } catch {
+            errorMessage = String(localized: "Could not start a review for \(name): \(error.localizedDescription)")
+            return false
+        }
+        outcome = .standalone(session: session)
+        plan = .empty(sessionID: session.id)
+        return true
+    }
+
     /// Merges staged files, findings, and actions into the review plan. Without
     /// a scan it starts an empty one, so staging never depends on scanning.
     @discardableResult
@@ -82,22 +97,12 @@ extension AppViewModel {
         }
         defer { releasePlanning() }
         if outcome == nil || plan == nil {
-            let session = ScanSession(
-                scanType: .selectedFolders, rootURLs: [], permissionsSnapshot: "staged", status: .completed)
-            try? await store.saveScanSession(session)
-            outcome = .standalone(session: session)
-            plan = .empty(sessionID: session.id)
+            guard await startStandaloneReview(for: name) else { return false }
         }
         guard let scan = outcome, var currentPlan = plan else { return false }
         let signature = executionPlanSignature
         do {
             let staged = try await build(ApplicationFootprintService(), scan.session.id)
-            guard !Task.isCancelled, signature == executionPlanSignature else {
-                statusMessage = String(
-                    localized: "\(name) could not be added because the plan changed. Try again.",
-                    comment: "Staging lost a race with a plan mutation")
-                return false
-            }
             guard !staged.files.isEmpty else {
                 errorMessage = String(localized: "Nothing removable found for \(name). It may be missing or protected.")
                 return false

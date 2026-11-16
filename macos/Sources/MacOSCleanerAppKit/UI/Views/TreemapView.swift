@@ -172,7 +172,8 @@ struct TreemapBlock: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(category.displayName + ", " + byteCount.formattedByteCount))
+        .accessibilityLabel(
+            Text(String(localized: "\(category.displayName), \(byteCount.formattedByteCount)", comment: "Treemap block label")))
         .accessibilityValue(isSelected ? String(localized: "Selected") : String(localized: "Not selected"))
         .accessibilityHint(String(localized: "Shows category size"))
     }

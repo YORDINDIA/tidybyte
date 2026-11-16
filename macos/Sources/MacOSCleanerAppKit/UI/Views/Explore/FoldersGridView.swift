@@ -10,7 +10,10 @@ struct FoldersGridView: View {
     var maxDepth: Int
     var nameFilter: String
 
-    @State private var drillPath: [ExploreGroup] = []
+    /// Ids of the drilled-into groups. Stored as ids so a changed filter or depth
+    /// resolves against the current tree instead of showing a stale snapshot.
+    @State private var memo = ExploreTreeMemo()
+    @State private var drillIDs: [String] = []
     @State private var selectedID: String?
 
     private var filtered: [FileRecord] {
@@ -18,61 +21,70 @@ struct FoldersGridView: View {
     }
 
     private var roots: [ExploreGroup] {
-        ExploreTreeBuilder.build(files: filtered, grouping: grouping, maxDepth: maxDepth)
+        memo.groups(files: files, grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
     }
 
-    private var visibleGroups: [ExploreGroup] {
-        drillPath.last?.children ?? roots
-    }
-
-    private var maxBytes: Int64 {
-        visibleGroups.map(\.bytes).max() ?? 1
+    /// The drill path resolved against the current tree. Stops at the first missing id.
+    private func resolvedPath(in tree: [ExploreGroup]) -> [ExploreGroup] {
+        var level = tree
+        var path: [ExploreGroup] = []
+        for id in drillIDs {
+            guard let group = level.first(where: { $0.id == id }) else { break }
+            path.append(group)
+            level = group.children
+        }
+        return path
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.elementNormal) {
-            if !drillPath.isEmpty {
-                breadcrumb
+        // Build the tree and the path once per render, then pass them down.
+        let tree = roots
+        let path = resolvedPath(in: tree)
+        let visible = path.last?.children ?? tree
+        let maxBytes = visible.map(\.bytes).max() ?? 1
+        return VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+            if !path.isEmpty {
+                breadcrumb(path)
             }
-            if visibleGroups.isEmpty {
+            if visible.isEmpty {
                 ExploreEmptyState()
             } else {
                 LazyVGrid(
                     columns: [GridItem(.adaptive(minimum: 148, maximum: 220), spacing: Spacing.elementNormal)],
                     spacing: Spacing.elementNormal
                 ) {
-                    ForEach(visibleGroups) { group in
-                        groupCard(for: group)
+                    ForEach(visible) { group in
+                        groupCard(for: group, maxBytes: maxBytes)
                     }
                 }
-                if let selected = visibleGroups.first(where: { $0.id == selectedID }) {
+                if let selected = visible.first(where: { $0.id == selectedID }) {
                     selectedFooter(for: selected)
                 }
             }
         }
         .onChange(of: ExploreFilesToken(files)) { _, _ in
-            drillPath = []
+            drillIDs = []
             selectedID = nil
         }
         .onChange(of: grouping) { _, _ in
-            drillPath = []
+            drillIDs = []
             selectedID = nil
         }
     }
 
-    private var breadcrumb: some View {
+    private func breadcrumb(_ path: [ExploreGroup]) -> some View {
         HStack(spacing: 4) {
             Button(String(localized: "All", comment: "Explore breadcrumb root")) {
-                drillPath = []
+                drillIDs = []
                 selectedID = nil
             }
             .buttonStyle(.plain)
             .appFont(.caption)
             .foregroundStyle(Color.secondary)
-            ForEach(drillPath) { crumb in
+            ForEach(path) { crumb in
                 Text("/")
                     .appFont(.caption)
-                    .foregroundStyle(Color(nsColor: .tertiaryLabelColor))
+                    .foregroundStyle(Color.secondary)
                 Text(crumb.name)
                     .appFont(.caption)
                     .foregroundStyle(Color.secondary)
@@ -80,9 +92,9 @@ struct FoldersGridView: View {
                     .truncationMode(.middle)
             }
             Spacer()
-            if drillPath.count > 1 {
+            if path.count > 1 {
                 Button(String(localized: "Back", comment: "Explore drill back button")) {
-                    drillPath.removeLast()
+                    drillIDs.removeLast()
                     selectedID = nil
                 }
                 .buttonStyle(.plain)
@@ -91,10 +103,10 @@ struct FoldersGridView: View {
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Current folder: \(drillPath.last?.name ?? "")"))
+        .accessibilityLabel(String(localized: "Current folder: \(path.last?.name ?? "")"))
     }
 
-    private func groupCard(for group: ExploreGroup) -> some View {
+    private func groupCard(for group: ExploreGroup, maxBytes: Int64) -> some View {
         let palette = ExploreChartPalette.palette(for: group)
         let fraction = maxBytes > 0 ? Double(max(0, group.bytes)) / Double(maxBytes) : 0
         return Button {
@@ -107,51 +119,14 @@ struct FoldersGridView: View {
                     model.selectExploreRecord(id: nil)
                 }
             } else {
-                drillPath.append(group)
+                drillIDs.append(group.id)
                 selectedID = nil
                 if let record = ExploreTreeBuilder.largestMember(of: group, in: filtered) {
                     model.focusExploreRecord(id: record.id)
                 }
             }
         } label: {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(palette.mid)
-                        .frame(width: 8, height: 8)
-                    Text(group.name)
-                        .appFont(.labelMedium)
-                        .foregroundStyle(Color.primary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: 0)
-                    if !group.children.isEmpty {
-                        Image(systemName: "chevron.right")
-                            .appFont(.labelMedium)
-                            .foregroundStyle(Color.secondary)
-                    }
-                }
-                Text(group.bytes.formattedByteCount)
-                    .appFont(.h4)
-                    .foregroundStyle(Color.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                Text(String(localized: "\(group.fileCount) files", comment: "Explore group file count"))
-                    .appFont(.caption)
-                    .foregroundStyle(Color.secondary)
-                    .lineLimit(1)
-                GeometryReader { proxy in
-                    Capsule()
-                        .fill(.quaternary)
-                        .overlay(alignment: .leading) {
-                            Capsule()
-                                .fill(palette.mid)
-                                .frame(width: proxy.size.width * CGFloat(min(1, max(0, fraction))))
-                        }
-                }
-                .frame(height: 5)
-                .accessibilityHidden(true)
-            }
+            cardContent(group: group, palette: palette, fraction: fraction)
             .padding(Spacing.cardPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.background.secondary, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
@@ -164,7 +139,8 @@ struct FoldersGridView: View {
         .buttonStyle(.plain)
         .help(groupTooltip(for: group))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(group.name), \(group.bytes.formattedByteCount), \(group.fileCount) files"))
+        .accessibilityLabel(Text(String(localized: "\(group.name), \(group.bytes.formattedByteCount), \(group.fileCount) files")))
+        .accessibilityAddTraits(selectedID == group.id ? .isSelected : [])
         .accessibilityHint(group.children.isEmpty
             ? String(localized: "Shows group details")
             : String(localized: "Drills into this group"))
@@ -199,7 +175,7 @@ struct FoldersGridView: View {
                     if group.children.isEmpty {
                         model.selectExploreRecord(id: record.id)
                     } else {
-                        drillPath.append(group)
+                        drillIDs.append(group.id)
                         selectedID = nil
                         model.focusExploreRecord(id: record.id)
                     }
@@ -218,5 +194,46 @@ struct FoldersGridView: View {
             parts.append(detail)
         }
         return parts.joined(separator: ", ")
+    }
+
+    private func cardContent(group: ExploreGroup, palette: CategoricalPalette, fraction: Double) -> some View {
+        return VStack(alignment: .leading, spacing: 6) {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(palette.mid)
+                .frame(width: 8, height: 8)
+            Text(group.name)
+                .appFont(.labelMedium)
+                .foregroundStyle(Color.primary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Spacer(minLength: 0)
+            if !group.children.isEmpty {
+                Image(systemName: "chevron.right")
+                    .appFont(.labelMedium)
+                    .foregroundStyle(Color.secondary)
+            }
+        }
+        Text(group.bytes.formattedByteCount)
+            .appFont(.h4)
+            .foregroundStyle(Color.primary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+        Text(String(localized: "\(group.fileCount) files", comment: "Explore group file count"))
+            .appFont(.caption)
+            .foregroundStyle(Color.secondary)
+            .lineLimit(1)
+        GeometryReader { proxy in
+            Capsule()
+                .fill(.quaternary)
+                .overlay(alignment: .leading) {
+                    Capsule()
+                        .fill(palette.mid)
+                        .frame(width: proxy.size.width * CGFloat(min(1, max(0, fraction))))
+                }
+        }
+        .frame(height: 5)
+        .accessibilityHidden(true)
+    }
     }
 }

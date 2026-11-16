@@ -24,11 +24,17 @@ struct AgeMapView: View {
         ExploreTreeBuilder.filteredFiles(files, nameFilter: nameFilter)
     }
 
+    /// One formatter for every render: creating a DateFormatter per call was costly.
+    private static let monthFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("MMM yy")
+        return formatter
+    }()
+
+    /// Built once per render from the body, then passed down to the views that need it.
     private var monthBuckets: [MonthBucket] {
         let calendar = Calendar.current
         let now = Date()
-        let monthFormatter = DateFormatter()
-        monthFormatter.setLocalizedDateFormatFromTemplate("MMM yy")
         var buckets: [MonthBucket] = []
         for offset in stride(from: monthCount - 1, through: 0, by: -1) {
             guard let monthStart = calendar.date(
@@ -51,7 +57,7 @@ struct AgeMapView: View {
             let key = "\(calendar.component(.year, from: rangeStart))-\(calendar.component(.month, from: rangeStart))"
             buckets.append(MonthBucket(
                 id: key,
-                label: monthFormatter.string(from: rangeStart),
+                label: Self.monthFormatter.string(from: rangeStart),
                 bytes: members.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
                 fileCount: members.count
             ))
@@ -63,28 +69,20 @@ struct AgeMapView: View {
         filtered.filter { ExploreTreeBuilder.lastTouchedDate(for: $0) == nil }.count
     }
 
-    private var maxBucketBytes: Int64 {
-        monthBuckets.map(\.bytes).max() ?? 1
-    }
-
-    private var spotlight: [FileRecord] {
-        ExploreTreeBuilder.bigUntouchedFiles(in: filtered, limit: untouchedLimit)
-    }
-
-    private var selectedBucket: MonthBucket? {
-        monthBuckets.first { $0.id == selectedMonthKey }
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+        // Each derived value is computed once per render.
+        let buckets = monthBuckets
+        let undated = undatedCount
+        let spotlight = ExploreTreeBuilder.bigUntouchedFiles(in: filtered, limit: untouchedLimit)
+        return VStack(alignment: .leading, spacing: Spacing.elementNormal) {
             if filtered.isEmpty {
                 ExploreEmptyState()
             } else {
-                heatGrid
-                if let selected = selectedBucket {
+                heatGrid(buckets: buckets, undated: undated)
+                if let selected = buckets.first(where: { $0.id == selectedMonthKey }) {
                     selectedFooter(for: selected)
                 }
-                spotlightSection
+                spotlightSection(spotlight)
             }
         }
         .onChange(of: ExploreFilesToken(files)) { _, _ in
@@ -92,8 +90,9 @@ struct AgeMapView: View {
         }
     }
 
-    private var heatGrid: some View {
-        VStack(alignment: .leading, spacing: Spacing.elementTight) {
+    private func heatGrid(buckets: [MonthBucket], undated: Int) -> some View {
+        let maxBucketBytes = buckets.map(\.bytes).max() ?? 1
+        return VStack(alignment: .leading, spacing: Spacing.elementTight) {
             Text(String(localized: "Touched per month", comment: "Age Map heat grid title"))
                 .appFont(.labelMedium)
                 .foregroundStyle(Color.secondary)
@@ -101,19 +100,19 @@ struct AgeMapView: View {
                 columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6),
                 spacing: 6
             ) {
-                ForEach(monthBuckets) { bucket in
-                    monthCell(for: bucket)
+                ForEach(buckets) { bucket in
+                    monthCell(for: bucket, maxBucketBytes: maxBucketBytes)
                 }
             }
-            if undatedCount > 0 {
-                Text(String(localized: "\(undatedCount) files have no known date", comment: "Age Map undated files note"))
+            if undated > 0 {
+                Text(String(localized: "\(undated) files have no known date", comment: "Age Map undated files note"))
                     .appFont(.caption)
                     .foregroundStyle(Color.secondary)
             }
         }
     }
 
-    private func monthCell(for bucket: MonthBucket) -> some View {
+    private func monthCell(for bucket: MonthBucket, maxBucketBytes: Int64) -> some View {
         let intensity = maxBucketBytes > 0
             ? Double(max(0, bucket.bytes)) / Double(maxBucketBytes)
             : 0
@@ -149,9 +148,10 @@ struct AgeMapView: View {
             }
         }
         .buttonStyle(.plain)
-        .help("\(bucket.label), \(bucket.bytes.formattedByteCount), \(bucket.fileCount) files")
+        .help(String(localized: "\(bucket.label), \(bucket.bytes.formattedByteCount), \(bucket.fileCount) files"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(bucket.label): \(bucket.bytes.formattedByteCount), \(bucket.fileCount) files"))
+        .accessibilityLabel(Text(String(localized: "\(bucket.label): \(bucket.bytes.formattedByteCount), \(bucket.fileCount) files")))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityHint(String(localized: "Shows month details"))
     }
 
@@ -161,7 +161,7 @@ struct AgeMapView: View {
                 .appFont(.caption)
                 .foregroundStyle(Color.secondary)
             Spacer()
-            Text("\(bucket.bytes.formattedByteCount) · \(bucket.fileCount) files")
+            Text(String(localized: "\(bucket.bytes.formattedByteCount) · \(bucket.fileCount) files"))
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)
@@ -178,7 +178,7 @@ struct AgeMapView: View {
         .accessibilityLabel(String(localized: "Selected month: \(bucket.label), \(bucket.bytes.formattedByteCount)"))
     }
 
-    private var spotlightSection: some View {
+    private func spotlightSection(_ spotlight: [FileRecord]) -> some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             HStack {
                 Image(systemName: "moon.zzz")
@@ -194,76 +194,84 @@ struct AgeMapView: View {
                     .foregroundStyle(Color.secondary)
             } else {
                 ForEach(spotlight) { file in
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
-                            Text(file.fileName)
-                                .appFont(.bodyMedium)
-                                .foregroundStyle(Color.primary)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                            Spacer(minLength: 8)
-                            if let touched = ExploreTreeBuilder.lastTouchedDate(for: file) {
-                                Text(touched.formatted(date: .abbreviated, time: .omitted))
-                                    .appFont(.caption)
-                                    .foregroundStyle(Color.secondary)
-                            }
-                            Text(file.sizeBytes.formattedByteCount)
-                                .appFont(.labelMedium)
-                                .monospacedDigit()
-                                .foregroundStyle(Color.secondary)
-                        }
-                        HStack(spacing: Spacing.elementTight) {
-                            SecondaryButton(
-                                title: String(localized: "Focus"),
-                                icon: "scope",
-                                action: {
-                                    model.focusExploreRecord(id: file.id)
-                                    model.selectExploreRecord(id: file.id)
-                                }
-                            )
-                            if model.stagedExploreAction(matching: file) != nil {
-                                SecondaryButton(
-                                    title: String(localized: "Approve"),
-                                    icon: "checkmark",
-                                    action: {
-                                        guard let staged = model.stagedExploreAction(matching: file) else {
-                                            return
-                                        }
-                                        model.approve(staged)
-                                    }
-                                )
-                            } else {
-                                SecondaryButton(
-                                    title: String(localized: "Stage"),
-                                    icon: "plus.circle",
-                                    action: {
-                                        if model.stageExploreRecordForCleanup(file) != nil {
-                                            model.setStatusMessage(String(
-                                                localized: "Added to the cleanup plan. Review it in Proposed Actions.",
-                                                comment: "Explore staging accepted"))
-                                        } else {
-                                            model.setStatusMessage(String(
-                                                localized: "Could not stage. A scan, execution, or plan change is in flight.",
-                                                comment: "Explore staging refused"))
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                    .padding(.horizontal, Spacing.cardPadding)
-                    .padding(.vertical, 6)
-                    .background(.background.secondary, in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
-                    .overlay {
-                        if model.selectedExploreRecordID == file.id {
-                            RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous).strokeBorder(.tint, lineWidth: 2)
-                        }
-                    }
-                    .help("\(file.fileName), \(file.sizeBytes.formattedByteCount)")
-                    .accessibilityElement(children: .contain)
-                    .accessibilityLabel(Text("\(file.fileName), \(file.sizeBytes.formattedByteCount)"))
+                    spotlightRow(file)
                 }
             }
         }
+    }
+
+    private func spotlightRow(_ file: FileRecord) -> some View {
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Text(file.fileName)
+                    .appFont(.bodyMedium)
+                    .foregroundStyle(Color.primary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer(minLength: 8)
+                if let touched = ExploreTreeBuilder.lastTouchedDate(for: file) {
+                    Text(touched.formatted(date: .abbreviated, time: .omitted))
+                        .appFont(.caption)
+                        .foregroundStyle(Color.secondary)
+                }
+                Text(file.sizeBytes.formattedByteCount)
+                    .appFont(.labelMedium)
+                    .monospacedDigit()
+                    .foregroundStyle(Color.secondary)
+            }
+            spotlightActions(file)
+        }
+        .padding(.horizontal, Spacing.cardPadding)
+        .padding(.vertical, 6)
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
+        .overlay {
+            if model.selectedExploreRecordID == file.id {
+                RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous).strokeBorder(.tint, lineWidth: 2)
+            }
+        }
+        .help(String(localized: "\(file.fileName), \(file.sizeBytes.formattedByteCount)"))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(String(localized: "\(file.fileName), \(file.sizeBytes.formattedByteCount)")))
+    }
+
+    private func spotlightActions(_ file: FileRecord) -> some View {
+        return HStack(spacing: Spacing.elementTight) {
+    SecondaryButton(
+        title: String(localized: "Focus"),
+        icon: "scope",
+        action: {
+            model.focusExploreRecord(id: file.id)
+            model.selectExploreRecord(id: file.id)
+        }
+    )
+    if model.stagedExploreAction(matching: file) != nil {
+        SecondaryButton(
+            title: String(localized: "Approve"),
+            icon: "checkmark",
+            action: {
+                guard let staged = model.stagedExploreAction(matching: file) else {
+                    return
+                }
+                model.approve(staged)
+            }
+        )
+    } else {
+        SecondaryButton(
+            title: String(localized: "Stage"),
+            icon: "plus.circle",
+            action: {
+                if model.stageExploreRecordForCleanup(file) != nil {
+                    model.setStatusMessage(String(
+                        localized: "Added to the cleanup plan. Review it in Proposed Actions.",
+                        comment: "Explore staging accepted"))
+                } else {
+                    model.setStatusMessage(String(
+                        localized: "Could not stage. A scan, execution, or plan change is in flight.",
+                        comment: "Explore staging refused"))
+                }
+            }
+        )
+    }
+}
     }
 }

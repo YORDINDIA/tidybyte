@@ -11,6 +11,7 @@ struct FlameView: View {
     var maxDepth: Int
     var nameFilter: String
 
+    @State private var memo = ExploreTreeMemo()
     @State private var zoomedGroupID: String?
 
     private var filtered: [FileRecord] {
@@ -18,7 +19,7 @@ struct FlameView: View {
     }
 
     private var groups: [ExploreGroup] {
-        ExploreTreeBuilder.build(files: filtered, grouping: grouping, maxDepth: maxDepth)
+        memo.groups(files: files, grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
     }
 
     /// When zoomed, the selected top-level group becomes the whole chart.
@@ -52,7 +53,8 @@ struct FlameView: View {
             if groups.isEmpty {
                 ExploreEmptyState()
             } else {
-                if zoomedGroupID != nil {
+                // Show the banner only while the zoomed group still exists in this grouping.
+                if zoomedGroup != nil {
                     zoomBanner
                 }
                 GeometryReader { proxy in
@@ -71,6 +73,9 @@ struct FlameView: View {
             }
         }
         .onChange(of: ExploreFilesToken(files)) { _, _ in
+            zoomedGroupID = nil
+        }
+        .onChange(of: grouping) {
             zoomedGroupID = nil
         }
     }
@@ -137,7 +142,7 @@ struct FlameView: View {
                 if showsLabel {
                     Text(sector.name)
                         .appFont(.caption)
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(palette.ink)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .padding(.horizontal, 6)
@@ -147,9 +152,9 @@ struct FlameView: View {
         }
         .buttonStyle(.plain)
         .disabled(!isTopRow)
-        .help("\(sector.name), \(sector.bytes.formattedByteCount)")
+        .help(String(localized: "\(sector.name), \(sector.bytes.formattedByteCount)"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(sector.name), \(sector.bytes.formattedByteCount), depth \(sector.depth)"))
+        .accessibilityLabel(Text(String(localized: "\(sector.name), \(sector.bytes.formattedByteCount), depth \(sector.depth)")))
         .accessibilityHint(isTopRow
             ? String(localized: "Zooms into this group")
             : String(localized: "Shows segment size"))
@@ -176,9 +181,9 @@ struct FlameView: View {
                         .monospacedDigit()
                         .foregroundStyle(Color.secondary)
                 }
-                .help("\(group.name), \(group.bytes.formattedByteCount)")
+                .help(String(localized: "\(group.name), \(group.bytes.formattedByteCount)"))
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("\(group.name), \(group.bytes.formattedByteCount)"))
+                .accessibilityLabel(Text(String(localized: "\(group.name), \(group.bytes.formattedByteCount)")))
             }
         }
     }

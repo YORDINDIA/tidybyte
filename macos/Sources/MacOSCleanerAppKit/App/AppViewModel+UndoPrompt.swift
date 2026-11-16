@@ -5,6 +5,27 @@ import MacOSCleanerCore
 // an in-app History restore instead of silently restoring.
 
 extension AppViewModel {
+    /// Reasons offered when a person restores a change. The raw value is the
+    /// English text stored with the regret event, so it never changes; `title`
+    /// is what the person sees.
+    enum RegretReason: String, CaseIterable {
+        case neededLater = "Needed later"
+        case misclassified = "Misclassified"
+        case shouldHaveArchived = "Should have archived, not deleted"
+        case wrongProject = "Wrong project"
+        case tooAggressive = "Too aggressive"
+
+        var title: String {
+            switch self {
+            case .neededLater: String(localized: "Needed later", comment: "Restore reason")
+            case .misclassified: String(localized: "Misclassified", comment: "Restore reason")
+            case .shouldHaveArchived: String(localized: "Should have archived, not deleted", comment: "Restore reason")
+            case .wrongProject: String(localized: "Wrong project", comment: "Restore reason")
+            case .tooAggressive: String(localized: "Too aggressive", comment: "Restore reason")
+            }
+        }
+    }
+
     /// A restore waiting for the user's regret reason (or a skip).
     enum PendingUndoRestore: Identifiable {
         case systemRecord(UndoRecord)

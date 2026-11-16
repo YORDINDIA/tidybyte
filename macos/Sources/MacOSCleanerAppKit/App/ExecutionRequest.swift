@@ -75,6 +75,15 @@ struct ExecutionRequest: Identifiable {
 }
 
 extension AppViewModel {
+    /// The action IDs one confirmation step may run. Package-manager commands are
+    /// non-undoable, so they run only in their own step (`packageCommandsOnly`).
+    /// The file-action step must exclude them, or its confirm button would run
+    /// them without that step.
+    static func confirmedActionIDs(in actions: [PlannedAction], packageCommandsOnly: Bool) -> Set<String> {
+        let packageIDs = Set(actions.filter { $0.actionType == .runPackageManagerCleanup }.map(\.id))
+        return packageCommandsOnly ? packageIDs : Set(actions.map(\.id)).subtracting(packageIDs)
+    }
+
     var executionPlanSignature: Data? {
         guard let plan else { return nil }
         let encoder = JSONEncoder()

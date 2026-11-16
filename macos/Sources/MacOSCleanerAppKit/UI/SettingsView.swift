@@ -198,9 +198,15 @@ struct SettingsView: View {
                     value: $model.providerSettings.maxTokens, in: 200...8000, step: 100
                 )
                 .onChange(of: model.providerSettings.maxTokens) { model.saveSettings() }
-                Slider(value: $model.providerSettings.temperature, in: 0...1) {
-                    Text(String(localized: "Temperature"))
-                }.onChange(of: model.providerSettings.temperature) { model.saveSettings() }
+                LabeledContent(String(localized: "Temperature")) {
+                    HStack(spacing: Spacing.elementNormal) {
+                        Slider(value: $model.providerSettings.temperature, in: 0...1)
+                            .onChange(of: model.providerSettings.temperature) { model.saveSettings() }
+                        Text(model.providerSettings.temperature, format: .number.precision(.fractionLength(2)))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }.formStyle(.grouped).disabled(model.isScanning || model.isExecuting)
     }

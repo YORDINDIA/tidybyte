@@ -89,27 +89,28 @@ struct UndoHistoryView: View {
                     }
                 }
             }
-            Section(String(localized: "Restore records")) {
-                ForEach(records) { record in
-                    HStack(spacing: Spacing.elementNormal) {
-                        Image(systemName: record.status == .available ? "arrow.uturn.backward" : "checkmark.circle")
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(record.inverseAction.displayName).font(.headline)
-                            Text(
-                                record.restoreURL?.path ?? record.trashURL?.path
-                                    ?? String(localized: "No file path recorded")
-                            )
-                            .font(.caption).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle)
+            if !records.isEmpty {
+                Section(String(localized: "Restore records")) {
+                    ForEach(records) { record in
+                        HStack(spacing: Spacing.elementNormal) {
+                            Image(systemName: record.status == .available ? "arrow.uturn.backward" : "checkmark.circle")
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(record.inverseAction.displayName).font(.headline)
+                                Text(
+                                    record.restoreURL?.path ?? record.trashURL?.path
+                                        ?? String(localized: "No file path recorded")
+                                )
+                                .font(.caption).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle)
+                            }
+                            Spacer()
+                            Text(record.status.displayName).font(.caption).foregroundStyle(.secondary)
+                            Button(String(localized: "Restore")) { restoreRequest = record }
+                                .disabled(record.status != .available || model.isScanning || model.isExecuting)
                         }
-                        Spacer()
-                        Text(record.status.displayName).font(.caption).foregroundStyle(.secondary)
-                        Button(String(localized: "Restore")) { restoreRequest = record }
-                            .disabled(record.status != .available || model.isScanning || model.isExecuting)
+                        .padding(.vertical, Spacing.elementTight).tag(record.id)
                     }
-                    .padding(.vertical, Spacing.elementTight).tag(record.id)
                 }
             }
-            .opacity(records.isEmpty ? 0 : 1)
         }
         .listStyle(.inset)
         .skeletonLoading(model.isLoadingUndoHistory)
@@ -205,7 +206,11 @@ struct HistoryDetailsView: View {
         .formStyle(.grouped)
         .task(id: model.selectedHistoryID) {
             storedLog = nil
-            if let record { storedLog = await model.historyOperation(id: record.operationLogID) }
+            guard let record else { return }
+            let loaded = await model.historyOperation(id: record.operationLogID)
+            // .task(id:) cancels the previous load, but this await does not
+            // observe cancellation: drop a stale result instead of showing it.
+            if !Task.isCancelled { storedLog = loaded }
         }
     }
 

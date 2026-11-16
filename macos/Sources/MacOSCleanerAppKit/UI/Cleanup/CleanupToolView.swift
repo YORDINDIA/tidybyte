@@ -146,6 +146,7 @@ struct CleanupToolView: View {
                             retained: batch.retained)
                         HStack {
                             Button(String(localized: "Cancel")) { confirmation = nil }
+                                .keyboardShortcut(.cancelAction)
                             Spacer()
                             Button(String(localized: "Move to Trash"), role: .destructive) {
                                 confirmation = nil
@@ -179,6 +180,7 @@ struct CleanupToolView: View {
                         ))
                     HStack {
                         Button(String(localized: "Cancel")) { resourceChoice = nil }
+                            .keyboardShortcut(.cancelAction)
                         Spacer()
                         Button(String(localized: "Keep this component"), role: .destructive) {
                             resourceChoice = nil
@@ -305,11 +307,28 @@ struct CleanupToolView: View {
         guard !tool.isCompression, !model.isBusy else { return }
         model.selection = MediaAnalysisService.safeSelection(model.selection, groups: model.result?.groups ?? [])
         guard !selected.isEmpty else { return }
-        confirmation = model.makeBatch(items: selected, tool: tool)
+        present(model.makeBatch(items: selected, tool: tool))
     }
 }
 
 extension CleanupToolView {
+    /// Opens the confirmation for a batch. A nil batch means the selection or
+    /// the scan changed since it was made, so say so instead of doing nothing.
+    private func present(_ batch: CleanupBatch?) {
+        guard let batch else {
+            model.error = String(
+                localized: "This selection cannot be changed. Scan again if the results are out of date.")
+            return
+        }
+        confirmation = batch
+    }
+
+    private var compressTitle: String {
+        selected.count == 1
+            ? String(localized: "Compress 1 Item…")
+            : String(localized: "Compress \(selected.count) Items…")
+    }
+
     private func groupView(_ group: AnalysisGroup) -> some View {
         GroupBox {
             ScrollView(.horizontal) {
@@ -335,7 +354,7 @@ extension CleanupToolView {
                 Spacer()
                 Button(String(localized: "Move Others to Trash…"), role: .destructive) {
                     model.selection = Set(group.memberIDs.filter { $0 != group.bestID })
-                    confirmation = model.makeBatch(items: selected, tool: tool)
+                    present(model.makeBatch(items: selected, tool: tool))
                 }.disabled(model.isBusy)
             }
         }
@@ -348,7 +367,7 @@ extension CleanupToolView {
                 Button(String(localized: "Review with Swipe", comment: "Start a swipe review session (PRD 4.2.1)")) {
                     Task {
                         await model.startSession(items: items, tool: tool)
-                        model.selectedTool = .swipe
+                        if model.session != nil { model.selectedTool = .swipe }
                     }
                 }
                 .buttonStyle(.glass)
@@ -363,8 +382,8 @@ extension CleanupToolView {
                     .buttonStyle(.glass)
                 }
                 if tool.isCompression {
-                    Button(String(localized: "Compress \(selected.count) Items…")) {
-                        confirmation = model.makeBatch(items: selected, tool: tool)
+                    Button(compressTitle) {
+                        present(model.makeBatch(items: selected, tool: tool))
                     }
                     .buttonStyle(.glassProminent)
                     .disabled(selected.isEmpty)
@@ -413,6 +432,7 @@ extension CleanupToolView {
                 ))
             HStack {
                 Button(String(localized: "Cancel")) { confirmation = nil }
+                    .keyboardShortcut(.cancelAction)
                 Spacer()
                 Button(String(localized: "Compress and replace")) {
                     confirmation = nil

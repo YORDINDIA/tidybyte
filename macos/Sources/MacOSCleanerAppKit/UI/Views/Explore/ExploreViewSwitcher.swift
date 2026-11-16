@@ -79,7 +79,7 @@ enum ExploreViewKind: String, CaseIterable, Identifiable, Sendable {
         case .ageMap:
             String(localized: "When files were touched, plus big untouched ones.", comment: "Explore view tagline")
         case .treemap:
-            String(localized: "Every file as a rectangle, sized by bytes.", comment: "Explore view title")
+            String(localized: "Every file as a rectangle, sized by bytes.", comment: "Explore view tagline")
         }
     }
 }
@@ -175,14 +175,15 @@ struct ExploreViewSwitcher: View {
                 .frame(maxWidth: 140)
                 .accessibilityLabel(String(localized: "Folder depth"))
                 .accessibilityValue(String(localized: "\(depthInt) levels"))
-            Text("\(depthInt)")
+            Text(String(localized: "\(depthInt)"))
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)
                 .frame(width: 16)
                 .accessibilityHidden(true)
         }
-        .disabled(selectedView == .topSizes || selectedView == .ageMap || selectedView == .treemap)
+        // These views draw only top-level groups, so depth changes nothing on them.
+        .disabled([.topSizes, .ageMap, .treemap, .bubbles, .mindMap].contains(selectedView))
     }
 
     @ViewBuilder
