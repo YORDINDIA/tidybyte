@@ -24,8 +24,10 @@
 import type { PageMeta } from "../data/page-meta";
 import { ALL_LANGUAGES, BASE_LANGUAGE, TRANSLATED_ROUTES, type SiteLanguage } from "../data/languages";
 import { baseRoute, urlForRoute } from "../lib/localized-page";
+import { plainText } from "../lib/plain-text";
 import Header from "../components/chrome/Header.astro";
 import Footer from "../components/chrome/Footer.astro";
+import { chrome } from "../lib/chrome";
 
 interface Props {
   meta: PageMeta;
@@ -38,23 +40,6 @@ const { meta, lang = BASE_LANGUAGE, home = false } = Astro.props;
 const SITE = "https://tidybyte.yord.si";
 const ICON_OG = "https://tidybyte.yord.si/assets/img/icon-1024.png";
 
-/** Decode the small set of entities used in titles/descriptions. */
-function decodeEntities(s: string): string {
-  return s
-    .replace(/&mdash;/g, " — ")
-    .replace(/&ndash;/g, " – ")
-    .replace(/&rsquo;/g, "'")
-    .replace(/&lsquo;/g, "'")
-    .replace(/&rdquo;/g, '"')
-    .replace(/&ldquo;/g, '"')
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 const pub = meta.datePublished ?? null;
 const mod = meta.dateModified ?? null;
 
@@ -63,7 +48,9 @@ const robots = meta.route === "/404" ? "noindex, follow" : meta.robots;
 // The app icon is square; several pages declared it as 1024x630.
 const ogWidth = meta.ogImage === ICON_OG ? "1024" : meta.ogWidth;
 const ogHeight = meta.ogImage === ICON_OG ? "1024" : meta.ogHeight;
-const ogAlt = decodeEntities(meta.title);
+const title = plainText(meta.title);
+const description = plainText(meta.description);
+const ogAlt = title;
 
 /**
  * LCP preload for the page's hero image, if it has one. Must match the file
@@ -115,7 +102,7 @@ function speakableScript(): string {
  */
 function breadcrumbScript(): string {
   const name =
-    decodeEntities(meta.title)
+    title
       .replace(/\s*[—–|-]\s*TidyByte\s*$/i, "")
       .trim() || "TidyByte";
   const items: { name: string; url: string }[] = [
@@ -183,15 +170,15 @@ const skipLink =
   '<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:start-3 ' +
   "focus:top-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-3 " +
   "focus:py-1.5 focus:text-sm focus:font-semibold focus:text-on-primary\">" +
-  "Skip to content</a>";
+  chrome(lang.code, "Skip to content") + "</a>";
 ---
 
 <!doctype html>
 <html lang={lang.htmlLang} {...(lang.rtl ? { dir: "rtl" } : {})}>
   <head>
     <meta charset="utf-8" />
-    <title>{meta.title}</title>
-    <meta name="description" content={meta.description} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#fffaf0" />
     <meta name="robots" content={robots} />
@@ -201,8 +188,8 @@ const skipLink =
     <meta property="og:site_name" content="TidyByte" />
     <meta property="og:locale" content={lang.ogLocale} />
     {localeAlternates.map((l) => <meta property="og:locale:alternate" content={l.ogLocale} />)}
-    <meta property="og:title" content={meta.title} />
-    <meta property="og:description" content={meta.description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
     <meta property="og:image" content={meta.ogImage} />
     <meta property="og:image:width" content={ogWidth} />
     <meta property="og:image:height" content={ogHeight} />
@@ -210,8 +197,8 @@ const skipLink =
     <meta property="og:url" content={meta.ogUrl} />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={meta.title} />
-    <meta name="twitter:description" content={meta.description} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={meta.ogImage} />
     <meta name="twitter:image:alt" content={ogAlt} />
 
@@ -255,6 +242,6 @@ const skipLink =
     <Fragment set:html={skipLink} />
     <Header home={home} lang={lang} />
     <slot />
-    <Footer />
+    <Footer lang={lang} />
   </body>
 </html>

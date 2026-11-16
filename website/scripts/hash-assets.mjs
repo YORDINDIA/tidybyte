@@ -10,7 +10,7 @@
  *   1. Hashes dist/assets/css/styles.css + dist/assets/js/{theme,nav,site,blog}.js
  *      (sha256, first 8 hex chars) and writes sibling copies, e.g.
  *      styles.3fa9c1e2.css. Stale hashed copies are deleted.
- *   2. Rewrites the references in all 51 HTML files. Idempotent: the regex
+ *   2. Rewrites the references in every HTML file. Idempotent: the regex
  *      matches both the fixed name and any previous hash.
  *
  * dist/ is a build output and is never committed.

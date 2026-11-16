@@ -26,7 +26,7 @@
     var closeTimer = null;
 
     // Ensure the menu starts hidden on mobile (the component classes set
-    // visibility at md+, so we only need to keep the closed state consistent).
+    // visibility at lg+, so we only need to keep the closed state consistent).
     if (!menu.hasAttribute('data-open')) menu.setAttribute('data-open', 'false');
 
     // The drawer animates its own height, so `hidden` has to stay off until
@@ -80,8 +80,9 @@
       setOpen(false);
     });
 
-    // Auto-close when the viewport grows past the md breakpoint.
-    var mq = window.matchMedia('(min-width: 768px)');
+    // Auto-close when the viewport grows past the lg breakpoint (the header's
+    // desktop nav appears at 1024px).
+    var mq = window.matchMedia('(min-width: 1024px)');
     var onChange = function (e) { if (e.matches) setOpen(false); };
     if (mq.addEventListener) mq.addEventListener('change', onChange);
     else if (mq.addListener) mq.addListener(onChange);
