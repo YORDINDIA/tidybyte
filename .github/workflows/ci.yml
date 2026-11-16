@@ -188,7 +188,7 @@ jobs:
             exit 1
           fi
 
-      # Builds all 87 pages, then audits them: title and description budgets,
+      # Builds every page, then audits them: title and description budgets,
       # duplicate titles, hreflang parity, per-page `lang` and `dir`, sitemap
       # coverage, and a Markdown alternate for every sitemap URL. The localized
       # pages are the ones most likely to break it — a missing `dir="rtl"` or a

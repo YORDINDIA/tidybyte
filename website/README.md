@@ -80,7 +80,7 @@ than sixteen competing descriptions. Nothing on the site declares an
 inventing them is a policy violation.
 
 For the off-site half of the strategy (listings, community, measurement), see
-[`docs/GEO-Playbook.md`](../docs/GEO-Playbook.md).
+[`docs/GEO-Playbook.md`](docs/GEO-Playbook.md).
 
 ## Theming (light / dark / system)
 
@@ -181,8 +181,8 @@ The `dist/` folder is the deployable artifact (never committed).
 
 ## Before going live
 
-All placeholders are resolved. The site is configured for the domain `tidybyte.yord.si` and the contact email `contact@sakshammittal.com`. Deploy checklist: [`../DEPLOY_CHECKLIST.md`](../DEPLOY_CHECKLIST.md).
+All placeholders are resolved. The site is configured for the domain `tidybyte.yord.si` and the contact email `contact@sakshammittal.com`. Deploy checklist: [`../DEPLOY_CHECKLIST.md`](DEPLOY_CHECKLIST.md).
 
 ## License
 
-MIT — see [LICENSE](../../LICENSE).
+MIT — see [LICENSE](../LICENSE).

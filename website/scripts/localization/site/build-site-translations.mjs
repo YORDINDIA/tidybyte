@@ -91,7 +91,7 @@ const files = readdirSync(TRANSLATIONS)
   // `*.meta.json` holds the title and description for a page, not the body
   // strings. Without excluding it the slug parses as `ar.meta` and the builder
   // writes a bogus `index.ar.meta.html` alongside the real page.
-  .filter((name) => name.endsWith(".json") && !name.endsWith(".meta.json"))
+  .filter((name) => name.endsWith(".json") && !name.endsWith(".meta.json") && !name.endsWith(".chrome.json"))
   .sort();
 
 if (files.length === 0) {

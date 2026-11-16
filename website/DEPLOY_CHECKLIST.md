@@ -6,7 +6,7 @@ The site lives in `website/` of the monorepo. Run the commands below from `websi
 
 ## 0. Site architecture (Astro)
 
-The site is an Astro static build with Tailwind + vanilla JS (no framework runtime). Ongoing CI guard: `npm run check` (asset-hash check + SEO audit + OG-card check; see `public/README.md`).
+The site is an Astro static build with Tailwind + vanilla JS (no framework runtime). Ongoing CI guard: `npm run check` (asset-hash check + SEO audit + OG-card check; see `README.md`).
 
 - `src/pages/` — routes as real Astro pages (`index`, `[lang]` for the 20 localized landing pages, `404`, `privacy`, `terms`, `support`, `changelog`, `mac`, `activity-monitor-alternative`, `[page]` for the 16 tool landing pages, `blog/index`, `blog/[slug]`, the `.md` alternates, plus generated `llms.txt`, `llms-full.txt`).
 - `src/layouts/SiteLayout.astro` — the Astro layout every page renders through: `<head>` template (SEO/OG/article meta, LCP preloads, hreflang, Speakable + BreadcrumbList JSON-LD) and the shared chrome. The visible "Quick answer" box is placed by `src/lib/content.ts` (`withQuickAnswer`, at the `<!-- quick-answer -->` marker, or under the hero figure/header if the content file has no marker).

@@ -22,6 +22,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { findHtmlFiles } from "./lib/html-files.mjs";
 import { missingPageRewrites } from "./lib/netlify-routes.mjs";
+import { plainText } from "../src/lib/plain-text.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -32,6 +33,10 @@ if (!existsSync(DIST)) {
 }
 
 const htmlFiles = () => findHtmlFiles(DIST);
+
+// Words and punctuation must match; whitespace and curly or straight quotes
+// are typography, so they are ignored.
+const norm = (t) => t.replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/\s+/g, "");
 
 const problems = [];
 const titles = new Map();
@@ -46,7 +51,7 @@ const htmlLangs = new Map();
 for (const file of htmlFiles()) {
   const rel = file.slice(DIST.length + 1);
   const html = readFileSync(file, "utf8");
-  htmlLangs.set(rel, html.match(/<html lang="([^"]+)"/)?.[1] ?? null);
+  htmlLangs.set(rel, html.match(/<html\b[^>]*\slang="([^"]+)"/)?.[1] ?? null);
   const links = [
     ...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g),
   ].map((m) => ({ hreflang: m[1], href: m[2] }));
@@ -119,10 +124,25 @@ for (const file of htmlFiles()) {
     else descriptions.set(desc, rel);
   }
 
+  // 2b. Head text is escaped once by the template. An entity that was already
+  //     encoded in the data file shows up as `&amp;mdash;` in the tab and in
+  //     search snippets, so any `&amp;<name>;` inside <title> or a meta
+  //     content attribute is a failure.
+  const headText = [html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "",
+    ...[...html.matchAll(/<meta [^>]*content="([^"]*)"/g)].map((m) => m[1])];
+  for (const text of headText) {
+    if (/&amp;[a-zA-Z]+;|&amp;#/.test(text)) fail(`double-encoded entity in head: ${text.slice(0, 80)}`);
+  }
+
+  // 2c. Every page declares its language on <html lang>, whatever attribute
+  //     comes first.
+  if (!/<html\b[^>]*\slang="[^"]+"/.test(html)) fail("missing <html lang>");
+
   // 3. canonical == og:url
   const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
   const ogUrl = html.match(/<meta property="og:url" content="([^"]+)"/)?.[1];
   if (!canonical) fail("missing canonical");
+  if (!ogUrl) fail("missing og:url");
   if (canonical && ogUrl && canonical !== ogUrl) fail(`canonical ${canonical} != og:url ${ogUrl}`);
 
   // 4. JSON-LD parses
@@ -189,6 +209,13 @@ for (const file of htmlFiles()) {
         }
         const name = decode(raw);
         if (!text.includes(name)) fail(`FAQ question not visible on page: "${name.slice(0, 60)}"`);
+        // The answer is structured data too: it must match the visible answer,
+        // or search engines get a different claim from the one users read.
+        const answer = plainText(String(q.acceptedAnswer?.text ?? ""));
+        if (!answer) fail(`FAQ answer is empty: "${name.slice(0, 60)}"`);
+        // Inline links turn into spaces before punctuation ("GitHub </a>."),
+        // so compare with all whitespace removed: words and punctuation must match.
+        else if (!norm(plainText(html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "))).includes(norm(answer))) fail(`FAQ answer not visible on page: "${answer.slice(0, 60)}"`);
         if (isTranslatedHome(rel)) {
           const normalize = (value) => decode(value).replace(/\s+([.,!?])/g, "$1").trim();
           const answer = normalize(String(q.acceptedAnswer?.text ?? ""));
@@ -238,6 +265,57 @@ for (const file of htmlFiles()) {
     if (!candidates.some((c) => existsSync(c) && statSync(c).isFile())) {
       fail(`dead internal link ${ref}`);
     }
+  }
+}
+
+// 7b. Fragments and srcset. An anchor to an id that is not on the target page
+//     is a dead link even when the path resolves. `/blog#cat-*` is the legacy
+//     category hash that blog.js reads on load, so it is exempt.
+const resolvePage = (path) => {
+  const clean = path.replace(/\/$/, "").slice(1);
+  if (path === "/" || clean === "") return join(DIST, "index.html");
+  for (const c of [join(DIST, `${clean}.html`), join(DIST, clean, "index.html")]) {
+    if (existsSync(c) && statSync(c).isFile()) return c;
+  }
+  return null;
+};
+const idCache = new Map();
+const idsOf = (file) => {
+  if (!idCache.has(file)) {
+    idCache.set(file, new Set([...readFileSync(file, "utf8").matchAll(/\sid="([^"]+)"/g)].map((m) => m[1])));
+  }
+  return idCache.get(file);
+};
+for (const file of htmlFiles()) {
+  const rel = file.slice(DIST.length + 1);
+  const html = readFileSync(file, "utf8");
+  for (const [, href] of html.matchAll(/\shref="([^"#]*(?:#[^"]*)?)"/g)) {
+    if (!href.includes("#") || /^(https?:|mailto:|tel:|\/\/)/.test(href)) continue;
+    const [pathPart, frag] = [href.slice(0, href.indexOf("#")), href.slice(href.indexOf("#") + 1)];
+    if (pathPart && !pathPart.startsWith("/")) continue;
+    if (pathPart === "/blog" && frag.startsWith("cat-")) continue;
+    const target = pathPart ? resolvePage(pathPart) : file;
+    if (!target) continue; // dead path is reported by check 7
+    if (!idsOf(target).has(frag)) problems.push(`${rel}: anchor #${frag} not found on ${pathPart || rel}`);
+  }
+  for (const [, set] of html.matchAll(/\ssrcset="([^"]+)"/g)) {
+    for (const part of set.split(",")) {
+      const url = part.trim().split(/\s+/)[0];
+      if (url.startsWith("/") && !existsSync(join(DIST, url.slice(1).split("?")[0]))) {
+        problems.push(`${rel}: srcset file missing ${url}`);
+      }
+    }
+  }
+}
+
+// 7c. _redirects targets must exist. Netlify and Cloudflare both serve the
+//     file, so a rule that points at nothing is a 404 that looks configured.
+const redirectsFile = join(DIST, "_redirects");
+if (existsSync(redirectsFile)) {
+  for (const line of readFileSync(redirectsFile, "utf8").split("\n")) {
+    const [, to] = line.trim().split(/\s+/);
+    if (!to || to.includes(":") || to.includes("*")) continue;
+    if (!resolvePage(to) && !existsSync(join(DIST, to.slice(1)))) problems.push(`_redirects target missing: ${to}`);
   }
 }
 
@@ -311,12 +389,13 @@ if (!existsSync(sitemap)) {
       problems.push(`landing page ${url} has priority ${entry[2]}, expected 1.0`);
     }
   }
-  // Every top-level HTML page except the 404 must be listed.
+  // Every HTML page except the 404 must be listed, blog posts included.
   const locSet = new Set(locs);
-  for (const f of readdirSync(DIST)) {
-    if (!f.endsWith(".html")) continue;
-    if (f === "index.html" || f === "404.html") continue;
-    const url = `https://tidybyte.yord.si/${f.replace(/\.html$/, "")}`;
+  for (const file of htmlFiles()) {
+    const f = file.slice(DIST.length + 1);
+    if (f === "404.html") continue;
+    const route = f === "index.html" ? "" : f.replace(/\/index\.html$/, "").replace(/\.html$/, "");
+    const url = `https://tidybyte.yord.si/${route}`;
     if (!locSet.has(url)) problems.push(`not in sitemap: ${url}`);
   }
   // Tool landing pages carry commercial intent, so they must keep priority 0.9.
@@ -359,6 +438,19 @@ if (existsSync(netlifyPath)) {
   const expected = [...landingPaths].filter((path) => path !== "/").concat(toolPaths);
   const missing = missingPageRewrites(readFileSync(netlifyPath, "utf8"), expected);
   if (missing.length) problems.push(`Netlify page rewrites missing: ${missing.join(", ")}`);
+}
+
+// llms.txt is the entry point for answer engines. Each link it lists must
+// resolve to a built Markdown alternate, and the list must not be empty.
+const llmsFile = join(DIST, "llms.txt");
+if (existsSync(llmsFile)) {
+  const links = [...readFileSync(llmsFile, "utf8").matchAll(/\((https:\/\/tidybyte\.yord\.si\/[^)\s]*)\)/g)].map((m) => m[1]);
+  if (links.length < 40) problems.push(`llms.txt lists only ${links.length} links`);
+  for (const link of new Set(links)) {
+    const path = new URL(link).pathname.replace(/\/$/, "");
+    const md = path === "" ? join(DIST, "index.md") : join(DIST, `${path.slice(1)}.md`);
+    if (!existsSync(md)) problems.push(`llms.txt links ${link} but no Markdown file is built`);
+  }
 }
 
 const blogIndex = join(DIST, "blog", "index.html");

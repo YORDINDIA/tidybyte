@@ -48,7 +48,7 @@ function postCard(route: string): { title: string; date: string; image: string }
 function breadcrumb(t: Tool): string {
   const isHub = t.slug === "photo-cleaner";
   return (
-    `<nav aria-label="Breadcrumb" class="container-prose mx-auto max-w-prose pt-6 text-sm">\n` +
+    `<nav aria-label="Breadcrumb" class="container-prose pt-6 text-sm">\n` +
     `  <ol class="flex flex-wrap items-center gap-1.5 text-muted">\n` +
     `    <li><a href="/" class="text-muted hover:text-ink hover:underline">Home</a></li>\n` +
     `    <li aria-hidden="true">/</li>\n` +
