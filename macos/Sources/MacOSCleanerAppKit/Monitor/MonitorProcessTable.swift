@@ -75,8 +75,8 @@ struct ProcessTableView: View {
             QuitConfirmView(
                 sample: intent.sample,
                 showsForceQuit: true,
-                onQuit: { model.quit(pid: intent.sample.pid, force: false) },
-                onForceQuit: { model.quit(pid: intent.sample.pid, force: true) })
+                onQuit: { model.quit(pid: intent.sample.pid, confirmedStart: intent.sample.startedAt, force: false) },
+                onForceQuit: { model.quit(pid: intent.sample.pid, confirmedStart: intent.sample.startedAt, force: true) })
         }
     }
 

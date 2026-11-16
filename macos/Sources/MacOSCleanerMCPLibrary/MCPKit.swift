@@ -19,6 +19,14 @@ enum MCPError: Error, LocalizedError {
     /// An id argument was missing or shorter than the 8-character short ids
     /// the server emits; an empty prefix would match everything.
     case invalidIDPrefix
+    /// A present argument has the wrong JSON type or an unknown value. It is
+    /// rejected, never read as absent: a malformed filter must not widen the
+    /// action to every item.
+    case invalidArgument(String)
+    /// An undo that removes an artifact permanently (`removeItem`, not Trash).
+    case undoRequiresApp
+    /// A short operation id matches more than one recorded operation.
+    case ambiguousOperationID(String)
 
     var errorDescription: String? {
         switch self {
@@ -41,6 +49,13 @@ enum MCPError: Error, LocalizedError {
                 + " clone-fold action (apfs_clone strategy, deletes nothing) executes here."
         case .invalidIDPrefix:
             "Missing id argument, or shorter than the 8-character ids the server emits."
+        case .invalidArgument(let name):
+            "Argument \(name) has the wrong type or an unknown value."
+        case .undoRequiresApp:
+            "This undo removes an artifact permanently. It can only run in the Tidybyte app,"
+                + " never through MCP."
+        case .ambiguousOperationID(let id):
+            "Id \(id) matches more than one recorded operation. Nothing changed."
         }
     }
 }
@@ -81,6 +96,7 @@ public actor MCPKit {
     private let planner = PlannerAgent()
     private let executor: ActionExecutor
     private let undoService: UndoManagerService
+    private let auditor = SafetyAuditor()
     var lastScan: ScanState?
 
     public init(store: SQLiteStore) {
@@ -132,6 +148,10 @@ public actor MCPKit {
         case "tools/call":
             let params = request["params"] as? [String: Any] ?? [:]
             let name = params["name"] as? String ?? ""
+            // MCP: an unknown tool is a protocol error (-32602), not a tool result.
+            guard MCPCleanupTool(rawValue: name) != nil || MonitorToolRouter.handles(name: name) else {
+                return MCPResponse(Self.errorPayload(id: id, code: -32602, message: "Unknown tool: \(name)."))
+            }
             let arguments = params["arguments"] as? [String: Any] ?? [:]
             do {
                 let text = try await callTool(name: name, arguments: arguments)
@@ -168,9 +188,9 @@ public actor MCPKit {
     }
 
     private func toolListFindings(_ arguments: [String: Any]) throws -> String {
+        let query = (try Self.stringArgument(arguments, "query") ?? "").lowercased()
+        let limit = try max(1, Self.intArgument(arguments, "limit") ?? 20)
         guard let lastScan else { throw MCPError.noScan }
-        let query = (arguments["query"] as? String ?? "").lowercased()
-        let limit = max(1, (arguments["limit"] as? Int) ?? 20)
         let matches = lastScan.outcome.findings.filter { finding in
             query.isEmpty
                 || finding.summary.lowercased().contains(query)
@@ -187,8 +207,8 @@ public actor MCPKit {
     }
 
     private func toolShowPlan(_ arguments: [String: Any]) throws -> String {
+        let findingID = try Self.validatedIDPrefix(Self.stringArgument(arguments, "finding_id"), allowNil: true)
         guard let lastScan else { throw MCPError.noScan }
-        let findingID = try Self.validatedIDPrefix(arguments["finding_id"] as? String, allowNil: true)
         let actions = lastScan.plan.actions.filter { action in
             guard let findingID else { return true }
             return action.findingID?.hasPrefix(findingID) == true
@@ -214,77 +234,42 @@ public actor MCPKit {
     /// carry the scanned identity, and still hash to the scanned SHA-256 —
     /// a stale plan never gets executed on changed files.
     private func toolCheckFinding(_ arguments: [String: Any]) async throws -> String {
+        let id = try Self.validatedIDPrefix(Self.stringArgument(arguments, "finding_id"))
         guard let lastScan else { throw MCPError.noScan }
-        let id = try Self.validatedIDPrefix(arguments["finding_id"] as? String)
         guard let finding = lastScan.outcome.findings.first(where: { $0.id.hasPrefix(id) }) else {
             throw MCPError.unknownFinding(id)
         }
-        var present = 0
-        var identical = 0
+        var verified = 0
+        var hashed = 0
         var missing: [String] = []
         var changed: [String] = []
         let scannedHash = finding.evidence["hash"]
         for fileID in finding.targetFileIDs {
-            guard let record = lastScan.filesByID[fileID] else { continue }
-            switch checkMember(record, scannedHash: scannedHash) {
+            guard let record = lastScan.filesByID[fileID] else {
+                missing.append(fileID)
+                continue
+            }
+            switch await checkMember(record, scannedHash: scannedHash) {
             case .identical:
-                present += 1
-                identical += 1
-            case .resized:
-                present += 1
-                changed.append(record.displayPath)
+                verified += 1
+                hashed += 1
+            case .identityOnly:
+                verified += 1
             case .missing:
                 missing.append(record.displayPath)
+            case .changed:
+                changed.append(record.displayPath)
             }
         }
-        var lines = [
-            "Checked \(finding.targetFileIDs.count) files: \(present) present and correct size, "
-                + "\(identical) byte-identical to the scan."
-        ]
-        if !missing.isEmpty {
-            lines.append("Missing or resized since the scan: \(missing.joined(separator: ", "))")
-        }
-        if !changed.isEmpty {
-            lines.append("Contents changed since the scan: \(changed.joined(separator: ", "))")
-        }
-        if missing.isEmpty && changed.isEmpty {
-            lines.append("The plan is still safe to execute.")
-        } else {
-            lines.append("Re-scan before executing: the stale plan no longer matches the disk.")
-        }
-        return lines.joined(separator: "\n")
-    }
-
-    /// Outcome of re-reading one finding member from disk.
-    private enum MemberCheck {
-        case identical
-        case resized
-        case missing
-    }
-
-    /// Re-reads one file: present, correct size, and (for exact-duplicate
-    /// findings, where every member shares one hash) byte-identical.
-    private func checkMember(_ record: FileRecord, scannedHash: String?) -> MemberCheck {
-        let attributes = try? FileManager.default.attributesOfItem(atPath: record.url.path)
-        let currentSize = (attributes?[.size] as? NSNumber)?.int64Value
-        guard FileManager.default.fileExists(atPath: record.url.path),
-              let scannedSize = record.identity.sizeBytes,
-              currentSize == scannedSize else {
-            return .missing
-        }
-        guard let hash = try? FingerprintService.fullHash(for: record.url) else {
-            return .resized
-        }
-        if let scannedHash {
-            return hash == scannedHash ? .identical : .resized
-        }
-        return .identical
+        return Self.checkReport(
+            total: finding.targetFileIDs.count, verified: verified,
+            hashed: scannedHash == nil ? nil : hashed, missing: missing, changed: changed)
     }
 
     private func toolExecute(_ arguments: [String: Any]) async throws -> String {
+        let confirm = try Self.boolArgument(arguments, "confirm") ?? false
+        let requestedIDs = try Self.validatedIDPrefixes(Self.stringArrayArgument(arguments, "action_ids"))
         guard let lastScan else { throw MCPError.noScan }
-        let confirm = arguments["confirm"] as? Bool == true
-        let requestedIDs = try Self.validatedIDPrefixes(arguments["action_ids"] as? [String])
         let pending = lastScan.plan.actions.filter { action in
             action.userDecision == .undecided && action.executedAt == nil
                 && (requestedIDs == nil || requestedIDs?.contains(where: { action.id.hasPrefix($0) }) == true)
@@ -373,7 +358,8 @@ public actor MCPKit {
     private func toolUndo(_ arguments: [String: Any]) async throws -> String {
         // Without this guard a missing id ("") prefix-matches every recorded
         // operation and a confirmed call would bulk-restore all of them.
-        let id = try Self.validatedIDPrefix(arguments["operation_log_id"] as? String)
+        let id = try Self.validatedIDPrefix(Self.stringArgument(arguments, "operation_log_id"))
+        let confirm = try Self.boolArgument(arguments, "confirm") ?? false
         var records = try await store.loadUndoRecords(operationLogID: id)
         if records.isEmpty {
             // History lists 8-character prefixes; resolve those against full ids.
@@ -381,9 +367,19 @@ public actor MCPKit {
         }
         let restorable = records.filter { $0.status == .available }
         guard !restorable.isEmpty else { throw MCPError.nothingToUndo(id) }
+        // A short id that matches two operations must never restore both.
+        guard Set(restorable.map(\.operationLogID)).count == 1 else {
+            throw MCPError.ambiguousOperationID(id)
+        }
+        // Refuse the whole operation when any record is not agent-undoable, the
+        // same way execute refuses a mixed batch. Checked before the dry run so
+        // the agent is told up front that the app must do this.
+        guard restorable.allSatisfy({ Self.agentMayUndo($0.inverseAction) }) else {
+            throw MCPError.undoRequiresApp
+        }
         let paths = restorable.compactMap { $0.restoreURL?.path ?? $0.trashURL?.path }
 
-        guard arguments["confirm"] as? Bool == true else {
+        guard confirm else {
             return """
             Dry run. Nothing changed. Undoing operation \(id) would restore \(restorable.count) items:
             \(paths.joined(separator: "\n"))
@@ -483,4 +479,101 @@ extension MCPKit {
         return try validatedIDPrefix(raw)
     }
 
+    /// Outcome of re-reading one finding member from disk.
+    private enum MemberCheck {
+        /// Identity, size and modification time match, and the SHA-256 matches the scan.
+        case identical
+        /// Identity, size and modification time match. The finding has no scanned hash.
+        case identityOnly
+        case missing
+        /// The file exists but no longer matches the scan (swapped, rewritten, or unreadable).
+        case changed
+    }
+
+    /// Re-reads one file through the same identity check the app runs before
+    /// it mutates anything, then hashes it when the scan recorded a hash.
+    private func checkMember(_ record: FileRecord, scannedHash: String?) async -> MemberCheck {
+        do {
+            try await auditor.verifyTargetUnchanged(record)
+        } catch SafetyAuditError.targetVanished(_) {
+            return .missing
+        } catch {
+            return .changed
+        }
+        guard let scannedHash else { return .identityOnly }
+        guard let hash = try? FingerprintService.fullHash(for: record.url), hash == scannedHash else {
+            return .changed
+        }
+        return .identical
+    }
+
+    /// The text of one check_finding run. Claims byte equality only when the scan recorded a hash.
+    /// `hashed` is nil when the finding has no scanned hash.
+    static func checkReport(total: Int, verified: Int, hashed: Int?, missing: [String], changed: [String]) -> String {
+        var lines = [
+            hashed.map {
+                "Checked \(total) files: \($0) byte-identical to the scan (identity, size and SHA-256 match)."
+            } ?? "Checked \(total) files: \(verified) match the scanned identity and size. "
+                + "This finding has no content hash, so file bytes were not compared."
+        ]
+        if !missing.isEmpty {
+            lines.append("Missing since the scan: \(missing.joined(separator: ", "))")
+        }
+        if !changed.isEmpty {
+            lines.append("Changed since the scan (identity, size, modification time or contents): "
+                + changed.joined(separator: ", "))
+        }
+        if missing.isEmpty && changed.isEmpty {
+            lines.append("The plan is still safe to execute.")
+        } else {
+            lines.append("Re-scan before executing: the stale plan no longer matches the disk.")
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    // MARK: - Typed arguments
+
+    /// An absent argument is nil. A present one must have the JSON type the
+    /// schema names; anything else throws, so a wrong type never reads as "no filter".
+    static func stringArgument(_ arguments: [String: Any], _ key: String) throws -> String? {
+        guard let raw = arguments[key] else { return nil }
+        guard let value = raw as? String else { throw MCPError.invalidArgument(key) }
+        return value
+    }
+
+    static func stringArrayArgument(_ arguments: [String: Any], _ key: String) throws -> [String]? {
+        guard let raw = arguments[key] else { return nil }
+        guard let values = raw as? [String] else { throw MCPError.invalidArgument(key) }
+        return values
+    }
+
+    static func intArgument(_ arguments: [String: Any], _ key: String) throws -> Int? {
+        guard let raw = arguments[key] else { return nil }
+        guard let value = raw as? Int else { throw MCPError.invalidArgument(key) }
+        return value
+    }
+
+    /// Only a JSON boolean counts. `as? Bool` would also accept the number 1.
+    static func boolArgument(_ arguments: [String: Any], _ key: String) throws -> Bool? {
+        guard let raw = arguments[key] else { return nil }
+        guard let number = raw as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() else {
+            throw MCPError.invalidArgument(key)
+        }
+        return number.boolValue
+    }
+
+    // MARK: - Undo policy
+
+    /// Undo kinds an agent may run. `moveToTrash` removes its artifact with
+    /// `removeItem` (no Trash), so it stays in the app. Every case is listed
+    /// with no `default`, so a new ActionType cannot pass unreviewed.
+    static func agentMayUndo(_ inverse: ActionType) -> Bool {
+        switch inverse {
+        case .restore, .move, .rename, .tag, .unfoldClone:
+            return true
+        case .moveToTrash, .createAlias, .createSymlink, .archive, .offloadLocalCopy,
+             .runProviderCleanup, .runPackageManagerCleanup, .inspectOnly, .cloneDeduplicate:
+            return false
+        }
+    }
 }

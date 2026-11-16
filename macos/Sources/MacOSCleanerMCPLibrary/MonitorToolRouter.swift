@@ -52,6 +52,10 @@ enum MonitorToolRouter {
         tools.map { MCPKit.tool($0.name, $0.description, [:]) }
     }
 
+    static func handles(name: String) -> Bool {
+        tools.contains { $0.name == name }
+    }
+
     /// Handles a monitor tool call, or returns nil for other tools. Sampling
     /// only: no tool here ever signals a process.
     static func handle(name: String) async -> String? {

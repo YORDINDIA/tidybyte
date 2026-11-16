@@ -208,18 +208,26 @@ public enum ProcessInspector {
 /// goes through the confirm-dialog policy in the UI layer, and force-quit is
 /// always the second, explicit step.
 public enum ProcessActions {
-    /// SIGTERM first. Returns false when the process was already gone or the
-    /// pid is not a real process id (pid 0 would signal the process group).
+    /// SIGTERM first. Returns false when the process was already gone, the pid
+    /// is not a real process id (pid 0 would signal the process group), or the
+    /// pid now belongs to a different process than the one the user confirmed.
     @discardableResult
-    public static func quit(pid: pid_t) -> Bool {
-        guard pid > 0 else { return false }
-        return kill(pid, SIGTERM) == 0
+    public static func quit(pid: pid_t, confirmedStart: Date?) -> Bool {
+        signal(pid, confirmedStart: confirmedStart, SIGTERM)
     }
 
     /// SIGKILL. The UI asks before calling this.
     @discardableResult
-    public static func forceQuit(pid: pid_t) -> Bool {
-        guard pid > 0 else { return false }
-        return kill(pid, SIGKILL) == 0
+    public static func forceQuit(pid: pid_t, confirmedStart: Date?) -> Bool {
+        signal(pid, confirmedStart: confirmedStart, SIGKILL)
+    }
+
+    /// Pids are reused. Signal only while the live process still has the start
+    /// time the user saw in the confirmation. A missing start time fails closed.
+    private static func signal(_ pid: pid_t, confirmedStart: Date?, _ signal: Int32) -> Bool {
+        guard pid > 0, let confirmedStart,
+              let live = LibProc.usageReport(pid: pid)?.startedAt,
+              ProcessProbe.sameProcess(confirmedStart, live) else { return false }
+        return kill(pid, signal) == 0
     }
 }

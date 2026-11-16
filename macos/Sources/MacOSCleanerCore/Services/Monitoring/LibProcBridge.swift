@@ -33,7 +33,8 @@ enum LibProc {
     }
 
     /// The subset of `rusage_info_v4` the monitor reads, converted to friendly
-    /// units. The kernel returns times in nanoseconds.
+    /// units. The kernel returns CPU times in mach absolute time units. Those
+    /// are nanoseconds only on Intel; Apple silicon runs a 125/3 timebase.
     struct UsageReport {
         var cpuTimeSeconds: Double
         var residentBytes: Int64
@@ -49,10 +50,8 @@ enum LibProc {
     }
 
     /// Reads the per-pid usage report. Returns nil when the process is gone or
-    /// protected. `mach_absolute_time` fields are converted with the timebase
-    /// and the caller's boot date — one KERN_BOOTTIME sysctl per sample, not
-    /// one per process.
-    static func usageReport(pid: pid_t, bootDate: Date?) -> UsageReport? {
+    /// protected. Mach absolute time fields are converted with the timebase.
+    static func usageReport(pid: pid_t) -> UsageReport? {
         var info = RUsageInfoV4()
         let result = withUnsafeMutablePointer(to: &info) { pointer in
             pointer.withMemoryRebound(to: UnsafeMutableRawPointer.self, capacity: 1) { raw in
@@ -61,8 +60,10 @@ enum LibProc {
         }
         guard result == 0 else { return nil }
         let timebase = machTimebase()
+        // Reading the raw ticks as nanoseconds made CPU time 42x too low on Apple silicon.
+        let cpuNanoseconds = Double(info.userTime + info.systemTime) * Double(timebase.numer) / Double(timebase.denom)
         return UsageReport(
-            cpuTimeSeconds: Double(info.userTime + info.systemTime) / 1_000_000_000,
+            cpuTimeSeconds: cpuNanoseconds / 1_000_000_000,
             residentBytes: Int64(bitPattern: info.residentSize),
             footprintBytes: Int64(bitPattern: info.footprint),
             lifetimeMaxFootprintBytes: Int64(bitPattern: info.lifetimeMaxFootprint),
@@ -74,7 +75,9 @@ enum LibProc {
             // billedEnergy is already an energy reading in vendor units, not
             // a floating-point bit pattern; bit-casting it produced nonsense.
             energy: Double(info.billedEnergy),
-            startedAt: date(fromMachAbsTime: info.startAbsTime, timebase: timebase, bootDate: bootDate))
+            startedAt: date(
+                fromMachAbsTime: info.startAbsTime, timebase: timebase,
+                now: Date(), nowAbsTime: mach_absolute_time()))
     }
 
     /// Reads the task info block (thread count, page faults). Returns nil when
@@ -97,10 +100,17 @@ enum LibProc {
         return (base.numer, base.denom)
     }
 
-    static func date(fromMachAbsTime absTime: UInt64, timebase: (numer: UInt32, denom: UInt32), bootDate: Date?) -> Date? {
-        guard absTime > 0, let boot = bootDate else { return nil }
-        let nanoseconds = absTime * UInt64(timebase.numer) / UInt64(timebase.denom)
-        return boot.addingTimeInterval(Double(nanoseconds) / 1_000_000_000)
+    /// Mach absolute time stops while the Mac sleeps, but boot time is wall
+    /// clock. Boot time plus mach time therefore drifted by every sleep (about
+    /// three days early on the test Mac). This measures the awake time since
+    /// the process started and subtracts it from the wall clock instead.
+    static func date(
+        fromMachAbsTime absTime: UInt64, timebase: (numer: UInt32, denom: UInt32),
+        now: Date, nowAbsTime: UInt64
+    ) -> Date? {
+        guard absTime > 0, absTime <= nowAbsTime else { return nil }
+        let awakeNanoseconds = Double(nowAbsTime - absTime) * Double(timebase.numer) / Double(timebase.denom)
+        return now.addingTimeInterval(-awakeNanoseconds / 1_000_000_000)
     }
 }
 

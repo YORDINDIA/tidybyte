@@ -33,7 +33,7 @@ struct MonitorView: View {
                     inspection: inspection,
                     history: model.selectedAppHistory
                 ) { pid, force in
-                    model.quit(pid: pid, force: force)
+                    model.quit(pid: pid, confirmedStart: inspection.startedAt, force: force)
                 }
                 .inspectorColumnWidth(min: 300, ideal: 380, max: 520)
             } else if model.selectedGroupID != nil {

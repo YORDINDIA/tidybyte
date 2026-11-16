@@ -184,6 +184,15 @@ final class MonitorModel {
     /// side is read from settings every tick instead.
     func setWindowVisible(_ visible: Bool) {
         isWindowVisible = visible
+        // The loop sleeps out the 30 s heartbeat while no window is open. Restart
+        // it on open so the first sample is not half a minute away. The new loop
+        // waits for the old one to finish its current sample, so two never overlap.
+        guard visible, isRunning, let engine, let previous = samplingTask else { return }
+        previous.cancel()
+        samplingTask = Task { [weak self] in
+            await previous.value
+            await self?.runLoop(engine: engine)
+        }
     }
 
     private var isWindowVisible = false
@@ -331,12 +340,13 @@ final class MonitorModel {
     }
 
     /// Quit with confirmation handled by the caller (sheet); the model only
-    /// performs the kill after the user confirmed.
-    func quit(pid: pid_t, force: Bool) {
+    /// performs the signal after the user confirmed. `confirmedStart` is the
+    /// start time shown in that confirmation.
+    func quit(pid: pid_t, confirmedStart: Date?, force: Bool) {
         if force {
-            ProcessActions.forceQuit(pid: pid)
+            ProcessActions.forceQuit(pid: pid, confirmedStart: confirmedStart)
         } else {
-            ProcessActions.quit(pid: pid)
+            ProcessActions.quit(pid: pid, confirmedStart: confirmedStart)
         }
         clearSelection()
     }

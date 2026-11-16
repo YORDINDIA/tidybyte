@@ -107,6 +107,8 @@ public actor MonitoringEngine {
     private var cachedDevServers: [DevServerReading] = []
     private var cachedPower = PowerReading()
     private var lastRecordAt: Date?
+    private var containersRefreshing = false
+    private var bluetoothRefreshing = false
 
     /// Days of history the store keeps; Settings keeps this in sync.
     public var historyRetentionDays: Int = MonitoringDefaults.historyRetentionDays
@@ -228,11 +230,21 @@ public actor MonitoringEngine {
         // Docker and system_profiler each take seconds; refresh them in an
         // actor-isolated task so the sampling actor stays free while the
         // probe awaits and the tick cadence never hiccups.
-        if tickCounter % 15 == 2, !isLightweight {
-            Task { cachedContainers = await ContainerProbe.containers() }
+        // One refresh in flight at a time: a slow docker or system_profiler must
+        // not stack up a new process every cadence.
+        if tickCounter % 15 == 2, !isLightweight, !containersRefreshing {
+            containersRefreshing = true
+            Task {
+                cachedContainers = await ContainerProbe.containers()
+                containersRefreshing = false
+            }
         }
-        if tickCounter % 30 == 3, !isLightweight {
-            Task { cachedBluetooth = await BluetoothProbe.devices() }
+        if tickCounter % 30 == 3, !isLightweight, !bluetoothRefreshing {
+            bluetoothRefreshing = true
+            Task {
+                cachedBluetooth = await BluetoothProbe.devices()
+                bluetoothRefreshing = false
+            }
         }
     }
 

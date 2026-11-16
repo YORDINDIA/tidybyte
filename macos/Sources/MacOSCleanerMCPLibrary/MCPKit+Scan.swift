@@ -3,8 +3,16 @@ import MacOSCleanerCore
 
 extension MCPKit {
     func toolScan(_ arguments: [String: Any]) async throws -> String {
-        let paths = (arguments["paths"] as? [String] ?? []).map {
+        // A string or an empty path would widen the scan (an empty path is the
+        // working directory), so both are rejected instead of ignored.
+        let rawPaths = try Self.stringArrayArgument(arguments, "paths") ?? []
+        guard rawPaths.allSatisfy({ !$0.isEmpty }) else { throw MCPError.invalidArgument("paths") }
+        let paths = rawPaths.map {
             URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath)
+        }
+        let strategyName = try Self.stringArgument(arguments, "duplicate_strategy")
+        guard strategyName == nil || strategyName == "apfs_clone" || strategyName == "move_to_trash" else {
+            throw MCPError.invalidArgument("duplicate_strategy")
         }
         // Local-only and AI-off by construction: MCP never uploads content.
         let (outcome, plan) = try await orchestrator.scan(
@@ -13,7 +21,7 @@ extension MCPKit {
             providerSettings: ProviderSettings(),
             includeAI: false,
             posture: .conservative,
-            duplicateStrategy: Self.strategy(from: arguments["duplicate_strategy"] as? String)
+            duplicateStrategy: Self.strategy(from: strategyName)
         )
         var filesByID: [String: FileRecord] = [:]
         for record in outcome.files {
