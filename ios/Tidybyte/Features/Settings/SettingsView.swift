@@ -63,6 +63,7 @@ struct SettingsView: View {
     @State private var committedReminderWeekday = AppPreferences.reminderWeekday()
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.scenePhase) private var scenePhase
     /// The same handler `RootView` injects, so granting from Settings updates
     /// the tab gate in the same pass instead of on the next activation.
@@ -121,13 +122,28 @@ struct SettingsView: View {
         Form {
             // MARK: - Privacy
             Section("Permissions") {
-                HStack {
-                    Image(systemName: photoPermissionIcon)
-                        .foregroundStyle(photoPermissionColor)
-                    Text("Photo Library")
-                    Spacer()
-                    Text(photoPermissionLabel)
-                        .foregroundStyle(.secondary)
+                if dynamicTypeSize.isAccessibilitySize {
+                    // Accessibility sizes: the label and the status go full width
+                    // below the icon, so the status never wraps per character.
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        HStack {
+                            Image(systemName: photoPermissionIcon)
+                                .foregroundStyle(photoPermissionColor)
+                            Spacer()
+                        }
+                        Text("Photo Library")
+                        Text(photoPermissionLabel)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    HStack {
+                        Image(systemName: photoPermissionIcon)
+                            .foregroundStyle(photoPermissionColor)
+                        Text("Photo Library")
+                        Spacer()
+                        Text(photoPermissionLabel)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 // The offered action comes from the state itself. A fresh

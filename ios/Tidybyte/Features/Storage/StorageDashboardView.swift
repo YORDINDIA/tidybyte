@@ -21,6 +21,7 @@ struct StorageDashboardView: View {
     @State private var viewModel = StorageDashboardViewModel()
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(AppNavigation.self) private var appNavigation
     @Environment(LibraryChangeMonitor.self) private var libraryMonitor
 
@@ -392,19 +393,36 @@ struct StorageDashboardView: View {
                         Button {
                             handle(win.action)
                         } label: {
-                            HStack(spacing: Spacing.sm) {
-                                Circle()
-                                    .fill(win.color)
-                                    .frame(width: 10, height: 10)
-                                // A key, not a rendered `String`, so the label
-                                // follows a language switch. See `RootView`.
-                                Text(LocalizedStringKey(win.title))
-                                    .font(.subheadline)
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                Text(win.detail)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            if dynamicTypeSize.isAccessibilitySize {
+                                VStack(alignment: .leading, spacing: Spacing.xs) {
+                                    HStack(spacing: Spacing.sm) {
+                                        Circle()
+                                            .fill(win.color)
+                                            .frame(width: 10, height: 10)
+                                        Spacer()
+                                    }
+                                    Text(LocalizedStringKey(win.title))
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                    Text(win.detail)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } else {
+                                HStack(spacing: Spacing.sm) {
+                                    Circle()
+                                        .fill(win.color)
+                                        .frame(width: 10, height: 10)
+                                    // A key, not a rendered `String`, so the label
+                                    // follows a language switch. See `RootView`.
+                                    Text(LocalizedStringKey(win.title))
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                    Spacer()
+                                    Text(win.detail)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                         .buttonStyle(.plain)
@@ -553,13 +571,21 @@ struct StorageDashboardView: View {
                             .joined(separator: ", "))
 
                         // Center label
+                        // The frame is wider than the donut hole (about 120 pt). The text
+                        // scales down to fit, and at AX5 it was checked on screen to stay
+                        // inside the ring.
                         VStack(spacing: Spacing.xs) {
                             Text(viewModel.totalLibrarySize.formattedFileSize)
                                 .font(.title3.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.4)
                             Text(L10n.format("%lld item", fallback: "%lld items", viewModel.totalItemCount))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
                         }
+                        .frame(width: 130)
                     }
 
                     // Tappable legend
@@ -601,31 +627,58 @@ struct StorageDashboardView: View {
     /// Chevron only on rows that open a tool, so a row that does nothing on
     /// tap does not look like one that does.
     private func legendRowContent(category: StorageCategory, isTappable: Bool) -> some View {
-        HStack(spacing: Spacing.sm) {
-            Circle()
-                .fill(category.color)
-                .frame(width: 10, height: 10)
-            // A key, not a rendered `String`, so the label follows a language
-            // switch. See `RootView`.
-            Text(LocalizedStringKey(category.name))
-                .font(.subheadline)
-            Spacer()
-            Text("\(category.count)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text(category.bytes.formattedFileSize)
-                .font(.subheadline.monospacedDigit().bold())
-            // The slot is kept only when some row is tappable, so values
-            // still line up; with no tappable row there is no gap.
-            if isTappable || viewModel.categories.contains(where: { Self.action(for: $0.id) != nil }) {
-                Image(systemName: "chevron.forward")
-                    .font(.caption.bold())
-                    .foregroundStyle(.tertiary)
-                    .opacity(isTappable ? 1 : 0)
-                    .accessibilityHidden(true)
+        // The slot is kept only when some row is tappable, so values
+        // still line up; with no tappable row there is no gap.
+        let showsSlot = isTappable || viewModel.categories.contains(where: { Self.action(for: $0.id) != nil })
+        let chevron = Image(systemName: "chevron.forward")
+            .font(.caption.bold())
+            .foregroundStyle(.tertiary)
+            .opacity(isTappable ? 1 : 0)
+            .accessibilityHidden(true)
+        return Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // Accessibility sizes: the name and the values go full width
+                // below the fixed controls, so they never wrap per word.
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack(spacing: Spacing.sm) {
+                        Circle()
+                            .fill(category.color)
+                            .frame(width: 10, height: 10)
+                        Spacer()
+                        if showsSlot { chevron }
+                    }
+                    // A key, not a rendered `String`, so the label follows a
+                    // language switch. See `RootView`.
+                    Text(LocalizedStringKey(category.name))
+                        .font(.subheadline)
+                    HStack(spacing: Spacing.sm) {
+                        Text("\(category.count)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text(category.bytes.formattedFileSize)
+                            .font(.subheadline.monospacedDigit().bold())
+                    }
+                }
+            } else {
+                HStack(spacing: Spacing.sm) {
+                    Circle()
+                        .fill(category.color)
+                        .frame(width: 10, height: 10)
+                    // A key, not a rendered `String`, so the label follows a language
+                    // switch. See `RootView`.
+                    Text(LocalizedStringKey(category.name))
+                        .font(.subheadline)
+                    Spacer()
+                    Text("\(category.count)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(category.bytes.formattedFileSize)
+                        .font(.subheadline.monospacedDigit().bold())
+                    if showsSlot { chevron }
+                }
             }
         }
-        .frame(minHeight: 32)
+        .frame(minHeight: 44)
     }
 
     // MARK: - Device Storage
@@ -774,13 +827,16 @@ struct StorageDashboardView: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Picker("", selection: $breakdownMode) {
+                Picker(selection: $breakdownMode) {
                     ForEach(BreakdownMode.allCases, id: \.self) { mode in
                         // A key, not a rendered `String`, so the segment label
                         // follows a language switch. See `RootView`.
                         Text(LocalizedStringKey(mode.displayName)).tag(mode)
                     }
+                } label: {
+                    Text("Where Your Storage Goes")
                 }
+                .labelsHidden()
                 .pickerStyle(.segmented)
 
                 let buckets = breakdownMode == .byYear ? viewModel.byYear : viewModel.bySource
@@ -817,25 +873,48 @@ struct StorageDashboardView: View {
     }
 
     private func breakdownRow(label: String, count: Int, bytes: Int64) -> some View {
-        HStack(spacing: Spacing.md) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(label)
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.primary)
-                Text(L10n.format("%lld item", fallback: "%lld items", count))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        let chevron = Image(systemName: "chevron.forward")
+            .font(.caption.bold())
+            .foregroundStyle(.tertiary)
+        return Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // Accessibility sizes: the label and the size go full width
+                // below the fixed chevron, so they never wrap per word.
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack {
+                        Spacer()
+                        chevron
+                    }
+                    Text(label)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                    Text(L10n.format("%lld item", fallback: "%lld items", count))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(bytes.formattedFileSize)
+                        .font(.subheadline.monospacedDigit().bold())
+                        .foregroundStyle(.primary)
+                }
+            } else {
+                HStack(spacing: Spacing.md) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text(label)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.primary)
+                        Text(L10n.format("%lld item", fallback: "%lld items", count))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Text(bytes.formattedFileSize)
+                        .font(.subheadline.monospacedDigit().bold())
+                        .foregroundStyle(.primary)
+
+                    chevron
+                }
             }
-
-            Spacer()
-
-            Text(bytes.formattedFileSize)
-                .font(.subheadline.monospacedDigit().bold())
-                .foregroundStyle(.primary)
-
-            Image(systemName: "chevron.forward")
-                .font(.caption.bold())
-                .foregroundStyle(.tertiary)
         }
         .padding(.vertical, Spacing.xs)
     }

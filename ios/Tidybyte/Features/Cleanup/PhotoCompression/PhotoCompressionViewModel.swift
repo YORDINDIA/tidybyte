@@ -51,6 +51,8 @@ final class PhotoCompressionViewModel {
     /// show a single summary / success haptic (COMP-09, COMP-11).
     var batchSummary: CompressionBatchSummary?
     private(set) var isCancelled = false
+    /// True once iOS ended background time. The background message stays on screen.
+    private(set) var stoppedForBackground = false
     /// Which step of the replace batch is running, for the bottom bar.
     private(set) var phase: ReplacePhase = .idle
     /// Saved copies whose originals are still in the library (the user tapped
@@ -77,6 +79,8 @@ final class PhotoCompressionViewModel {
     /// The batch mutation loop, owned by the VM so leaving the screen can
     /// cancel it instead of orphaning the mutation loop (COMP-08).
     private var batchTask: Task<Void, Never>?
+    /// The "Check Sizes" encode loop, cancelled with the screen.
+    private var measureTask: Task<Void, Never>?
 
     var defaultPresetId: String {
         get { AppPreferences.defaultPhotoCompressionPresetID() }
@@ -257,17 +261,54 @@ final class PhotoCompressionViewModel {
             && !Self.isAlreadyUnderTarget($0.asset, preset: $0.selectedPreset) }
         guard !items.isEmpty else { return }
         isMeasuring = true
-        Task {
+        measureTask = Task {
+            defer {
+                isMeasuring = false
+                measureTask = nil
+            }
             for item in items {
-                if let size = try? await compressionService.measureCompressedSize(assetId: item.id, preset: item.selectedPreset) {
-                    measuredSizes[Self.sizeKey(item.id, item.selectedPreset)] = size
-                } else if item.selectedPreset.targetBytes != nil {
-                    // Marks "can't reach" for the row: 0 never comes from a real encode.
-                    measuredSizes[Self.sizeKey(item.id, item.selectedPreset)] = 0
+                if Task.isCancelled { return }
+                let key = Self.sizeKey(item.id, item.selectedPreset)
+                do {
+                    measuredSizes[key] = try await compressionService.measureCompressedSize(assetId: item.id, preset: item.selectedPreset)
+                } catch {
+                    switch Self.measureFailure(for: error) {
+                    case .cannotFit:
+                        // Marks "can't reach" for the row: 0 never comes from a real encode.
+                        measuredSizes[key] = 0
+                    case .cancelled:
+                        // The screen closed. Leaving is not a failure, so show nothing.
+                        return
+                    case .message(let text):
+                        // A load or encode failure is not "can't fit". Say what failed.
+                        errorMessage = text
+                    }
                 }
             }
-            isMeasuring = false
         }
+    }
+
+    /// What a failed "Check Sizes" encode means for the row.
+    enum MeasureFailure: Equatable {
+        case cannotFit
+        case cancelled
+        case message(String)
+    }
+
+    nonisolated static func measureFailure(for error: Error) -> MeasureFailure {
+        if error is CancellationError { return .cancelled }
+        switch error as? PhotoCompressionError {
+        case .cancelled?: return .cancelled
+        case .cannotReachTarget?: return .cannotFit
+        default: return .message(error.localizedDescription)
+        }
+    }
+
+    /// iOS ended the background time: stop the batch and say why.
+    func stopForBackground() {
+        stoppedForBackground = true
+        errorMessage = CompressionError.exportInterrupted.localizedDescription
+        cancelCompression()
     }
 
     /// Conservative synchronous savings estimate for the row hint: scale the
@@ -327,6 +368,7 @@ final class PhotoCompressionViewModel {
     func cancelCompression() {
         isCancelled = true
         batchTask?.cancel()
+        measureTask?.cancel()
     }
 
     /// "Try Again" on the Originals Kept alert: one more delete commit.
@@ -353,6 +395,10 @@ final class PhotoCompressionViewModel {
             keptOriginals = outcome.kept
             if !outcome.failed.isEmpty {
                 errorMessage = OriginalsCommit.missingReplacementMessage
+            } else if outcome.kept.isEmpty, errorMessage == OriginalsCommit.copiesKeptMessage {
+                // A retry that finishes the delete clears only the stale "Copies kept"
+                // banner that a declined Remove Copies left. Any other error stays.
+                errorMessage = nil
             }
             // A retry that completes the delete IS a clean batch success, but
             // `batchSummary` is unchanged so the view's `.onChange` never
@@ -420,6 +466,7 @@ final class PhotoCompressionViewModel {
         guard !selectedIds.isEmpty, !isCompressing, !isDeleting else { return }
         errorMessage = nil
         batchSummary = nil
+        stoppedForBackground = false
 
         // Re-encoding needs scratch space for the temp file; keep parity with the
         // video tool's headroom check.
@@ -486,6 +533,7 @@ final class PhotoCompressionViewModel {
             modelContext: modelContext,
             handlers: handlers,
             deleteOriginals: deleteOriginals,
+            onBackgroundExpiry: { [weak self] in self?.stopForBackground() },
             execute: { [weak self] id, index, report in
                 guard let self else { throw CancellationError() }
                 let preset = self.photos[index].selectedPreset
@@ -589,17 +637,13 @@ final class PhotoCompressionViewModel {
 
         // COMP-11: one aggregated summary after the batch instead of an alert
         // popping per item mid-loop.
-        if failedCount > 0 {
-            let attempted = completedCount + failedCount
-            // Through `L10n`, not string interpolation: an interpolated literal
-            // is not a catalog key, so it shipped English in all 20 languages.
-            // Shared with the video path, so both tools read the same sentence.
-            errorMessage = L10n.format(
-                "Compressed %lld of %lld. %lld failed.",
-                completedCount,
-                attempted,
-                failedCount
-            )
+        // A background stop already set the message, and that is the one the user needs.
+        if let message = CompressionBatchRunner.failureSummary(
+            completed: completedCount,
+            failed: failedCount,
+            stoppedForBackground: stoppedForBackground
+        ) {
+            errorMessage = message
         }
     }
 }

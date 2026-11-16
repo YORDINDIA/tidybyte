@@ -7,6 +7,7 @@ struct VideoCompressionView: View {
     @State private var previewStart: VideoItem?
     @State private var rowToDelete: VideoItem?
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var isCelebrating = false
     @State private var celebrationStatLine: String?
     private let photoService = PhotoLibraryService.shared
@@ -188,91 +189,113 @@ struct VideoCompressionView: View {
     // MARK: - Video Row
 
     private func videoRow(_ video: VideoItem) -> some View {
-        HStack(spacing: Spacing.md) {
-            // Always-visible selection checkbox. Tapping it (de)selects the row;
-            // tapping anywhere else on the row opens the preview.
-            Button {
-                HapticHelper.selection()
-                viewModel.toggleSelection(video.id)
-            } label: {
-                Image(systemName: viewModel.selectedIds.contains(video.id) ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(viewModel.selectedIds.contains(video.id) ? .blue : .secondary)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(viewModel.selectedIds.contains(video.id) ? "Deselect video" : "Select video")
-            .accessibilityAddTraits(viewModel.selectedIds.contains(video.id) ? [.isButton, .isSelected] : .isButton)
-
-            AsyncThumbnailView(assetId: video.id, photoService: photoService)
-                .frame(width: 60, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
-                .overlay(alignment: .bottomLeading) {
-                    Text(video.asset.formattedDuration)
-                        .font(.caption2.bold())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, Spacing.xs)
-                        .padding(.vertical, 2)
-                        .background(.black.opacity(0.6))
-                        .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
-                        .padding(Spacing.xs)
-                }
-
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                if let date = video.asset.creationDate {
-                    Text(date, style: .date)
-                        .font(.subheadline)
-                }
-                Menu {
-                    ForEach(CompressionPreset.presets) { preset in
-                        Button(preset.label) {
-                            viewModel.setPreset(preset, for: video.id)
-                        }
-                    }
+        // At accessibility sizes the details move below the row. Beside the
+        // thumbnail, the Dynamic Type text wraps one word or one character per line.
+        let isAX = dynamicTypeSize.isAccessibilitySize
+        return VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(spacing: Spacing.md) {
+                // Always-visible selection checkbox. Tapping it (de)selects the row;
+                // tapping anywhere else on the row opens the preview.
+                Button {
+                    HapticHelper.selection()
+                    viewModel.toggleSelection(video.id)
                 } label: {
-                    Text(video.selectedPreset.label)
-                        .font(.caption.bold())
-                        .foregroundStyle(.blue)
-                }
-
-                Text(video.asset.resolution)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                compressionStateLabel(video)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: Spacing.xs) {
-                Text(video.asset.displaySize)
-                    .font(.headline.monospacedDigit())
-
-                let estimated = viewModel.estimateSize(for: video)
-                // A bitrate-based guess, so grey and labelled.
-                if estimated < video.asset.fileSize {
-                    Text("est. ~\(estimated.formattedFileSize)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if !viewModel.isCompressing {
-                Button(role: .destructive) {
-                    rowToDelete = video
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.body)
-                        .foregroundStyle(.red)
+                    Image(systemName: viewModel.selectedIds.contains(video.id) ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(viewModel.selectedIds.contains(video.id) ? .blue : .secondary)
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Delete video")
+                .accessibilityLabel(viewModel.selectedIds.contains(video.id) ? "Deselect video" : "Select video")
+                .accessibilityAddTraits(viewModel.selectedIds.contains(video.id) ? [.isButton, .isSelected] : .isButton)
+
+                AsyncThumbnailView(assetId: video.id, photoService: photoService)
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                    .overlay(alignment: .bottomLeading) {
+                        Text(video.asset.formattedDuration)
+                            .font(.caption2.bold())
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, Spacing.xs)
+                            .padding(.vertical, 2)
+                            .background(.black.opacity(0.6))
+                            .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
+                            .padding(Spacing.xs)
+                    }
+
+                if isAX {
+                    Spacer()
+                } else {
+                    videoDetails(video)
+                    Spacer()
+                    videoSizeColumn(video, alignment: .trailing)
+                }
+
+                if !viewModel.isCompressing {
+                    Button(role: .destructive) {
+                        rowToDelete = video
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.body)
+                            .foregroundStyle(.red)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Delete video")
+                }
             }
+            // At accessibility sizes the details and size go full width under the
+            // row. Beside the thumbnail they got a sliver of the width.
+            if isAX {
+                videoDetails(video)
+                videoSizeColumn(video, alignment: .leading)
+            }
+            // Full row width, under the row: in the middle column an error
+            // got ~100 pt and was cut off.
+            compressionStateLabel(video)
         }
         .contentShape(Rectangle())
         .onTapGesture { previewStart = video }
+    }
+
+    private func videoDetails(_ video: VideoItem) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            if let date = video.asset.creationDate {
+                Text(date, format: .dateTime.day().month(.abbreviated).year())
+                    .font(.subheadline)
+            }
+            Menu {
+                ForEach(CompressionPreset.presets) { preset in
+                    Button(preset.label) {
+                        viewModel.setPreset(preset, for: video.id)
+                    }
+                }
+            } label: {
+                Text(video.selectedPreset.label)
+                    .font(.caption.bold())
+                    .foregroundStyle(.blue)
+            }
+
+            Text(video.asset.resolution)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func videoSizeColumn(_ video: VideoItem, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: Spacing.xs) {
+            Text(video.asset.displaySize)
+                .font(.headline.monospacedDigit())
+
+            let estimated = viewModel.estimateSize(for: video)
+            // A bitrate-based guess, so grey and labelled.
+            if estimated < video.asset.fileSize {
+                Text("est. ~\(estimated.formattedFileSize)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     // MARK: - Compression State Label
@@ -298,13 +321,12 @@ struct VideoCompressionView: View {
             Text(reason)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         case .failed(let msg):
-            // Room for the whole reason instead of "The operation cou…".
+            // No line limit: the whole reason must be readable.
             Text(msg)
                 .font(.caption2)
                 .foregroundStyle(Color.destructive)
-                .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

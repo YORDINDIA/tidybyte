@@ -1166,6 +1166,9 @@ const INTENTIONAL_LITERALS = new Set([
   // an album title and compares it against this list to decide which chat albums
   // to preselect, so the string is a comparison key and never rendered.
   'whatsapp business',
+  // `beginBackgroundTask(withName:)` debug name for the compression batch. It
+  // appears only in system diagnostics, never in the UI.
+  'TidyByte compression',
 
   // An `NSPredicate` format string. The `%@` is substituted with a set of asset
   // identifiers and `localIdentifier` is a PhotoKit key path, so both halves are

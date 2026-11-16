@@ -1,5 +1,57 @@
 import Photos
 import SwiftData
+import UIKit
+
+/// Keeps a batch running while the user is away: the screen stays awake, and
+/// iOS grants background time to finish the step in flight. Every path must
+/// call `end()`. `CompressionBatchRunner.run` does so with `defer`.
+@MainActor
+final class CompressionSession {
+    /// Batches running now. The screen setting is restored when the last one ends.
+    private static var active = 0
+    private static var idleTimerWasDisabled = false
+
+    private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    private var ended = false
+
+    /// `onExpire` runs when iOS ends the background time. Use it to cancel
+    /// the batch, so it stops cleanly before the app is suspended.
+    static func begin(onExpire: @escaping @MainActor () -> Void) -> CompressionSession {
+        let app = UIApplication.shared
+        if active == 0 { idleTimerWasDisabled = app.isIdleTimerDisabled }
+        active += 1
+        app.isIdleTimerDisabled = true
+
+        let session = CompressionSession()
+        session.backgroundTask = app.beginBackgroundTask(withName: "TidyByte compression") {
+            // iOS calls this on the main thread and needs the task ended before
+            // it returns, or the watchdog can end the app. Both calls stay
+            // synchronous. `onExpire` only sets a flag and cancels a task.
+            MainActor.assumeIsolated {
+                onExpire()
+                session.stopBackgroundTime()
+            }
+        }
+        return session
+    }
+
+    /// Idempotent. Restores the screen setting once no batch is running.
+    func end() {
+        guard !ended else { return }
+        ended = true
+        Self.active -= 1
+        if Self.active == 0 {
+            UIApplication.shared.isIdleTimerDisabled = Self.idleTimerWasDisabled
+        }
+        stopBackgroundTime()
+    }
+
+    fileprivate func stopBackgroundTime() {
+        guard backgroundTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(backgroundTask)
+        backgroundTask = .invalid
+    }
+}
 
 /// Shared per-item loop for the photo + video batch compressions (COMP-12).
 ///
@@ -198,6 +250,14 @@ enum CompressionBatchRunner {
         var setPhase: @MainActor @Sendable (ReplacePhase) -> Void
     }
 
+    /// The batch's failure line, or nil when none is due. A background stop
+    /// already set the message, which says more, so no failure line replaces it.
+    nonisolated static func failureSummary(completed: Int, failed: Int, stoppedForBackground: Bool) -> String? {
+        guard failed > 0, !stoppedForBackground else { return nil }
+        // Through `L10n`: an interpolated literal is not a catalog key.
+        return L10n.format("Compressed %lld of %lld. %lld failed.", completed, completed + failed, failed)
+    }
+
     struct Result: Sendable {
         var successfulIds: Set<String>
         var summary: CompressionBatchSummary
@@ -224,9 +284,13 @@ enum CompressionBatchRunner {
         modelContext: ModelContext,
         handlers: Handlers,
         deleteOriginals: Bool = true,
+        onBackgroundExpiry: @escaping @MainActor () -> Void = {},
         execute: @MainActor @Sendable (String, Int, @escaping @MainActor @Sendable (Float) -> Void) async throws
             -> CompressionItemOutcome
     ) async -> Result {
+        // Ends on every path: finish, cancel, error and return from the loop.
+        let session = CompressionSession.begin(onExpire: onBackgroundExpiry)
+        defer { session.end() }
         let orderedIds = sortedBatchIds(selected: selected, fileSizes: fileSizes)
         var saved: [PendingOriginal] = []
         var failed = 0, skipped = 0
@@ -270,6 +334,9 @@ enum CompressionBatchRunner {
                     skipped += 1
                     continue
                 }
+                // The full error, for the journal, load and save steps. The
+                // export step logs its NSError where it throws.
+                AppLog.compression.error("Compression failed for \(id, privacy: .public): \(String(describing: error), privacy: .public)")
                 failed += 1
                 handlers.setState(index, .failed(error.localizedDescription))
             }

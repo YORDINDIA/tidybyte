@@ -21,6 +21,8 @@ final class VideoCompressionViewModel {
     /// show a single summary / success haptic (COMP-09, COMP-11).
     var batchSummary: CompressionBatchSummary?
     private(set) var isCancelled = false
+    /// True once iOS ended background time. The background message stays on screen.
+    private(set) var stoppedForBackground = false
     /// Which step of the replace batch is running, for the bottom bar.
     private(set) var phase: ReplacePhase = .idle
     /// Saved copies whose originals are still in the library (the user tapped
@@ -201,6 +203,13 @@ final class VideoCompressionViewModel {
         batchTask?.cancel()
     }
 
+    /// iOS ended the background time: stop the batch and say why.
+    func stopForBackground() {
+        stoppedForBackground = true
+        errorMessage = CompressionError.exportInterrupted.localizedDescription
+        cancelCompression()
+    }
+
     /// "Try Again" on the Originals Kept alert: one more delete commit.
     /// Clears `keptOriginals` synchronously so the alert does not re-present.
     func retryRemovingOriginals() {
@@ -225,9 +234,9 @@ final class VideoCompressionViewModel {
             keptOriginals = outcome.kept
             if !outcome.failed.isEmpty {
                 errorMessage = OriginalsCommit.missingReplacementMessage
-            } else if outcome.kept.isEmpty {
-                // A retry that finishes the delete clears a stale "Copies
-                // kept" banner left by a declined Remove Copies.
+            } else if outcome.kept.isEmpty, errorMessage == OriginalsCommit.copiesKeptMessage {
+                // A retry that finishes the delete clears only the stale "Copies kept"
+                // banner that a declined Remove Copies left. Any other error stays.
                 errorMessage = nil
             }
             // A retry that completes the delete IS a clean batch success, but
@@ -288,6 +297,7 @@ final class VideoCompressionViewModel {
         guard !selectedIds.isEmpty, !isCompressing, !isDeleting else { return }
         errorMessage = nil
         batchSummary = nil
+        stoppedForBackground = false
 
         insufficientDiskSpace = false
         let totalSelectedSize = selectedSize
@@ -355,6 +365,7 @@ final class VideoCompressionViewModel {
             isSizeUnknown: isSizeUnknown,
             modelContext: modelContext,
             handlers: handlers,
+            onBackgroundExpiry: { [weak self] in self?.stopForBackground() },
             execute: { [weak self] id, index, report in
                 guard let self else { throw CancellationError() }
                 // Captured before the await so the failure audit trail below stays
@@ -457,17 +468,13 @@ final class VideoCompressionViewModel {
 
         // COMP-11: one aggregated summary after the batch instead of an alert
         // popping per item mid-loop.
-        if failedCount > 0 {
-            let attempted = completedCount + failedCount
-            // Through `L10n`, not string interpolation: an interpolated literal
-            // is not a catalog key, so it shipped English in all 20 languages.
-            // Shared with the photo path, so both tools read the same sentence.
-            errorMessage = L10n.format(
-                "Compressed %lld of %lld. %lld failed.",
-                completedCount,
-                attempted,
-                failedCount
-            )
+        // A background stop already set the message, and that is the one the user needs.
+        if let message = CompressionBatchRunner.failureSummary(
+            completed: completedCount,
+            failed: failedCount,
+            stoppedForBackground: stoppedForBackground
+        ) {
+            errorMessage = message
         }
     }
 }

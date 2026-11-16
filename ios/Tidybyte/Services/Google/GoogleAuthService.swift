@@ -98,7 +98,22 @@ final class GoogleAuthService: NSObject {
             "grant_type": "authorization_code",
             "code_verifier": verifier
         ])
-        store(response, keepingRefreshToken: nil)
+        do {
+            try store(response, keepingRefreshToken: nil)
+        } catch {
+            // The grant is unusable without stored tokens. Try the revoke twice, and
+            // say so when Google still holds the grant.
+            var revoked = await revoke(response.access_token)
+            if !revoked { revoked = await revoke(response.access_token) }
+            throw Self.signInStorageFailure(error, revoked: revoked)
+        }
+    }
+
+    /// The error a sign-in reports when the tokens could not be stored. The
+    /// storage error alone when the grant was revoked; otherwise the user is told
+    /// that Google still holds the access.
+    static func signInStorageFailure(_ storageError: Error, revoked: Bool) -> Error {
+        revoked ? storageError : GoogleAuthError.grantNotRevoked
     }
 
     /// A valid access token, refreshed when it is about to expire.
@@ -112,7 +127,7 @@ final class GoogleAuthService: NSObject {
                 "client_id": Self.clientID,
                 "grant_type": "refresh_token"
             ])
-            store(response, keepingRefreshToken: refresh)
+            try store(response, keepingRefreshToken: refresh)
             return self.tokens?.accessToken ?? ""
         } catch GoogleAuthError.http(400), GoogleAuthError.http(401) {
             // Revoked or expired grant: the user must sign in again.
@@ -130,20 +145,27 @@ final class GoogleAuthService: NSObject {
             clearTokens()
             return true
         }
+        guard await revoke(token) else { return false }
+        clearTokens()
+        return true
+    }
+
+    /// Asks Google to drop the grant behind `token`. True when Google accepted it,
+    /// or already had dropped it (400).
+    private func revoke(_ token: String) async -> Bool {
         var request = URLRequest(url: URL(string: "https://oauth2.googleapis.com/revoke")!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = Self.formBody(["token": token])
         guard let (_, response) = try? await URLSession.shared.data(for: request) else { return false }
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-        guard status == 200 || status == 400 else { return false }
-        clearTokens()
-        return true
+        return status == 200 || status == 400
     }
 
     // MARK: - Helpers
 
-    private struct TokenResponse: Decodable {
+    /// Internal, not private, so tests can decode a fixture and call `store`.
+    struct TokenResponse: Decodable {
         let access_token: String
         let expires_in: Double
         let refresh_token: String?
@@ -160,14 +182,16 @@ final class GoogleAuthService: NSObject {
         return try JSONDecoder().decode(TokenResponse.self, from: data)
     }
 
-    private func store(_ response: TokenResponse, keepingRefreshToken previous: String?) {
+    /// Keeps the tokens only once they reached the Keychain. Until then the app
+    /// does not hold them, so a failed write is never reported as signed in.
+    func store(_ response: TokenResponse, keepingRefreshToken previous: String?) throws {
         let tokens = Tokens(
             accessToken: response.access_token,
             refreshToken: response.refresh_token ?? previous,
             expiresAt: Date().addingTimeInterval(response.expires_in)
         )
+        guard GoogleKeychain.save(tokens) else { throw GoogleAuthError.keychainWriteFailed }
         self.tokens = tokens
-        GoogleKeychain.save(tokens)
     }
 
     private func clearTokens() {
@@ -202,6 +226,10 @@ enum GoogleAuthError: LocalizedError, Equatable {
     case signedOut
     case http(Int)
     case failed(String)
+    /// The sign-in worked, but the Keychain would not keep it. Shown to the user.
+    case keychainWriteFailed
+    /// Storage failed and Google still holds the grant after two revokes.
+    case grantNotRevoked
 
     var errorDescription: String? {
         switch self {
@@ -209,7 +237,10 @@ enum GoogleAuthError: LocalizedError, Equatable {
         case .cancelled: L10n.string("Sign-in cancelled.")
         case .signedOut: L10n.string("Your Google session ended. Sign in again.")
         case .http(let code): L10n.format("Google returned an error (%lld).", code)
-        case .failed(let message): message
+        // An empty message would leave the error banner blank.
+        case .failed(let message): message.isEmpty ? L10n.string("Sign-in failed.") : message
+        case .keychainWriteFailed: L10n.string("Couldn't save your Google sign-in on this device. Try again.")
+        case .grantNotRevoked: L10n.string("Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.")
         }
     }
 }
@@ -234,35 +265,72 @@ enum PKCE {
     }
 }
 
+/// The Keychain calls `GoogleKeychain` makes. Production uses `.system`.
+/// Tests replace `GoogleKeychain.backend` with a fake, so a failed write can be
+/// simulated: the simulator cannot be made to refuse `SecItemAdd` on demand.
+struct GoogleKeychainBackend: Sendable {
+    var add: @Sendable (CFDictionary) -> OSStatus
+    var delete: @Sendable (CFDictionary) -> OSStatus
+    var copyMatching: @Sendable (CFDictionary) -> Data?
+    var update: @Sendable (CFDictionary, CFDictionary) -> OSStatus
+
+    static let system = GoogleKeychainBackend(
+        add: { SecItemAdd($0, nil) },
+        delete: { SecItemDelete($0) },
+        copyMatching: { query in
+            var result: CFTypeRef?
+            guard SecItemCopyMatching(query, &result) == errSecSuccess else { return nil }
+            return result as? Data
+        },
+        update: { SecItemUpdate($0, $1) }
+    )
+}
+
 /// One generic-password item holding the token JSON. This-device-only, so
 /// tokens never sync to iCloud Keychain or move to a restored device.
+@MainActor
 enum GoogleKeychain {
+    /// Swapped only by tests. Every caller is on the main actor.
+    static var backend = GoogleKeychainBackend.system
+
     private static let query: [CFString: Any] = [
         kSecClass: kSecClassGenericPassword,
         kSecAttrService: "com.sakshammittal.tidybyte.google",
         kSecAttrAccount: "oauth"
     ]
 
-    static func save(_ tokens: GoogleAuthService.Tokens) {
-        guard let data = try? JSONEncoder().encode(tokens) else { return }
-        SecItemDelete(query as CFDictionary)
-        var item = query
-        item[kSecValueData] = data
-        item[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        SecItemAdd(item as CFDictionary, nil)
+    /// Returns false when the tokens were not written. A sign-in that is not stored
+    /// is gone at relaunch, so callers must not report it as durable.
+    @discardableResult
+    static func save(_ tokens: GoogleAuthService.Tokens) -> Bool {
+        guard let data = try? JSONEncoder().encode(tokens) else { return false }
+        // Update in place, and add only when there is no item yet. The old token
+        // stays until a write succeeds, so a failed write cannot remove the last
+        // usable credential.
+        var status = backend.update(query as CFDictionary, [kSecValueData: data] as CFDictionary)
+        if status == errSecItemNotFound {
+            var item = query
+            item[kSecValueData] = data
+            item[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            status = backend.add(item as CFDictionary)
+        }
+        // Logged with the status only: no token text reaches the log.
+        guard status == errSecSuccess else {
+            AppLog.app.error("Failed to store Google sign-in: OSStatus \(status, privacy: .public)")
+            return false
+        }
+        return true
     }
 
     static func load() -> GoogleAuthService.Tokens? {
         var lookup = query
         lookup[kSecReturnData] = true
         lookup[kSecMatchLimit] = kSecMatchLimitOne
-        var result: CFTypeRef?
-        guard SecItemCopyMatching(lookup as CFDictionary, &result) == errSecSuccess,
-              let data = result as? Data else { return nil }
+        guard let data = backend.copyMatching(lookup as CFDictionary) else { return nil }
         return try? JSONDecoder().decode(GoogleAuthService.Tokens.self, from: data)
     }
 
     static func delete() {
-        SecItemDelete(query as CFDictionary)
+        _ = backend.delete(query as CFDictionary)
     }
 }

@@ -24,12 +24,14 @@ final class ContinuationResumer<T>: @unchecked Sendable {
     }
 
     /// Resumes the continuation with `value` if it has not already been resumed.
-    /// Subsequent calls are no-ops.
-    func resume(_ value: sending T) {
+    /// Subsequent calls are no-ops. Returns true only for the call that resumed,
+    /// so a caller can tell which of two racing outcomes was delivered.
+    @discardableResult
+    func resume(_ value: sending T) -> Bool {
         lock.lock()
         guard !resumed, let continuation else {
             lock.unlock()
-            return
+            return false
         }
         resumed = true
         self.continuation = nil
@@ -39,6 +41,7 @@ final class ContinuationResumer<T>: @unchecked Sendable {
 
         cleanup?()
         continuation.resume(returning: value)
+        return true
     }
 }
 

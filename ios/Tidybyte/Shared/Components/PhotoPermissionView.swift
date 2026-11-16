@@ -151,7 +151,7 @@ struct PhotoPermissionView: View {
             .font(.headline)
             .frame(maxWidth: .infinity)
             .padding(Spacing.lg)
-            .background(.tint)
+            .background(Color.actionFill)
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
     }

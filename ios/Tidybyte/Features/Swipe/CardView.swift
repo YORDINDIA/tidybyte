@@ -44,12 +44,15 @@ enum CardImageRequest {
     /// `.task`'s job), false for an unmeasured target, and false when the
     /// target is the one the visible image was decoded at — so an ordinary
     /// layout pass, which republishes the same target, cannot restart the load.
+    /// A load already in flight is never restarted here. Its own loop re-checks
+    /// the target when it lands, and cancelling it would drop its result.
     static func shouldReload(
         currentTarget: CGSize,
         lastRequestedTarget: CGSize,
-        hasImage: Bool
+        hasImage: Bool,
+        isLoading: Bool = false
     ) -> Bool {
-        guard hasImage, currentTarget != .zero else { return false }
+        guard hasImage, !isLoading, currentTarget != .zero else { return false }
         return abs(currentTarget.width - lastRequestedTarget.width) > targetTolerance
             || abs(currentTarget.height - lastRequestedTarget.height) > targetTolerance
     }
@@ -444,9 +447,13 @@ struct CardView: View {
             // The card may have left the deck (or been cancelled) while loading —
             // a late success must not show, or report the image as shown off-deck.
             guard !Task.isCancelled else { return }
-            withAnimation(.easeIn(duration: 0.3)) {
-                image = loaded
-                loadFailed = loaded == nil
+            // A failed resize reload keeps the photo already on screen. Only a
+            // first load that fails shows the failure state.
+            if loaded != nil || image == nil {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    image = loaded
+                    loadFailed = loaded == nil
+                }
             }
             if loaded != nil {
                 loadedTarget = requested
@@ -479,8 +486,11 @@ struct CardView: View {
         guard CardImageRequest.shouldReload(
             currentTarget: newTarget,
             lastRequestedTarget: loadedTarget,
-            hasImage: image != nil
+            hasImage: image != nil,
+            isLoading: isLoadingImage
         ) else { return }
+        // Cancels only a reload that was queued but has not started. A running load
+        // is never reached here, because `isLoading` returns early above.
         imageLoadTask?.cancel()
         imageLoadTask = Task { await loadImage(frame: cardFrame) }
     }

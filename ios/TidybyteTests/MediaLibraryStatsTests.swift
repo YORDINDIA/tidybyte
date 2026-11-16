@@ -239,7 +239,8 @@ final class MediaLibraryStatsTests: XCTestCase {
             compressedSize: 400,
             modelContext: context
         )
-        await CompressionJournal.reconcile(modelContext: context)
+        // Library access is passed explicitly: the test host has no Photos access.
+        await CompressionJournal.reconcile(modelContext: context, authorization: .authorized)
 
         XCTAssertEqual(record.outcome, "completed")
         XCTAssertEqual(record.savedBytes, 600, "savings must use the journaled compressed size, not 0")
@@ -373,7 +374,7 @@ final class MediaLibraryStatsTests: XCTestCase {
             compressedSize: 0,
             exportPreset: "high"
         )
-        await CompressionJournal.reconcile(modelContext: context)
+        await CompressionJournal.reconcile(modelContext: context, authorization: .authorized)
 
         XCTAssertEqual(first.outcome, "failed")
         XCTAssertEqual(second.outcome, "failed")

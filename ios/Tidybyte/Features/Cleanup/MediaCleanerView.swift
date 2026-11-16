@@ -79,9 +79,9 @@ struct MediaCleanerView: View {
             }
             .pullToRefresh { await viewModel.load() }
             if !viewModel.visibleSelectedIDs.isEmpty {
-                ActionBarView {
+                CleanupActionBar {
                     Text("\(viewModel.visibleSelectedIDs.count) selected")
-                    Spacer()
+                    AdaptiveSpacer()
                     if viewModel.isDeleting { ProgressView() }
                     Button("Delete", role: .destructive) { pendingDeletion = viewModel.visibleSelectedIDs }
                         .disabled(viewModel.isDeleting)
@@ -89,6 +89,7 @@ struct MediaCleanerView: View {
             }
         }
         .localizedNavigationTitle(viewModel.tool.nameKey)
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 SelectAllToolbarButton(allSelected: viewModel.allVisibleSelected,
@@ -106,7 +107,7 @@ struct MediaCleanerView: View {
             }
         }
         .task(id: libraryMonitor.generation) { await viewModel.load() }
-        .confirmationDialog("Delete \(pendingDeletion.count) items from Photos?", isPresented: Binding(
+        .confirmationDialog(CleanupDeletion.confirmTitle(count: pendingDeletion.count), isPresented: Binding(
             get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } }
         ), titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
@@ -114,7 +115,7 @@ struct MediaCleanerView: View {
                 pendingDeletion = []
                 Task { _ = await viewModel.delete(ids: ids) }
             }
-        } message: { Text(CleanupDeletion.recoverableNote) }
+        } message: { Text(CleanupDeletion.confirmMessage(L10n.string("The selected items will be deleted from Photos."))) }
         .fullScreenCover(item: $previewAsset) { asset in
             MediaPreviewView(assets: viewModel.filteredAssets,
                 startIndex: viewModel.filteredAssets.firstIndex { $0.id == asset.id } ?? 0,

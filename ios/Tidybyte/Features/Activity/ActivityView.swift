@@ -14,6 +14,7 @@ struct ActivityView: View {
     /// row re-render on a language change. `Formatters` resolves against
     /// `Locale.current` on its own, which never changes.
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
@@ -89,19 +90,25 @@ struct ActivityView: View {
                     }
                 }
 
-                HStack(spacing: Spacing.xl) {
-                    statPill(
-                        value: "\(viewModel.summary.lifetimeItemCount)",
-                        label: L10n.string("items, all time")
-                    )
-                    statPill(
-                        value: "\(viewModel.summary.activeDayCount)",
-                        label: L10n.format("%lld active day, 30 days", fallback: "%lld active days, 30 days", viewModel.summary.activeDayCount)
-                    )
-                    statPill(
-                        value: bytesLabel(viewModel.summary.monthFreedBytes),
-                        label: L10n.string("this month")
-                    )
+                // Three columns squeeze each other at accessibility sizes, so
+                // they stack there and keep full width.
+                let pills = [
+                    (value: "\(viewModel.summary.lifetimeItemCount)", label: L10n.string("items, all time")),
+                    (value: "\(viewModel.summary.activeDayCount)", label: L10n.format("%lld active day, 30 days", fallback: "%lld active days, 30 days", viewModel.summary.activeDayCount)),
+                    (value: bytesLabel(viewModel.summary.monthFreedBytes), label: L10n.string("this month"))
+                ]
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(spacing: Spacing.md) {
+                        ForEach(0..<pills.count, id: \.self) { index in
+                            statPill(value: pills[index].value, label: pills[index].label)
+                        }
+                    }
+                } else {
+                    HStack(spacing: Spacing.xl) {
+                        ForEach(0..<pills.count, id: \.self) { index in
+                            statPill(value: pills[index].value, label: pills[index].label)
+                        }
+                    }
                 }
             }
         }
@@ -202,27 +209,48 @@ struct ActivityView: View {
     }
 
     private func breakdownRow(_ entry: CleanupActivitySummary.ToolBreakdown) -> some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: entry.kind.icon)
-                .foregroundStyle(color(for: entry.kind))
-                .frame(width: 32)
+        let sizeText = Text(bytesLabel(entry.bytes))
+            .font(.caption.bold().monospacedDigit())
+            .foregroundStyle(entry.bytes > 0 ? .green : .secondary)
+        return Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // Accessibility sizes: the tool name and the size go full width
+                // below the fixed icon, so they never wrap per word.
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Image(systemName: entry.kind.icon)
+                        .foregroundStyle(color(for: entry.kind))
+                    // `LocalizedStringKey` so this stays a key rather than a
+                    // rendered `String`, which would opt out of the `\.locale`
+                    // re-render on a language switch. See `RootView`.
+                    Text(LocalizedStringKey(entry.kind.title))
+                        .font(.subheadline.bold())
+                    Text(L10n.format("%lld item", fallback: "%lld items", entry.count))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    sizeText
+                }
+            } else {
+                HStack(spacing: Spacing.md) {
+                    Image(systemName: entry.kind.icon)
+                        .foregroundStyle(color(for: entry.kind))
+                        .frame(width: 32)
 
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                // `LocalizedStringKey` so this stays a key rather than a
-                // rendered `String`, which would opt out of the `\.locale`
-                // re-render on a language switch. See `RootView`.
-                Text(LocalizedStringKey(entry.kind.title))
-                    .font(.subheadline.bold())
-                Text(L10n.format("%lld item", fallback: "%lld items", entry.count))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        // `LocalizedStringKey` so this stays a key rather than a
+                        // rendered `String`, which would opt out of the `\.locale`
+                        // re-render on a language switch. See `RootView`.
+                        Text(LocalizedStringKey(entry.kind.title))
+                            .font(.subheadline.bold())
+                        Text(L10n.format("%lld item", fallback: "%lld items", entry.count))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    sizeText
+                }
             }
-
-            Spacer()
-
-            Text(bytesLabel(entry.bytes))
-                .font(.caption.bold().monospacedDigit())
-                .foregroundStyle(entry.bytes > 0 ? .green : .secondary)
         }
         .padding(.vertical, Spacing.xs)
     }
@@ -252,30 +280,55 @@ struct ActivityView: View {
     }
 
     private func recentRow(_ event: CleanupEvent) -> some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: event.kind.icon)
-                .font(.caption)
-                .foregroundStyle(color(for: event.kind))
-                .frame(width: 24)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // Accessibility sizes: the event and its values go full width
+                // below the fixed icon, so they never wrap per word.
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Image(systemName: event.kind.icon)
+                        .font(.caption)
+                        .foregroundStyle(color(for: event.kind))
+                    Text(LocalizedStringKey(event.kind.title))
+                        .font(.subheadline)
+                    Text(Formatters.dateTime(event.date, in: locale))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(L10n.format("%lld item", fallback: "%lld items", event.itemCount))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    if event.freedBytes > 0 {
+                        Text("-\(event.freedBytes.formattedFileSize)")
+                            .font(.caption.bold().monospacedDigit())
+                            .foregroundStyle(.green)
+                    }
+                }
+            } else {
+                HStack(spacing: Spacing.md) {
+                    Image(systemName: event.kind.icon)
+                        .font(.caption)
+                        .foregroundStyle(color(for: event.kind))
+                        .frame(width: 24)
 
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(LocalizedStringKey(event.kind.title))
-                    .font(.subheadline)
-                Text(Formatters.dateTime(event.date, in: locale))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text(LocalizedStringKey(event.kind.title))
+                            .font(.subheadline)
+                        Text(Formatters.dateTime(event.date, in: locale))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
 
-            Spacer()
+                    Spacer()
 
-            VStack(alignment: .trailing, spacing: Spacing.xs) {
-                Text(L10n.format("%lld item", fallback: "%lld items", event.itemCount))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                if event.freedBytes > 0 {
-                    Text("-\(event.freedBytes.formattedFileSize)")
-                        .font(.caption.bold().monospacedDigit())
-                        .foregroundStyle(.green)
+                    VStack(alignment: .trailing, spacing: Spacing.xs) {
+                        Text(L10n.format("%lld item", fallback: "%lld items", event.itemCount))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                        if event.freedBytes > 0 {
+                            Text("-\(event.freedBytes.formattedFileSize)")
+                                .font(.caption.bold().monospacedDigit())
+                                .foregroundStyle(.green)
+                        }
+                    }
                 }
             }
         }

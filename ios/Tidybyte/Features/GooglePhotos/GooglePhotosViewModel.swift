@@ -68,18 +68,20 @@ final class GooglePhotosViewModel {
             errorMessage = L10n.string("Couldn't sign out of Google. Check your connection and try again.")
             return
         }
-        result = nil
-        selectedIds = []
-        doneIds = []
-        isSignedIn = false
-        quota = nil
+        clearAccountState()
     }
 
     func loadQuota() async {
         guard isSignedIn else { return }
+        // A reply for an account that has since signed out must not write into
+        // the session that replaced it.
+        let generation = sessionGeneration
         do {
-            quota = try await api.storageQuota()
+            let fetched = try await api.storageQuota()
+            guard generation == sessionGeneration else { return }
+            quota = fetched
         } catch {
+            guard generation == sessionGeneration else { return }
             handle(error)
         }
     }
@@ -168,10 +170,19 @@ final class GooglePhotosViewModel {
         selectedIds = []
     }
 
+    /// Drops everything that belongs to the signed-in account. Shared by sign-out
+    /// and the signed-out error, so the two cannot drift apart.
+    private func clearAccountState() {
+        isSignedIn = false
+        result = nil
+        quota = nil
+        selectedIds = []
+        doneIds = []
+    }
+
     private func handle(_ error: Error) {
         if case GoogleAuthError.signedOut = error {
-            isSignedIn = false
-            result = nil
+            clearAccountState()
         }
         errorMessage = error.localizedDescription
     }

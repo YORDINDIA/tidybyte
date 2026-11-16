@@ -198,13 +198,15 @@ struct HappyPathPromptCard: View {
     /// Text-only so both links share one baseline.
     @ViewBuilder
     private var secondaryLinks: some View {
-        Button("Rate on the App Store") {
+        Button {
             openURL(AppStoreLinks.writeReviewURL)
             onClose()
+        } label: {
+            Text("Rate on the App Store").foregroundStyle(Color.actionText)
         }
         .frame(minHeight: 44)
         ShareLink(item: AppStoreLinks.shareMessage(statLine: statLine)) {
-            Text("Share TidyByte")
+            Text("Share TidyByte").foregroundStyle(Color.actionText)
         }
         .frame(minHeight: 44)
     }
@@ -310,7 +312,7 @@ struct HappyPathPromptCard: View {
                 .padding(.vertical, Spacing.md)
                 .frame(maxWidth: .infinity, minHeight: 50)
                 .background(
-                    prominent ? Color.accentColor : Color.controlSurface,
+                    prominent ? Color.actionFill : Color.controlSurface,
                     in: RoundedRectangle(cornerRadius: CornerRadius.large)
                 )
                 .foregroundStyle(prominent ? Color.white : Color.primary)

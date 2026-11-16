@@ -5,10 +5,6 @@
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
-      "key": " in selected photos",
-      "file": "Tidybyte/Services/NotificationService.swift"
-    },
-    {
       "key": " known · %lld sizes unavailable",
       "file": "Tidybyte/Features/Cleanup/MediaCleanerViewModel.swift"
     },
@@ -27,6 +23,10 @@
     {
       "key": "%@ (%lld)",
       "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
+    },
+    {
+      "key": "%@ %@",
+      "file": "Tidybyte/Services/LocalPhotoIntelligence.swift"
     },
     {
       "key": "%@ and %@",
@@ -59,6 +59,10 @@
     {
       "key": "%@ of %lld reviewed",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
+    },
+    {
+      "key": "%@ of media will be deleted from Photos.",
+      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
     },
     {
       "key": "%@ total",
@@ -94,7 +98,8 @@
       "file": "Tidybyte/Features/Activity/ActivityView.swift"
     },
     {
-      "key": "%lld burst groups",
+      "key": "%lld burst group",
+      "fallback": "%lld burst groups",
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
@@ -126,11 +131,13 @@
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
-      "key": "%lld groups",
+      "key": "%lld group",
+      "fallback": "%lld groups",
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
     },
     {
-      "key": "%lld groups found",
+      "key": "%lld group found",
+      "fallback": "%lld groups found",
       "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
     },
     {
@@ -189,6 +196,10 @@
     {
       "key": "%lld of %lld",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
+    },
+    {
+      "key": "%lld of %lld items couldn't be prepared to share.",
+      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
     },
     {
       "key": "%lld percent",
@@ -416,10 +427,6 @@
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
-      "key": "Auto-Clean All Bursts",
-      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
-    },
-    {
       "key": "Automatic",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
@@ -433,6 +440,10 @@
     },
     {
       "key": "Bad image URL.",
+      "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
+    },
+    {
+      "key": "Bad URL.",
       "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
     },
     {
@@ -656,7 +667,7 @@
     },
     {
       "key": "Compressed %lld of %lld. %lld failed.",
-      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionViewModel.swift"
+      "file": "Tidybyte/Shared/Utilities/CompressionBatchRunner.swift"
     },
     {
       "key": "compressed %lld photo",
@@ -758,6 +769,10 @@
       "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
+      "key": "Couldn't load the video: %@",
+      "file": "Tidybyte/Services/VideoCompressionService.swift"
+    },
+    {
       "key": "Couldn't load this photo.",
       "file": "Tidybyte/Features/Swipe/CardView.swift"
     },
@@ -776,6 +791,14 @@
     {
       "key": "Couldn't save your changes. Please try again.",
       "file": "Tidybyte/Features/Swipe/SwipeSessionViewModel.swift"
+    },
+    {
+      "key": "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
+      "key": "Couldn't save your Google sign-in on this device. Try again.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
     },
     {
       "key": "Couldn't Send Feedback",
@@ -834,40 +857,20 @@
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
     },
     {
-      "key": "Delete %lld Files",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
-    },
-    {
       "key": "Delete %lld item",
       "fallback": "Delete %lld items",
       "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
     },
     {
       "key": "Delete %lld Items",
-      "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
+      "file": "Tidybyte/Features/Cleanup/CleanupDeletion.swift"
     },
     {
-      "key": "Delete %lld items from Photos?",
-      "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
-    },
-    {
-      "key": "Delete %lld Photos",
-      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
-    },
-    {
-      "key": "Delete %lld Screenshots",
-      "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
+      "key": "Delete 1 Item",
+      "file": "Tidybyte/Features/Cleanup/CleanupDeletion.swift"
     },
     {
       "key": "Delete file",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
-    },
-    {
-      "key": "Delete File",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
-    },
-    {
-      "key": "Delete Files",
       "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
     },
     {
@@ -904,35 +907,7 @@
     },
     {
       "key": "Delete Photo",
-      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
-    },
-    {
-      "key": "Delete Photos",
-      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
-    },
-    {
-      "key": "Delete Screenshot",
-      "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
-    },
-    {
-      "key": "Delete Screenshots",
-      "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
-    },
-    {
-      "key": "Delete Selected",
-      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
-    },
-    {
-      "key": "Delete Selected (%lld)",
-      "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
-    },
-    {
-      "key": "Delete Selected Burst Photos",
-      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
-    },
-    {
-      "key": "Delete Similar Photos",
-      "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "Delete video",
@@ -961,6 +936,10 @@
     {
       "key": "Deleted items go to Recently Deleted in Photos, where you can restore them for 30 days.",
       "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
+    },
+    {
+      "key": "Deletes the frames marked for deletion. The starred frame of each burst is kept.",
+      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
       "key": "Denied",
@@ -1063,8 +1042,8 @@
       "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
-      "key": "Failed to delete %lld photo",
-      "fallback": "Failed to delete %lld photos",
+      "key": "Failed to delete %lld photo: %@",
+      "fallback": "Failed to delete %lld photos: %@",
       "file": "Tidybyte/Features/Swipe/SwipeSessionViewModel.swift"
     },
     {
@@ -1170,6 +1149,10 @@
     {
       "key": "Google returned an error (%lld).",
       "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
+      "key": "Google returned the same page twice, so the list is incomplete.",
+      "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
     },
     {
       "key": "Haptics",
@@ -1349,8 +1332,11 @@
       "file": "Tidybyte/Features/Activity/ActivityView.swift"
     },
     {
-      "key": "Last scan, %@: %@ to review%@.",
-      "fallback": "Last scan, %@: %@ to review%@.",
+      "key": "Last scan, %@: %@ to review in selected photos.",
+      "file": "Tidybyte/Services/NotificationService.swift"
+    },
+    {
+      "key": "Last scan, %@: %@ to review.",
       "file": "Tidybyte/Services/NotificationService.swift"
     },
     {
@@ -1836,7 +1822,11 @@
     },
     {
       "key": "Preview photo, %@",
-      "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
+      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
+    },
+    {
+      "key": "Preview screenshot, %@",
+      "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
     },
     {
       "key": "ProRAW, ProRes, and RAW+JPEG totals are unavailable from the Photos subtype metadata used here.",
@@ -2162,6 +2152,10 @@
       "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
     },
     {
+      "key": "Sign-in failed.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
       "key": "Similar Photo Time Window",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
@@ -2318,6 +2312,10 @@
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
+      "key": "The best copy of each group will be kept.",
+      "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
+    },
+    {
       "key": "The best photo from each group will be kept.",
       "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
     },
@@ -2352,6 +2350,22 @@
     {
       "key": "the original videos",
       "file": "Tidybyte/Features/Cleanup/VideoCompression/VideoCompressionView.swift"
+    },
+    {
+      "key": "The selected burst frames will be deleted. Your chosen best photos are kept.",
+      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
+    },
+    {
+      "key": "The selected items will be deleted from Photos.",
+      "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
+    },
+    {
+      "key": "The selected photos will be deleted from Photos.",
+      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
+    },
+    {
+      "key": "The selected screenshots will be deleted from Photos.",
+      "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
     },
     {
       "key": "The session includes every photo and video taken on or before this date.",
@@ -2391,8 +2405,8 @@
       "file": "Tidybyte/Services/LocalPhotoIntelligence.swift"
     },
     {
-      "key": "This keeps the starred frame of each burst and deletes the rest.",
-      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
+      "key": "This item will be deleted from Photos.",
+      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
     },
     {
       "key": "This language is not supported by local AI.",
@@ -2419,28 +2433,24 @@
       "file": "Tidybyte/Services/LocalPhotoIntelligence.swift"
     },
     {
+      "key": "This photo will be deleted from Photos.",
+      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
+    },
+    {
       "key": "This removes both the still image and the motion. %@",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
+    },
+    {
+      "key": "This screenshot will be deleted from Photos.",
+      "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
     },
     {
       "key": "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
-      "key": "This will delete %@ of media. %@",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
-    },
-    {
       "key": "This will delete %@. %@",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
-    },
-    {
-      "key": "This will delete %lld duplicate items. %@",
-      "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
-    },
-    {
-      "key": "This will delete the selected burst frames and keep your chosen best photos. %@",
-      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
     {
       "key": "TidyByte",
@@ -2501,6 +2511,14 @@
     {
       "key": "TidyByte saves a new, smaller copy of each photo and keeps the originals. You get both versions in your library.",
       "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
+      "key": "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.",
+      "file": "Tidybyte/Services/VideoCompressionService.swift"
+    },
+    {
+      "key": "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterViewModel.swift"
     },
     {
       "key": "Time for a Photo Cleanup",
@@ -2591,7 +2609,8 @@
       "file": "TidybyteWidget/StorageWidgetView.swift"
     },
     {
-      "key": "Updated %lldd ago",
+      "key": "Updated %lld day ago",
+      "fallback": "Updated %lld days ago",
       "file": "TidybyteWidget/StorageWidgetView.swift"
     },
     {
@@ -2723,5 +2742,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 673
+  "total": 677
 }

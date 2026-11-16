@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DuplicateFinderView: View {
     @State private var viewModel = DuplicateFinderViewModel()
+    @Environment(LibraryChangeMonitor.self) private var libraryMonitor
     @State private var showDeleteConfirm = false
     // Set by a row's swipe-to-delete so the shared confirmation deletes only
     // that group's checked copies. nil means the bottom bar's selection.
@@ -19,6 +20,7 @@ struct DuplicateFinderView: View {
         return viewModel.selectedForDeletion.count
     }
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         VStack(spacing: 0) {
             // Non-modal error surface. Replaces the OK-only alert: an alert
@@ -60,6 +62,7 @@ struct DuplicateFinderView: View {
         // language changed keeps the old title. A `String` differs between the
         // two languages, so the title is re-applied.
         .localizedNavigationTitle("Duplicates")
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .happyPathCelebration(
             isPresented: $isCelebrating,
             statLine: L10n.format("removed %lld duplicate", fallback: "removed %lld duplicates", viewModel.deletedCount)
@@ -102,9 +105,9 @@ struct DuplicateFinderView: View {
             .localizedNavigationTitle("Compare")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .alert("Delete \(pendingDeleteCount) Items", isPresented: $showDeleteConfirm) {
+        .alert(CleanupDeletion.confirmTitle(count: pendingDeleteCount), isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete \(pendingDeleteCount) Items", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 let group = pendingGroup
                 pendingGroup = nil
                 Task {
@@ -121,10 +124,14 @@ struct DuplicateFinderView: View {
                 }
             }
         } message: {
-            Text("This will delete \(pendingDeleteCount) duplicate items. \(CleanupDeletion.recoverableNote)")
+            Text(CleanupDeletion.confirmMessage(L10n.string("The best copy of each group will be kept.")))
         }
         // DUP-02: leaving the screen must stop the scan (it would otherwise run
         // to completion in the background and re-enter on return).
+        // Items deleted elsewhere leave their groups when the library changes.
+        .task(id: libraryMonitor.generation) {
+            await viewModel.pruneDeleted()
+        }
         .onDisappear {
             viewModel.cancelScan()
         }
@@ -183,8 +190,9 @@ struct DuplicateFinderView: View {
                 VStack(spacing: 0) {
                     HStack(spacing: Spacing.md) {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text("\(viewModel.allGroups.count) groups")
+                            Text(L10n.format("%lld group", fallback: "%lld groups", viewModel.allGroups.count))
                                 .font(.headline)
+                                .fixedSize(horizontal: false, vertical: true)
                             Text("\(viewModel.totalDuplicateCount) duplicates · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -205,6 +213,7 @@ struct DuplicateFinderView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        .fixedSize(horizontal: false, vertical: true)
                         Spacer()
                         Image(systemName: "doc.on.doc")
                             .font(.title2)
@@ -239,16 +248,21 @@ struct DuplicateFinderView: View {
 
                     // DUP-04b: delete-selected bar, mirroring Similar Photos.
                     if !viewModel.selectedForDeletion.isEmpty {
-                        ActionBarView {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text("\(viewModel.selectedForDeletion.count) selected")
+                        CleanupActionBar {
+                            if dynamicTypeSize.isAccessibilitySize {
+                                Text("\(viewModel.selectedForDeletion.count) selected · \(viewModel.selectedSavingsBytes.formattedFileSize)")
                                     .font(.caption.bold())
-                                Text(viewModel.selectedSavingsBytes.formattedFileSize)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            } else {
+                                VStack(alignment: .leading, spacing: Spacing.xs) {
+                                    Text("\(viewModel.selectedForDeletion.count) selected")
+                                        .font(.caption.bold())
+                                    Text(viewModel.selectedSavingsBytes.formattedFileSize)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
 
-                            Spacer()
+                            AdaptiveSpacer()
 
                             if viewModel.isDeleting {
                                 // DUP-09: in-flight feedback instead of a dead button.
@@ -261,10 +275,12 @@ struct DuplicateFinderView: View {
                                     pendingGroup = nil
                                     showDeleteConfirm = true
                                 } label: {
-                                    Text("Delete Selected (\(viewModel.selectedForDeletion.count))")
+                                    Text(dynamicTypeSize.isAccessibilitySize ? "Delete" : "Delete Selected (\(viewModel.selectedForDeletion.count))")
                                         .font(.headline)
+                                        .fixedSize(horizontal: false, vertical: true)
                                         .padding(.horizontal, Spacing.xxl)
                                         .padding(.vertical, Spacing.sm)
+                                        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
                                         .background(Color.destructive)
                                         .foregroundStyle(.white)
                                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
@@ -278,12 +294,16 @@ struct DuplicateFinderView: View {
         }
     }
 
+    /// Accessibility sizes need room for "Keep This" and the star label; the
+    /// thumbnails stay 80 pt, centered in a wider column.
+    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 80 }
+
     private func duplicateGroupRow(_ group: DuplicateGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             // The header opens Compare; each thumbnail opens a preview; the
             // circle marks for deletion. Same pattern as Similar and Bursts.
             Button { selectedGroup = group } label: {
-                HStack {
+                AdaptiveRow(spacing: nil) {
                     // Two whole phrases, one per group type, rather than a noun
                     // spliced into a shared template: "%lld %@" cannot be
                     // reordered into languages that put the number after the
@@ -292,7 +312,7 @@ struct DuplicateFinderView: View {
                          ? L10n.format("%lld exact copies", group.assets.count)
                          : L10n.format("%lld look-alike photos", group.assets.count))
                         .font(.subheadline.bold())
-                    Spacer()
+                    AdaptiveSpacer()
                     Text("Compare")
                         .font(.caption.bold())
                     Image(systemName: "chevron.forward")
@@ -342,7 +362,7 @@ struct DuplicateFinderView: View {
                                 }
                             }
                         }
-                        .frame(width: 80)
+                        .frame(width: groupColumnWidth)
                     }
                 }
             }

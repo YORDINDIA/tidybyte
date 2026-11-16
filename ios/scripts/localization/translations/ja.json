@@ -1,8 +1,6 @@
 {
   "strings": {
-    "": "",
     " Favorites are kept.": " お気に入りは残されます。",
-    " in selected photos": "（選択した写真内）",
     " known · %lld sizes unavailable": " 判明分 · %lld件はサイズ不明",
     "%@ (%@)": "%@（%@）",
     "%@ (%lld)": "%@（%lld）",
@@ -17,18 +15,14 @@
     "%@ total": "合計 %@",
     "%@ used": "%@使用中",
     "%@ with TidyByte — a private, on-device photo cleanup app. %@": "%@ — 写真を端末内だけで整理できるプライベートなアプリ、TidyByteで。 %@",
-    "%@%@, %@": "%@%@、%@",
     "%@. %@ available.": "%@。%@ が利用できます。",
     "%@. Now %@.": "%@。現在は%@。",
     "%lld": "%lld",
-    "%lld %@": "%lld %@",
     "%lld MB": "%lld MB",
     "%lld bursts cleaned down to single photos.": "%lld件のバーストを1枚ずつの写真に整理しました。",
     "%lld of %lld": "%lld / %lld",
     "%lld of %lld reviewed": "%lld / %lld 確認済み",
     "%lld percent": "%lldパーセント",
-    "%lld%": "%lld%",
-    "%lld%%": "%lld%%",
     "%llds": "%lld秒",
     "-%@": "-%@",
     "1 burst cleaned down to a single photo.": "1件のバーストを1枚の写真に整理しました。",
@@ -71,7 +65,6 @@
     "Appearance": "外観",
     "Apps, system & other": "アプリ、システム、その他",
     "Auto-Clean": "自動クリーンアップ",
-    "Auto-Clean All Bursts": "すべてのバーストを自動クリーンアップ",
     "Automatic": "自動",
     "Automatic follows your device. TidyByte changes immediately; some iOS dialogs follow on the next launch.": "自動はデバイスの設定に従います。TidyByteはすぐに切り替わりますが、一部のiOSダイアログは次回起動時に反映されます。",
     "Back": "戻る",
@@ -171,21 +164,14 @@
     "Default Preset": "デフォルトのプリセット",
     "Delete": "削除",
     "Delete %@": "%@を削除",
-    "Delete File": "ファイルを削除",
-    "Delete Files": "ファイルを削除",
     "Delete Item?": "項目を削除しますか?",
     "Delete Live Photo": "Live Photoを削除",
     "Delete Live Photo?": "Live Photoを削除しますか?",
     "Delete Originals": "元の項目を削除",
     "Delete Originals After Compressing": "圧縮後に元の項目を削除",
     "Delete Photo": "写真を削除",
-    "Delete Photos": "写真を削除",
-    "Delete Screenshot": "スクリーンショットを削除",
-    "Delete Screenshots": "スクリーンショットを削除",
     "Delete Selected": "選択項目を削除",
     "Delete Selected (%lld)": "選択項目を削除 (%lld)",
-    "Delete Selected Burst Photos": "選択したバースト写真を削除",
-    "Delete Similar Photos": "類似した写真を削除",
     "Delete Video": "ビデオを削除",
     "Delete file": "ファイルを削除",
     "Delete is off until the photo loads.": "写真が読み込まれるまで削除はオフです。",
@@ -309,7 +295,6 @@
     "Largest": "大きい順",
     "Largest First": "大きい順",
     "Last 30 Days": "過去30日間",
-    "Last scan, %@: %@ to review%@.": "前回のスキャン %@: 確認する%@は%@。",
     "Leaves this photo unchanged and shows the next one": "この写真を変更せずに次を表示します",
     "Lens Smudge (%lld)": "レンズの汚れ (%lld)",
     "Lens smudge analysis is unavailable on this device.": "このデバイスではレンズの汚れ解析を利用できません。",
@@ -669,7 +654,6 @@
     "This is library size, not free space on the iPhone.": "これはライブラリのサイズで、iPhoneの空き容量ではありません。",
     "This item can't be compressed as a photo.": "この項目は写真として圧縮できません。",
     "This item uses %@; review whether you need it.": "この項目は%@を使用しています；必要かどうかを確認してください。",
-    "This keeps the starred frame of each burst and deletes the rest.": "各バーストでスターを付けたコマを残し、それ以外を削除します。",
     "This language is not supported by local AI.": "この言語はローカルAIではサポートされていません。",
     "This photo has very high brightness.": "この写真は明るさが非常に高いです。",
     "This photo has very low brightness.": "この写真は明るさが非常に低いです。",
@@ -677,9 +661,7 @@
     "This photo received a low visual-quality score.": "この写真の画質評価が低くなっています。",
     "This removes both the still image and the motion. %@": "静止画と動きの両方を削除します。%@",
     "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.": "すべてのスワイプ記録を消去します。すべての写真が再び「未スワイプ」として表示されます。この操作は取り消せません。",
-    "This will delete %@ of media. %@": "%@のメディアを削除します。%@",
     "This will delete %@. %@": "%@を削除します。%@",
-    "This will delete the selected burst frames and keep your chosen best photos. %@": "選択したバーストのコマを削除し、選んだベストな写真を残します。%@",
     "TidyByte": "TidyByte",
     "TidyByte Can't Start": "TidyByteを起動できません",
     "TidyByte Needs Your Photos": "TidyByteに写真へのアクセスが必要です",
@@ -719,7 +701,6 @@
     "Up to %@": "最大 %@",
     "Up to %@ can be freed in the items you picked": "選択した項目で最大 %@ を解放できます",
     "Up to %@ to free on iPhone": "iPhoneで最大%@を空けられます",
-    "Updated %lldd ago": "%lld日前に更新",
     "Use 300 characters or fewer.": "300文字以内で入力してください。",
     "Using label search across scanned photos.": "スキャン済みの写真でラベル検索を使用しています。",
     "Version": "バージョン",
@@ -785,7 +766,6 @@
     "items": "項目",
     "items, all time": "項目、全期間",
     "media": "メディア",
-    "size.bytes": "size.bytes",
     "the Live Photos": "元のLive Photo",
     "the original photos": "元の写真",
     "the original videos": "元のビデオ",
@@ -794,7 +774,31 @@
     "to": "〜",
     "today": "今日",
     "used": "使用中",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "動画を読み込めませんでした: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "削除対象としてマークされたフレームを削除します。各連写の星印付きフレームは残ります。",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "アプリがフォアグラウンドから離れたため、TidyByte は圧縮を停止しました。圧縮中は TidyByte を開いたままにして、もう一度お試しください。",
+    "%@ %@": "%@%@",
+    "Last scan, %@: %@ to review.": "前回のスキャン（%@）：確認対象 %@。",
+    "Last scan, %@: %@ to review in selected photos.": "前回のスキャン（%@）：選択した写真のうち確認対象 %@。",
+    "Bad URL.": "無効な URL です。",
+    "Sign-in failed.": "サインインに失敗しました。",
+    "Couldn't save your Google sign-in on this device. Try again.": "この端末に Google へのサインイン情報を保存できませんでした。もう一度お試しください。",
+    "%@ of media will be deleted from Photos.": "%@ 分のメディアを写真から削除します。",
+    "Delete 1 Item": "1 件を削除",
+    "Preview screenshot, %@": "スクリーンショットをプレビュー、%@",
+    "The best copy of each group will be kept.": "各グループのベストなコピーは残されます。",
+    "The selected burst frames will be deleted. Your chosen best photos are kept.": "選択した連写フレームを削除します。選んだベストな写真は残ります。",
+    "The selected items will be deleted from Photos.": "選択した項目を写真から削除します。",
+    "The selected photos will be deleted from Photos.": "選択した写真を写真アプリから削除します。",
+    "The selected screenshots will be deleted from Photos.": "選択したスクリーンショットを写真から削除します。",
+    "This item will be deleted from Photos.": "この項目を写真から削除します。",
+    "This photo will be deleted from Photos.": "この写真を写真アプリから削除します。",
+    "This screenshot will be deleted from Photos.": "このスクリーンショットを写真から削除します。",
+    "%lld of %lld items couldn't be prepared to share.": "%lld 件（全 %lld 件中）を共有用に準備できませんでした。",
+    "Google returned the same page twice, so the list is incomplete.": "Google が同じページを 2 回返したため、リストは不完全です。",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "この端末に Google へのサインイン情報を保存できず、Google にはまだアクセス権が残っています。Google アカウントのサードパーティ アクセス設定から TidyByte を削除してください。",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte はフォアグラウンドから離れたため、Live Photo の変換を停止しました。変換中は TidyByte を開いたままにして、もう一度お試しください。"
   },
   "plurals": {
     "%lld issues found": {
@@ -860,15 +864,6 @@
     "%lld Live Photos": {
       "other": "%lld枚のLive Photo"
     },
-    "%lld burst groups": {
-      "other": "%lld個のバースト"
-    },
-    "%lld groups": {
-      "other": "%lld個のグループ"
-    },
-    "%lld groups found": {
-      "other": "%lld個のグループが見つかりました"
-    },
     "%lld compressions": {
       "other": "%lld件の圧縮"
     },
@@ -889,9 +884,6 @@
     },
     "%lld active day, 30 days": {
       "other": "%lld日アクティブ、30日間"
-    },
-    "Failed to delete %lld photo": {
-      "other": "%lld枚の写真を削除できませんでした"
     },
     "Delete %lld item": {
       "other": "%lld個の項目を削除"
@@ -1003,6 +995,21 @@
     },
     "%lld videos over %lld MB": {
       "other": "%lld MB を超えるビデオ %lld本"
+    },
+    "%lld burst group": {
+      "other": "%lld個のバースト"
+    },
+    "%lld group": {
+      "other": "%lld個のグループ"
+    },
+    "%lld group found": {
+      "other": "%lld個のグループが見つかりました"
+    },
+    "Failed to delete %lld photo: %@": {
+      "other": "%lld 枚の写真を削除できませんでした: %@"
+    },
+    "Updated %lld day ago": {
+      "other": "%lld日前に更新"
     }
   }
 }

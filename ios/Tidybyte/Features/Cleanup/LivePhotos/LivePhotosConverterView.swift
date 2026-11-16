@@ -3,6 +3,7 @@ import SwiftData
 
 struct LivePhotosConverterView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var viewModel = LivePhotosConverterViewModel()
     @State private var showConvertAllConfirm = false
     @State private var previewItem: LivePhotoItem?
@@ -232,7 +233,12 @@ struct LivePhotosConverterView: View {
     // MARK: - Live Photo Row
 
     private func livePhotoRow(_ item: LivePhotoItem) -> some View {
-        HStack(spacing: Spacing.md) {
+        // Accessibility sizes stack the Convert control under the item, so the
+        // date and size get the full width instead of a squeezed column.
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.md))
+            : AnyLayout(HStackLayout(spacing: Spacing.md))
+        return layout {
             Button {
                 HapticHelper.impact(.light)
                 previewItem = item
@@ -249,7 +255,7 @@ struct LivePhotosConverterView: View {
 
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         if let date = item.asset.creationDate {
-                            Text(date, style: .date)
+                            Text(date, format: .dateTime.day().month(.abbreviated).year())
                                 .font(.subheadline)
                         }
 

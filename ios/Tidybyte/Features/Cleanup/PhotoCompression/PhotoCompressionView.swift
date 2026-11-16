@@ -7,6 +7,7 @@ struct PhotoCompressionView: View {
     @State private var previewStart: PhotoItem?
     @State private var rowToDelete: PhotoItem?
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var isCelebrating = false
     @State private var celebrationStatLine: String?
     private let photoService = PhotoLibraryService.shared
@@ -233,98 +234,120 @@ struct PhotoCompressionView: View {
     // MARK: - Photo Row
 
     private func photoRow(_ photo: PhotoItem) -> some View {
-        HStack(spacing: Spacing.md) {
-            // Always-visible selection checkbox. Tapping it (de)selects the row;
-            // tapping anywhere else on the row opens the preview.
-            Button {
-                HapticHelper.selection()
-                viewModel.toggleSelection(photo.id)
-            } label: {
-                Image(systemName: viewModel.selectedIds.contains(photo.id) ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(viewModel.selectedIds.contains(photo.id) ? .blue : .secondary)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(viewModel.selectedIds.contains(photo.id) ? "Deselect photo" : "Select photo")
-            .accessibilityAddTraits(viewModel.selectedIds.contains(photo.id) ? [.isButton, .isSelected] : .isButton)
-
-            AsyncThumbnailView(assetId: photo.id, photoService: photoService)
-                .frame(width: 60, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
-
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                if let date = photo.asset.creationDate {
-                    Text(date, style: .date)
-                        .font(.subheadline)
-                }
-                Menu {
-                    ForEach(PhotoCompressionPreset.presets) { preset in
-                        Button(preset.label) {
-                            viewModel.setPreset(preset, for: photo.id)
-                        }
-                    }
-                    Section("Max File Size") {
-                        ForEach(PhotoCompressionPreset.maxSizeChoicesMB, id: \.self) { mb in
-                            let preset = PhotoCompressionPreset.maxSize(megabytes: mb)
-                            Button(preset.label) { viewModel.setPreset(preset, for: photo.id) }
-                        }
-                    }
+        // At accessibility sizes the details move below the row. Beside the
+        // thumbnail, the Dynamic Type text wraps one word or one character per line.
+        let isAX = dynamicTypeSize.isAccessibilitySize
+        return VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(spacing: Spacing.md) {
+                // Always-visible selection checkbox. Tapping it (de)selects the row;
+                // tapping anywhere else on the row opens the preview.
+                Button {
+                    HapticHelper.selection()
+                    viewModel.toggleSelection(photo.id)
                 } label: {
-                    Text(photo.selectedPreset.label)
-                        .font(.caption.bold())
-                        .foregroundStyle(.blue)
-                }
-
-                Text(photo.asset.resolution)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                compressionStateLabel(photo)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: Spacing.xs) {
-                Text(photo.asset.displaySize)
-                    .font(.headline.monospacedDigit())
-
-                // A rough guess, so grey and labelled. HEIC is already
-                // efficient: a guess there would promise savings that rarely
-                // happen.
-                let estimated = viewModel.estimateSize(for: photo)
-                if let measured = viewModel.measuredSize(for: photo) {
-                    // Real size from "Check Sizes"; 0 means the limit can't be reached.
-                    Text(measured > 0 ? "→ \(measured.formattedFileSize)" : "Can't fit")
-                        .font(.caption.bold())
-                        .foregroundStyle(measured > 0 && measured < photo.asset.fileSize ? Color.success : .secondary)
-                } else if PhotoCompressionViewModel.isAlreadyUnderTarget(photo.asset, preset: photo.selectedPreset) {
-                    Text("Already under limit")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else if estimated < photo.asset.fileSize, !photo.asset.isHEIC || photo.selectedPreset.targetBytes != nil {
-                    Text("est. ~\(estimated.formattedFileSize)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if !viewModel.isCompressing {
-                Button(role: .destructive) {
-                    rowToDelete = photo
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.body)
-                        .foregroundStyle(.red)
+                    Image(systemName: viewModel.selectedIds.contains(photo.id) ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(viewModel.selectedIds.contains(photo.id) ? .blue : .secondary)
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Delete photo")
+                .accessibilityLabel(viewModel.selectedIds.contains(photo.id) ? "Deselect photo" : "Select photo")
+                .accessibilityAddTraits(viewModel.selectedIds.contains(photo.id) ? [.isButton, .isSelected] : .isButton)
+
+                AsyncThumbnailView(assetId: photo.id, photoService: photoService)
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+
+                if isAX {
+                    Spacer()
+                } else {
+                    photoDetails(photo)
+                    Spacer()
+                    photoSizeColumn(photo, alignment: .trailing)
+                }
+
+                if !viewModel.isCompressing {
+                    Button(role: .destructive) {
+                        rowToDelete = photo
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.body)
+                            .foregroundStyle(.red)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Delete photo")
+                }
             }
+            // At accessibility sizes the details and size go full width under the
+            // row. Beside the thumbnail they got a sliver of the width.
+            if isAX {
+                photoDetails(photo)
+                photoSizeColumn(photo, alignment: .leading)
+            }
+            // Full row width, under the row: in the middle column an error
+            // got ~100 pt and was cut off.
+            compressionStateLabel(photo)
         }
         .contentShape(Rectangle())
         .onTapGesture { previewStart = photo }
+    }
+
+    private func photoDetails(_ photo: PhotoItem) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            if let date = photo.asset.creationDate {
+                Text(date, format: .dateTime.day().month(.abbreviated).year())
+                    .font(.subheadline)
+            }
+            Menu {
+                ForEach(PhotoCompressionPreset.presets) { preset in
+                    Button(preset.label) {
+                        viewModel.setPreset(preset, for: photo.id)
+                    }
+                }
+                Section("Max File Size") {
+                    ForEach(PhotoCompressionPreset.maxSizeChoicesMB, id: \.self) { mb in
+                        let preset = PhotoCompressionPreset.maxSize(megabytes: mb)
+                        Button(preset.label) { viewModel.setPreset(preset, for: photo.id) }
+                    }
+                }
+            } label: {
+                Text(photo.selectedPreset.label)
+                    .font(.caption.bold())
+                    .foregroundStyle(.blue)
+            }
+
+            Text(photo.asset.resolution)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func photoSizeColumn(_ photo: PhotoItem, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: Spacing.xs) {
+            Text(photo.asset.displaySize)
+                .font(.headline.monospacedDigit())
+
+            // A rough guess, so grey and labelled. HEIC is already
+            // efficient: a guess there would promise savings that rarely
+            // happen.
+            let estimated = viewModel.estimateSize(for: photo)
+            if let measured = viewModel.measuredSize(for: photo) {
+                // Real size from "Check Sizes"; 0 means the limit can't be reached.
+                Text(measured > 0 ? "→ \(measured.formattedFileSize)" : "Can't fit")
+                    .font(.caption.bold())
+                    .foregroundStyle(measured > 0 && measured < photo.asset.fileSize ? Color.success : .secondary)
+            } else if PhotoCompressionViewModel.isAlreadyUnderTarget(photo.asset, preset: photo.selectedPreset) {
+                Text("Already under limit")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if estimated < photo.asset.fileSize, !photo.asset.isHEIC || photo.selectedPreset.targetBytes != nil {
+                Text("est. ~\(estimated.formattedFileSize)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     // MARK: - Compression State Label
@@ -350,13 +373,12 @@ struct PhotoCompressionView: View {
             Text(reason)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         case .failed(let msg):
-            // Room for the whole reason instead of "The operation cou…".
+            // No line limit: the whole reason must be readable.
             Text(msg)
                 .font(.caption2)
                 .foregroundStyle(Color.destructive)
-                .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

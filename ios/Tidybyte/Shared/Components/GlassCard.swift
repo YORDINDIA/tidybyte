@@ -50,7 +50,7 @@ struct GlassCardModifier: ViewModifier {
                             .strokeBorder(border, lineWidth: borderWidth)
                     }
             }
-            .subtleShadow()
+            // No drop shadow: the tonal fill and the hairline border define the card.
     }
 }
 

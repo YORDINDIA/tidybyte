@@ -29,7 +29,7 @@ final class MediaCleanerViewModel {
 
     private func refreshFilter() {
         let visible = activeAlbumID.map { id in assets.filter { membership[id, default: []].contains($0.id) } } ?? assets
-        filteredAssets = MediaAssetFilter.apply(from: visible.filter { $0.fileSize >= 0 }, mediaFilter: mediaFilter, sortOrder: sortOrder)
+        filteredAssets = MediaAssetFilter.apply(from: visible, mediaFilter: mediaFilter, sortOrder: sortOrder)
         visibleIDs = Set(filteredAssets.map(\.id))
         filteredSizeLabel = Self.sizeLabel(filteredAssets)
         refreshSelection()

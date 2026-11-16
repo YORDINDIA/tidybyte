@@ -49,8 +49,10 @@ struct ToolErrorBanner: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let onRetry {
-                    Button(retryTitle, action: onRetry)
-                        .font(.footnote.bold())
+                    Button(action: onRetry) {
+                        Text(retryTitle).foregroundStyle(Color.actionText)
+                    }
+                    .font(.footnote.bold())
                         .padding(.top, Spacing.xs)
                 }
             }

@@ -15,15 +15,21 @@ struct RecentlyDeletedNotice: View {
                         .font(.caption)
                 }
                 HStack {
-                    Button("Open Photos") {
+                    Button {
                         guard let url = URL(string: "photos-redirect://") else { return }
                         openURL(url) { accepted in
                             if accepted { CleanupLedger.shared.dismissDeletionNotice(id: notice.id) }
                             else { showInstructions = true }
                         }
+                    } label: {
+                        Text("Open Photos").foregroundStyle(Color.actionText)
                     }
                     Spacer()
-                    Button("Dismiss") { CleanupLedger.shared.dismissDeletionNotice(id: notice.id) }
+                    Button {
+                        CleanupLedger.shared.dismissDeletionNotice(id: notice.id)
+                    } label: {
+                        Text("Dismiss").foregroundStyle(Color.actionText)
+                    }
                 }
                 .frame(minHeight: 44)
             }

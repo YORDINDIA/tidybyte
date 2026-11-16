@@ -422,7 +422,30 @@ final class SimilarPhotosViewModel {
             )
         }
         selectedForDeletion.formIntersection(Set(groups.flatMap { $0.assets.map(\.id) }))
+        // A keeper is never marked. A re-picked keeper may have been selected as a
+        // copy, and with no delete toggle the user could not clear it.
+        selectedForDeletion.subtract(groups.map(\.bestAssetId))
         ScanResults.record(.similar, count: totalDuplicateCount)
+    }
+
+    /// Drops items deleted elsewhere (Swipe Review, the Photos app) from their
+    /// groups, as Blurry Photos does. Runs on a library change, and only after a
+    /// scan has published results.
+    /// `authorization` defaults to the live status; tests pass one. Without library
+    /// access `existingIds` is empty, which would read as every asset deleted.
+    func pruneDeleted(authorization: PHAuthorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)) async {
+        guard scanState == .completed, !isDeleting else { return }
+        let gone = await CleanupDeletion.vanishedIds(among: Set(groups.flatMap { $0.assets.map(\.id) }), authorization: authorization)
+        guard scanState == .completed, !isDeleting else { return }
+        pruneGone(gone)
+    }
+
+    /// Removes `gone` from every group. A group left with one item disappears,
+    /// the keeper is re-picked when it was removed, and the selection keeps only
+    /// ids that still exist.
+    func pruneGone(_ gone: Set<String>) {
+        guard !gone.isEmpty else { return }
+        applyDeletion(of: gone)
     }
 
     func toggleSelection(_ assetId: String) {

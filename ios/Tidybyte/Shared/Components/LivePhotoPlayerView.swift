@@ -41,7 +41,6 @@ struct LivePhotoPlayerView: UIViewRepresentable {
             context.coordinator.loadedAssetId = assetId
             uiView.livePhoto = nil
             context.coordinator.hasAutoPlayed = false
-            context.coordinator.isLoading = true
 
             let coordinator = context.coordinator
             let service = photoService
@@ -54,7 +53,6 @@ struct LivePhotoPlayerView: UIViewRepresentable {
                 let livePhoto = await service.loadLivePhoto(for: assetId, targetSize: size)
                 guard !Task.isCancelled else { return }
                 guard coordinator.loadedAssetId == assetId else { return }
-                coordinator.isLoading = false
                 view.livePhoto = livePhoto
                 if let livePhoto {
                     coordinator.loadedAssetId = assetId
@@ -78,7 +76,6 @@ struct LivePhotoPlayerView: UIViewRepresentable {
         coordinator.loadTask?.cancel()
         coordinator.loadTask = nil
         coordinator.loadedAssetId = nil
-        coordinator.isLoading = false
         coordinator.hasAutoPlayed = false
         uiView.stopPlayback()
         uiView.livePhoto = nil
@@ -92,7 +89,6 @@ struct LivePhotoPlayerView: UIViewRepresentable {
     @MainActor
     final class Coordinator: NSObject {
         var loadedAssetId: String?
-        var isLoading = false
         var hasAutoPlayed = false
         var loadTask: Task<Void, Never>?
     }

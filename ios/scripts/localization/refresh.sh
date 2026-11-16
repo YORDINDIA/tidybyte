@@ -102,8 +102,8 @@ done < <(find "$DERIVED" -maxdepth 3 -type d -name 'Intermediates.noindex' 2>/de
 APP_DATA=""
 WIDGET_DATA=""
 if [ ${#INTERMEDIATES[@]} -gt 0 ]; then
-  APP_DATA=$(find "${INTERMEDIATES[@]}" -name '*.stringsdata' -path '*Tidybyte.build*' 2>/dev/null || true)
-  WIDGET_DATA=$(find "${INTERMEDIATES[@]}" -name '*.stringsdata' -path '*TidybyteWidget.build*' 2>/dev/null || true)
+  APP_DATA=$(find "${INTERMEDIATES[@]}" -name '*.stringsdata' -path '*/Tidybyte.build/*' 2>/dev/null || true)
+  WIDGET_DATA=$(find "${INTERMEDIATES[@]}" -name '*.stringsdata' -path '*/TidybyteWidget.build/*' 2>/dev/null || true)
 fi
 
 if [ -z "$APP_DATA" ]; then

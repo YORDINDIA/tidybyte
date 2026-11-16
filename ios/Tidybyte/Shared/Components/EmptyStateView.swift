@@ -40,7 +40,7 @@ struct EmptyStateView: View {
                         .font(.headline)
                         .padding(.horizontal, Spacing.xxxl)
                         .padding(.vertical, Spacing.md)
-                        .background(.tint)
+                        .background(Color.actionFill)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
                 }
@@ -88,6 +88,7 @@ struct PreviewEmptyState: View {
                 .foregroundStyle(.white)
             Button("Done") { dismiss() }
                 .buttonStyle(.borderedProminent)
+                .tint(Color.actionFill)
         }
     }
 }

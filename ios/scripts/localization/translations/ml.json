@@ -1,8 +1,6 @@
 {
   "strings": {
-    "": "",
     " Favorites are kept.": " പ്രിയപ്പെട്ടവ നിലനിർത്തുന്നു.",
-    " in selected photos": " തിരഞ്ഞെടുത്ത ഫോട്ടോകളിൽ",
     " known · %lld sizes unavailable": " അറിയാം · %lld വലിപ്പങ്ങൾ ലഭ്യമല്ല",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -17,18 +15,14 @@
     "%@ total": "ആകെ %@",
     "%@ used": "%@ ഉപയോഗിച്ചു",
     "%@ with TidyByte — a private, on-device photo cleanup app. %@": "%@ — TidyByte ഉപയോഗിച്ച്, സ്വകാര്യവും ഉപകരണത്തിൽ തന്നെ പ്രവർത്തിക്കുന്നതുമായ ഫോട്ടോ ക്ലീനപ്പ് ആപ്പ്. %@",
-    "%@%@, %@": "%@%@, %@",
     "%@. %@ available.": "%@. %@ ലഭ്യമാണ്.",
     "%@. Now %@.": "%@. ഇപ്പോൾ %@.",
     "%lld": "%lld",
-    "%lld %@": "%lld %@",
     "%lld MB": "%lld MB",
     "%lld bursts cleaned down to single photos.": "%lld ബർസ്റ്റുകൾ ഒറ്റ ഫോട്ടോകളിലേക്ക് ക്ലീൻ ചെയ്തു.",
     "%lld of %lld": "%lld-ൽ %lld",
     "%lld of %lld reviewed": "%lld-ൽ %lld പരിശോധിച്ചു",
     "%lld percent": "%lld ശതമാനം",
-    "%lld%": "%lld%",
-    "%lld%%": "%lld%%",
     "%llds": "%llds",
     "-%@": "-%@",
     "1 burst cleaned down to a single photo.": "1 ബർസ്റ്റ് ഒരു ഫോട്ടോയിലേക്ക് ക്ലീൻ ചെയ്തു.",
@@ -71,7 +65,6 @@
     "Appearance": "രൂപഭാവം",
     "Apps, system & other": "ആപ്പുകൾ, സിസ്റ്റം, മറ്റുള്ളവ",
     "Auto-Clean": "ഓട്ടോ-ക്ലീൻ",
-    "Auto-Clean All Bursts": "എല്ലാ ബർസ്റ്റുകളും ഓട്ടോ-ക്ലീൻ ചെയ്യുക",
     "Automatic": "സ്വയമേവ",
     "Automatic follows your device. TidyByte changes immediately; some iOS dialogs follow on the next launch.": "സ്വയമേവ നിങ്ങളുടെ ഉപകരണത്തെ പിന്തുടരുന്നു. TidyByte ഉടൻ മാറും; ചില iOS ഡയലോഗുകൾ അടുത്ത തവണ തുറക്കുമ്പോൾ മാറും.",
     "Back": "പിന്നോട്ട്",
@@ -171,21 +164,14 @@
     "Default Preset": "സ്ഥിരസ്ഥിതി പ്രീസെറ്റ്",
     "Delete": "ഇല്ലാതാക്കുക",
     "Delete %@": "%@ ഇല്ലാതാക്കുക",
-    "Delete File": "ഫയൽ ഇല്ലാതാക്കുക",
-    "Delete Files": "ഫയലുകൾ ഇല്ലാതാക്കുക",
     "Delete Item?": "ഇനം ഇല്ലാതാക്കണോ?",
     "Delete Live Photo": "Live Photo ഇല്ലാതാക്കുക",
     "Delete Live Photo?": "Live Photo ഇല്ലാതാക്കണോ?",
     "Delete Originals": "ഒറിജിനലുകൾ ഇല്ലാതാക്കുക",
     "Delete Originals After Compressing": "കംപ്രസ് ചെയ്തതിന് ശേഷം ഒറിജിനലുകൾ ഇല്ലാതാക്കുക",
     "Delete Photo": "ഫോട്ടോ ഇല്ലാതാക്കുക",
-    "Delete Photos": "ഫോട്ടോകൾ ഇല്ലാതാക്കുക",
-    "Delete Screenshot": "സ്ക്രീൻഷോട്ട് ഇല്ലാതാക്കുക",
-    "Delete Screenshots": "സ്ക്രീൻഷോട്ടുകൾ ഇല്ലാതാക്കുക",
     "Delete Selected": "തിരഞ്ഞെടുത്തവ ഇല്ലാതാക്കുക",
     "Delete Selected (%lld)": "തിരഞ്ഞെടുത്തവ ഇല്ലാതാക്കുക (%lld)",
-    "Delete Selected Burst Photos": "തിരഞ്ഞെടുത്ത ബർസ്റ്റ് ഫോട്ടോകൾ ഇല്ലാതാക്കുക",
-    "Delete Similar Photos": "സമാന ഫോട്ടോകൾ ഇല്ലാതാക്കുക",
     "Delete Video": "വീഡിയോ ഇല്ലാതാക്കുക",
     "Delete file": "ഫയൽ ഇല്ലാതാക്കുക",
     "Delete is off until the photo loads.": "ഫോട്ടോ ലോഡ് ആകുന്നതുവരെ ഇല്ലാതാക്കൽ ഓഫ് ആയിരിക്കും.",
@@ -309,7 +295,6 @@
     "Largest": "ഏറ്റവും വലിയത്",
     "Largest First": "ഏറ്റവും വലിയത് ആദ്യം",
     "Last 30 Days": "കഴിഞ്ഞ 30 ദിവസം",
-    "Last scan, %@: %@ to review%@.": "അവസാന സ്കാൻ, %@: പരിശോധിക്കാൻ %@%@.",
     "Leaves this photo unchanged and shows the next one": "ഈ ഫോട്ടോ മാറ്റാതെ അടുത്തത് കാണിക്കുന്നു",
     "Lens Smudge (%lld)": "ലെൻസിലെ പാട് (%lld)",
     "Lens smudge analysis is unavailable on this device.": "ഈ ഉപകരണത്തിൽ ലെൻസ് പാട് വിശകലനം ലഭ്യമല്ല.",
@@ -669,7 +654,6 @@
     "This is library size, not free space on the iPhone.": "ഇത് ലൈബ്രറി വലിപ്പമാണ്, iPhone-ലെ ഒഴിവുള്ള സ്ഥലമല്ല.",
     "This item can't be compressed as a photo.": "ഈ ഇനം ഫോട്ടോ ആയി കംപ്രസ് ചെയ്യാനാകില്ല.",
     "This item uses %@; review whether you need it.": "ഈ ഇനം %@ ഉപയോഗിക്കുന്നു; അത് നിങ്ങൾക്ക് വേണോ എന്ന് പരിശോധിക്കുക.",
-    "This keeps the starred frame of each burst and deletes the rest.": "ഇത് ഓരോ ബർസ്റ്റിന്റെയും നക്ഷത്രമിട്ട ഫ്രെയിം നിലനിർത്തി ബാക്കിയുള്ളവ ഇല്ലാതാക്കും.",
     "This language is not supported by local AI.": "ഈ ഭാഷയ്ക്ക് ലോക്കൽ AI പിന്തുണയില്ല.",
     "This photo has very high brightness.": "ഈ ഫോട്ടോയിൽ വളരെ കൂടിയ പ്രകാശമാണ്.",
     "This photo has very low brightness.": "ഈ ഫോട്ടോയിൽ വളരെ കുറഞ്ഞ പ്രകാശമാണ്.",
@@ -677,9 +661,7 @@
     "This photo received a low visual-quality score.": "ഈ ഫോട്ടോയ്ക്ക് കുറഞ്ഞ ദൃശ്യ-ഗുണനിലവാര സ്കോർ ലഭിച്ചു.",
     "This removes both the still image and the motion. %@": "ഇത് സ്റ്റിൽ ഇമേജും ചലനവും രണ്ടും നീക്കും. %@",
     "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.": "ഇത് എല്ലാ സ്വൈപ്പ് രേഖകളും മായ്ക്കും. എല്ലാ ഫോട്ടോകളും വീണ്ടും \"ഇതുവരെ സ്വൈപ്പ് ചെയ്തിട്ടില്ല\" എന്ന് കാണിക്കും. ഇത് പഴയപടിയാക്കാനാകില്ല.",
-    "This will delete %@ of media. %@": "ഇത് %@ മീഡിയ ഇല്ലാതാക്കും. %@",
     "This will delete %@. %@": "ഇത് %@ ഇല്ലാതാക്കും. %@",
-    "This will delete the selected burst frames and keep your chosen best photos. %@": "ഇത് തിരഞ്ഞെടുത്ത ബർസ്റ്റ് ഫ്രെയിമുകൾ ഇല്ലാതാക്കി നിങ്ങൾ തിരഞ്ഞെടുത്ത മികച്ച ഫോട്ടോകൾ നിലനിർത്തും. %@",
     "TidyByte": "TidyByte",
     "TidyByte Can't Start": "TidyByte ആരംഭിക്കാനാകുന്നില്ല",
     "TidyByte Needs Your Photos": "TidyByte-ന് നിങ്ങളുടെ ഫോട്ടോകൾ ആവശ്യമാണ്",
@@ -719,7 +701,6 @@
     "Up to %@": "%@ വരെ",
     "Up to %@ can be freed in the items you picked": "നിങ്ങൾ തിരഞ്ഞെടുത്ത ഇനങ്ങളിൽ %@ വരെ ഒഴിവാക്കാം",
     "Up to %@ to free on iPhone": "iPhone-ൽ ഒഴിവാക്കാൻ %@ വരെ",
-    "Updated %lldd ago": "%lld ദിവസം മുമ്പ് പുതുക്കി",
     "Use 300 characters or fewer.": "300 പ്രതീകങ്ങളോ അതിൽ കുറവോ ഉപയോഗിക്കുക.",
     "Using label search across scanned photos.": "സ്കാൻ ചെയ്ത ഫോട്ടോകളിൽ ലേബൽ തിരയൽ ഉപയോഗിക്കുന്നു.",
     "Version": "പതിപ്പ്",
@@ -785,16 +766,39 @@
     "items": "ഇനങ്ങൾ",
     "items, all time": "ഇനങ്ങൾ, എക്കാലവും",
     "media": "മീഡിയ",
-    "size.bytes": "size.bytes",
     "the Live Photos": "ഒറിജിനൽ Live Photos",
     "the original photos": "ഒറിജിനൽ ഫോട്ടോകൾ",
     "the original videos": "ഒറിജിനൽ വീഡിയോകൾ",
     "the still image of each Live Photo as a new photo": "ഓരോ Live Photo-യുടെയും സ്റ്റിൽ ഇമേജ് പുതിയ ഫോട്ടോ ആയി",
     "this month": "ഈ മാസം",
-    "to": "മുതൽ",
+    "to": "ലേക്ക്",
     "today": "ഇന്ന്",
     "used": "ഉപയോഗിച്ചു",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "വീഡിയോ ലോഡ് ചെയ്യാനായില്ല: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "ഇല്ലാതാക്കാൻ അടയാളപ്പെടുത്തിയ ഫ്രെയിമുകൾ ഇല്ലാതാക്കുന്നു. ഓരോ ബർസ്റ്റിലെയും നക്ഷത്രം അടയാളപ്പെടുത്തിയ ഫ്രെയിം നിലനിർത്തുന്നു.",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "ആപ്പ് ഫോർഗ്രൗണ്ടിൽ നിന്ന് മാറിയതിനാൽ TidyByte കംപ്രഷൻ നിർത്തി. കംപ്രസ് ചെയ്യുമ്പോൾ TidyByte തുറന്നുവെച്ച് വീണ്ടും ശ്രമിക്കുക.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "അവസാന സ്കാൻ, %@: പരിശോധിക്കേണ്ടത് %@.",
+    "Last scan, %@: %@ to review in selected photos.": "അവസാന സ്കാൻ, %@: തിരഞ്ഞെടുത്ത ഫോട്ടോകളിൽ പരിശോധിക്കേണ്ടത് %@.",
+    "Bad URL.": "അസാധുവായ URL.",
+    "Sign-in failed.": "സൈൻ ഇൻ പരാജയപ്പെട്ടു.",
+    "Couldn't save your Google sign-in on this device. Try again.": "ഈ ഉപകരണത്തിൽ നിങ്ങളുടെ Google സൈൻ ഇൻ സേവ് ചെയ്യാനായില്ല. വീണ്ടും ശ്രമിക്കുക.",
+    "%@ of media will be deleted from Photos.": "ഫോട്ടോകളിൽ നിന്ന് %@ മീഡിയ ഇല്ലാതാക്കും.",
+    "Delete 1 Item": "1 ഇനം ഇല്ലാതാക്കുക",
+    "Preview screenshot, %@": "സ്ക്രീൻഷോട്ട് പ്രിവ്യൂ, %@",
+    "The best copy of each group will be kept.": "ഓരോ ഗ്രൂപ്പിലെയും മികച്ച പകർപ്പ് നിലനിർത്തും.",
+    "The selected burst frames will be deleted. Your chosen best photos are kept.": "തിരഞ്ഞെടുത്ത ബർസ്റ്റ് ഫ്രെയിമുകൾ ഇല്ലാതാക്കും. നിങ്ങൾ തിരഞ്ഞെടുത്ത മികച്ച ഫോട്ടോകൾ നിലനിർത്തും.",
+    "The selected items will be deleted from Photos.": "തിരഞ്ഞെടുത്ത ഇനങ്ങൾ ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
+    "The selected photos will be deleted from Photos.": "തിരഞ്ഞെടുത്ത ഫോട്ടോകൾ ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
+    "The selected screenshots will be deleted from Photos.": "തിരഞ്ഞെടുത്ത സ്ക്രീൻഷോട്ടുകൾ ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
+    "This item will be deleted from Photos.": "ഈ ഇനം ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
+    "This photo will be deleted from Photos.": "ഈ ഫോട്ടോ ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
+    "This screenshot will be deleted from Photos.": "ഈ സ്ക്രീൻഷോട്ട് ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld ഇനങ്ങൾ (ആകെ %lld) പങ്കിടാൻ തയ്യാറാക്കാനായില്ല.",
+    "Google returned the same page twice, so the list is incomplete.": "ഒരേ പേജ് Google രണ്ടു തവണ തിരികെ നൽകി, അതിനാൽ പട്ടിക അപൂർണ്ണമാണ്.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "ഈ ഉപകരണത്തിൽ നിങ്ങളുടെ Google സൈൻ ഇൻ സേവ് ചെയ്യാനായില്ല, Google ഇപ്പോഴും ആക്‌സസ് നിലനിർത്തുന്നു. നിങ്ങളുടെ Google അക്കൗണ്ടിലെ മൂന്നാം കക്ഷി ആക്‌സസ് ക്രമീകരണങ്ങളിൽ TidyByte നീക്കം ചെയ്യുക.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte മുൻനിരയിൽ നിന്ന് പോയതിനാൽ Live Photo പരിവർത്തനം നിർത്തി. പരിവർത്തനം നടക്കുമ്പോൾ TidyByte തുറന്നുവെക്കുക, പിന്നീട് വീണ്ടും ശ്രമിക്കുക."
   },
   "plurals": {
     "%lld issues found": {
@@ -881,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld ബർസ്റ്റ് ഗ്രൂപ്പ്",
-      "other": "%lld ബർസ്റ്റ് ഗ്രൂപ്പുകൾ"
-    },
-    "%lld groups": {
-      "one": "%lld ഗ്രൂപ്പ്",
-      "other": "%lld ഗ്രൂപ്പുകൾ"
-    },
-    "%lld groups found": {
-      "one": "%lld ഗ്രൂപ്പ് കണ്ടെത്തി",
-      "other": "%lld ഗ്രൂപ്പുകൾ കണ്ടെത്തി"
-    },
     "%lld compressions": {
       "one": "%lld കംപ്രഷൻ",
       "other": "%lld കംപ്രഷനുകൾ"
@@ -920,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld സജീവ ദിവസം, 30 ദിവസം",
       "other": "%lld സജീവ ദിവസങ്ങൾ, 30 ദിവസം"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld ഫോട്ടോ ഇല്ലാതാക്കാനായില്ല",
-      "other": "%lld ഫോട്ടോകൾ ഇല്ലാതാക്കാനായില്ല"
     },
     "Delete %lld item": {
       "one": "%lld ഇനം ഇല്ലാതാക്കുക",
@@ -1072,6 +1060,26 @@
     "%lld videos over %lld MB": {
       "one": "%lld വീഡിയോ %lld MB-ൽ കൂടുതൽ",
       "other": "%lld വീഡിയോകൾ %lld MB-ൽ കൂടുതൽ"
+    },
+    "%lld burst group": {
+      "one": "%lld ബർസ്റ്റ് ഗ്രൂപ്പ്",
+      "other": "%lld ബർസ്റ്റ് ഗ്രൂപ്പുകൾ"
+    },
+    "%lld group": {
+      "one": "%lld ഗ്രൂപ്പ്",
+      "other": "%lld ഗ്രൂപ്പുകൾ"
+    },
+    "%lld group found": {
+      "one": "%lld ഗ്രൂപ്പ് കണ്ടെത്തി",
+      "other": "%lld ഗ്രൂപ്പുകൾ കണ്ടെത്തി"
+    },
+    "Failed to delete %lld photo: %@": {
+      "one": "%lld ഫോട്ടോ ഇല്ലാതാക്കാനായില്ല: %@",
+      "other": "%lld ഫോട്ടോകൾ ഇല്ലാതാക്കാനായില്ല: %@"
+    },
+    "Updated %lld day ago": {
+      "one": "%lld ദിവസം മുമ്പ് പുതുക്കി",
+      "other": "%lld ദിവസം മുമ്പ് പുതുക്കി"
     }
   }
 }

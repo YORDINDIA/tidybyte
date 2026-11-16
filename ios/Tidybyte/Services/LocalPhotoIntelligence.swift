@@ -191,6 +191,7 @@ actor LocalPhotoIntelligence {
             : L10n.string("Using label search across scanned photos.")
         // `reason` arrives already localized from the caller, so both halves are
         // in the user's language and the two can simply be joined.
-        return PhotoSearchResult(query: query, message: "\(reason) \(explanation)")
+        // One catalog key with two placeholders, so a translator controls the joiner.
+        return PhotoSearchResult(query: query, message: L10n.format("%@ %@", reason, explanation))
     }
 }

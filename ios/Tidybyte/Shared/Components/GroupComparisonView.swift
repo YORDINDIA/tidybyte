@@ -64,8 +64,6 @@ struct ComparisonDescriptor<G: ComparisonGroup> {
     let keepTitle: String
     /// Same wording in every tool: "Delete" marks, "Don't Delete" unmarks.
     let deleteTitle: String
-    /// Pill background opacity: 0.8 (Duplicates) vs 0.85 (Similar) — preserved.
-    let pillOpacity: Double
 }
 
 extension ComparisonDescriptor where G == DuplicateComparison {
@@ -73,11 +71,10 @@ extension ComparisonDescriptor where G == DuplicateComparison {
         Self(
             bestPillText: { _ in L10n.string("Best") },
             statusText: { _, isBest in isBest ? L10n.string("Best quality") : nil },
-            statusColor: { _, _ in .green },
+            statusColor: { _, _ in Color.successText },
             keepBestTitle: L10n.string("Keep as Best"),
             keepTitle: L10n.string("Don't Delete"),
             deleteTitle: L10n.string("Delete"),
-            pillOpacity: 0.8
         )
     }
 }
@@ -91,11 +88,10 @@ extension ComparisonDescriptor where G == SimilarComparison {
                     ? L10n.format("Keeping this · %@", group.base.bestReason.displayName)
                     : L10n.format("Recommended: %@", group.base.bestReason.displayName)
             },
-            statusColor: { _, isBest in isBest ? .green : .secondary },
+            statusColor: { _, isBest in isBest ? Color.successText : .secondary },
             keepBestTitle: L10n.string("Keep as Best"),
             keepTitle: L10n.string("Don't Delete"),
             deleteTitle: L10n.string("Delete"),
-            pillOpacity: 0.85
         )
     }
 }
@@ -205,7 +201,7 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
                 .font(.headline)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.vertical, Spacing.sm)
-                .background(Color.success)
+                .background(Color.successFill)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
         }
@@ -223,7 +219,7 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
                 .font(.headline)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.vertical, Spacing.sm)
-                .background(isMarked ? Color(.systemGray) : Color.destructive)
+                .background(isMarked ? Color.neutralFill : Color.destructiveFill)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
         }
@@ -253,9 +249,9 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
             .accessibilityHint("Opens the photo full screen")
             .overlay(alignment: .topTrailing) {
                 if asset.id == group.bestAssetId {
-                    statusPill(icon: "star.fill", text: descriptor.bestPillText(group), color: .green)
+                    statusPill(icon: "star.fill", text: descriptor.bestPillText(group), color: Color.successFill)
                 } else if selectedForDeletion.contains(asset.id) {
-                    statusPill(icon: "trash.fill", text: L10n.string("Delete"), color: .red)
+                    statusPill(icon: "trash.fill", text: L10n.string("Delete"), color: Color.destructiveFill)
                 }
             }
             .padding(.horizontal, Spacing.lg)
@@ -289,7 +285,7 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
         .foregroundStyle(.white)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)
-        .background(color.opacity(descriptor.pillOpacity))
+        .background(color)
         .clipShape(Capsule())
         .padding(Spacing.sm)
     }
@@ -364,7 +360,7 @@ struct ComparisonQualitySection: View {
     }
 
     private func exposureColor(_ quality: AssetQuality) -> Color {
-        (quality.isTooDark || quality.isOverexposed) ? .warning : .success
+        (quality.isTooDark || quality.isOverexposed) ? Color.warningText : Color.successText
     }
 }
 

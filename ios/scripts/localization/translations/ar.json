@@ -1,8 +1,6 @@
 {
   "strings": {
-    "": "",
     " Favorites are kept.": " المفضلة محتفظ بها.",
-    " in selected photos": " في الصور المحددة",
     " known · %lld sizes unavailable": " معروف · %lld أحجام غير متاحة",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -17,18 +15,14 @@
     "%@ total": "%@ إجمالًا",
     "%@ used": "%@ مستخدم",
     "%@ with TidyByte — a private, on-device photo cleanup app. %@": "%@ باستخدام TidyByte — تطبيق خاص لتنظيف الصور على جهازك. %@",
-    "%@%@, %@": "%@%@، %@",
     "%@. %@ available.": "%@. %@ متاح.",
     "%@. Now %@.": "%@. الآن %@.",
     "%lld": "%lld",
-    "%lld %@": "%lld %@",
     "%lld MB": "%lld MB",
     "%lld bursts cleaned down to single photos.": "تم تنظيف %lld مجموعات صور متتابعة حتى صورة واحدة لكل منها.",
     "%lld of %lld": "%lld من %lld",
     "%lld of %lld reviewed": "تمت مراجعة %lld من %lld",
     "%lld percent": "%lld بالمائة",
-    "%lld%": "%lld%",
-    "%lld%%": "%lld%%",
     "%llds": "%lld ث",
     "-%@": "-%@",
     "1 burst cleaned down to a single photo.": "تم تنظيف مجموعة صور متتابعة واحدة لتصل إلى صورة واحدة.",
@@ -71,7 +65,6 @@
     "Appearance": "المظهر",
     "Apps, system & other": "التطبيقات والنظام وأخرى",
     "Auto-Clean": "تنظيف تلقائي",
-    "Auto-Clean All Bursts": "تنظيف كل الصور المتتابعة تلقائيًا",
     "Automatic": "تلقائي",
     "Automatic follows your device. TidyByte changes immediately; some iOS dialogs follow on the next launch.": "يتبع «تلقائي» إعدادات جهازك. يتغير TidyByte فورًا؛ وتتبع بعض نوافذ iOS عند التشغيل التالي.",
     "Back": "رجوع",
@@ -171,21 +164,14 @@
     "Default Preset": "الإعداد المسبق الافتراضي",
     "Delete": "حذف",
     "Delete %@": "حذف %@",
-    "Delete File": "حذف ملف",
-    "Delete Files": "حذف الملفات",
     "Delete Item?": "هل تريد حذف العنصر؟",
     "Delete Live Photo": "حذف Live Photo",
     "Delete Live Photo?": "هل تريد حذف Live Photo؟",
     "Delete Originals": "حذف الأصول",
     "Delete Originals After Compressing": "حذف الأصول بعد الضغط",
     "Delete Photo": "حذف صورة",
-    "Delete Photos": "حذف الصور",
-    "Delete Screenshot": "حذف لقطة شاشة",
-    "Delete Screenshots": "حذف لقطات الشاشة",
     "Delete Selected": "حذف المحدد",
     "Delete Selected (%lld)": "حذف المحدد (%lld)",
-    "Delete Selected Burst Photos": "حذف الصور المتتابعة المحددة",
-    "Delete Similar Photos": "حذف الصور المشابهة",
     "Delete Video": "حذف فيديو",
     "Delete file": "حذف ملف",
     "Delete is off until the photo loads.": "الحذف معطّل حتى تُحمَّل الصورة.",
@@ -309,7 +295,6 @@
     "Largest": "الأكبر",
     "Largest First": "الأكبر أولًا",
     "Last 30 Days": "آخر 30 يومًا",
-    "Last scan, %@: %@ to review%@.": "آخر فحص، %@: %@ للمراجعة%@.",
     "Leaves this photo unchanged and shows the next one": "يترك هذه الصورة دون تغيير ويعرض التالية",
     "Lens Smudge (%lld)": "اتساخ العدسة (%lld)",
     "Lens smudge analysis is unavailable on this device.": "تحليل اتساخ العدسة غير متاح على هذا الجهاز.",
@@ -669,7 +654,6 @@
     "This is library size, not free space on the iPhone.": "هذا حجم المكتبة، وليس المساحة المتوفرة على iPhone.",
     "This item can't be compressed as a photo.": "لا يمكن ضغط هذا العنصر كصورة.",
     "This item uses %@; review whether you need it.": "يستخدم هذا العنصر %@؛ راجع ما إذا كنت تحتاج إليه.",
-    "This keeps the starred frame of each burst and deletes the rest.": "يحتفظ هذا بالإطار المميز بنجمة في كل مجموعة من الصور المتتابعة ويحذف الباقي.",
     "This language is not supported by local AI.": "الذكاء الاصطناعي المحلي لا يدعم هذه اللغة.",
     "This photo has very high brightness.": "سطوع هذه الصورة مرتفع جدًا.",
     "This photo has very low brightness.": "سطوع هذه الصورة منخفض جدًا.",
@@ -677,9 +661,7 @@
     "This photo received a low visual-quality score.": "حصلت هذه الصورة على تقييم منخفض للجودة البصرية.",
     "This removes both the still image and the motion. %@": "يزيل هذا الصورة الثابتة والحركة معًا. %@",
     "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.": "سيؤدي هذا إلى مسح كل سجلات السحب. ستظهر كل الصور مرة أخرى كـ «لم يتم السحب بعد». لا يمكن التراجع عن هذا.",
-    "This will delete %@ of media. %@": "سيحذف هذا %@ من الوسائط. %@",
     "This will delete %@. %@": "سيحذف هذا %@. %@",
-    "This will delete the selected burst frames and keep your chosen best photos. %@": "سيحذف هذا إطارات الصور المتتابعة المحددة ويحتفظ بأفضل الصور التي اخترتها. %@",
     "TidyByte": "TidyByte",
     "TidyByte Can't Start": "لا يمكن بدء TidyByte",
     "TidyByte Needs Your Photos": "TidyByte يحتاج إلى صورك",
@@ -719,7 +701,6 @@
     "Up to %@": "حتى %@",
     "Up to %@ can be freed in the items you picked": "يمكن تحرير ما يصل إلى %@ في العناصر التي اخترتها",
     "Up to %@ to free on iPhone": "يمكن تحرير حتى %@ على iPhone",
-    "Updated %lldd ago": "آخر تحديث قبل %lld يوم",
     "Use 300 characters or fewer.": "استخدم 300 حرف أو أقل.",
     "Using label search across scanned photos.": "يُستخدم البحث بالتسميات في الصور المفحوصة.",
     "Version": "الإصدار",
@@ -785,7 +766,6 @@
     "items": "عناصر",
     "items, all time": "عناصر، منذ البداية",
     "media": "الوسائط",
-    "size.bytes": "size.bytes",
     "the Live Photos": "Live Photos",
     "the original photos": "الصور الأصلية",
     "the original videos": "الفيديوهات الأصلية",
@@ -794,7 +774,31 @@
     "to": "إلى",
     "today": "اليوم",
     "used": "مستخدم",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "تعذّر تحميل الفيديو: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "يحذف الإطارات المحددة للحذف. يُحتفظ بالإطار المميَّز بنجمة في كل سلسلة.",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "أوقف TidyByte الضغط لأن التطبيق غادر الواجهة. أبقِ TidyByte مفتوحًا أثناء الضغط، ثم أعد المحاولة.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "آخر فحص، %@: %@ للمراجعة.",
+    "Last scan, %@: %@ to review in selected photos.": "آخر فحص، %@: %@ للمراجعة في الصور المحددة.",
+    "Bad URL.": "عنوان URL غير صالح.",
+    "Sign-in failed.": "تعذّر تسجيل الدخول.",
+    "Couldn't save your Google sign-in on this device. Try again.": "تعذّر حفظ تسجيل دخولك إلى Google على هذا الجهاز. حاول مرة أخرى.",
+    "%@ of media will be deleted from Photos.": "سيتم حذف %@ من الوسائط من تطبيق الصور.",
+    "Delete 1 Item": "حذف عنصر واحد",
+    "Preview screenshot, %@": "معاينة لقطة الشاشة، %@",
+    "The best copy of each group will be kept.": "سيُحتفظ بأفضل نسخة من كل مجموعة.",
+    "The selected burst frames will be deleted. Your chosen best photos are kept.": "ستُحذف إطارات التسلسل المحددة. تبقى أفضل الصور التي اخترتها.",
+    "The selected items will be deleted from Photos.": "سيتم حذف العناصر المحددة من تطبيق الصور.",
+    "The selected photos will be deleted from Photos.": "سيتم حذف الصور المحددة من تطبيق الصور.",
+    "The selected screenshots will be deleted from Photos.": "سيتم حذف لقطات الشاشة المحددة من تطبيق الصور.",
+    "This item will be deleted from Photos.": "سيتم حذف هذا العنصر من تطبيق الصور.",
+    "This photo will be deleted from Photos.": "ستُحذف هذه الصورة من تطبيق الصور.",
+    "This screenshot will be deleted from Photos.": "سيتم حذف لقطة الشاشة هذه من تطبيق الصور.",
+    "%lld of %lld items couldn't be prepared to share.": "تعذّر تجهيز %lld من أصل %lld عنصرًا للمشاركة.",
+    "Google returned the same page twice, so the list is incomplete.": "أعاد Google الصفحة نفسها مرتين، لذلك القائمة غير مكتملة.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "تعذّر حفظ تسجيل دخولك إلى Google على هذا الجهاز، ولا يزال Google يحتفظ بالوصول. أزِل TidyByte من إعدادات الوصول للتطبيقات الخارجية في حساب Google.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "توقّف TidyByte عن تحويل Live Photo لأنه انتقل إلى الخلفية. أبقِ TidyByte مفتوحًا أثناء التحويل، ثم حاوِل مرة أخرى."
   },
   "plurals": {
     "%lld issues found": {
@@ -965,30 +969,6 @@
       "many": "%lld Live Photo",
       "other": "%lld Live Photo"
     },
-    "%lld burst groups": {
-      "zero": "%lld مجموعات متتابعة",
-      "one": "%lld مجموعة متتابعة",
-      "two": "%lld مجموعتان متتابعتان",
-      "few": "%lld مجموعات متتابعة",
-      "many": "%lld مجموعة متتابعة",
-      "other": "%lld مجموعة متتابعة"
-    },
-    "%lld groups": {
-      "zero": "%lld مجموعات",
-      "one": "%lld مجموعة",
-      "two": "%lld مجموعتان",
-      "few": "%lld مجموعات",
-      "many": "%lld مجموعة",
-      "other": "%lld مجموعة"
-    },
-    "%lld groups found": {
-      "zero": "تم العثور على %lld مجموعات",
-      "one": "تم العثور على %lld مجموعة",
-      "two": "تم العثور على %lld مجموعتين",
-      "few": "تم العثور على %lld مجموعات",
-      "many": "تم العثور على %lld مجموعة",
-      "other": "تم العثور على %lld مجموعة"
-    },
     "%lld compressions": {
       "zero": "%lld عملية ضغط",
       "one": "%lld عملية ضغط",
@@ -1044,14 +1024,6 @@
       "few": "%lld أيام نشطة خلال 30 يومًا",
       "many": "%lld يومًا نشطًا خلال 30 يومًا",
       "other": "%lld يوم نشط خلال 30 يومًا"
-    },
-    "Failed to delete %lld photo": {
-      "zero": "تعذر حذف %lld صور",
-      "one": "تعذر حذف %lld صورة",
-      "two": "تعذر حذف %lld صورتين",
-      "few": "تعذر حذف %lld صور",
-      "many": "تعذر حذف %lld صورة",
-      "other": "تعذر حذف %lld صورة"
     },
     "Delete %lld item": {
       "zero": "حذف %lld عناصر",
@@ -1348,6 +1320,46 @@
       "few": "%lld فيديوهات أكبر من %lld MB",
       "many": "%lld فيديو أكبر من %lld MB",
       "other": "%lld فيديو أكبر من %lld MB"
+    },
+    "%lld burst group": {
+      "zero": "%lld مجموعات متتابعة",
+      "one": "%lld مجموعة متتابعة",
+      "two": "%lld مجموعتان متتابعتان",
+      "few": "%lld مجموعات متتابعة",
+      "many": "%lld مجموعة متتابعة",
+      "other": "%lld مجموعة متتابعة"
+    },
+    "%lld group": {
+      "zero": "%lld مجموعات",
+      "one": "%lld مجموعة",
+      "two": "%lld مجموعتان",
+      "few": "%lld مجموعات",
+      "many": "%lld مجموعة",
+      "other": "%lld مجموعة"
+    },
+    "%lld group found": {
+      "zero": "تم العثور على %lld مجموعات",
+      "one": "تم العثور على %lld مجموعة",
+      "two": "تم العثور على %lld مجموعتين",
+      "few": "تم العثور على %lld مجموعات",
+      "many": "تم العثور على %lld مجموعة",
+      "other": "تم العثور على %lld مجموعة"
+    },
+    "Failed to delete %lld photo: %@": {
+      "zero": "تعذّر حذف %lld صورة: %@",
+      "one": "تعذّر حذف %lld صورة: %@",
+      "two": "تعذّر حذف %lld صورتين: %@",
+      "few": "تعذّر حذف %lld صور: %@",
+      "many": "تعذّر حذف %lld صورة: %@",
+      "other": "تعذّر حذف %lld صورة: %@"
+    },
+    "Updated %lld day ago": {
+      "zero": "تم التحديث منذ %lld يوم",
+      "one": "تم التحديث منذ %lld يوم",
+      "two": "تم التحديث قبل %lld يومين",
+      "few": "تم التحديث منذ %lld أيام",
+      "many": "تم التحديث منذ %lld يومًا",
+      "other": "تم التحديث منذ %lld يوم"
     }
   }
 }

@@ -42,6 +42,8 @@ final class LargeFilesViewModel {
     /// (LF-09).
     private(set) var shareExportFolder: URL?
     private var shareTask: Task<Void, Never>?
+    /// The shortfall warning the last export set, so a later complete export can clear it.
+    private(set) var lastShareShortfall: String?
     private var shareGeneration: UUID?
     typealias ShareExporter = @MainActor ([String], @escaping @MainActor @Sendable (Int, Int) -> Void) async -> (folder: URL, urls: [URL])
     private let shareExporter: ShareExporter
@@ -342,9 +344,29 @@ final class LargeFilesViewModel {
                 // is protected from the sweep until then.
                 Self.liveShareExportFolderNames.insert(folder.lastPathComponent)
                 self.sharePayload = SharePayload(urls: urls)
+                // Some items did not export: say how many, rather than sharing a
+                // shorter set without a word.
+                let shortfall = Self.shareShortfallMessage(requested: ids.count, returned: urls.count)
+                if let shortfall {
+                    self.errorMessage = shortfall
+                } else if let previous = self.lastShareShortfall, self.errorMessage == previous {
+                    // A complete export clears the warning from an earlier one. Any
+                    // other error stays, because it is not this export's message.
+                    self.errorMessage = nil
+                }
+                self.lastShareShortfall = shortfall
             }
             self.isPreparingShare = false
         }
+    }
+
+    /// The message for an export that returned fewer files than requested (an
+    /// item that is gone, or whose copy failed to write), or nil when all came
+    /// back. Pure, so the count rule is tested directly.
+    static func shareShortfallMessage(requested: Int, returned: Int) -> String? {
+        let failed = requested - returned
+        guard failed > 0 else { return nil }
+        return L10n.format("%lld of %lld items couldn't be prepared to share.", failed, requested)
     }
 
     func cancelShare() {

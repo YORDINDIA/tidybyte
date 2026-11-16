@@ -1,8 +1,6 @@
 {
   "strings": {
-    "": "",
     " Favorites are kept.": " पसंदीदा रखी जाती हैं.",
-    " in selected photos": " चयनित फ़ोटो में",
     " known · %lld sizes unavailable": " ज्ञात · %lld आकार अनुपलब्ध",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -17,18 +15,14 @@
     "%@ total": "%@ कुल",
     "%@ used": "%@ का उपयोग",
     "%@ with TidyByte — a private, on-device photo cleanup app. %@": "%@ — TidyByte के साथ, एक निजी, डिवाइस पर ही चलने वाला फ़ोटो क्लीनअप ऐप. %@",
-    "%@%@, %@": "%@%@, %@",
     "%@. %@ available.": "%@. %@ उपलब्ध.",
     "%@. Now %@.": "%@. अब %@.",
     "%lld": "%lld",
-    "%lld %@": "%lld %@",
     "%lld MB": "%lld MB",
     "%lld bursts cleaned down to single photos.": "%lld बर्स्ट साफ़ करके एक-एक फ़ोटो रखी गईं.",
     "%lld of %lld": "%lld में से %lld",
     "%lld of %lld reviewed": "%lld में से %lld की समीक्षा हो गई",
     "%lld percent": "%lld प्रतिशत",
-    "%lld%": "%lld%",
-    "%lld%%": "%lld%%",
     "%llds": "%lld सेकंड",
     "-%@": "-%@",
     "1 burst cleaned down to a single photo.": "एक बर्स्ट साफ़ करके एक ही फ़ोटो रखी गई.",
@@ -71,7 +65,6 @@
     "Appearance": "रूप",
     "Apps, system & other": "ऐप्स, सिस्टम और अन्य",
     "Auto-Clean": "ऑटो-क्लीन",
-    "Auto-Clean All Bursts": "सभी बर्स्ट ऑटो-क्लीन करें",
     "Automatic": "स्वचालित",
     "Automatic follows your device. TidyByte changes immediately; some iOS dialogs follow on the next launch.": "स्वचालित आपके डिवाइस का अनुसरण करता है. TidyByte तुरंत बदल जाता है; कुछ iOS डायलॉग अगली बार खोलने पर बदलते हैं.",
     "Back": "वापस",
@@ -171,21 +164,14 @@
     "Default Preset": "डिफ़ॉल्ट प्रीसेट",
     "Delete": "हटाएँ",
     "Delete %@": "%@ हटाएँ",
-    "Delete File": "फ़ाइल हटाएँ",
-    "Delete Files": "फ़ाइलें हटाएँ",
     "Delete Item?": "आइटम हटाएँ?",
     "Delete Live Photo": "Live Photo हटाएँ",
     "Delete Live Photo?": "Live Photo हटाएँ?",
     "Delete Originals": "मूल हटाएँ",
     "Delete Originals After Compressing": "कंप्रेस करने के बाद मूल हटाएँ",
     "Delete Photo": "फ़ोटो हटाएँ",
-    "Delete Photos": "फ़ोटो हटाएँ",
-    "Delete Screenshot": "स्क्रीनशॉट हटाएँ",
-    "Delete Screenshots": "स्क्रीनशॉट हटाएँ",
     "Delete Selected": "चयनित हटाएँ",
     "Delete Selected (%lld)": "चयनित हटाएँ (%lld)",
-    "Delete Selected Burst Photos": "चयनित बर्स्ट फ़ोटो हटाएँ",
-    "Delete Similar Photos": "मिलती-जुलती फ़ोटो हटाएँ",
     "Delete Video": "वीडियो हटाएँ",
     "Delete file": "फ़ाइल हटाएँ",
     "Delete is off until the photo loads.": "फ़ोटो लोड होने तक हटाना बंद है.",
@@ -309,7 +295,6 @@
     "Largest": "सबसे बड़ा",
     "Largest First": "सबसे बड़े पहले",
     "Last 30 Days": "पिछले 30 दिन",
-    "Last scan, %@: %@ to review%@.": "पिछला स्कैन, %@%@: समीक्षा के लिए %@.",
     "Leaves this photo unchanged and shows the next one": "इस फ़ोटो को अपरिवर्तित छोड़ता है और अगली दिखाता है",
     "Lens Smudge (%lld)": "लेंस पर धब्बा (%lld)",
     "Lens smudge analysis is unavailable on this device.": "इस डिवाइस पर लेंस धब्बे का विश्लेषण उपलब्ध नहीं है.",
@@ -669,7 +654,6 @@
     "This is library size, not free space on the iPhone.": "यह लाइब्रेरी का आकार है, iPhone की खाली जगह नहीं.",
     "This item can't be compressed as a photo.": "इस आइटम को फ़ोटो के रूप में कंप्रेस नहीं किया जा सकता.",
     "This item uses %@; review whether you need it.": "यह आइटम %@ लेता है; देखें कि क्या आपको इसकी ज़रूरत है.",
-    "This keeps the starred frame of each burst and deletes the rest.": "यह हर बर्स्ट का स्टार किया गया फ़्रेम रखता है और बाकी हटा देता है.",
     "This language is not supported by local AI.": "लोकल AI इस भाषा का समर्थन नहीं करता.",
     "This photo has very high brightness.": "इस फ़ोटो की चमक बहुत ज़्यादा है.",
     "This photo has very low brightness.": "इस फ़ोटो की चमक बहुत कम है.",
@@ -677,9 +661,7 @@
     "This photo received a low visual-quality score.": "इस फ़ोटो को दृश्य गुणवत्ता में कम स्कोर मिला.",
     "This removes both the still image and the motion. %@": "यह स्थिर छवि और मोशन दोनों हटाता है. %@",
     "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.": "यह सभी स्वाइप रिकॉर्ड साफ़ कर देगा. सभी फ़ोटो फिर से \"अभी स्वाइप नहीं किया\" दिखेंगी. इसे पूर्ववत नहीं किया जा सकता.",
-    "This will delete %@ of media. %@": "यह %@ मीडिया हटा देगा. %@",
     "This will delete %@. %@": "यह %@ हटा देगा. %@",
-    "This will delete the selected burst frames and keep your chosen best photos. %@": "यह चयनित बर्स्ट फ़्रेम हटा देगा और आपकी चुनी हुई सबसे अच्छी फ़ोटो रखेगा. %@",
     "TidyByte": "TidyByte",
     "TidyByte Can't Start": "TidyByte शुरू नहीं हो सकता",
     "TidyByte Needs Your Photos": "TidyByte को आपकी फ़ोटो चाहिए",
@@ -719,7 +701,6 @@
     "Up to %@": "%@ तक",
     "Up to %@ can be freed in the items you picked": "आपके चुने आइटम में %@ तक खाली हो सकता है",
     "Up to %@ to free on iPhone": "iPhone पर %@ तक खाली करें",
-    "Updated %lldd ago": "%lld दिन पहले अपडेट किया गया",
     "Use 300 characters or fewer.": "300 या उससे कम अक्षर इस्तेमाल करें.",
     "Using label search across scanned photos.": "स्कैन की गई फ़ोटो में लेबल खोज का उपयोग हो रहा है.",
     "Version": "वर्शन",
@@ -785,16 +766,39 @@
     "items": "आइटम",
     "items, all time": "आइटम, अब तक",
     "media": "मीडिया",
-    "size.bytes": "%lld बाइट",
     "the Live Photos": "Live Photos",
     "the original photos": "मूल फ़ोटो",
     "the original videos": "मूल वीडियो",
     "the still image of each Live Photo as a new photo": "हर Live Photo की स्थिर छवि को नई फ़ोटो के रूप में",
     "this month": "इस महीने",
-    "to": "से",
+    "to": "में",
     "today": "आज",
     "used": "इस्तेमाल हुआ",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "वीडियो लोड नहीं हो सका: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "हटाने के लिए चिह्नित फ़्रेम हटाए जाते हैं। हर बर्स्ट का तारांकित फ़्रेम रखा जाता है।",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "ऐप फ़ोरग्राउंड से हट गया, इसलिए TidyByte ने कंप्रेशन रोक दिया। कंप्रेस होते समय TidyByte खुला रखें, फिर दोबारा कोशिश करें।",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "पिछला स्कैन, %@: समीक्षा के लिए %@।",
+    "Last scan, %@: %@ to review in selected photos.": "पिछला स्कैन, %@: चुनी गई फ़ोटो में समीक्षा के लिए %@।",
+    "Bad URL.": "अमान्य URL।",
+    "Sign-in failed.": "साइन-इन विफल रहा।",
+    "Couldn't save your Google sign-in on this device. Try again.": "इस डिवाइस पर आपका Google साइन-इन सहेजा नहीं जा सका। फिर से कोशिश करें।",
+    "%@ of media will be deleted from Photos.": "फ़ोटो से %@ मीडिया हटाया जाएगा।",
+    "Delete 1 Item": "1 आइटम हटाएँ",
+    "Preview screenshot, %@": "स्क्रीनशॉट पूर्वावलोकन, %@",
+    "The best copy of each group will be kept.": "हर समूह की सबसे अच्छी प्रति रखी जाएगी।",
+    "The selected burst frames will be deleted. Your chosen best photos are kept.": "चुने गए बर्स्ट फ़्रेम हटाए जाएँगे। आपकी चुनी गई सबसे अच्छी फ़ोटो रखी जाएँगी।",
+    "The selected items will be deleted from Photos.": "चुने गए आइटम फ़ोटो से हटाए जाएँगे।",
+    "The selected photos will be deleted from Photos.": "चुनी गई फ़ोटो फ़ोटो ऐप से हटाई जाएँगी।",
+    "The selected screenshots will be deleted from Photos.": "चुने गए स्क्रीनशॉट फ़ोटो से हटाए जाएँगे।",
+    "This item will be deleted from Photos.": "यह आइटम फ़ोटो से हटाया जाएगा।",
+    "This photo will be deleted from Photos.": "यह फ़ोटो फ़ोटो ऐप से हटाई जाएगी।",
+    "This screenshot will be deleted from Photos.": "यह स्क्रीनशॉट फ़ोटो से हटाया जाएगा।",
+    "%lld of %lld items couldn't be prepared to share.": "%lld आइटम साझा करने के लिए तैयार नहीं हो सके (कुल %lld में से)।",
+    "Google returned the same page twice, so the list is incomplete.": "Google ने एक ही पेज दो बार लौटाया, इसलिए सूची अधूरी है।",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "इस डिवाइस पर आपका Google साइन-इन सहेजा नहीं जा सका, और Google के पास अब भी पहुँच है। अपने Google खाते की तृतीय-पक्ष पहुँच सेटिंग में TidyByte हटाएँ।",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "ऐप फ़ोरग्राउंड से हट जाने के कारण TidyByte ने Live Photo का रूपांतरण रोक दिया। रूपांतरण के दौरान TidyByte खुला रखें, फिर दोबारा कोशिश करें।"
   },
   "plurals": {
     "%lld issues found": {
@@ -881,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld बर्स्ट समूह",
-      "other": "%lld बर्स्ट समूह"
-    },
-    "%lld groups": {
-      "one": "%lld समूह",
-      "other": "%lld समूह"
-    },
-    "%lld groups found": {
-      "one": "%lld समूह मिले",
-      "other": "%lld समूह मिले"
-    },
     "%lld compressions": {
       "one": "%lld कंप्रेशन",
       "other": "%lld कंप्रेशन"
@@ -920,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld सक्रिय दिन, 30 दिन",
       "other": "%lld सक्रिय दिन, 30 दिन"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld फ़ोटो हटाने में विफल",
-      "other": "%lld फ़ोटो हटाने में विफल"
     },
     "Delete %lld item": {
       "one": "%lld आइटम हटाएँ",
@@ -1072,6 +1060,26 @@
     "%lld videos over %lld MB": {
       "one": "%lld वीडियो %lld MB से बड़ा",
       "other": "%lld वीडियो %lld MB से बड़े"
+    },
+    "%lld burst group": {
+      "one": "%lld बर्स्ट समूह",
+      "other": "%lld बर्स्ट समूह"
+    },
+    "%lld group": {
+      "one": "%lld समूह",
+      "other": "%lld समूह"
+    },
+    "%lld group found": {
+      "one": "%lld समूह मिला",
+      "other": "%lld समूह मिले"
+    },
+    "Failed to delete %lld photo: %@": {
+      "one": "%lld फ़ोटो हटाने में विफल: %@",
+      "other": "%lld फ़ोटो हटाने में विफल: %@"
+    },
+    "Updated %lld day ago": {
+      "one": "%lld दिन पहले अपडेट किया गया",
+      "other": "%lld दिन पहले अपडेट किया गया"
     }
   }
 }

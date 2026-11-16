@@ -15,10 +15,6 @@
     "one": "%lld active day, 30 days",
     "other": "%lld active days, 30 days"
   },
-  "%lld burst groups": {
-    "one": "%lld burst group",
-    "other": "%lld burst groups"
-  },
   "%lld compressions": {
     "one": "%lld compression",
     "other": "%lld compressions"
@@ -42,14 +38,6 @@
   "%lld frames": {
     "one": "%lld frame",
     "other": "%lld frames"
-  },
-  "%lld groups": {
-    "one": "%lld group",
-    "other": "%lld groups"
-  },
-  "%lld groups found": {
-    "one": "%lld group found",
-    "other": "%lld groups found"
   },
   "%lld iCloud-only photo skipped (not on this device)": {
     "one": "%lld iCloud-only photo skipped (not on this device)",
@@ -207,10 +195,6 @@
     "one": "Delete %lld item from Photos?",
     "other": "Delete %lld items from Photos?"
   },
-  "Failed to delete %lld photo": {
-    "one": "Failed to delete %lld photo",
-    "other": "Failed to delete %lld photos"
-  },
   "Lens analysis skipped %lld photo.": {
     "one": "Lens analysis skipped %lld photo.",
     "other": "Lens analysis skipped %lld photos."
@@ -274,5 +258,25 @@
   "reviewed %lld item": {
     "one": "reviewed %lld item",
     "other": "reviewed %lld items"
+  },
+  "%lld burst group": {
+    "one": "%lld burst group",
+    "other": "%lld burst groups"
+  },
+  "%lld group": {
+    "one": "%lld group",
+    "other": "%lld groups"
+  },
+  "%lld group found": {
+    "one": "%lld group found",
+    "other": "%lld groups found"
+  },
+  "Failed to delete %lld photo: %@": {
+    "one": "Failed to delete %lld photo: %@",
+    "other": "Failed to delete %lld photos: %@"
+  },
+  "Updated %lld day ago": {
+    "one": "Updated %lld day ago",
+    "other": "Updated %lld days ago"
   }
 }

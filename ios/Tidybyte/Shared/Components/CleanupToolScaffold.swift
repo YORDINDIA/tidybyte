@@ -83,7 +83,7 @@ struct ToolIdleView<Options: View>: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(Spacing.lg)
-                        .background(.tint)
+                        .background(Color.actionFill)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
                 }
@@ -93,7 +93,7 @@ struct ToolIdleView<Options: View>: View {
                 if let footnote {
                     Text(footnote)
                         .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(Color.footnoteText)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -219,7 +219,7 @@ struct ToolScanningView: View {
                     .padding(.horizontal, Spacing.xxxl)
                     .padding(.vertical, Spacing.md)
                     .background(Color.destructive.opacity(0.12))
-                    .foregroundStyle(Color.destructive)
+                    .foregroundStyle(Color.destructiveText)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
             }
             .scaleOnPress()
@@ -267,6 +267,8 @@ struct ToolLoadingView<Skeleton: View>: View {
                             .font(.subheadline.weight(.semibold))
                             .padding(.horizontal, Spacing.lg)
                             .padding(.vertical, Spacing.sm)
+                            // 44 pt tap target: the padded label alone is about 36 pt.
+                            .frame(minHeight: 44)
                             .background(.ultraThinMaterial)
                             .clipShape(Capsule())
                     }

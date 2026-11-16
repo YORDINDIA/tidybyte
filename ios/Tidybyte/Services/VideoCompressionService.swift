@@ -130,16 +130,17 @@ actor VideoCompressionService {
 
         let originalSize = getFileSize(for: phAsset)
         guard originalSize > 0 else {
-            // iCloud-only (or KVC-unreadable) assets report 0 bytes. Compressing
-            // them would make the "does this save space?" check meaningless and
-            // could delete a large original in exchange for a 0-byte history
-            // record — skip instead (COMP-07).
+            // A size of 0 means PhotoKit reported no size. Compressing would
+            // make the "does this save space?" check meaningless and could
+            // delete a large original in exchange for a 0-byte history record,
+            // so skip instead (COMP-07).
             throw CompressionError.sizeUnknown
         }
 
-        guard let avAsset = try await loadAVAsset(from: phAsset)?.value else {
-            throw CompressionError.videoLoadTimedOut
-        }
+        let load = await loadAVAsset(from: phAsset)
+        if let error = Self.loadError(for: load) { throw error }
+        guard case .loaded(let avAssetBox) = load else { throw CompressionError.videoLoadTimedOut }
+        let avAsset = avAssetBox.value
 
         // Export to a temp file; guarantee it is removed on every exit path.
         let tempURL = FileManager.default.temporaryDirectory
@@ -151,6 +152,10 @@ actor VideoCompressionService {
             throw CompressionError.exportSessionCreationFailed
         }
 
+        // Setting an unsupported outputFileType raises an Objective-C exception, which is a crash.
+        guard exportSession.supportedFileTypes.contains(.mp4) else {
+            throw CompressionError.exportSessionCreationFailed
+        }
         exportSession.outputURL = tempURL
         exportSession.outputFileType = .mp4
         exportSession.shouldOptimizeForNetworkUse = true
@@ -195,7 +200,10 @@ actor VideoCompressionService {
             if Task.isCancelled || exportSession.status == .cancelled {
                 throw CompressionError.cancelled
             }
-            throw CompressionError.exportFailed(exportSession.error?.localizedDescription ?? L10n.string("Unknown error"))
+            guard let error = exportSession.error as NSError? else {
+                throw CompressionError.exportFailed(L10n.string("Unknown error"))
+            }
+            throw Self.exportFailure(for: error)
         }
 
         // Verify the exported file exists and is non-empty before trusting it.
@@ -281,42 +289,88 @@ actor VideoCompressionService {
 
     // MARK: - Helpers
 
-    /// Loads the asset's `AVAsset`, bounded by the same 20s timeout +
-    /// cancellation pattern as `PhotoLibraryService.requestPlayerItem` so a
-    /// stalled iCloud download cannot hang the batch in `.exporting(0)`
-    /// forever (COMP-03). Returns `nil` on timeout or request failure; the
-    /// caller turns that into a clear error message.
-    private func loadAVAsset(from phAsset: PHAsset) async -> UncheckedSendableBox<AVAsset>? {
-        await withCheckedContinuation { continuation in
-            let resumer = ContinuationResumer<UncheckedSendableBox<AVAsset>?>(continuation)
+    /// What `loadAVAsset` reports. The cases are kept apart so the user sees
+    /// why a load failed: a timeout, a PhotoKit error and a cancel need
+    /// different text.
+    enum AssetLoad: Sendable {
+        case loaded(UncheckedSendableBox<AVAsset>)
+        case timedOut
+        case failed(String)
+        case cancelled
+    }
+
+    /// The error a failed load reports, or nil when the asset loaded.
+    static func loadError(for load: AssetLoad) -> CompressionError? {
+        switch load {
+        case .loaded: nil
+        case .timedOut: .videoLoadTimedOut
+        case .failed(let detail): .assetLoadFailed(detail)
+        case .cancelled: .cancelled
+        }
+    }
+
+    /// Maps a failed export to its error. An interrupted export means the app
+    /// left the foreground mid-encode (AVError -11847), so the message says
+    /// what to do instead of quoting AVFoundation.
+    static func exportFailure(for error: NSError) -> CompressionError {
+        if error.domain == AVFoundationErrorDomain,
+           error.code == AVError.Code.operationInterrupted.rawValue {
+            return .exportInterrupted
+        }
+        // Domain and code in the text: AVFoundation's sentence is often
+        // generic, and the row text is the only thing a reporter can send.
+        return .exportFailed("\(error.localizedDescription) (\(error.domain) \(error.code))")
+    }
+
+    /// Loads the asset's `AVAsset`. The load fails after `LoadStall.limit`
+    /// seconds with no progress, not after a fixed time, so a slow iCloud
+    /// download that keeps moving completes and a stalled one still fails
+    /// (COMP-03). Reports the PhotoKit error detail when the request fails,
+    /// instead of folding it into the timeout.
+    private func loadAVAsset(from phAsset: PHAsset) async -> AssetLoad {
+        await withCheckedContinuation { (continuation: CheckedContinuation<AssetLoad, Never>) in
+            let resumer = ContinuationResumer<AssetLoad>(continuation)
+            let stall = StallWatch()
 
             let options = PHVideoRequestOptions()
             options.deliveryMode = .highQualityFormat
             options.isNetworkAccessAllowed = true
+            // Each progress tick moves the stall deadline. Runs on an arbitrary queue.
+            options.progressHandler = { _, _, _, _ in
+                let at = LoadStall.now()
+                Task { await stall.recordProgress(at: at) }
+            }
 
             // Wire the timeout + cleanup hook BEFORE issuing the request so a
             // synchronously-delivered callback still cancels the timeout Task
             // (otherwise it lingers, orphaned, for the full timeout).
             let manager = PHImageManager.default()
-            var requestID: PHImageRequestID = PHInvalidImageRequestID
-            let timeoutTask = Task {
-                try? await Task.sleep(for: .seconds(20))
-                resumer.resume(nil)
-            }
+            // The cancel closure reads this on whichever queue resumes first.
+            let requestID = LockedValue<PHImageRequestID>(PHInvalidImageRequestID)
+            let timeoutTask = watchForStall(stall) { resumer.resume(.timedOut) }
             resumer.onResume = {
-                manager.cancelImageRequest(requestID)
+                manager.cancelImageRequest(requestID.withValue { $0 })
                 timeoutTask.cancel()
             }
 
-            requestID = manager.requestAVAsset(
+            let id = manager.requestAVAsset(
                 forVideo: phAsset,
                 options: options
             ) { avAsset, _, info in
-                if let error = info?[PHImageErrorKey] {
-                    AppLog.compression.error("Video load request failed: \(String(describing: error), privacy: .public)")
+                // Our own timeout cancels the request, which calls back here.
+                // The resumer ignores that second resume.
+                if let avAsset {
+                    resumer.resume(.loaded(UncheckedSendableBox(avAsset)))
+                } else if let error = info?[PHImageErrorKey] as? NSError {
+                    resumer.resume(.failed("\(error.localizedDescription) (\(error.domain) \(error.code))"))
+                } else if info?[PHImageCancelledKey] as? Bool == true {
+                    resumer.resume(.cancelled)
+                } else {
+                    resumer.resume(.failed(L10n.string("Unknown error")))
                 }
-                resumer.resume(avAsset.map(UncheckedSendableBox.init))
             }
+            // Stored after the call returns, never under the lock (see LockedValue).
+            requestID.withValue { $0 = id }
         }
     }
 
@@ -341,6 +395,9 @@ enum CompressionError: LocalizedError {
     case exportSessionCreationFailed
     case exportFailed(String)
     case fileSizeReadFailed
+    case assetLoadFailed(String)
+    /// AVFoundation stopped the export because the app left the foreground (-11847).
+    case exportInterrupted
 
     var errorDescription: String? {
         // User-facing: the compression tool shows these in its error banner.
@@ -352,6 +409,8 @@ enum CompressionError: LocalizedError {
         case .exportSessionCreationFailed: L10n.string("Failed to create export session.")
         case .exportFailed(let msg): L10n.format("Export failed: %@", msg)
         case .fileSizeReadFailed: L10n.string("Failed to read file size.")
+        case .assetLoadFailed(let msg): L10n.format("Couldn't load the video: %@", msg)
+        case .exportInterrupted: L10n.string("TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.")
         }
     }
 }

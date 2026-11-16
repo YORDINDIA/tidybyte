@@ -1,8 +1,6 @@
 {
   "strings": {
-    "": "",
     " Favorites are kept.": " ఇష్టమైనవి ఉంచబడతాయి.",
-    " in selected photos": " ఎంచుకున్న ఫోటోలలో",
     " known · %lld sizes unavailable": " తెలిసినవి · %lld పరిమాణాలు అందుబాటులో లేవు",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -17,18 +15,14 @@
     "%@ total": "%@ మొత్తం",
     "%@ used": "%@ వాడబడింది",
     "%@ with TidyByte — a private, on-device photo cleanup app. %@": "%@ — TidyByteతో, ప్రైవేట్గా పరికరంలోనే పనిచేసే ఫోటో క్లీన్అప్ యాప్. %@",
-    "%@%@, %@": "%@%@, %@",
     "%@. %@ available.": "%@. %@ అందుబాటులో ఉంది.",
     "%@. Now %@.": "%@. ఇప్పుడు %@.",
     "%lld": "%lld",
-    "%lld %@": "%lld %@",
     "%lld MB": "%lld MB",
     "%lld bursts cleaned down to single photos.": "%lld బరస్ట్లు ఒకే ఫోటోలకు క్లీన్ చేయబడ్డాయి.",
     "%lld of %lld": "%lldలో %lld",
     "%lld of %lld reviewed": "%lldలో %lld సమీక్షించబడింది",
     "%lld percent": "%lld శాతం",
-    "%lld%": "%lld%",
-    "%lld%%": "%lld%%",
     "%llds": "%lld సెకన్లు",
     "-%@": "-%@",
     "1 burst cleaned down to a single photo.": "1 బరస్ట్ ఒకే ఫోటోకు క్లీన్ చేయబడింది.",
@@ -71,7 +65,6 @@
     "Appearance": "రూపం",
     "Apps, system & other": "యాప్లు, సిస్టమ్ & ఇతర",
     "Auto-Clean": "ఆటో-క్లీన్",
-    "Auto-Clean All Bursts": "అన్ని బరస్ట్లను ఆటో-క్లీన్ చేయండి",
     "Automatic": "ఆటోమేటిక్",
     "Automatic follows your device. TidyByte changes immediately; some iOS dialogs follow on the next launch.": "ఆటోమేటిక్ మీ పరికరాన్ని అనుసరిస్తుంది. TidyByte వెంటనే మారుతుంది; కొన్ని iOS డైలాగ్లు తదుపరిసారి తెరిచినప్పుడు మారుతాయి.",
     "Back": "వెనుకకు",
@@ -171,21 +164,14 @@
     "Default Preset": "డిఫాల్ట్ ప్రీసెట్",
     "Delete": "తొలగించు",
     "Delete %@": "%@ తొలగించు",
-    "Delete File": "ఫైల్ను తొలగించు",
-    "Delete Files": "ఫైళ్లను తొలగించు",
     "Delete Item?": "అంశాన్ని తొలగించాలా?",
     "Delete Live Photo": "Live Photoను తొలగించు",
     "Delete Live Photo?": "Live Photoను తొలగించాలా?",
     "Delete Originals": "అసలైనవి తొలగించు",
     "Delete Originals After Compressing": "కుదించిన తర్వాత అసలైనవి తొలగించు",
     "Delete Photo": "ఫోటోను తొలగించు",
-    "Delete Photos": "ఫోటోలను తొలగించు",
-    "Delete Screenshot": "స్క్రీన్షాట్ను తొలగించు",
-    "Delete Screenshots": "స్క్రీన్షాట్లను తొలగించు",
     "Delete Selected": "ఎంచుకున్నవి తొలగించు",
     "Delete Selected (%lld)": "ఎంచుకున్నవి తొలగించు (%lld)",
-    "Delete Selected Burst Photos": "ఎంచుకున్న బరస్ట్ ఫోటోలను తొలగించు",
-    "Delete Similar Photos": "సమానమైన ఫోటోలను తొలగించు",
     "Delete Video": "వీడియోను తొలగించు",
     "Delete file": "ఫైల్ను తొలగించు",
     "Delete is off until the photo loads.": "ఫోటో లోడ్ అయ్యే వరకు తొలగింపు ఆఫ్లో ఉంటుంది.",
@@ -309,7 +295,6 @@
     "Largest": "అతిపెద్దవి",
     "Largest First": "పెద్దవి మొదట",
     "Last 30 Days": "గత 30 రోజులు",
-    "Last scan, %@: %@ to review%@.": "చివరి స్కాన్, %@%@: సమీక్షించడానికి %@.",
     "Leaves this photo unchanged and shows the next one": "ఈ ఫోటోను మార్చకుండా తదుపరిది చూపిస్తుంది",
     "Lens Smudge (%lld)": "లెన్స్ మరక (%lld)",
     "Lens smudge analysis is unavailable on this device.": "ఈ పరికరంలో లెన్స్ మరక విశ్లేషణ అందుబాటులో లేదు.",
@@ -669,7 +654,6 @@
     "This is library size, not free space on the iPhone.": "ఇది లైబ్రరీ పరిమాణం, iPhoneలోని ఖాళీ స్థలం కాదు.",
     "This item can't be compressed as a photo.": "ఈ అంశాన్ని ఫోటోగా కుదించలేము.",
     "This item uses %@; review whether you need it.": "ఈ అంశం %@ వాడుతుంది; ఇది మీకు అవసరమో లేదో సమీక్షించండి.",
-    "This keeps the starred frame of each burst and deletes the rest.": "ఇది ప్రతి బరస్ట్లో నక్షత్రం గుర్తు పెట్టిన ఫ్రేమ్ను ఉంచి మిగిలినవి తొలగిస్తుంది.",
     "This language is not supported by local AI.": "ఈ భాషకు లోకల్ AI మద్దతు లేదు.",
     "This photo has very high brightness.": "ఈ ఫోటో చాలా ఎక్కువ వెలుతురు కలిగి ఉంది.",
     "This photo has very low brightness.": "ఈ ఫోటో చాలా తక్కువ వెలుతురు కలిగి ఉంది.",
@@ -677,9 +661,7 @@
     "This photo received a low visual-quality score.": "ఈ ఫోటోకు తక్కువ దృశ్య నాణ్యత స్కోరు లభించింది.",
     "This removes both the still image and the motion. %@": "ఇది స్థిర చిత్రాన్ని మరియు కదలికను రెండింటినీ తీసివేస్తుంది. %@",
     "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.": "ఇది అన్ని స్వైప్ రికార్డులను క్లియర్ చేస్తుంది. అన్ని ఫోటోలు మళ్లీ \"ఇంకా స్వైప్ చేయలేదు\" అని కనిపిస్తాయి. దీన్ని వెనక్కి తీసుకోలేరు.",
-    "This will delete %@ of media. %@": "ఇది %@ మీడియాను తొలగిస్తుంది. %@",
     "This will delete %@. %@": "ఇది %@ను తొలగిస్తుంది. %@",
-    "This will delete the selected burst frames and keep your chosen best photos. %@": "ఇది ఎంచుకున్న బరస్ట్ ఫ్రేమ్లను తొలగించి మీరు ఎంచుకున్న ఉత్తమ ఫోటోలను ఉంచుతుంది. %@",
     "TidyByte": "TidyByte",
     "TidyByte Can't Start": "TidyByte ప్రారంభం కావడం లేదు",
     "TidyByte Needs Your Photos": "TidyByteకు మీ ఫోటోలు కావాలి",
@@ -719,7 +701,6 @@
     "Up to %@": "%@ వరకు",
     "Up to %@ can be freed in the items you picked": "మీరు ఎంచుకున్న అంశాల్లో %@ వరకు ఖాళీ చేయవచ్చు",
     "Up to %@ to free on iPhone": "iPhoneలో ఖాళీ చేయడానికి %@ వరకు",
-    "Updated %lldd ago": "%lld రోజుల క్రితం నవీకరించబడింది",
     "Use 300 characters or fewer.": "300 అక్షరాలు లేదా అంతకంటే తక్కువ వాడండి.",
     "Using label search across scanned photos.": "స్కాన్ చేసిన ఫోటోలలో లేబుల్ శోధన వాడుతోంది.",
     "Version": "వెర్షన్",
@@ -785,16 +766,39 @@
     "items": "అంశాలు",
     "items, all time": "అంశాలు, మొత్తం కాలం",
     "media": "మీడియా",
-    "size.bytes": "%lld బైట్లు",
     "the Live Photos": "అసలు Live Photos",
     "the original photos": "అసలు ఫోటోలు",
     "the original videos": "అసలు వీడియోలు",
     "the still image of each Live Photo as a new photo": "ప్రతి Live Photo యొక్క స్థిర చిత్రాన్ని కొత్త ఫోటోగా",
     "this month": "ఈ నెల",
-    "to": "నుండి",
+    "to": "కు",
     "today": "ఈరోజు",
     "used": "వాడబడింది",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "వీడియోను లోడ్ చేయలేకపోయాం: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "తొలగించడానికి గుర్తించిన ఫ్రేమ్‌లను తొలగిస్తుంది. ప్రతి బర్స్ట్‌లోని నక్షత్ర గుర్తు ఫ్రేమ్ ఉంచబడుతుంది.",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "యాప్ ఫోర్‌గ్రౌండ్ నుండి వెళ్లిపోవడంతో TidyByte కుదింపును ఆపింది. కుదించేటప్పుడు TidyByte ను తెరిచి ఉంచి, మళ్లీ ప్రయత్నించండి.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "చివరి స్కాన్, %@: సమీక్షించాల్సినవి %@.",
+    "Last scan, %@: %@ to review in selected photos.": "చివరి స్కాన్, %@: ఎంచుకున్న ఫోటోలలో సమీక్షించాల్సినవి %@.",
+    "Bad URL.": "చెల్లని URL.",
+    "Sign-in failed.": "సైన్-ఇన్ విఫలమైంది.",
+    "Couldn't save your Google sign-in on this device. Try again.": "ఈ పరికరంలో మీ Google సైన్-ఇన్‌ను సేవ్ చేయలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+    "%@ of media will be deleted from Photos.": "ఫోటోల నుండి %@ మీడియా తొలగించబడుతుంది.",
+    "Delete 1 Item": "1 అంశాన్ని తొలగించు",
+    "Preview screenshot, %@": "స్క్రీన్‌షాట్ ప్రివ్యూ, %@",
+    "The best copy of each group will be kept.": "ప్రతి గ్రూప్‌లోని ఉత్తమ కాపీ ఉంచబడుతుంది.",
+    "The selected burst frames will be deleted. Your chosen best photos are kept.": "ఎంచుకున్న బర్స్ట్ ఫ్రేమ్‌లు తొలగించబడతాయి. మీరు ఎంచుకున్న ఉత్తమ ఫోటోలు ఉంచబడతాయి.",
+    "The selected items will be deleted from Photos.": "ఎంచుకున్న అంశాలు ఫోటోల నుండి తొలగించబడతాయి.",
+    "The selected photos will be deleted from Photos.": "ఎంచుకున్న ఫోటోలు ఫోటోల నుండి తొలగించబడతాయి.",
+    "The selected screenshots will be deleted from Photos.": "ఎంచుకున్న స్క్రీన్‌షాట్‌లు ఫోటోల నుండి తొలగించబడతాయి.",
+    "This item will be deleted from Photos.": "ఈ అంశం ఫోటోల నుండి తొలగించబడుతుంది.",
+    "This photo will be deleted from Photos.": "ఈ ఫోటో ఫోటోల నుండి తొలగించబడుతుంది.",
+    "This screenshot will be deleted from Photos.": "ఈ స్క్రీన్‌షాట్ ఫోటోల నుండి తొలగించబడుతుంది.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld అంశాలను (మొత్తం %lld లో) షేర్ చేయడానికి సిద్ధం చేయలేకపోయాం.",
+    "Google returned the same page twice, so the list is incomplete.": "Google ఒకే పేజీని రెండుసార్లు తిరిగి ఇచ్చింది, కాబట్టి జాబితా అసంపూర్ణంగా ఉంది.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "ఈ పరికరంలో మీ Google సైన్-ఇన్‌ను సేవ్ చేయలేకపోయాం, మరియు Google ఇంకా యాక్సెస్ ఉంచుకుంది. మీ Google ఖాతాలోని థర్డ్-పార్టీ యాక్సెస్ సెట్టింగ్‌లలో TidyByte ను తీసివేయండి.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "యాప్ ముందుభాగం నుండి వెళ్లిపోవడంతో TidyByte Live Photo మార్పిడిని ఆపివేసింది. మార్పిడి జరుగుతున్నప్పుడు TidyByte ను తెరిచి ఉంచండి, ఆ తర్వాత మళ్లీ ప్రయత్నించండి."
   },
   "plurals": {
     "%lld issues found": {
@@ -881,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld బరస్ట్ సమూహం",
-      "other": "%lld బరస్ట్ సమూహాలు"
-    },
-    "%lld groups": {
-      "one": "%lld సమూహం",
-      "other": "%lld సమూహాలు"
-    },
-    "%lld groups found": {
-      "one": "%lld సమూహం కనుగొనబడింది",
-      "other": "%lld సమూహాలు కనుగొనబడ్డాయి"
-    },
     "%lld compressions": {
       "one": "%lld కుదింపు",
       "other": "%lld కుదింపులు"
@@ -920,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld యాక్టివ్ రోజు, 30 రోజులు",
       "other": "%lld యాక్టివ్ రోజులు, 30 రోజులు"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld ఫోటోను తొలగించలేకపోయాం",
-      "other": "%lld ఫోటోలను తొలగించలేకపోయాం"
     },
     "Delete %lld item": {
       "one": "%lld అంశాన్ని తొలగించు",
@@ -1072,6 +1060,26 @@
     "%lld videos over %lld MB": {
       "one": "%lld వీడియో %lld MB కంటే పెద్దది",
       "other": "%lld వీడియోలు %lld MB కంటే పెద్దవి"
+    },
+    "%lld burst group": {
+      "one": "%lld బరస్ట్ సమూహం",
+      "other": "%lld బరస్ట్ సమూహాలు"
+    },
+    "%lld group": {
+      "one": "%lld సమూహం",
+      "other": "%lld సమూహాలు"
+    },
+    "%lld group found": {
+      "one": "%lld సమూహం కనుగొనబడింది",
+      "other": "%lld సమూహాలు కనుగొనబడ్డాయి"
+    },
+    "Failed to delete %lld photo: %@": {
+      "one": "%lld ఫోటోను తొలగించలేకపోయాం: %@",
+      "other": "%lld ఫోటోలను తొలగించలేకపోయాం: %@"
+    },
+    "Updated %lld day ago": {
+      "one": "%lld రోజు క్రితం నవీకరించబడింది",
+      "other": "%lld రోజుల క్రితం నవీకరించబడింది"
     }
   }
 }

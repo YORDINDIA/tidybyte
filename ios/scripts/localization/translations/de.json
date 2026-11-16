@@ -1,8 +1,6 @@
 {
   "strings": {
-    "": "",
     " Favorites are kept.": " Favoriten werden behalten.",
-    " in selected photos": " in ausgewählten Fotos",
     " known · %lld sizes unavailable": " bekannt · %lld Größen nicht verfügbar",
     "%@ (%@)": "%@ (%@)",
     "%@ (%lld)": "%@ (%lld)",
@@ -17,18 +15,14 @@
     "%@ total": "%@ gesamt",
     "%@ used": "%@ belegt",
     "%@ with TidyByte — a private, on-device photo cleanup app. %@": "%@ — mit TidyByte, einer privaten App zum Aufräumen deiner Fotos, die auf dem Gerät arbeitet. %@",
-    "%@%@, %@": "%@%@, %@",
     "%@. %@ available.": "%@. %@ verfügbar.",
     "%@. Now %@.": "%@. Jetzt %@.",
     "%lld": "%lld",
-    "%lld %@": "%lld %@",
     "%lld MB": "%lld MB",
     "%lld bursts cleaned down to single photos.": "%lld Serien auf einzelne Fotos reduziert.",
     "%lld of %lld": "%lld von %lld",
     "%lld of %lld reviewed": "%lld von %lld geprüft",
     "%lld percent": "%lld Prozent",
-    "%lld%": "%lld %",
-    "%lld%%": "%lld %%",
     "%llds": "%lld s",
     "-%@": "-%@",
     "1 burst cleaned down to a single photo.": "1 Serie auf ein einzelnes Foto reduziert.",
@@ -71,7 +65,6 @@
     "Appearance": "Erscheinungsbild",
     "Apps, system & other": "Apps, System & Sonstiges",
     "Auto-Clean": "Automatische Bereinigung",
-    "Auto-Clean All Bursts": "Alle Serien automatisch bereinigen",
     "Automatic": "Automatisch",
     "Automatic follows your device. TidyByte changes immediately; some iOS dialogs follow on the next launch.": "Automatisch folgt deinem Gerät. Änderungen in TidyByte wirken sofort; einige iOS-Dialoge folgen beim nächsten Start.",
     "Back": "Zurück",
@@ -171,21 +164,14 @@
     "Default Preset": "Standard-Voreinstellung",
     "Delete": "Löschen",
     "Delete %@": "%@ löschen",
-    "Delete File": "Datei löschen",
-    "Delete Files": "Dateien löschen",
     "Delete Item?": "Objekt löschen?",
     "Delete Live Photo": "Live Photo löschen",
     "Delete Live Photo?": "Live Photo löschen?",
     "Delete Originals": "Originale löschen",
     "Delete Originals After Compressing": "Originale nach dem Komprimieren löschen",
     "Delete Photo": "Foto löschen",
-    "Delete Photos": "Fotos löschen",
-    "Delete Screenshot": "Screenshot löschen",
-    "Delete Screenshots": "Screenshots löschen",
     "Delete Selected": "Auswahl löschen",
     "Delete Selected (%lld)": "Auswahl löschen (%lld)",
-    "Delete Selected Burst Photos": "Ausgewählte Serienfotos löschen",
-    "Delete Similar Photos": "Ähnliche Fotos löschen",
     "Delete Video": "Video löschen",
     "Delete file": "Datei löschen",
     "Delete is off until the photo loads.": "Löschen ist deaktiviert, bis das Foto geladen ist.",
@@ -309,7 +295,6 @@
     "Largest": "Größte",
     "Largest First": "Größte zuerst",
     "Last 30 Days": "Letzte 30 Tage",
-    "Last scan, %@: %@ to review%@.": "Letzter Scan, %@: %@ zu prüfen%@.",
     "Leaves this photo unchanged and shows the next one": "Lässt dieses Foto unverändert und zeigt das nächste",
     "Lens Smudge (%lld)": "Verschmutzte Linse (%lld)",
     "Lens smudge analysis is unavailable on this device.": "Die Analyse verschmutzter Linsen ist auf diesem Gerät nicht verfügbar.",
@@ -669,7 +654,6 @@
     "This is library size, not free space on the iPhone.": "Das ist die Größe der Mediathek, nicht der freie Speicher auf dem iPhone.",
     "This item can't be compressed as a photo.": "Dieses Objekt kann nicht als Foto komprimiert werden.",
     "This item uses %@; review whether you need it.": "Dieses Objekt belegt %@; prüfe, ob du es brauchst.",
-    "This keeps the starred frame of each burst and deletes the rest.": "Dies behält das mit einem Stern markierte Bild jeder Serie und löscht den Rest.",
     "This language is not supported by local AI.": "Diese Sprache wird von der lokalen KI nicht unterstützt.",
     "This photo has very high brightness.": "Dieses Foto ist sehr hell.",
     "This photo has very low brightness.": "Dieses Foto ist sehr dunkel.",
@@ -677,9 +661,7 @@
     "This photo received a low visual-quality score.": "Die Bildqualität dieses Fotos wurde niedrig bewertet.",
     "This removes both the still image and the motion. %@": "Dies entfernt sowohl das Standbild als auch die Bewegung. %@",
     "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.": "Dies löscht alle Wisch-Einträge. Alle Fotos erscheinen wieder als \"Noch nicht gewischt\". Das kann nicht rückgängig gemacht werden.",
-    "This will delete %@ of media. %@": "Dies löscht %@ an Medien. %@",
     "This will delete %@. %@": "Dies löscht %@. %@",
-    "This will delete the selected burst frames and keep your chosen best photos. %@": "Dies löscht die ausgewählten Serienbilder und behält die von dir gewählten besten Fotos. %@",
     "TidyByte": "TidyByte",
     "TidyByte Can't Start": "TidyByte kann nicht starten",
     "TidyByte Needs Your Photos": "TidyByte benötigt deine Fotos",
@@ -719,7 +701,6 @@
     "Up to %@": "Bis zu %@",
     "Up to %@ can be freed in the items you picked": "In den ausgewählten Objekten lassen sich bis zu %@ freigeben",
     "Up to %@ to free on iPhone": "Auf dem iPhone bis zu %@ freigeben",
-    "Updated %lldd ago": "Vor %lld Tg. aktualisiert",
     "Use 300 characters or fewer.": "Verwende höchstens 300 Zeichen.",
     "Using label search across scanned photos.": "Labelsuche über die gescannten Fotos wird verwendet.",
     "Version": "Version",
@@ -785,7 +766,6 @@
     "items": "Objekte",
     "items, all time": "Objekte, insgesamt",
     "media": "Medien",
-    "size.bytes": "size.bytes",
     "the Live Photos": "die Live Photos",
     "the original photos": "die Originalfotos",
     "the original videos": "die Originalvideos",
@@ -794,7 +774,31 @@
     "to": "bis",
     "today": "heute",
     "used": "belegt",
-    "→ %@": "→ %@"
+    "→ %@": "→ %@",
+    "Couldn't load the video: %@": "Video konnte nicht geladen werden: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Löscht die zum Löschen markierten Bilder. Das mit einem Stern markierte Bild jeder Serie bleibt erhalten.",
+    "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte hat die Komprimierung beendet, weil die App in den Hintergrund gewechselt ist. Lass TidyByte geöffnet, während komprimiert wird, und versuche es dann erneut.",
+    "%@ %@": "%@ %@",
+    "Last scan, %@: %@ to review.": "Letzter Scan, %@: %@ zu prüfen.",
+    "Last scan, %@: %@ to review in selected photos.": "Letzter Scan, %@: %@ in ausgewählten Fotos zu prüfen.",
+    "Bad URL.": "Ungültige URL.",
+    "Sign-in failed.": "Anmeldung fehlgeschlagen.",
+    "Couldn't save your Google sign-in on this device. Try again.": "Deine Google-Anmeldung konnte auf diesem Gerät nicht gespeichert werden. Versuche es erneut.",
+    "%@ of media will be deleted from Photos.": "%@ Medien werden aus Fotos gelöscht.",
+    "Delete 1 Item": "1 Objekt löschen",
+    "Preview screenshot, %@": "Screenshot-Vorschau, %@",
+    "The best copy of each group will be kept.": "Die beste Kopie jeder Gruppe wird behalten.",
+    "The selected burst frames will be deleted. Your chosen best photos are kept.": "Die ausgewählten Serienbilder werden gelöscht. Deine gewählten besten Fotos bleiben erhalten.",
+    "The selected items will be deleted from Photos.": "Die ausgewählten Objekte werden aus Fotos gelöscht.",
+    "The selected photos will be deleted from Photos.": "Die ausgewählten Fotos werden aus Fotos gelöscht.",
+    "The selected screenshots will be deleted from Photos.": "Die ausgewählten Screenshots werden aus Fotos gelöscht.",
+    "This item will be deleted from Photos.": "Dieses Objekt wird aus Fotos gelöscht.",
+    "This photo will be deleted from Photos.": "Dieses Foto wird aus Fotos gelöscht.",
+    "This screenshot will be deleted from Photos.": "Dieser Screenshot wird aus Fotos gelöscht.",
+    "%lld of %lld items couldn't be prepared to share.": "%lld von %lld Objekten konnten nicht zum Teilen vorbereitet werden.",
+    "Google returned the same page twice, so the list is incomplete.": "Google hat dieselbe Seite zweimal zurückgegeben, daher ist die Liste unvollständig.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "Deine Google-Anmeldung konnte auf diesem Gerät nicht gespeichert werden, und Google hat den Zugriff noch. Entferne TidyByte in den Einstellungen für Drittanbieter-Zugriffe deines Google-Kontos.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte hat die Live-Photo-Konvertierung beendet, weil die App in den Hintergrund gewechselt ist. Lass TidyByte während der Konvertierung geöffnet und versuche es dann erneut."
   },
   "plurals": {
     "%lld issues found": {
@@ -881,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld Seriengruppe",
-      "other": "%lld Seriengruppen"
-    },
-    "%lld groups": {
-      "one": "%lld Gruppe",
-      "other": "%lld Gruppen"
-    },
-    "%lld groups found": {
-      "one": "%lld Gruppe gefunden",
-      "other": "%lld Gruppen gefunden"
-    },
     "%lld compressions": {
       "one": "%lld Komprimierung",
       "other": "%lld Komprimierungen"
@@ -920,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld aktiver Tag, 30 Tage",
       "other": "%lld aktive Tage, 30 Tage"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld Foto konnte nicht gelöscht werden",
-      "other": "%lld Fotos konnten nicht gelöscht werden"
     },
     "Delete %lld item": {
       "one": "%lld Objekt löschen",
@@ -1072,6 +1060,26 @@
     "%lld videos over %lld MB": {
       "one": "%lld Video über %lld MB",
       "other": "%lld Videos über %lld MB"
+    },
+    "%lld burst group": {
+      "one": "%lld Seriengruppe",
+      "other": "%lld Seriengruppen"
+    },
+    "%lld group": {
+      "one": "%lld Gruppe",
+      "other": "%lld Gruppen"
+    },
+    "%lld group found": {
+      "one": "%lld Gruppe gefunden",
+      "other": "%lld Gruppen gefunden"
+    },
+    "Failed to delete %lld photo: %@": {
+      "one": "Fehler beim Löschen von %lld Foto: %@",
+      "other": "Fehler beim Löschen von %lld Fotos: %@"
+    },
+    "Updated %lld day ago": {
+      "one": "Vor %lld Tag aktualisiert",
+      "other": "Vor %lld Tagen aktualisiert"
     }
   }
 }

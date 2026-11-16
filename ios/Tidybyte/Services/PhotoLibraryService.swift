@@ -23,10 +23,6 @@ actor PhotoLibraryService {
     static let shared = PhotoLibraryService()
     nonisolated static let shareExportFolderPrefix = "ShareExport-"
 
-    /// Upper bound for any single PhotoKit image/data request so a stalled
-    /// iCloud download can't hang the awaiting task indefinitely.
-    private static let requestTimeoutSeconds: TimeInterval = 20
-
     private let imageManager = PHCachingImageManager()
     private let summaryBuilder = SummaryBuilder()
     private var changeObserverHelper: PhotoLibraryChangeObserverHelper?
@@ -73,12 +69,16 @@ actor PhotoLibraryService {
     /// unavailable (fetch result released, non-incremental change) — stale
     /// thumbnails are worse than re-decode churn.
     private func handleLibraryChange(_ change: PHChange) async {
-        if let baseline = changeBaselineFetch,
-           let details = change.changeDetails(for: baseline),
-           details.hasIncrementalChanges {
-            // Advance the baseline so the NEXT change diffs against current
-            // state rather than re-reporting these same objects.
+        var incremental: PHFetchResultChangeDetails<PHAsset>?
+        if let baseline = changeBaselineFetch, let details = change.changeDetails(for: baseline) {
+            // Advance the baseline on every answered change, incremental or not, so
+            // the NEXT change diffs against current state. Left stale after a
+            // non-incremental change, every later change diffed against an old
+            // snapshot and purged the whole image cache.
             changeBaselineFetch = details.fetchResultAfterChanges
+            if details.hasIncrementalChanges { incremental = details }
+        }
+        if let details = incremental {
             let removedIds = details.removedObjects.map(\.localIdentifier)
             let changedIds = details.changedObjects.map(\.localIdentifier)
             summaryBuilder.resources.remove(removedIds + changedIds)
@@ -86,11 +86,11 @@ actor PhotoLibraryService {
                 await ImageCache.shared.removeAllVariants(of: id)
             }
         } else {
-            // No purge of `summaryBuilder.resources`: an asset's resources
-            // change only with an edit (a new modification date) or an iCloud
-            // download or offload (`ResourceCache.maxAge`). PhotoKit sends
-            // these changes often on an iCloud library, and purging on each
-            // one made every scan read the whole library again.
+            // A change with no per-asset detail can touch any asset's resources
+            // (size, iCloud state), and the next incremental change no longer
+            // reports it, since the baseline moved on. Drop every cached read.
+            // The cost is one library re-read after such a change.
+            summaryBuilder.resources.removeAll()
             await ImageCache.shared.removeAll()
         }
         onLibraryChange?()
@@ -376,6 +376,7 @@ actor PhotoLibraryService {
         // reads don't hold up image requests.
         var frameIds: [String] = []
         for index in 0..<allAssets.count {
+            if index % 20 == 0 { await Task.yield() }
             let asset = allAssets.object(at: index)
             if asset.burstIdentifier != nil {
                 frameIds.append(asset.localIdentifier)
@@ -481,7 +482,7 @@ actor PhotoLibraryService {
     /// motion playback (e.g. `PHLivePhotoView`). Mirrors `requestImage`'s
     /// single-resume/timeout/degraded-result-guard behaviour: it always resumes
     /// on the terminal callback and falls back to `nil` after
-    /// `requestTimeoutSeconds` so a stalled iCloud download cannot hang callers.
+    /// `LoadStall.limit` with no progress, so a stalled iCloud download cannot hang callers.
     func loadLivePhoto(for assetId: String, targetSize: CGSize) async -> PHLivePhoto? {
         guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject,
               asset.mediaSubtypes.contains(.photoLive) else {
@@ -511,18 +512,18 @@ actor PhotoLibraryService {
             options.deliveryMode = .automatic
             options.isNetworkAccessAllowed = true
 
-            // Wire the timeout + cleanup hook BEFORE issuing the request so a
-            // synchronously-delivered callback still cancels the timeout Task
-            // (otherwise it lingers, orphaned, for requestTimeoutSeconds).
+            // The stall watch fires only after LoadStall.limit with no progress. Wired
+            // before the request, so a synchronous callback still stops it.
             let manager = imageManager
             var requestID: PHImageRequestID = PHInvalidImageRequestID
-            let timeoutTask = Task {
-                try? await Task.sleep(for: .seconds(Self.requestTimeoutSeconds))
-                resumer.resume(nil)
+            let watch = StallWatch()
+            let stall = watchForStall(watch) { resumer.resume(nil) }
+            options.progressHandler = { _, _, _, _ in
+                Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
                 manager.cancelImageRequest(requestID)
-                timeoutTask.cancel()
+                stall.cancel()
             }
 
             requestID = imageManager.requestPlayerItem(forVideo: asset, options: options) { item, info in
@@ -545,18 +546,18 @@ actor PhotoLibraryService {
             options.deliveryMode = .highQualityFormat
             options.isNetworkAccessAllowed = true
 
-            // Wire the timeout + cleanup hook BEFORE issuing the request so a
-            // synchronously-delivered callback still cancels the timeout Task
-            // (otherwise it lingers, orphaned, for requestTimeoutSeconds).
+            // The stall watch fires only after LoadStall.limit with no progress. Wired
+            // before the request, so a synchronous callback still stops it.
             let manager = imageManager
             var requestID: PHImageRequestID = PHInvalidImageRequestID
-            let timeoutTask = Task {
-                try? await Task.sleep(for: .seconds(Self.requestTimeoutSeconds))
-                resumer.resume(nil)
+            let watch = StallWatch()
+            let stall = watchForStall(watch) { resumer.resume(nil) }
+            options.progressHandler = { _, _, _, _ in
+                Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
                 manager.cancelImageRequest(requestID)
-                timeoutTask.cancel()
+                stall.cancel()
             }
 
             requestID = imageManager.requestLivePhoto(
@@ -579,7 +580,7 @@ actor PhotoLibraryService {
                 // Photo is still coming — keep waiting. Unlike `requestImage`,
                 // network access is always allowed here, so there is no
                 // "no result will ever arrive" case to short-circuit; the
-                // `requestTimeoutSeconds` fallback is the only backstop for a
+                // stall watch is the only backstop for a
                 // stalled iCloud download. Do NOT copy `requestImage`'s
                 // `isInCloud && !allowsNetworkAccess` give-up branch — it can
                 // never fire on this path and would be dead code.
@@ -634,18 +635,18 @@ actor PhotoLibraryService {
             options.isSynchronous = false
             options.resizeMode = resizeMode
 
-            // Wire the timeout + cleanup hook BEFORE issuing the request so a
-            // synchronously-delivered callback still cancels the timeout Task
-            // (otherwise it lingers, orphaned, for requestTimeoutSeconds).
+            // The stall watch fires only after LoadStall.limit with no progress. Wired
+            // before the request, so a synchronous callback still stops it.
             let manager = imageManager
             var requestID: PHImageRequestID = PHInvalidImageRequestID
-            let timeoutTask = Task {
-                try? await Task.sleep(for: .seconds(Self.requestTimeoutSeconds))
-                resumer.resume(false)
+            let watch = StallWatch()
+            let stall = watchForStall(watch) { resumer.resume(false) }
+            options.progressHandler = { _, _, _, _ in
+                Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
                 manager.cancelImageRequest(requestID)
-                timeoutTask.cancel()
+                stall.cancel()
             }
 
             requestID = imageManager.requestImage(
@@ -657,8 +658,7 @@ actor PhotoLibraryService {
                 let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
                 let isCancelled = (info?[PHImageCancelledKey] as? Bool) ?? false
                 let isInCloud = (info?[PHImageResultIsInCloudKey] as? Bool) ?? false
-                if isDegraded { box.isDegraded = true }
-                if let image = image { box.image = image }
+                box.record(image, degraded: isDegraded)
 
                 if info?[PHImageErrorKey] != nil {
                     AppLog.photo.error("Image request failed: \(String(describing: info?[PHImageErrorKey]), privacy: .public)")
@@ -678,7 +678,7 @@ actor PhotoLibraryService {
                     // promptly so a scan doesn't stall per iCloud-only photo.
                     // Discard the retained degraded placeholder so the caller
                     // gets nil and falls back to the thumbnail path.
-                    box.image = nil
+                    box.dropImage()
                     resumer.resume(isDegraded)
                 }
                 // A degraded placeholder without an error (and reachable) means
@@ -686,14 +686,31 @@ actor PhotoLibraryService {
             }
         }
 
-        return (box.image, box.isDegraded)
+        return box.result
     }
 
-    /// Mutable capture box bridging the PhotoKit completion closure (which may
-    /// fire on a PhotoKit queue) into the quality tuple returned on the actor.
+    /// Result state bridged from the PhotoKit completion closure (a PhotoKit
+    /// queue) to the actor. A late callback can still arrive after the timeout
+    /// has resumed the continuation, so every access goes through the lock.
     private final class QualityResultBox: @unchecked Sendable {
-        var image: UIImage?
-        var isDegraded = false
+        private let lock = NSLock()
+        private var image: UIImage?
+        private var isDegraded = false
+
+        func record(_ image: UIImage?, degraded: Bool) {
+            lock.withLock {
+                if degraded { isDegraded = true }
+                if let image { self.image = image }
+            }
+        }
+
+        func dropImage() {
+            lock.withLock { image = nil }
+        }
+
+        var result: (image: UIImage?, isDegraded: Bool) {
+            lock.withLock { (image, isDegraded) }
+        }
     }
 
     // MARK: - Album Membership
@@ -891,18 +908,16 @@ actor PhotoLibraryService {
             let options = PHAssetResourceRequestOptions()
             options.isNetworkAccessAllowed = true
 
-            // Mirror loadFullImageData: bound the request with a timeout + cancellation
-            // (wired before the request) so a stalled iCloud resource can't hang the
-            // whole duplicate scan, which calls this once per asset.
+            // Stall-bounded: the hash keeps going while bytes arrive and fails only
+            // after LoadStall.limit with none. Wired before the request, so a stalled
+            // iCloud resource cannot hang the duplicate scan.
             let resourceManager = PHAssetResourceManager.default()
             var requestID: PHAssetResourceDataRequestID = 0
-            let timeoutTask = Task {
-                try? await Task.sleep(for: .seconds(Self.requestTimeoutSeconds))
-                resumer.resume(nil)
-            }
+            let watch = StallWatch()
+            let stall = watchForStall(watch) { resumer.resume(nil) }
             resumer.onResume = {
                 resourceManager.cancelDataRequest(requestID)
-                timeoutTask.cancel()
+                stall.cancel()
             }
 
             requestID = resourceManager.requestData(
@@ -910,6 +925,7 @@ actor PhotoLibraryService {
                 options: options
             ) { chunk in
                 hasher.update(data: chunk)
+                Task { await watch.recordProgress(at: LoadStall.now()) }
             } completionHandler: { error in
                 if let error {
                     AppLog.photo.error("Resource hash failed: \(error.localizedDescription, privacy: .public)")
@@ -966,18 +982,18 @@ actor PhotoLibraryService {
             options.isNetworkAccessAllowed = true
             options.isSynchronous = false
 
-            // Wire the timeout + cleanup hook BEFORE issuing the request so a
-            // synchronously-delivered callback still cancels the timeout Task
-            // (otherwise it lingers, orphaned, for requestTimeoutSeconds).
+            // The stall watch fires only after LoadStall.limit with no progress. Wired
+            // before the request, so a synchronous callback still stops it.
             let manager = imageManager
             var requestID: PHImageRequestID = PHInvalidImageRequestID
-            let timeoutTask = Task {
-                try? await Task.sleep(for: .seconds(Self.requestTimeoutSeconds))
-                resumer.resume(nil)
+            let watch = StallWatch()
+            let stall = watchForStall(watch) { resumer.resume(nil) }
+            options.progressHandler = { _, _, _, _ in
+                Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
                 manager.cancelImageRequest(requestID)
-                timeoutTask.cancel()
+                stall.cancel()
             }
 
             requestID = imageManager.requestImageDataAndOrientation(
@@ -1035,6 +1051,7 @@ actor PhotoLibraryService {
         guard let resource = preferredPrimaryResource(from: resources) else { return nil }
 
         let fileURL = uniqueURL(for: resource.originalFilename, in: folder)
+        guard let sink = ExportFileSink(url: fileURL) else { return nil }
         let options = PHAssetResourceRequestOptions()
         options.isNetworkAccessAllowed = true
 
@@ -1042,34 +1059,43 @@ actor PhotoLibraryService {
         return await withCheckedContinuation { continuation in
             let resumer = ContinuationResumer<URL?>(continuation)
 
-            // Wire the timeout + cleanup hook BEFORE issuing the request so a
-            // synchronously-delivered callback still cancels the timeout Task
-            // (otherwise it lingers, orphaned, for requestTimeoutSeconds), and
-            // cancel the in-flight write on resume (SHARED-07).
+            // Streams the bytes into the file, so the request can be cancelled and
+            // its partial file removed (SHARED-07). Stall-bounded like the others.
             let resourceManager = PHAssetResourceManager.default()
-            let timeoutTask = Task {
-                try? await Task.sleep(for: .seconds(Self.requestTimeoutSeconds))
-                resumer.resume(nil)
+            var requestID: PHAssetResourceDataRequestID = 0
+            let watch = StallWatch()
+            let stall = watchForStall(watch) {
+                // No bytes for LoadStall.limit. Only the call that resumes the
+                // continuation may discard the file, so a late success cannot race it.
+                if resumer.resume(nil) { sink.discard() }
             }
             resumer.onResume = {
-                timeoutTask.cancel()
+                resourceManager.cancelDataRequest(requestID)
+                stall.cancel()
             }
 
-            // `writeData` returns Void (no request ID to cancel), so the timeout
-            // task above is the cancellation hook.
-            resourceManager.writeData(
-                for: resource,
-                toFile: fileURL,
-                options: options
-            ) { error in
+            requestID = resourceManager.requestData(for: resource, options: options) { chunk in
+                sink.append(chunk)
+                Task { await watch.recordProgress(at: LoadStall.now()) }
+            } completionHandler: { error in
                 if let error {
                     AppLog.photo.error("Share export write failed: \(error.localizedDescription, privacy: .public)")
+                    sink.discard()
                     resumer.resume(nil)
-                } else {
-                    // Here rather than after the await: the write carries on
-                    // after a timeout, and can still download the original.
+                    return
+                }
+                // A failed write (disk full) must not come back as a complete copy.
+                guard sink.finish() else {
+                    sink.discard()
+                    resumer.resume(nil)
+                    return
+                }
+                if resumer.resume(fileURL) {
+                    // Here rather than after the await: the original is now local.
                     Task { await self.forgetResources(of: assetId) }
-                    resumer.resume(fileURL)
+                } else {
+                    // The stall already answered nil. Its file is gone; drop this copy too.
+                    sink.discard()
                 }
             }
         }
@@ -1260,6 +1286,51 @@ actor PhotoLibraryService {
             return 0
         }
         return size
+    }
+}
+
+/// Writes one export file as PhotoKit delivers its bytes. A failed write (for
+/// example a full disk) marks the sink, and `finish` reports it, so a truncated
+/// copy is never returned as complete. `discard` removes the partial file and
+/// drops later bytes.
+final class ExportFileSink: @unchecked Sendable {
+    private let lock = NSLock()
+    private let url: URL
+    private let writeChunk: (FileHandle, Data) throws -> Void
+    private var handle: FileHandle?
+    private var failed = false
+
+    init?(url: URL, writeChunk: @escaping (FileHandle, Data) throws -> Void = { try $0.write(contentsOf: $1) }) {
+        guard FileManager.default.createFile(atPath: url.path, contents: nil),
+              let handle = try? FileHandle(forWritingTo: url) else { return nil }
+        self.url = url
+        self.writeChunk = writeChunk
+        self.handle = handle
+    }
+
+    func append(_ data: Data) {
+        lock.withLock {
+            guard let handle, !failed else { return }
+            do { try writeChunk(handle, data) } catch { failed = true }
+        }
+    }
+
+    /// Closes the file. True only when the file was open and every write succeeded.
+    func finish() -> Bool {
+        lock.withLock {
+            guard let handle else { return false }
+            self.handle = nil
+            do { try handle.close() } catch { failed = true }
+            return !failed
+        }
+    }
+
+    func discard() {
+        lock.withLock {
+            try? handle?.close()
+            handle = nil
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 }
 

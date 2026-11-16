@@ -54,6 +54,7 @@ struct MediaPreviewView: View {
     /// row re-render on a language change. `Formatters` resolves against
     /// `Locale.current` on its own, which never changes.
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private let staticAssets: [AssetSummary]?
     private let assetsProvider: (() -> [AssetSummary])?
     @State private var currentIndex: Int
@@ -252,7 +253,11 @@ struct MediaPreviewView: View {
                     .font(.subheadline)
                     .foregroundStyle(.white)
             }
-            HStack(spacing: Spacing.md) {
+            // Stacks at accessibility sizes: three labels side by side clip there.
+            let row = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.xs))
+                : AnyLayout(HStackLayout(spacing: Spacing.md))
+            row {
                 Label(asset.resolution, systemImage: "rectangle.grid.1x2")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.7))
@@ -272,7 +277,11 @@ struct MediaPreviewView: View {
     }
 
     private var actionBar: some View {
-        HStack(spacing: Spacing.sm) {
+        // Buttons stack at accessibility sizes so each label keeps its full width.
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: Spacing.sm))
+            : AnyLayout(HStackLayout(spacing: Spacing.sm))
+        return layout {
             Button {
                 HapticHelper.impact(.light)
                 dismiss()
@@ -285,7 +294,6 @@ struct MediaPreviewView: View {
                     .foregroundStyle(.white)
             }
             .scaleOnPress()
-            .accessibilityLabel("Close preview")
 
             if let accessory {
                 Button {
