@@ -489,6 +489,9 @@ struct CardView: View {
             hasImage: image != nil,
             isLoading: isLoadingImage
         ) else { return }
+        // Cancels only a reload that was queued but has not started. A running load
+        // is never reached here, because `isLoading` returns early above.
+        imageLoadTask?.cancel()
         imageLoadTask = Task { await loadImage(frame: cardFrame) }
     }
 

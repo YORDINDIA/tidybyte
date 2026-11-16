@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "פריט זה יימחק מהתמונות.",
     "This photo will be deleted from Photos.": "תמונה זו תימחק מהתמונות.",
     "This screenshot will be deleted from Photos.": "צילום מסך זה יימחק מהתמונות.",
-    "%lld of %lld items couldn't be prepared to share.": "לא ניתן להכין לשיתוף %lld מתוך %lld פריטים."
+    "%lld of %lld items couldn't be prepared to share.": "לא ניתן להכין לשיתוף %lld מתוך %lld פריטים.",
+    "Google returned the same page twice, so the list is incomplete.": "Google החזיר את אותו עמוד פעמיים, ולכן הרשימה אינה שלמה.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "לא ניתן לשמור את ההתחברות שלך ל-Google במכשיר הזה, וגוגל עדיין שומרת את ההרשאה. הסר את TidyByte בהגדרות הגישה של צד שלישי בחשבון Google שלך.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte הפסיקה את המרת Live Photo כי האפליקציה יצאה מהחזית. השאירו את TidyByte פתוחה בזמן ההמרה, ואז נסו שוב."
   },
   "plurals": {
     "%lld issues found": {
@@ -903,21 +906,6 @@
       "two": "%lld Live Photo",
       "other": "%lld Live Photo"
     },
-    "%lld burst groups": {
-      "one": "%lld רצף",
-      "two": "%lld רצפים",
-      "other": "%lld רצפים"
-    },
-    "%lld groups": {
-      "one": "%lld קבוצה",
-      "two": "%lld קבוצות",
-      "other": "%lld קבוצות"
-    },
-    "%lld groups found": {
-      "one": "נמצאה %lld קבוצה",
-      "two": "נמצאו %lld קבוצות",
-      "other": "נמצאו %lld קבוצות"
-    },
     "%lld compressions": {
       "one": "%lld כיווץ",
       "two": "%lld כיווצים",
@@ -952,11 +940,6 @@
       "one": "%lld יום פעיל, 30 ימים",
       "two": "%lld ימים פעילים, 30 ימים",
       "other": "%lld ימים פעילים, 30 ימים"
-    },
-    "Failed to delete %lld photo": {
-      "one": "מחיקת %lld תמונה נכשלה",
-      "two": "מחיקת %lld תמונות נכשלה",
-      "other": "מחיקת %lld תמונות נכשלה"
     },
     "Delete %lld item": {
       "one": "מחק %lld פריט",

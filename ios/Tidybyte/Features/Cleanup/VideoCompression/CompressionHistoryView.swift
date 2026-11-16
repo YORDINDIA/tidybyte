@@ -40,6 +40,11 @@ struct CompressionHistoryView: View {
         return id
     }
 
+    /// Read here and passed to the date format below. The body re-runs on a
+    /// language switch, and the `String` values in each row (such as
+    /// `presetLabel`) only update that way.
+    @Environment(\.locale) private var locale
+
     var body: some View {
         Group {
             if records.isEmpty {
@@ -81,7 +86,7 @@ struct CompressionHistoryView: View {
                                 .frame(width: 24)
 
                             VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text(record.compressedAt, format: .dateTime.day().month(.abbreviated).year().hour().minute())
+                                Text(record.compressedAt, format: .dateTime.day().month(.abbreviated).year().hour().minute().locale(locale))
                                     .font(.subheadline)
 
                                 Text(Self.presetLabel(record.exportPreset))

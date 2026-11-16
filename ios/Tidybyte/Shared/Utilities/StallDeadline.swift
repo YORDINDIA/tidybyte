@@ -6,8 +6,16 @@ import Foundation
 enum LoadStall {
     static let limit: TimeInterval = 20
 
-    /// Monotonic seconds for `StallDeadline`. Uptime, not wall time, so a clock change cannot fake a stall.
-    static func now() -> TimeInterval { ProcessInfo.processInfo.systemUptime }
+    /// Fixed origin, so the values stay small and exact in a `Double`.
+    private static let origin = ContinuousClock.now
+
+    /// Seconds since `origin` on the continuous clock. It keeps running while the
+    /// device sleeps, as `Task.sleep` does, so the deadline and the sleep share
+    /// one timebase. Uptime would pause during sleep and push a stall back by the sleep time.
+    static func now() -> TimeInterval {
+        let elapsed = (ContinuousClock.now - origin).components
+        return TimeInterval(elapsed.seconds) + TimeInterval(elapsed.attoseconds) / 1e18
+    }
 }
 
 /// The deadline of a load that is still making progress. Pure: the caller

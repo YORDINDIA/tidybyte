@@ -324,11 +324,12 @@ enum CompressionJournal {
         return Set(records.compactMap(\.replacementAssetLocalIdentifier))
     }
 
-    /// Whether PhotoKit can answer existence checks. Without access,
-    /// `existingIds` returns an empty set, which reads as "every original is
-    /// gone". Reconcile must not decide anything on that answer.
+    /// Whether PhotoKit can answer existence checks for every asset. Only full
+    /// access qualifies. Without access `existingIds` returns an empty set, which
+    /// reads as "every original is gone". Limited access hides unselected
+    /// originals the same way, so it would settle rows as completed by mistake.
     nonisolated static func canReadLibrary(_ status: PHAuthorizationStatus) -> Bool {
-        status == .authorized || status == .limited
+        status == .authorized
     }
 
     /// `authorization` defaults to the live status. Tests pass a status, because

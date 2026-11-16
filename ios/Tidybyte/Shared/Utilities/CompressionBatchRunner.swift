@@ -250,6 +250,14 @@ enum CompressionBatchRunner {
         var setPhase: @MainActor @Sendable (ReplacePhase) -> Void
     }
 
+    /// The batch's failure line, or nil when none is due. A background stop
+    /// already set the message, which says more, so no failure line replaces it.
+    nonisolated static func failureSummary(completed: Int, failed: Int, stoppedForBackground: Bool) -> String? {
+        guard failed > 0, !stoppedForBackground else { return nil }
+        // Through `L10n`: an interpolated literal is not a catalog key.
+        return L10n.format("Compressed %lld of %lld. %lld failed.", completed, completed + failed, failed)
+    }
+
     struct Result: Sendable {
         var successfulIds: Set<String>
         var summary: CompressionBatchSummary

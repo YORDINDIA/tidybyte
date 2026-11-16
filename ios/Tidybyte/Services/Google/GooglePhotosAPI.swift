@@ -74,6 +74,7 @@ struct GooglePhotosAPI {
     func mediaItems(sessionId: String) async throws -> [CloudMediaItem] {
         var items: [CloudMediaItem] = []
         var pageToken: String?
+        var seenTokens = Set<String>()
         repeat {
             var components = URLComponents(string: "https://photospicker.googleapis.com/v1/mediaItems")!
             components.queryItems = [URLQueryItem(name: "sessionId", value: sessionId), URLQueryItem(name: "pageSize", value: "100")]
@@ -82,15 +83,19 @@ struct GooglePhotosAPI {
             components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
             let page = try await decode(MediaItemsPage.self, request(components.string ?? ""))
             items += page.mediaItems?.compactMap(\.cloudItem) ?? []
-            pageToken = Self.nextPageToken(after: pageToken, returned: page.nextPageToken)
+            pageToken = try Self.pageStep(returned: page.nextPageToken, seen: &seenTokens)
         } while pageToken != nil
         return items
     }
 
-    /// The token for the next page, or nil when the listing is done. Google omits
-    /// the token on the last page. An empty or repeated token would loop forever.
-    nonisolated static func nextPageToken(after current: String?, returned: String?) -> String? {
-        guard let returned, !returned.isEmpty, returned != current else { return nil }
+    /// The next page token, or nil when the listing is done. Google omits the token
+    /// on the last page. A token already seen would repeat the listing, so it throws
+    /// instead of ending quietly with a shorter list.
+    nonisolated static func pageStep(returned: String?, seen: inout Set<String>) throws -> String? {
+        guard let returned, !returned.isEmpty else { return nil }
+        guard seen.insert(returned).inserted else {
+            throw GoogleAuthError.failed(L10n.string("Google returned the same page twice, so the list is incomplete."))
+        }
         return returned
     }
 

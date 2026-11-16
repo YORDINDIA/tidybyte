@@ -422,6 +422,9 @@ final class SimilarPhotosViewModel {
             )
         }
         selectedForDeletion.formIntersection(Set(groups.flatMap { $0.assets.map(\.id) }))
+        // A keeper is never marked. A re-picked keeper may have been selected as a
+        // copy, and with no delete toggle the user could not clear it.
+        selectedForDeletion.subtract(groups.map(\.bestAssetId))
         ScanResults.record(.similar, count: totalDuplicateCount)
     }
 
@@ -432,12 +435,9 @@ final class SimilarPhotosViewModel {
     /// access `existingIds` is empty, which would read as every asset deleted.
     func pruneDeleted(authorization: PHAuthorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)) async {
         guard scanState == .completed, !isDeleting else { return }
-        guard CompressionJournal.canReadLibrary(authorization) else { return }
-        let known = Set(groups.flatMap { $0.assets.map(\.id) })
-        guard !known.isEmpty else { return }
-        let present = await photoService.existingIds(Array(known))
+        let gone = await CleanupDeletion.vanishedIds(among: Set(groups.flatMap { $0.assets.map(\.id) }), authorization: authorization)
         guard scanState == .completed, !isDeleting else { return }
-        pruneGone(known.subtracting(present))
+        pruneGone(gone)
     }
 
     /// Removes `gone` from every group. A group left with one item disappears,

@@ -203,7 +203,6 @@ actor VideoCompressionService {
             guard let error = exportSession.error as NSError? else {
                 throw CompressionError.exportFailed(L10n.string("Unknown error"))
             }
-            AppLog.compression.error("Export failed: \(String(describing: error), privacy: .public)")
             throw Self.exportFailure(for: error)
         }
 
@@ -363,7 +362,6 @@ actor VideoCompressionService {
                 if let avAsset {
                     resumer.resume(.loaded(UncheckedSendableBox(avAsset)))
                 } else if let error = info?[PHImageErrorKey] as? NSError {
-                    AppLog.compression.error("Video load request failed: \(String(describing: error), privacy: .public)")
                     resumer.resume(.failed("\(error.localizedDescription) (\(error.domain) \(error.code))"))
                 } else if info?[PHImageCancelledKey] as? Bool == true {
                     resumer.resume(.cancelled)

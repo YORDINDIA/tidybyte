@@ -93,9 +93,7 @@ struct ToolIdleView<Options: View>: View {
                 if let footnote {
                     Text(footnote)
                         .font(.caption2)
-                        // `.tertiary` measures 1.7:1 on white. `.secondary` is the
-                        // lightest system text colour that the page carries.
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.footnoteText)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }

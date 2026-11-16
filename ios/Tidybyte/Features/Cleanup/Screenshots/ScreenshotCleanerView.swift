@@ -233,6 +233,8 @@ struct ScreenshotCleanerView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityAddTraits(.isButton)
                 .accessibilityLabel("Preview screenshot, \(screenshot.displaySize)")
+                // VoiceOver activation opens the preview, as a tap does.
+                .accessibilityAction(.default) { previewAsset = screenshot }
 
             // Always-visible selection checkbox. Tapping it (de)selects; tapping
             // anywhere else on the cell opens the preview.

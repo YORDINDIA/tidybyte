@@ -198,7 +198,7 @@ struct AlbumPickerSheet: View {
             .frame(width: 112)
             .contentShape(Rectangle())
         }
-        .disabled(isAddingToAlbum)
+        .disabled(isAddingToAlbum || isCreatingAlbum)
     }
 
     // MARK: - Album Grid Item
@@ -227,7 +227,7 @@ struct AlbumPickerSheet: View {
             }
             .foregroundStyle(.primary)
         }
-        .disabled(isAddingToAlbum)
+        .disabled(isAddingToAlbum || isCreatingAlbum)
     }
 
     // MARK: - Actions

@@ -571,8 +571,9 @@ struct StorageDashboardView: View {
                             .joined(separator: ", "))
 
                         // Center label
-                        // The donut hole is about 120 pt across; the labels fit it
-                        // at every text size and scale down rather than cross the ring.
+                        // The frame is wider than the donut hole (about 120 pt). The text
+                        // scales down to fit, and at AX5 it was checked on screen to stay
+                        // inside the ring.
                         VStack(spacing: Spacing.xs) {
                             Text(viewModel.totalLibrarySize.formattedFileSize)
                                 .font(.title3.bold())

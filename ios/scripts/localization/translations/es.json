@@ -775,8 +775,8 @@
     "today": "hoy",
     "used": "usado",
     "→ %@": "→ %@",
-    "Couldn't load the video: %@": "No se pudo cargar el video: %@",
-    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Elimina los fotogramas marcados para borrar. Se conserva el fotograma marcado con estrella de cada ráfaga.",
+    "Couldn't load the video: %@": "No se pudo cargar el vídeo: %@",
+    "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "Se eliminarán los fotogramas marcados para eliminar. Se conserva el fotograma marcado con estrella de cada ráfaga.",
     "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "TidyByte detuvo la compresión porque salió del primer plano. Mantén TidyByte abierto mientras comprime y vuelve a intentarlo.",
     "%@ %@": "%@ %@",
     "Last scan, %@: %@ to review.": "Último análisis, %@: %@ para revisar.",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "Este elemento se eliminará de Fotos.",
     "This photo will be deleted from Photos.": "Esta foto se eliminará de Fotos.",
     "This screenshot will be deleted from Photos.": "Esta captura de pantalla se eliminará de Fotos.",
-    "%lld of %lld items couldn't be prepared to share.": "No se pudieron preparar %lld de %lld elementos para compartir."
+    "%lld of %lld items couldn't be prepared to share.": "No se pudieron preparar %lld de %lld elementos para compartir.",
+    "Google returned the same page twice, so the list is incomplete.": "Google devolvió la misma página dos veces, así que la lista está incompleta.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "No se pudo guardar tu inicio de sesión de Google en este dispositivo, y Google aún mantiene el acceso. Elimina TidyByte en la configuración de acceso de terceros de tu cuenta de Google.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte detuvo la conversión de Live Photo porque salió del primer plano. Mantén TidyByte abierto mientras convierte y, después, vuelve a intentarlo."
   },
   "plurals": {
     "%lld issues found": {
@@ -903,21 +906,6 @@
       "many": "%lld Live Photos",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld grupo de ráfaga",
-      "many": "%lld grupos de ráfaga",
-      "other": "%lld grupos de ráfaga"
-    },
-    "%lld groups": {
-      "one": "%lld grupo",
-      "many": "%lld grupos",
-      "other": "%lld grupos"
-    },
-    "%lld groups found": {
-      "one": "%lld grupo encontrado",
-      "many": "%lld grupos encontrados",
-      "other": "%lld grupos encontrados"
-    },
     "%lld compressions": {
       "one": "%lld compresión",
       "many": "%lld compresiones",
@@ -952,11 +940,6 @@
       "one": "%lld día activo, 30 días",
       "many": "%lld días activos, 30 días",
       "other": "%lld días activos, 30 días"
-    },
-    "Failed to delete %lld photo": {
-      "one": "No se pudo eliminar %lld foto",
-      "many": "No se pudieron eliminar %lld fotos",
-      "other": "No se pudieron eliminar %lld fotos"
     },
     "Delete %lld item": {
       "one": "Eliminar %lld elemento",

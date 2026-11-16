@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "Cet élément sera supprimé de Photos.",
     "This photo will be deleted from Photos.": "Cette photo sera supprimée de Photos.",
     "This screenshot will be deleted from Photos.": "Cette capture d'écran sera supprimée de Photos.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld sur %lld éléments n'ont pas pu être préparés pour le partage."
+    "%lld of %lld items couldn't be prepared to share.": "%lld sur %lld éléments n'ont pas pu être préparés pour le partage.",
+    "Google returned the same page twice, so the list is incomplete.": "Google a renvoyé deux fois la même page, la liste est donc incomplète.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "Impossible d'enregistrer votre connexion Google sur cet appareil, et Google conserve encore l'accès. Supprimez TidyByte dans les paramètres d'accès des applications tierces de votre compte Google.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte a arrêté la conversion Live Photo car l'app a quitté le premier plan. Gardez TidyByte ouvert pendant la conversion, puis réessayez."
   },
   "plurals": {
     "%lld issues found": {
@@ -903,21 +906,6 @@
       "many": "%lld Live Photos",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld groupe de rafale",
-      "many": "%lld groupes de rafale",
-      "other": "%lld groupes de rafale"
-    },
-    "%lld groups": {
-      "one": "%lld groupe",
-      "many": "%lld groupes",
-      "other": "%lld groupes"
-    },
-    "%lld groups found": {
-      "one": "%lld groupe trouvé",
-      "many": "%lld groupes trouvés",
-      "other": "%lld groupes trouvés"
-    },
     "%lld compressions": {
       "one": "%lld compression",
       "many": "%lld compressions",
@@ -952,11 +940,6 @@
       "one": "%lld jour actif, 30 jours",
       "many": "%lld jours actifs, 30 jours",
       "other": "%lld jours actifs, 30 jours"
-    },
-    "Failed to delete %lld photo": {
-      "one": "Échec de la suppression de %lld photo",
-      "many": "Échec de la suppression de %lld photos",
-      "other": "Échec de la suppression de %lld photos"
     },
     "Delete %lld item": {
       "one": "Supprimer %lld élément",

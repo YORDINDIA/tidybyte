@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "Questo elemento verrà eliminato da Foto.",
     "This photo will be deleted from Photos.": "Questa foto verrà eliminata da Foto.",
     "This screenshot will be deleted from Photos.": "Questo screenshot verrà eliminato da Foto.",
-    "%lld of %lld items couldn't be prepared to share.": "Impossibile preparare %lld elementi su %lld per la condivisione."
+    "%lld of %lld items couldn't be prepared to share.": "Impossibile preparare %lld elementi su %lld per la condivisione.",
+    "Google returned the same page twice, so the list is incomplete.": "Google ha restituito due volte la stessa pagina, quindi l'elenco è incompleto.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "Impossibile salvare l'accesso a Google su questo dispositivo, e Google mantiene ancora l'accesso. Rimuovi TidyByte nelle impostazioni di accesso di terze parti del tuo account Google.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte ha interrotto la conversione di Live Photo perché è uscito dal primo piano. Tieni TidyByte aperto mentre converte, poi riprova."
   },
   "plurals": {
     "%lld issues found": {
@@ -903,21 +906,6 @@
       "many": "%lld Live Photo",
       "other": "%lld Live Photo"
     },
-    "%lld burst groups": {
-      "one": "%lld gruppo in raffica",
-      "many": "%lld gruppi in raffica",
-      "other": "%lld gruppi in raffica"
-    },
-    "%lld groups": {
-      "one": "%lld gruppo",
-      "many": "%lld gruppi",
-      "other": "%lld gruppi"
-    },
-    "%lld groups found": {
-      "one": "%lld gruppo trovato",
-      "many": "%lld gruppi trovati",
-      "other": "%lld gruppi trovati"
-    },
     "%lld compressions": {
       "one": "%lld compressione",
       "many": "%lld compressioni",
@@ -952,11 +940,6 @@
       "one": "%lld giorno attivo, 30 giorni",
       "many": "%lld giorni attivi, 30 giorni",
       "other": "%lld giorni attivi, 30 giorni"
-    },
-    "Failed to delete %lld photo": {
-      "one": "Impossibile eliminare %lld foto",
-      "many": "Impossibile eliminare %lld foto",
-      "other": "Impossibile eliminare %lld foto"
     },
     "Delete %lld item": {
       "one": "Elimina %lld elemento",

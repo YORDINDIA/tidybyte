@@ -771,7 +771,7 @@
     "the original videos": "ਅਸਲੇ ਵੀਡੀਓਆਂ ਨੂੰ",
     "the still image of each Live Photo as a new photo": "ਹਰ Live Photo ਦੀ ਸਥਿਰ ਤਸਵੀਰ ਨਵੀਂ ਫ਼ੋਟੋ ਵਜੋਂ",
     "this month": "ਇਸ ਮਹੀਨੇ",
-    "to": "ਤੋਂ",
+    "to": "ਵਿੱਚ",
     "today": "ਅੱਜ",
     "used": "ਵਰਤੀ",
     "→ %@": "→ %@",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "ਇਹ ਆਈਟਮ ਫ਼ੋਟੋਆਂ ਤੋਂ ਮਿਟਾਈ ਜਾਵੇਗੀ।",
     "This photo will be deleted from Photos.": "ਇਹ ਫ਼ੋਟੋ ਫ਼ੋਟੋਆਂ ਤੋਂ ਮਿਟਾਈ ਜਾਵੇਗੀ।",
     "This screenshot will be deleted from Photos.": "ਇਹ ਸਕ੍ਰੀਨਸ਼ਾਟ ਫ਼ੋਟੋਆਂ ਤੋਂ ਮਿਟਾਇਆ ਜਾਵੇਗਾ।",
-    "%lld of %lld items couldn't be prepared to share.": "%lld ਆਈਟਮਾਂ (ਕੁੱਲ %lld ਵਿੱਚੋਂ) ਸਾਂਝੀਆਂ ਕਰਨ ਲਈ ਤਿਆਰ ਨਹੀਂ ਕੀਤੀਆਂ ਜਾ ਸਕੀਆਂ।"
+    "%lld of %lld items couldn't be prepared to share.": "%lld ਆਈਟਮਾਂ (ਕੁੱਲ %lld ਵਿੱਚੋਂ) ਸਾਂਝੀਆਂ ਕਰਨ ਲਈ ਤਿਆਰ ਨਹੀਂ ਕੀਤੀਆਂ ਜਾ ਸਕੀਆਂ।",
+    "Google returned the same page twice, so the list is incomplete.": "Google ਨੇ ਇੱਕੋ ਪੰਨਾ ਦੋ ਵਾਰ ਵਾਪਸ ਭੇਜਿਆ, ਇਸ ਲਈ ਸੂਚੀ ਅਧੂਰੀ ਹੈ।",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "ਇਸ ਡਿਵਾਈਸ 'ਤੇ ਤੁਹਾਡਾ Google ਸਾਈਨ-ਇਨ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ, ਅਤੇ Google ਅਜੇ ਵੀ ਪਹੁੰਚ ਰੱਖਦਾ ਹੈ। ਆਪਣੇ Google ਖਾਤੇ ਦੀਆਂ ਤੀਜੀ-ਧਿਰ ਪਹੁੰਚ ਸੈਟਿੰਗਾਂ ਵਿੱਚੋਂ TidyByte ਹਟਾਓ।",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte ਫੋਰਗ੍ਰਾਊਂਡ ਤੋਂ ਬਾਹਰ ਚਲੇ ਜਾਣ ਕਾਰਨ Live Photo ਰੂਪਾਂਤਰਨ ਰੋਕਿਆ ਗਿਆ। ਰੂਪਾਂਤਰਨ ਦੌਰਾਨ TidyByte ਖੁੱਲ੍ਹਾ ਰੱਖੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld ਬਰਸਟ ਗਰੁੱਪ",
-      "other": "%lld ਬਰਸਟ ਗਰੁੱਪ"
-    },
-    "%lld groups": {
-      "one": "%lld ਗਰੁੱਪ",
-      "other": "%lld ਗਰੁੱਪ"
-    },
-    "%lld groups found": {
-      "one": "%lld ਗਰੁੱਪ ਲੱਭਾ",
-      "other": "%lld ਗਰੁੱਪ ਲੱਭੇ"
-    },
     "%lld compressions": {
       "one": "%lld ਕੰਪਰੈਸ਼ਨ",
       "other": "%lld ਕੰਪਰੈਸ਼ਨ"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld ਸਰਗਰਮ ਦਿਨ, 30 ਦਿਨ",
       "other": "%lld ਸਰਗਰਮ ਦਿਨ, 30 ਦਿਨ"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld ਫ਼ੋਟੋ ਮਿਟਾਉਣੀ ਅਸਫਲ",
-      "other": "%lld ਫ਼ੋਟੋਆਂ ਮਿਟਾਉਣੀਆਂ ਅਸਫਲ"
     },
     "Delete %lld item": {
       "one": "%lld ਆਈਟਮ ਮਿਟਾਓ",

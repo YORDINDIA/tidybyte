@@ -771,7 +771,7 @@
     "the original videos": "मूल वीडियो",
     "the still image of each Live Photo as a new photo": "हर Live Photo की स्थिर छवि को नई फ़ोटो के रूप में",
     "this month": "इस महीने",
-    "to": "से",
+    "to": "में",
     "today": "आज",
     "used": "इस्तेमाल हुआ",
     "→ %@": "→ %@",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "यह आइटम फ़ोटो से हटाया जाएगा।",
     "This photo will be deleted from Photos.": "यह फ़ोटो फ़ोटो ऐप से हटाई जाएगी।",
     "This screenshot will be deleted from Photos.": "यह स्क्रीनशॉट फ़ोटो से हटाया जाएगा।",
-    "%lld of %lld items couldn't be prepared to share.": "%lld आइटम साझा करने के लिए तैयार नहीं हो सके (कुल %lld में से)।"
+    "%lld of %lld items couldn't be prepared to share.": "%lld आइटम साझा करने के लिए तैयार नहीं हो सके (कुल %lld में से)।",
+    "Google returned the same page twice, so the list is incomplete.": "Google ने एक ही पेज दो बार लौटाया, इसलिए सूची अधूरी है।",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "इस डिवाइस पर आपका Google साइन-इन सहेजा नहीं जा सका, और Google के पास अब भी पहुँच है। अपने Google खाते की तृतीय-पक्ष पहुँच सेटिंग में TidyByte हटाएँ।",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "ऐप फ़ोरग्राउंड से हट जाने के कारण TidyByte ने Live Photo का रूपांतरण रोक दिया। रूपांतरण के दौरान TidyByte खुला रखें, फिर दोबारा कोशिश करें।"
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld बर्स्ट समूह",
-      "other": "%lld बर्स्ट समूह"
-    },
-    "%lld groups": {
-      "one": "%lld समूह",
-      "other": "%lld समूह"
-    },
-    "%lld groups found": {
-      "one": "%lld समूह मिले",
-      "other": "%lld समूह मिले"
-    },
     "%lld compressions": {
       "one": "%lld कंप्रेशन",
       "other": "%lld कंप्रेशन"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld सक्रिय दिन, 30 दिन",
       "other": "%lld सक्रिय दिन, 30 दिन"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld फ़ोटो हटाने में विफल",
-      "other": "%lld फ़ोटो हटाने में विफल"
     },
     "Delete %lld item": {
       "one": "%lld आइटम हटाएँ",
@@ -1083,7 +1070,7 @@
       "other": "%lld समूह"
     },
     "%lld group found": {
-      "one": "%lld समूह मिले",
+      "one": "%lld समूह मिला",
       "other": "%lld समूह मिले"
     },
     "Failed to delete %lld photo: %@": {

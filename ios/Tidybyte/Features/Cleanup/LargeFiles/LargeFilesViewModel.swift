@@ -42,6 +42,8 @@ final class LargeFilesViewModel {
     /// (LF-09).
     private(set) var shareExportFolder: URL?
     private var shareTask: Task<Void, Never>?
+    /// The shortfall warning the last export set, so a later complete export can clear it.
+    private(set) var lastShareShortfall: String?
     private var shareGeneration: UUID?
     typealias ShareExporter = @MainActor ([String], @escaping @MainActor @Sendable (Int, Int) -> Void) async -> (folder: URL, urls: [URL])
     private let shareExporter: ShareExporter
@@ -344,9 +346,15 @@ final class LargeFilesViewModel {
                 self.sharePayload = SharePayload(urls: urls)
                 // Some items did not export: say how many, rather than sharing a
                 // shorter set without a word.
-                if let shortfall = Self.shareShortfallMessage(requested: ids.count, returned: urls.count) {
+                let shortfall = Self.shareShortfallMessage(requested: ids.count, returned: urls.count)
+                if let shortfall {
                     self.errorMessage = shortfall
+                } else if let previous = self.lastShareShortfall, self.errorMessage == previous {
+                    // A complete export clears the warning from an earlier one. Any
+                    // other error stays, because it is not this export's message.
+                    self.errorMessage = nil
                 }
+                self.lastShareShortfall = shortfall
             }
             self.isPreparingShare = false
         }

@@ -771,7 +771,7 @@
     "the original videos": "ഒറിജിനൽ വീഡിയോകൾ",
     "the still image of each Live Photo as a new photo": "ഓരോ Live Photo-യുടെയും സ്റ്റിൽ ഇമേജ് പുതിയ ഫോട്ടോ ആയി",
     "this month": "ഈ മാസം",
-    "to": "മുതൽ",
+    "to": "ലേക്ക്",
     "today": "ഇന്ന്",
     "used": "ഉപയോഗിച്ചു",
     "→ %@": "→ %@",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "ഈ ഇനം ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
     "This photo will be deleted from Photos.": "ഈ ഫോട്ടോ ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
     "This screenshot will be deleted from Photos.": "ഈ സ്ക്രീൻഷോട്ട് ഫോട്ടോകളിൽ നിന്ന് ഇല്ലാതാക്കും.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld ഇനങ്ങൾ (ആകെ %lld) പങ്കിടാൻ തയ്യാറാക്കാനായില്ല."
+    "%lld of %lld items couldn't be prepared to share.": "%lld ഇനങ്ങൾ (ആകെ %lld) പങ്കിടാൻ തയ്യാറാക്കാനായില്ല.",
+    "Google returned the same page twice, so the list is incomplete.": "ഒരേ പേജ് Google രണ്ടു തവണ തിരികെ നൽകി, അതിനാൽ പട്ടിക അപൂർണ്ണമാണ്.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "ഈ ഉപകരണത്തിൽ നിങ്ങളുടെ Google സൈൻ ഇൻ സേവ് ചെയ്യാനായില്ല, Google ഇപ്പോഴും ആക്‌സസ് നിലനിർത്തുന്നു. നിങ്ങളുടെ Google അക്കൗണ്ടിലെ മൂന്നാം കക്ഷി ആക്‌സസ് ക്രമീകരണങ്ങളിൽ TidyByte നീക്കം ചെയ്യുക.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte മുൻനിരയിൽ നിന്ന് പോയതിനാൽ Live Photo പരിവർത്തനം നിർത്തി. പരിവർത്തനം നടക്കുമ്പോൾ TidyByte തുറന്നുവെക്കുക, പിന്നീട് വീണ്ടും ശ്രമിക്കുക."
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld ബർസ്റ്റ് ഗ്രൂപ്പ്",
-      "other": "%lld ബർസ്റ്റ് ഗ്രൂപ്പുകൾ"
-    },
-    "%lld groups": {
-      "one": "%lld ഗ്രൂപ്പ്",
-      "other": "%lld ഗ്രൂപ്പുകൾ"
-    },
-    "%lld groups found": {
-      "one": "%lld ഗ്രൂപ്പ് കണ്ടെത്തി",
-      "other": "%lld ഗ്രൂപ്പുകൾ കണ്ടെത്തി"
-    },
     "%lld compressions": {
       "one": "%lld കംപ്രഷൻ",
       "other": "%lld കംപ്രഷനുകൾ"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld സജീവ ദിവസം, 30 ദിവസം",
       "other": "%lld സജീവ ദിവസങ്ങൾ, 30 ദിവസം"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld ഫോട്ടോ ഇല്ലാതാക്കാനായില്ല",
-      "other": "%lld ഫോട്ടോകൾ ഇല്ലാതാക്കാനായില്ല"
     },
     "Delete %lld item": {
       "one": "%lld ഇനം ഇല്ലാതാക്കുക",

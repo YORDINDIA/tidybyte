@@ -50,8 +50,7 @@ struct GlassCardModifier: ViewModifier {
                             .strokeBorder(border, lineWidth: borderWidth)
                     }
             }
-            // No drop shadow: the tonal fill and the hairline border carry the edge.
-            // A shadow on every card was the default lift the design law rejects.
+            // No drop shadow: the tonal fill and the hairline border define the card.
     }
 }
 

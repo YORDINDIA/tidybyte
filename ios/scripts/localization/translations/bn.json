@@ -771,7 +771,7 @@
     "the original videos": "মূল ভিডিওগুলি",
     "the still image of each Live Photo as a new photo": "প্রতিটি Live Photo-এর স্থির ছবি নতুন ফটো হিসেবে",
     "this month": "এই মাসে",
-    "to": "থেকে",
+    "to": "তে",
     "today": "আজ",
     "used": "ব্যবহৃত",
     "→ %@": "→ %@",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "এই আইটেমটি ফটো থেকে মুছে ফেলা হবে।",
     "This photo will be deleted from Photos.": "এই ছবিটি ফটো থেকে মুছে ফেলা হবে।",
     "This screenshot will be deleted from Photos.": "এই স্ক্রিনশটটি ফটো থেকে মুছে ফেলা হবে।",
-    "%lld of %lld items couldn't be prepared to share.": "%lld টি আইটেম (মোট %lld টির মধ্যে) শেয়ার করার জন্য প্রস্তুত করা যায়নি।"
+    "%lld of %lld items couldn't be prepared to share.": "%lld টি আইটেম (মোট %lld টির মধ্যে) শেয়ার করার জন্য প্রস্তুত করা যায়নি।",
+    "Google returned the same page twice, so the list is incomplete.": "Google একই পেজ দুইবার ফেরত দিয়েছে, তাই তালিকাটি অসম্পূর্ণ।",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "এই ডিভাইসে আপনার Google সাইন-ইন সংরক্ষণ করা যায়নি, এবং Google এখনও অ্যাক্সেস রেখেছে। আপনার Google অ্যাকাউন্টের তৃতীয়-পক্ষ অ্যাক্সেস সেটিংসে TidyByte সরিয়ে দিন।",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "সামনের অংশ ছেড়ে যাওয়ায় TidyByte Live Photo রূপান্তর বন্ধ করেছে। রূপান্তরের সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld বার্স্ট গ্রুপ",
-      "other": "%lld বার্স্ট গ্রুপ"
-    },
-    "%lld groups": {
-      "one": "%lld গ্রুপ",
-      "other": "%lld গ্রুপ"
-    },
-    "%lld groups found": {
-      "one": "%lld গ্রুপ পাওয়া গেছে",
-      "other": "%lld গ্রুপ পাওয়া গেছে"
-    },
     "%lld compressions": {
       "one": "%lld কমপ্রেশন",
       "other": "%lld কমপ্রেশন"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld সক্রিয় দিন, 30 দিন",
       "other": "%lld সক্রিয় দিন, 30 দিন"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld ফটো মোছা যায়নি",
-      "other": "%lld ফটো মোছা যায়নি"
     },
     "Delete %lld item": {
       "one": "%lld আইটেম মুছুন",

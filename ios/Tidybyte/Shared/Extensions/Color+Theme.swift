@@ -85,6 +85,14 @@ extension Color {
             ? UIColor(red: 1.000, green: 0.702, blue: 0.251, alpha: 1)   // #FFB340
             : UIColor(red: 0.561, green: 0.337, blue: 0.000, alpha: 1)   // #8F5600
     })
+
+    /// Footnote copy on the page. Clears 4.5:1 against white and black in both
+    /// appearances, unlike `.secondary` (about 3.4:1 in light mode).
+    static let footnoteText = Color(UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.682, green: 0.682, blue: 0.698, alpha: 1)   // #AEAEB2
+            : UIColor(red: 0.353, green: 0.353, blue: 0.380, alpha: 1)   // #5A5A61
+    })
 }
 
 

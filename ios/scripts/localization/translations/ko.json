@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "이 항목이 사진에서 삭제됩니다.",
     "This photo will be deleted from Photos.": "이 사진이 사진 앱에서 삭제됩니다.",
     "This screenshot will be deleted from Photos.": "이 스크린샷이 사진에서 삭제됩니다.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld개 항목을 공유용으로 준비하지 못했습니다 (총 %lld개 중)."
+    "%lld of %lld items couldn't be prepared to share.": "%lld개 항목을 공유용으로 준비하지 못했습니다 (총 %lld개 중).",
+    "Google returned the same page twice, so the list is incomplete.": "Google가 같은 페이지를 두 번 반환해 목록이 불완전합니다.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "이 기기에 Google 로그인 정보를 저장하지 못했고, Google에는 아직 접근 권한이 남아 있습니다. Google 계정의 타사 앱 액세스 설정에서 TidyByte를 삭제하세요.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "앱이 포그라운드를 벗어나 TidyByte가 Live Photo 변환을 중단했습니다. 변환하는 동안 TidyByte를 열어 두고 다시 시도하세요."
   },
   "plurals": {
     "%lld issues found": {
@@ -861,15 +864,6 @@
     "%lld Live Photos": {
       "other": "%lld장의 Live Photo"
     },
-    "%lld burst groups": {
-      "other": "%lld개 버스트"
-    },
-    "%lld groups": {
-      "other": "%lld개 그룹"
-    },
-    "%lld groups found": {
-      "other": "%lld개 그룹 발견"
-    },
     "%lld compressions": {
       "other": "%lld건 압축"
     },
@@ -890,9 +884,6 @@
     },
     "%lld active day, 30 days": {
       "other": "%lld일 활동, 30일 기준"
-    },
-    "Failed to delete %lld photo": {
-      "other": "%lld장의 사진을 삭제하지 못했습니다"
     },
     "Delete %lld item": {
       "other": "%lld개 항목 삭제"

@@ -5,45 +5,55 @@ import XCTest
 /// Regression tests for the shared-layer audit: WCAG contrast of the colour
 /// tokens that carry text in both appearances, and the once-only resume contract
 /// of `ContinuationResumer`.
-final class IOSSharedScanTests: XCTestCase {
+final class ColorContrastTests: XCTestCase {
 
     // MARK: - Contrast helpers
 
-    private typealias RGB = (r: Double, g: Double, b: Double)
+    private struct RGB {
+        let red: Double
+        let green: Double
+        let blue: Double
+
+        init(_ red: Double, _ green: Double, _ blue: Double) {
+            self.red = red
+            self.green = green
+            self.blue = blue
+        }
+    }
 
     /// The colour a token resolves to in one appearance, in sRGB components.
     private func resolved(_ color: Color, dark: Bool) -> RGB {
         var environment = EnvironmentValues()
         environment.colorScheme = dark ? .dark : .light
         let value = color.resolve(in: environment)
-        return (Double(value.red), Double(value.green), Double(value.blue))
+        return RGB(Double(value.red), Double(value.green), Double(value.blue))
     }
 
     private func background(dark: Bool) -> RGB {
-        dark ? (0, 0, 0) : (1, 1, 1)
+        dark ? RGB(0, 0, 0) : RGB(1, 1, 1)
     }
 
     /// `tint` at `alpha` laid over `base`, the way a `.opacity` fill composites.
     private func blend(_ tint: RGB, alpha: Double, over base: RGB) -> RGB {
-        (
-            tint.r * alpha + base.r * (1 - alpha),
-            tint.g * alpha + base.g * (1 - alpha),
-            tint.b * alpha + base.b * (1 - alpha)
+        RGB(
+            tint.red * alpha + base.red * (1 - alpha),
+            tint.green * alpha + base.green * (1 - alpha),
+            tint.blue * alpha + base.blue * (1 - alpha)
         )
     }
 
-    private func luminance(_ c: RGB) -> Double {
-        func linear(_ v: Double) -> Double {
-            v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+    private func luminance(_ rgb: RGB) -> Double {
+        func linear(_ channel: Double) -> Double {
+            channel <= 0.03928 ? channel / 12.92 : pow((channel + 0.055) / 1.055, 2.4)
         }
-        return 0.2126 * linear(c.r) + 0.7152 * linear(c.g) + 0.0722 * linear(c.b)
+        return 0.2126 * linear(rgb.red) + 0.7152 * linear(rgb.green) + 0.0722 * linear(rgb.blue)
     }
 
     /// WCAG 2.x contrast ratio, 1...21.
-    private func contrast(_ a: RGB, _ b: RGB) -> Double {
-        let la = luminance(a)
-        let lb = luminance(b)
-        return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
+    private func contrast(_ first: RGB, _ second: RGB) -> Double {
+        let lumFirst = luminance(first)
+        let lumSecond = luminance(second)
+        return (max(lumFirst, lumSecond) + 0.05) / (min(lumFirst, lumSecond) + 0.05)
     }
 
     private let aaText = 4.5
@@ -61,7 +71,7 @@ final class IOSSharedScanTests: XCTestCase {
         ]
         for (name, fill) in fills {
             for dark in [false, true] {
-                let ratio = contrast((1, 1, 1), resolved(fill, dark: dark))
+                let ratio = contrast(RGB(1, 1, 1), resolved(fill, dark: dark))
                 XCTAssertGreaterThanOrEqual(
                     ratio, aaText,
                     "\(name) with a white label is \(ratio):1 in \(dark ? "dark" : "light")"
@@ -78,7 +88,8 @@ final class IOSSharedScanTests: XCTestCase {
             ("actionText", .actionText),
             ("successText", .successText),
             ("destructiveText", .destructiveText),
-            ("warningText", .warningText)
+            ("warningText", .warningText),
+            ("footnoteText", .footnoteText)
         ]
         for (name, text) in texts {
             for dark in [false, true] {
@@ -149,45 +160,9 @@ final class ContinuationResumerTests: XCTestCase {
     }
 }
 
-// MARK: - Round 2: pagination, markers, error text
+// MARK: - models, formatting, selection
 
-final class SharedRound2Tests: XCTestCase {
-
-    /// Google omits the token on the last page. An empty or repeated token must
-    /// end the listing, or the loop never finishes.
-    func testNextPageTokenStopsOnEmptyOrRepeatedToken() {
-        XCTAssertNil(GooglePhotosAPI.nextPageToken(after: nil, returned: nil))
-        XCTAssertNil(GooglePhotosAPI.nextPageToken(after: "a", returned: ""))
-        XCTAssertNil(GooglePhotosAPI.nextPageToken(after: "a", returned: "a"))
-        XCTAssertEqual(GooglePhotosAPI.nextPageToken(after: nil, returned: "b"), "b")
-        XCTAssertEqual(GooglePhotosAPI.nextPageToken(after: "a", returned: "b"), "b")
-    }
-
-    /// The bare `-WA`, `INSTA` and `SIGNAL` markers matched ordinary words.
-    func testMarkersDoNotMatchInsideOrdinaryWords() {
-        for name in ["INSTANT_1.JPG", "INSTALL.JPG", "SIGNALS_1.JPG", "PHOTO-WALL.JPG", "PHOTO-WA.JPG"] {
-            XCTAssertFalse(SavedFromAppMarkers.matches(filename: name), name)
-        }
-    }
-
-    func testMarkersStillMatchRealExportNames() {
-        for name in ["IMG-20240101-WA0001.JPG", "VID-20240101-WA0002.MP4", "INSTA_1704067200000.JPG",
-                     "signal-2024-01-01-120000.jpg", "LINE_ALBUM_1.JPG"] {
-            XCTAssertTrue(SavedFromAppMarkers.matches(filename: name), name)
-        }
-    }
-
-    /// An empty failure message left the sign-in banner blank.
-    func testFailedAndKeychainErrorsAlwaysHaveText() {
-        XCTAssertFalse((GoogleAuthError.failed("").errorDescription ?? "").isEmpty)
-        XCTAssertFalse((GoogleAuthError.keychainWriteFailed.errorDescription ?? "").isEmpty)
-        XCTAssertEqual(GoogleAuthError.failed("Boom").errorDescription, "Boom")
-    }
-}
-
-// MARK: - Round 3: models, formatting, selection
-
-private func makeRound3Asset(
+func makeTestAsset(
     id: String,
     width: Int = 100,
     height: Int = 100,
@@ -204,43 +179,43 @@ private func makeRound3Asset(
     )
 }
 
-final class ModelsAndFormattingRound3Tests: XCTestCase {
+final class FormattingAndModelTests: XCTestCase {
 
     /// The 999.95 kB boundary: the unit switches before one decimal place can
     /// print "1000 kB".
     func testFileSizeSwitchesUnitBeforeItRoundsToAThousand() {
-        let us = Locale.Region("US")
-        let almostMegabyte = Formatters.fileSize(999_950, language: .english, region: us)
+        let unitedStates = Locale.Region("US")
+        let almostMegabyte = Formatters.fileSize(999_950, language: .english, region: unitedStates)
         XCTAssertFalse(almostMegabyte.contains("1000"), "got \(almostMegabyte)")
         XCTAssertTrue(almostMegabyte.contains("MB"), "got \(almostMegabyte)")
 
-        let justBelow = Formatters.fileSize(999_949, language: .english, region: us)
+        let justBelow = Formatters.fileSize(999_949, language: .english, region: unitedStates)
         XCTAssertTrue(justBelow.contains("kB"), "got \(justBelow)")
         XCTAssertTrue(justBelow.contains("999.9"), "got \(justBelow)")
     }
 
     func testDurationReadsMinutesUnderAnHourAndHoursFromAnHour() {
-        XCTAssertEqual(makeRound3Asset(id: "a", duration: 0).formattedDuration, "")
-        XCTAssertEqual(makeRound3Asset(id: "a", duration: 75).formattedDuration, "1:15")
-        XCTAssertEqual(makeRound3Asset(id: "a", duration: 3_599).formattedDuration, "59:59")
-        XCTAssertEqual(makeRound3Asset(id: "a", duration: 3_725).formattedDuration, "1:02:05")
+        XCTAssertEqual(makeTestAsset(id: "a", duration: 0).formattedDuration, "")
+        XCTAssertEqual(makeTestAsset(id: "a", duration: 75).formattedDuration, "1:15")
+        XCTAssertEqual(makeTestAsset(id: "a", duration: 3_599).formattedDuration, "59:59")
+        XCTAssertEqual(makeTestAsset(id: "a", duration: 3_725).formattedDuration, "1:02:05")
     }
 
     /// `.anchored` with `.backwards` must match the extension only, at the end.
     func testIsHEICMatchesTheExtensionAtTheEndOnly() {
-        XCTAssertTrue(makeRound3Asset(id: "a", filename: "IMG_1.HEIC").isHEIC)
-        XCTAssertTrue(makeRound3Asset(id: "a", filename: "IMG_1.heif").isHEIC)
-        XCTAssertFalse(makeRound3Asset(id: "a", filename: "IMG_1.heic.jpg").isHEIC)
-        XCTAssertFalse(makeRound3Asset(id: "a", filename: "HEIC.jpg").isHEIC)
-        XCTAssertFalse(makeRound3Asset(id: "a", filename: "IMG_1.HEICS").isHEIC)
-        XCTAssertFalse(makeRound3Asset(id: "a", filename: nil).isHEIC)
+        XCTAssertTrue(makeTestAsset(id: "a", filename: "IMG_1.HEIC").isHEIC)
+        XCTAssertTrue(makeTestAsset(id: "a", filename: "IMG_1.heif").isHEIC)
+        XCTAssertFalse(makeTestAsset(id: "a", filename: "IMG_1.heic.jpg").isHEIC)
+        XCTAssertFalse(makeTestAsset(id: "a", filename: "HEIC.jpg").isHEIC)
+        XCTAssertFalse(makeTestAsset(id: "a", filename: "IMG_1.HEICS").isHEIC)
+        XCTAssertFalse(makeTestAsset(id: "a", filename: nil).isHEIC)
     }
 
     /// The keeper must not depend on the order the tool happened to list the assets.
     func testBestByMetadataIgnoresInputOrder() {
-        let favorite = makeRound3Asset(id: "b", width: 100, height: 100, favorite: true)
-        let large = makeRound3Asset(id: "a", width: 4_000, height: 3_000)
-        let mid = makeRound3Asset(id: "c", width: 2_000, height: 1_500)
+        let favorite = makeTestAsset(id: "b", width: 100, height: 100, favorite: true)
+        let large = makeTestAsset(id: "a", width: 4_000, height: 3_000)
+        let mid = makeTestAsset(id: "c", width: 2_000, height: 1_500)
         for order in [[favorite, large, mid], [mid, large, favorite], [large, mid, favorite]] {
             XCTAssertEqual(BestAssetSelector.bestByMetadata(from: order)?.id, "b")
         }
@@ -249,16 +224,16 @@ final class ModelsAndFormattingRound3Tests: XCTestCase {
     /// Two assets with nothing to tell them apart: the smaller id wins, in any order.
     func testBestByMetadataTieBreaksOnSmallerId() {
         let date = Date(timeIntervalSince1970: 1_700_000_000)
-        let z = makeRound3Asset(id: "z", date: date)
-        let a = makeRound3Asset(id: "a", date: date)
-        XCTAssertEqual(BestAssetSelector.bestByMetadata(from: [z, a])?.id, "a")
-        XCTAssertEqual(BestAssetSelector.bestByMetadata(from: [a, z])?.id, "a")
+        let zebra = makeTestAsset(id: "zebra", date: date)
+        let alpha = makeTestAsset(id: "alpha", date: date)
+        XCTAssertEqual(BestAssetSelector.bestByMetadata(from: [zebra, alpha])?.id, "alpha")
+        XCTAssertEqual(BestAssetSelector.bestByMetadata(from: [alpha, zebra])?.id, "alpha")
     }
 }
 
-// MARK: - Round 3: export file sink
+// MARK: - export file sink
 
-final class ExportFileSinkRound3Tests: XCTestCase {
+final class ExportFileSinkTests: XCTestCase {
 
     private var folder: URL!
 
@@ -318,214 +293,5 @@ final class ExportFileSinkRound3Tests: XCTestCase {
         let url = folder.appendingPathComponent("missing", isDirectory: true)
             .appendingPathComponent("c.jpg")
         XCTAssertNil(ExportFileSink(url: url))
-    }
-}
-
-// MARK: - Round 3: Keychain write failure (fake backend)
-
-@MainActor
-final class GoogleKeychainRound3Tests: XCTestCase {
-
-    /// In-memory stand-in for the Keychain. `refuseAdds` makes `SecItemAdd` fail
-    /// the way a locked or full Keychain does.
-    private final class FakeKeychain: @unchecked Sendable {
-        private let lock = NSLock()
-        private var stored: Data?
-        private let refuseAdds: Bool
-        private(set) var addCount = 0
-
-        init(refuseAdds: Bool) {
-            self.refuseAdds = refuseAdds
-        }
-
-        var backend: GoogleKeychainBackend {
-            GoogleKeychainBackend(
-                add: { [self] query in
-                    lock.withLock {
-                        addCount += 1
-                        if refuseAdds { return errSecInteractionNotAllowed }
-                        stored = (query as NSDictionary)[kSecValueData] as? Data
-                        return errSecSuccess
-                    }
-                },
-                delete: { [self] _ in
-                    lock.withLock {
-                        stored = nil
-                        return errSecSuccess
-                    }
-                },
-                copyMatching: { [self] _ in
-                    lock.withLock { stored }
-                }
-            )
-        }
-    }
-
-    override func tearDown() {
-        GoogleKeychain.backend = .system
-        super.tearDown()
-    }
-
-    private func sampleTokens() -> GoogleAuthService.Tokens {
-        GoogleAuthService.Tokens(accessToken: "access", refreshToken: "refresh", expiresAt: Date(timeIntervalSince1970: 2_000_000_000))
-    }
-
-    private func sampleResponse() throws -> GoogleAuthService.TokenResponse {
-        try JSONDecoder().decode(
-            GoogleAuthService.TokenResponse.self,
-            from: Data(#"{"access_token":"access","expires_in":3600,"refresh_token":"refresh"}"#.utf8)
-        )
-    }
-
-    func testSaveReportsFailureWhenTheKeychainRefusesTheWrite() {
-        let fake = FakeKeychain(refuseAdds: true)
-        GoogleKeychain.backend = fake.backend
-        XCTAssertFalse(GoogleKeychain.save(sampleTokens()))
-        XCTAssertEqual(fake.addCount, 1)
-    }
-
-    func testSaveRoundTripsThroughTheKeychain() {
-        let fake = FakeKeychain(refuseAdds: false)
-        GoogleKeychain.backend = fake.backend
-        XCTAssertTrue(GoogleKeychain.save(sampleTokens()))
-        XCTAssertEqual(GoogleKeychain.load(), sampleTokens())
-    }
-
-    /// The user must not be left looking signed in when the write failed: the
-    /// error is thrown, and the app holds no tokens.
-    func testStoreThrowsAndHoldsNoTokensWhenTheKeychainRefuses() throws {
-        let fake = FakeKeychain(refuseAdds: true)
-        GoogleKeychain.backend = fake.backend
-        let auth = GoogleAuthService()
-        XCTAssertNil(auth.tokens)
-
-        XCTAssertThrowsError(try auth.store(try sampleResponse(), keepingRefreshToken: nil)) { error in
-            XCTAssertEqual(error as? GoogleAuthError, .keychainWriteFailed)
-        }
-        XCTAssertNil(auth.tokens)
-        XCTAssertFalse(auth.isSignedIn)
-    }
-
-    func testStoreKeepsTokensWhenTheKeychainAccepts() throws {
-        let fake = FakeKeychain(refuseAdds: false)
-        GoogleKeychain.backend = fake.backend
-        let auth = GoogleAuthService()
-
-        try auth.store(try sampleResponse(), keepingRefreshToken: nil)
-        XCTAssertEqual(auth.tokens?.accessToken, "access")
-        XCTAssertEqual(auth.tokens?.refreshToken, "refresh")
-        XCTAssertTrue(auth.isSignedIn)
-        XCTAssertEqual(GoogleKeychain.load()?.accessToken, "access")
-    }
-}
-
-// MARK: - Final pass: counted keys resolve per language
-
-final class CountedKeyResolutionTests: XCTestCase {
-
-    /// Foundation wraps inserted arguments in bidi isolation marks for
-    /// right-to-left text. They are invisible and not part of the copy.
-    private func visible(_ s: String) -> String {
-        s.replacingOccurrences(of: "\u{2068}", with: "").replacingOccurrences(of: "\u{2069}", with: "")
-    }
-
-    /// Each counted form must follow the app language's plural rules, not the
-    /// device locale (the simulator is en_US).
-    func testFailedDeleteResolvesPerAppLanguage() {
-        let key = "Failed to delete %lld photo: %@"
-        let fallback = "Failed to delete %lld photos: %@"
-        XCTAssertEqual(visible(L10n.format(key, language: .english, fallback: fallback, 1, "x")), "Failed to delete 1 photo: x")
-        XCTAssertEqual(visible(L10n.format(key, language: .english, fallback: fallback, 5, "x")), "Failed to delete 5 photos: x")
-        XCTAssertEqual(visible(L10n.format(key, language: .russian, fallback: fallback, 1, "x")), "Не удалось удалить 1 фотографию: x")
-        XCTAssertEqual(visible(L10n.format(key, language: .russian, fallback: fallback, 5, "x")), "Не удалось удалить 5 фотографий: x")
-        XCTAssertEqual(visible(L10n.format(key, language: .arabic, fallback: fallback, 1, "x")), "تعذّر حذف 1 صورة: x")
-        XCTAssertEqual(visible(L10n.format(key, language: .arabic, fallback: fallback, 5, "x")), "تعذّر حذف 5 صور: x")
-    }
-
-    func testUpdatedDayAgoResolvesPerAppLanguage() {
-        let key = "Updated %lld day ago"
-        let fallback = "Updated %lld days ago"
-        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 1), "Updated 1 day ago")
-        XCTAssertEqual(L10n.format(key, language: .english, fallback: fallback, 5), "Updated 5 days ago")
-        XCTAssertEqual(L10n.format(key, language: .russian, fallback: fallback, 5), "Обновлено 5 дней назад")
-    }
-
-    /// Digits in `%lld` stay ASCII in every language, as before this change.
-    func testCountDigitsStayASCIIInArabic() {
-        let text = visible(L10n.format("Failed to delete %lld photo: %@", language: .arabic, fallback: "x", 5, "x"))
-        XCTAssertTrue(text.contains("5"))
-        XCTAssertFalse(text.contains("٥"))
-    }
-}
-
-
-// MARK: - Final review: markers, library-access guard in prune
-
-final class FinalReviewTests: XCTestCase {
-
-    /// `INSTA_` keeps INSTANT and INSTALL out. `INSTAGRAM` must still match its own name.
-    func testInstagramBothPrefixesMatch() {
-        XCTAssertTrue(SavedFromAppMarkers.matches(filename: "INSTAGRAM_20240101.JPG"))
-        XCTAssertTrue(SavedFromAppMarkers.matches(filename: "INSTA_1704067200000.JPG"))
-        XCTAssertTrue(SavedFromAppMarkers.matches(filename: "instagram-export-1.jpg"))
-        XCTAssertFalse(SavedFromAppMarkers.matches(filename: "INSTANT_1.JPG"))
-        XCTAssertFalse(SavedFromAppMarkers.matches(filename: "INSTALL_1.JPG"))
-    }
-}
-
-/// Pruning treats an empty `existingIds` as "every asset deleted". Without library
-/// access that answer is not real, so the groups must stay.
-@MainActor
-final class PruneNeedsLibraryAccessTests: XCTestCase {
-
-    func testDuplicatesKeepGroupsWithoutLibraryAccess() async {
-        let vm = DuplicateFinderViewModel()
-        vm.exactGroups = [DuplicateGroup(
-            id: "g1",
-            assets: [makeRound3Asset(id: "dup-a"), makeRound3Asset(id: "dup-b")],
-            bestAssetId: "dup-a",
-            type: .exact
-        )]
-        vm.scanState = .completed
-        await vm.pruneDeleted(authorization: .denied)
-        XCTAssertEqual(vm.exactGroups.count, 1)
-        await vm.pruneDeleted(authorization: .notDetermined)
-        XCTAssertEqual(vm.exactGroups.count, 1)
-    }
-
-    func testSimilarKeepsGroupsWithoutLibraryAccess() async {
-        let vm = SimilarPhotosViewModel()
-        vm.groups = [SimilarGroup(
-            id: "s1",
-            assets: [makeRound3Asset(id: "sim-a"), makeRound3Asset(id: "sim-b")],
-            bestAssetId: "sim-a"
-        )]
-        vm.scanState = .completed
-        await vm.pruneDeleted(authorization: .restricted)
-        XCTAssertEqual(vm.groups.count, 1)
-    }
-}
-
-// MARK: - Share shortfall (LargeFiles)
-
-@MainActor
-final class ShareShortfallTests: XCTestCase {
-
-    func testNoShortfallWhenEveryItemCameBack() {
-        XCTAssertNil(LargeFilesViewModel.shareShortfallMessage(requested: 5, returned: 5))
-    }
-
-    func testShortfallNamesHowManyFailed() {
-        XCTAssertEqual(
-            LargeFilesViewModel.shareShortfallMessage(requested: 5, returned: 3),
-            "2 of 5 items couldn't be prepared to share."
-        )
-    }
-
-    func testOneItemFailingIsNamedAsOne() {
-        XCTAssertEqual(
-            LargeFilesViewModel.shareShortfallMessage(requested: 3, returned: 2),
-            "1 of 3 items couldn't be prepared to share."
-        )
     }
 }

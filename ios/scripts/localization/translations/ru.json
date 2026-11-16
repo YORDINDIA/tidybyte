@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "Этот элемент будет удалён из «Фото».",
     "This photo will be deleted from Photos.": "Это фото будет удалено из «Фото».",
     "This screenshot will be deleted from Photos.": "Этот скриншот будет удалён из «Фото».",
-    "%lld of %lld items couldn't be prepared to share.": "Не удалось подготовить к отправке %lld из %lld элементов."
+    "%lld of %lld items couldn't be prepared to share.": "Не удалось подготовить к отправке %lld из %lld элементов.",
+    "Google returned the same page twice, so the list is incomplete.": "Google дважды вернул одну и ту же страницу, поэтому список неполный.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "Не удалось сохранить вход в Google на этом устройстве, и Google всё ещё хранит доступ. Удалите TidyByte в настройках доступа сторонних приложений вашего аккаунта Google.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte остановил конвертацию Live Photo, потому что приложение ушло с переднего плана. Не закрывайте TidyByte во время конвертации, затем попробуйте снова."
   },
   "plurals": {
     "%lld issues found": {
@@ -924,24 +927,6 @@
       "many": "%lld снимков Live Photo",
       "other": "%lld снимка Live Photo"
     },
-    "%lld burst groups": {
-      "one": "%lld серия",
-      "few": "%lld серии",
-      "many": "%lld серий",
-      "other": "%lld серии"
-    },
-    "%lld groups": {
-      "one": "%lld группа",
-      "few": "%lld группы",
-      "many": "%lld групп",
-      "other": "%lld группы"
-    },
-    "%lld groups found": {
-      "one": "Найдена %lld группа",
-      "few": "Найдено %lld группы",
-      "many": "Найдено %lld групп",
-      "other": "Найдено %lld группы"
-    },
     "%lld compressions": {
       "one": "%lld сжатие",
       "few": "%lld сжатия",
@@ -983,12 +968,6 @@
       "few": "%lld активных дня за 30 дней",
       "many": "%lld активных дней за 30 дней",
       "other": "%lld активного дня за 30 дней"
-    },
-    "Failed to delete %lld photo": {
-      "one": "Не удалось удалить %lld снимок",
-      "few": "Не удалось удалить %lld снимка",
-      "many": "Не удалось удалить %lld снимков",
-      "other": "Не удалось удалить %lld снимка"
     },
     "Delete %lld item": {
       "one": "Удалить %lld объект",

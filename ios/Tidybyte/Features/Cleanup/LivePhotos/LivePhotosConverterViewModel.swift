@@ -31,6 +31,10 @@ final class LivePhotosConverterViewModel {
     /// haptic/summary (COMP-09): success only when `failed == 0`.
     var lastBatch: (converted: Int, failed: Int)?
     private(set) var isCancelled = false
+    /// True once iOS ended background time. The background message stays on screen.
+    private(set) var stoppedForBackground = false
+    /// The still read in progress, if any. The background stop ends it.
+    private var inFlightRead: ThrowingContinuationResumer<Data>?
     /// Which step of the conversion is running, for the bottom bar.
     private(set) var phase: ReplacePhase = .idle
     /// Saved stills whose Live Photos are still in the library (the user
@@ -152,8 +156,11 @@ final class LivePhotosConverterViewModel {
 
     /// iOS ended the background time: stop Convert All and say why.
     func stopForBackground() {
-        errorMessage = CompressionError.exportInterrupted.localizedDescription
+        stoppedForBackground = true
+        errorMessage = L10n.string("TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.")
         cancelConvertAll()
+        // Ends the PhotoKit read. Its onResume hook cancels the data request.
+        inFlightRead?.resume(throwing: CancellationError())
     }
 
     func convertSingle(itemId: String, modelContext: ModelContext) async {
@@ -254,6 +261,7 @@ final class LivePhotosConverterViewModel {
         guard !isBusy else { return }
         errorMessage = nil
         isCancelled = false
+        stoppedForBackground = false
         convertingAll = true
         // Keeps the screen awake and the batch alive in the background. Ends on every exit.
         let session = CompressionSession.begin(onExpire: { [weak self] in self?.stopForBackground() })
@@ -302,7 +310,8 @@ final class LivePhotosConverterViewModel {
         lastBatch = (converted: result.committed, failed: totalFailed)
         // COMP-09: one aggregated message instead of reporting only the last
         // error.
-        if totalFailed > 0 {
+        // A background stop already set the message, and it says more.
+        if totalFailed > 0, !stoppedForBackground {
             // Through `L10n`, not string interpolation: an interpolated literal
             // is not a catalog key, so it shipped English in all 20 languages.
             errorMessage = L10n.format(
@@ -321,6 +330,54 @@ final class LivePhotosConverterViewModel {
         if available.contains(.fullSizePhoto) { return .fullSizePhoto }
         if available.contains(.photo) { return .photo }
         return nil
+    }
+
+    /// Reads the still's bytes from PhotoKit. The read is recorded while it runs,
+    /// so `stopForBackground` can end it and cancel the PhotoKit request.
+    private func readStillData(_ photoResource: PHAssetResource) async throws -> Data {
+        defer { inFlightRead = nil }
+        let resourceManager = PHAssetResourceManager.default()
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
+            let resumer = ThrowingContinuationResumer(continuation)
+            // Recorded so the background stop can end this read (see stopForBackground).
+            inFlightRead = resumer
+            // Chunks arrive on one queue, the completion on another. Both go through the lock.
+            let buffer = LockedValue(Data())
+            let options = PHAssetResourceRequestOptions()
+            options.isNetworkAccessAllowed = true
+
+            // Network access is allowed, so a stalled iCloud download could leave
+            // the completion handler unfired forever. Bound it with a stall timeout +
+            // request cancellation, wired before the request so even a synchronous
+            // callback cancels the timer. Without this the item hangs in `.converting`.
+            // Each data chunk is progress, so a steady download is not cut off.
+            let stall = StallWatch()
+            let requestID = LockedValue<PHAssetResourceDataRequestID>(0)
+            let timeoutTask = watchForStall(stall) {
+                resumer.resume(throwing: LivePhotoError.conversionTimedOut)
+            }
+            resumer.onResume = {
+                resourceManager.cancelDataRequest(requestID.withValue { $0 })
+                timeoutTask.cancel()
+            }
+
+            let id = resourceManager.requestData(
+                for: photoResource,
+                options: options
+            ) { chunk in
+                let at = LoadStall.now()
+                Task { await stall.recordProgress(at: at) }
+                buffer.withValue { $0.append(chunk) }
+            } completionHandler: { error in
+                if let error {
+                    resumer.resume(throwing: error)
+                } else {
+                    resumer.resume(returning: buffer.withValue { $0 })
+                }
+            }
+            // Stored after the call returns, never under the lock (see LockedValue).
+            requestID.withValue { $0 = id }
+        }
     }
 
     /// Step 1 of a conversion: save the still as a new asset. The Live Photo
@@ -360,46 +417,7 @@ final class LivePhotosConverterViewModel {
             // Read the still-image resource bytes directly. Writing these bytes back
             // (rather than decoding to a UIImage and re-encoding) preserves the
             // original quality and EXIF metadata.
-            let resourceManager = PHAssetResourceManager.default()
-            let imageData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
-                let resumer = ThrowingContinuationResumer(continuation)
-                // Chunks arrive on one queue, the completion on another. Both go through the lock.
-                let buffer = LockedValue(Data())
-                let options = PHAssetResourceRequestOptions()
-                options.isNetworkAccessAllowed = true
-
-                // Network access is allowed, so a stalled iCloud download could leave
-                // the completion handler unfired forever. Bound it with a stall timeout +
-                // request cancellation, wired before the request so even a synchronous
-                // callback cancels the timer. Without this the item hangs in `.converting`.
-                // Each data chunk is progress, so a steady download is not cut off.
-                let stall = StallWatch()
-                let requestID = LockedValue<PHAssetResourceDataRequestID>(0)
-                let timeoutTask = watchForStall(stall) {
-                    resumer.resume(throwing: LivePhotoError.conversionTimedOut)
-                }
-                resumer.onResume = {
-                    resourceManager.cancelDataRequest(requestID.withValue { $0 })
-                    timeoutTask.cancel()
-                }
-
-                let id = resourceManager.requestData(
-                    for: photoResource,
-                    options: options
-                ) { chunk in
-                    let at = LoadStall.now()
-                    Task { await stall.recordProgress(at: at) }
-                    buffer.withValue { $0.append(chunk) }
-                } completionHandler: { error in
-                    if let error {
-                        resumer.resume(throwing: error)
-                    } else {
-                        resumer.resume(returning: buffer.withValue { $0 })
-                    }
-                }
-                // Stored after the call returns, never under the lock (see LockedValue).
-                requestID.withValue { $0 = id }
-            }
+            let imageData = try await readStillData(photoResource)
 
             guard !imageData.isEmpty else {
                 throw LivePhotoError.invalidImageData

@@ -771,7 +771,7 @@
     "the original videos": "అసలు వీడియోలు",
     "the still image of each Live Photo as a new photo": "ప్రతి Live Photo యొక్క స్థిర చిత్రాన్ని కొత్త ఫోటోగా",
     "this month": "ఈ నెల",
-    "to": "నుండి",
+    "to": "కు",
     "today": "ఈరోజు",
     "used": "వాడబడింది",
     "→ %@": "→ %@",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "ఈ అంశం ఫోటోల నుండి తొలగించబడుతుంది.",
     "This photo will be deleted from Photos.": "ఈ ఫోటో ఫోటోల నుండి తొలగించబడుతుంది.",
     "This screenshot will be deleted from Photos.": "ఈ స్క్రీన్‌షాట్ ఫోటోల నుండి తొలగించబడుతుంది.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld అంశాలను (మొత్తం %lld లో) షేర్ చేయడానికి సిద్ధం చేయలేకపోయాం."
+    "%lld of %lld items couldn't be prepared to share.": "%lld అంశాలను (మొత్తం %lld లో) షేర్ చేయడానికి సిద్ధం చేయలేకపోయాం.",
+    "Google returned the same page twice, so the list is incomplete.": "Google ఒకే పేజీని రెండుసార్లు తిరిగి ఇచ్చింది, కాబట్టి జాబితా అసంపూర్ణంగా ఉంది.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "ఈ పరికరంలో మీ Google సైన్-ఇన్‌ను సేవ్ చేయలేకపోయాం, మరియు Google ఇంకా యాక్సెస్ ఉంచుకుంది. మీ Google ఖాతాలోని థర్డ్-పార్టీ యాక్సెస్ సెట్టింగ్‌లలో TidyByte ను తీసివేయండి.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "యాప్ ముందుభాగం నుండి వెళ్లిపోవడంతో TidyByte Live Photo మార్పిడిని ఆపివేసింది. మార్పిడి జరుగుతున్నప్పుడు TidyByte ను తెరిచి ఉంచండి, ఆ తర్వాత మళ్లీ ప్రయత్నించండి."
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld బరస్ట్ సమూహం",
-      "other": "%lld బరస్ట్ సమూహాలు"
-    },
-    "%lld groups": {
-      "one": "%lld సమూహం",
-      "other": "%lld సమూహాలు"
-    },
-    "%lld groups found": {
-      "one": "%lld సమూహం కనుగొనబడింది",
-      "other": "%lld సమూహాలు కనుగొనబడ్డాయి"
-    },
     "%lld compressions": {
       "one": "%lld కుదింపు",
       "other": "%lld కుదింపులు"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld యాక్టివ్ రోజు, 30 రోజులు",
       "other": "%lld యాక్టివ్ రోజులు, 30 రోజులు"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld ఫోటోను తొలగించలేకపోయాం",
-      "other": "%lld ఫోటోలను తొలగించలేకపోయాం"
     },
     "Delete %lld item": {
       "one": "%lld అంశాన్ని తొలగించు",

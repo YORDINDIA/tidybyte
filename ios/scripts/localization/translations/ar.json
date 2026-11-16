@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "سيتم حذف هذا العنصر من تطبيق الصور.",
     "This photo will be deleted from Photos.": "ستُحذف هذه الصورة من تطبيق الصور.",
     "This screenshot will be deleted from Photos.": "سيتم حذف لقطة الشاشة هذه من تطبيق الصور.",
-    "%lld of %lld items couldn't be prepared to share.": "تعذّر تجهيز %lld من أصل %lld عنصرًا للمشاركة."
+    "%lld of %lld items couldn't be prepared to share.": "تعذّر تجهيز %lld من أصل %lld عنصرًا للمشاركة.",
+    "Google returned the same page twice, so the list is incomplete.": "أعاد Google الصفحة نفسها مرتين، لذلك القائمة غير مكتملة.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "تعذّر حفظ تسجيل دخولك إلى Google على هذا الجهاز، ولا يزال Google يحتفظ بالوصول. أزِل TidyByte من إعدادات الوصول للتطبيقات الخارجية في حساب Google.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "توقّف TidyByte عن تحويل Live Photo لأنه انتقل إلى الخلفية. أبقِ TidyByte مفتوحًا أثناء التحويل، ثم حاوِل مرة أخرى."
   },
   "plurals": {
     "%lld issues found": {
@@ -966,30 +969,6 @@
       "many": "%lld Live Photo",
       "other": "%lld Live Photo"
     },
-    "%lld burst groups": {
-      "zero": "%lld مجموعات متتابعة",
-      "one": "%lld مجموعة متتابعة",
-      "two": "%lld مجموعتان متتابعتان",
-      "few": "%lld مجموعات متتابعة",
-      "many": "%lld مجموعة متتابعة",
-      "other": "%lld مجموعة متتابعة"
-    },
-    "%lld groups": {
-      "zero": "%lld مجموعات",
-      "one": "%lld مجموعة",
-      "two": "%lld مجموعتان",
-      "few": "%lld مجموعات",
-      "many": "%lld مجموعة",
-      "other": "%lld مجموعة"
-    },
-    "%lld groups found": {
-      "zero": "تم العثور على %lld مجموعات",
-      "one": "تم العثور على %lld مجموعة",
-      "two": "تم العثور على %lld مجموعتين",
-      "few": "تم العثور على %lld مجموعات",
-      "many": "تم العثور على %lld مجموعة",
-      "other": "تم العثور على %lld مجموعة"
-    },
     "%lld compressions": {
       "zero": "%lld عملية ضغط",
       "one": "%lld عملية ضغط",
@@ -1045,14 +1024,6 @@
       "few": "%lld أيام نشطة خلال 30 يومًا",
       "many": "%lld يومًا نشطًا خلال 30 يومًا",
       "other": "%lld يوم نشط خلال 30 يومًا"
-    },
-    "Failed to delete %lld photo": {
-      "zero": "تعذر حذف %lld صور",
-      "one": "تعذر حذف %lld صورة",
-      "two": "تعذر حذف %lld صورتين",
-      "few": "تعذر حذف %lld صور",
-      "many": "تعذر حذف %lld صورة",
-      "other": "تعذر حذف %lld صورة"
     },
     "Delete %lld item": {
       "zero": "حذف %lld عناصر",

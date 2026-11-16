@@ -3,9 +3,11 @@ import XCTest
 
 /// Regression tests for the cleanup audit (ios-cleanup-a): Bursts selection
 /// invariants, the shared scan runner, and the shared delete pipeline.
-/// Call counter for the fetch stub. Only touched from the test's main actor.
-final class FetchCounter: @unchecked Sendable {
-    var count = 0
+/// Call counter for the fetch stub. An actor, because the stub runs off the
+/// main actor (the view model's fetch task is nonisolated).
+actor FetchCounter {
+    private(set) var count = 0
+    func increment() { count += 1 }
 }
 
 @MainActor
@@ -103,14 +105,15 @@ final class IOSCleanupAScanTests: XCTestCase {
         let counter = FetchCounter()
         let assets = [makeAsset(id: "a"), makeAsset(id: "b")]
         let viewModel = BurstCleanerViewModel(fetchBursts: {
-            counter.count += 1
+            await counter.increment()
             try? await Task.sleep(nanoseconds: 50_000_000)
             return ["burst": assets]
         })
         async let load: Void = viewModel.load()
         async let refresh: Void = viewModel.refresh()
         _ = await (load, refresh)
-        XCTAssertEqual(counter.count, 1)
+        let fetches = await counter.count
+        XCTAssertEqual(fetches, 1)
         XCTAssertEqual(viewModel.groups.map(\.id), ["burst"])
         XCTAssertFalse(viewModel.isLoading)
     }
@@ -142,10 +145,16 @@ final class IOSCleanupAScanTests: XCTestCase {
             DuplicateGroup(id: "g", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")],
                            bestAssetId: "a", type: .exact)
         ]
+        viewModel.selectedForDeletion = ["b", "c"]
         viewModel.pruneGone(["a"])
         XCTAssertEqual(viewModel.exactGroups.count, 1)
         XCTAssertEqual(Set(viewModel.exactGroups[0].assets.map(\.id)), ["b", "c"])
-        XCTAssertTrue(["b", "c"].contains(viewModel.exactGroups[0].bestAssetId))
+        let keeper = viewModel.exactGroups[0].bestAssetId
+        XCTAssertTrue(["b", "c"].contains(keeper))
+        // The re-picked keeper has no delete toggle, so it must not stay selected:
+        // confirming Delete would otherwise remove every copy.
+        XCTAssertFalse(viewModel.selectedForDeletion.contains(keeper))
+        XCTAssertEqual(viewModel.selectedForDeletion, Set(["b", "c"]).subtracting([keeper]))
     }
 
     func testSimilarPruneRemovesGoneItemsAndDropsSmallGroups() {
@@ -161,11 +170,39 @@ final class IOSCleanupAScanTests: XCTestCase {
         XCTAssertEqual(viewModel.groups.count, 1)
         XCTAssertEqual(Set(viewModel.groups[0].assets.map(\.id)), ["b", "c"])
         XCTAssertNotEqual(viewModel.groups[0].bestAssetId, "a")
-        XCTAssertEqual(viewModel.selectedForDeletion, ["b", "c"])
+        // The re-picked keeper must not stay selected, as in the Duplicates test.
+        let keeper = viewModel.groups[0].bestAssetId
+        XCTAssertFalse(viewModel.selectedForDeletion.contains(keeper))
+        XCTAssertEqual(viewModel.selectedForDeletion, Set(["b", "c"]).subtracting([keeper]))
 
         viewModel.pruneGone(["c"])
         XCTAssertTrue(viewModel.groups.isEmpty)
         XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+    }
+
+    // MARK: - Large Files: a complete share clears the earlier shortfall
+
+    func testCompleteShareClearsEarlierShortfallWarning() async throws {
+        let folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(PhotoLibraryService.shareExportFolderPrefix)ios-cleanup-a-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let urls = [folder.appendingPathComponent("a.jpg"), folder.appendingPathComponent("b.jpg")]
+        var returned = [urls[0]]
+        let viewModel = LargeFilesViewModel(shareExporter: { _, _ in (folder, returned) })
+        viewModel.assets = [makeAsset(id: "a", fileSize: 1_000_000_000), makeAsset(id: "b", fileSize: 1_000_000_000)]
+        viewModel.selectedIds = ["a", "b"]
+
+        viewModel.startShare()
+        while viewModel.isPreparingShare { await Task.yield() }
+        XCTAssertNotNil(viewModel.errorMessage, "one of two items came back, so the shortfall is reported")
+        viewModel.cleanupShareExport()
+
+        returned = urls
+        viewModel.startShare()
+        while viewModel.isPreparingShare { await Task.yield() }
+        XCTAssertNil(viewModel.errorMessage, "a complete export clears the earlier shortfall")
+        viewModel.cleanupShareExport()
     }
 
     // MARK: - Delete confirmations share one title pattern

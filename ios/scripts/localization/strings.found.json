@@ -667,7 +667,7 @@
     },
     {
       "key": "Compressed %lld of %lld. %lld failed.",
-      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionViewModel.swift"
+      "file": "Tidybyte/Shared/Utilities/CompressionBatchRunner.swift"
     },
     {
       "key": "compressed %lld photo",
@@ -791,6 +791,10 @@
     {
       "key": "Couldn't save your changes. Please try again.",
       "file": "Tidybyte/Features/Swipe/SwipeSessionViewModel.swift"
+    },
+    {
+      "key": "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.",
+      "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
     },
     {
       "key": "Couldn't save your Google sign-in on this device. Try again.",
@@ -1145,6 +1149,10 @@
     {
       "key": "Google returned an error (%lld).",
       "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
+    },
+    {
+      "key": "Google returned the same page twice, so the list is incomplete.",
+      "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
     },
     {
       "key": "Haptics",
@@ -2509,6 +2517,10 @@
       "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
+      "key": "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterViewModel.swift"
+    },
+    {
       "key": "Time for a Photo Cleanup",
       "file": "Tidybyte/Services/NotificationService.swift"
     },
@@ -2730,5 +2742,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 674
+  "total": 677
 }

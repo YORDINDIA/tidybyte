@@ -101,10 +101,19 @@ final class GoogleAuthService: NSObject {
         do {
             try store(response, keepingRefreshToken: nil)
         } catch {
-            // The grant is unusable without stored tokens: revoke it, then report.
-            _ = await revoke(response.access_token)
-            throw error
+            // The grant is unusable without stored tokens. Try the revoke twice, and
+            // say so when Google still holds the grant.
+            var revoked = await revoke(response.access_token)
+            if !revoked { revoked = await revoke(response.access_token) }
+            throw Self.signInStorageFailure(error, revoked: revoked)
         }
+    }
+
+    /// The error a sign-in reports when the tokens could not be stored. The
+    /// storage error alone when the grant was revoked; otherwise the user is told
+    /// that Google still holds the access.
+    static func signInStorageFailure(_ storageError: Error, revoked: Bool) -> Error {
+        revoked ? storageError : GoogleAuthError.grantNotRevoked
     }
 
     /// A valid access token, refreshed when it is about to expire.
@@ -219,6 +228,8 @@ enum GoogleAuthError: LocalizedError, Equatable {
     case failed(String)
     /// The sign-in worked, but the Keychain would not keep it. Shown to the user.
     case keychainWriteFailed
+    /// Storage failed and Google still holds the grant after two revokes.
+    case grantNotRevoked
 
     var errorDescription: String? {
         switch self {
@@ -229,6 +240,7 @@ enum GoogleAuthError: LocalizedError, Equatable {
         // An empty message would leave the error banner blank.
         case .failed(let message): message.isEmpty ? L10n.string("Sign-in failed.") : message
         case .keychainWriteFailed: L10n.string("Couldn't save your Google sign-in on this device. Try again.")
+        case .grantNotRevoked: L10n.string("Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.")
         }
     }
 }
@@ -253,15 +265,14 @@ enum PKCE {
     }
 }
 
-/// One generic-password item holding the token JSON. This-device-only, so
-/// tokens never sync to iCloud Keychain or move to a restored device.
-/// The three Keychain calls `GoogleKeychain` makes. Production uses `.system`.
+/// The Keychain calls `GoogleKeychain` makes. Production uses `.system`.
 /// Tests replace `GoogleKeychain.backend` with a fake, so a failed write can be
 /// simulated: the simulator cannot be made to refuse `SecItemAdd` on demand.
 struct GoogleKeychainBackend: Sendable {
     var add: @Sendable (CFDictionary) -> OSStatus
     var delete: @Sendable (CFDictionary) -> OSStatus
     var copyMatching: @Sendable (CFDictionary) -> Data?
+    var update: @Sendable (CFDictionary, CFDictionary) -> OSStatus
 
     static let system = GoogleKeychainBackend(
         add: { SecItemAdd($0, nil) },
@@ -270,10 +281,13 @@ struct GoogleKeychainBackend: Sendable {
             var result: CFTypeRef?
             guard SecItemCopyMatching(query, &result) == errSecSuccess else { return nil }
             return result as? Data
-        }
+        },
+        update: { SecItemUpdate($0, $1) }
     )
 }
 
+/// One generic-password item holding the token JSON. This-device-only, so
+/// tokens never sync to iCloud Keychain or move to a restored device.
 @MainActor
 enum GoogleKeychain {
     /// Swapped only by tests. Every caller is on the main actor.
@@ -290,11 +304,16 @@ enum GoogleKeychain {
     @discardableResult
     static func save(_ tokens: GoogleAuthService.Tokens) -> Bool {
         guard let data = try? JSONEncoder().encode(tokens) else { return false }
-        _ = backend.delete(query as CFDictionary)
-        var item = query
-        item[kSecValueData] = data
-        item[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        let status = backend.add(item as CFDictionary)
+        // Update in place, and add only when there is no item yet. The old token
+        // stays until a write succeeds, so a failed write cannot remove the last
+        // usable credential.
+        var status = backend.update(query as CFDictionary, [kSecValueData: data] as CFDictionary)
+        if status == errSecItemNotFound {
+            var item = query
+            item[kSecValueData] = data
+            item[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            status = backend.add(item as CFDictionary)
+        }
         // Logged with the status only: no token text reaches the log.
         guard status == errSecSuccess else {
             AppLog.app.error("Failed to store Google sign-in: OSStatus \(status, privacy: .public)")

@@ -771,7 +771,7 @@
     "the original videos": "மூல வீடியோக்கள்",
     "the still image of each Live Photo as a new photo": "ஒவ்வொரு Live Photo-இன் நிலைப்படத்தைப் புதிய புகைப்படமாக",
     "this month": "இந்த மாதம்",
-    "to": "முதல்",
+    "to": "க்கு",
     "today": "இன்று",
     "used": "பயன்படுத்தப்பட்டது",
     "→ %@": "→ %@",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "இந்த உருப்படி புகைப்படங்களிலிருந்து நீக்கப்படும்.",
     "This photo will be deleted from Photos.": "இந்தப் புகைப்படம் புகைப்படங்களிலிருந்து நீக்கப்படும்.",
     "This screenshot will be deleted from Photos.": "இந்த ஸ்கிரீன்ஷாட் புகைப்படங்களிலிருந்து நீக்கப்படும்.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld உருப்படிகளை (மொத்தம் %lld) பகிர தயார் செய்ய முடியவில்லை."
+    "%lld of %lld items couldn't be prepared to share.": "%lld உருப்படிகளை (மொத்தம் %lld) பகிர தயார் செய்ய முடியவில்லை.",
+    "Google returned the same page twice, so the list is incomplete.": "Google ஒரே பக்கத்தை இரண்டு முறை திருப்பி அனுப்பியதால் பட்டியல் முழுமையடையவில்லை.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "இந்தச் சாதனத்தில் உங்கள் Google உள்நுழைவைச் சேமிக்க முடியவில்லை, மேலும் Google இன்னும் அணுகலை வைத்திருக்கிறது. உங்கள் Google கணக்கின் மூன்றாம் தரப்பு அணுகல் அமைப்புகளில் TidyByte-ஐ நீக்கவும்.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "முன்புலத்திலிருந்து வெளியேறியதால் TidyByte Live Photo மாற்றத்தை நிறுத்தியது. மாற்றம் நடக்கும்போது TidyByte-ஐ திறந்து வைத்திருங்கள், பின்னர் மீண்டும் முயற்சிக்கவும்."
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld பர்ஸ்ட் குழு",
-      "other": "%lld பர்ஸ்ட் குழுக்கள்"
-    },
-    "%lld groups": {
-      "one": "%lld குழு",
-      "other": "%lld குழுக்கள்"
-    },
-    "%lld groups found": {
-      "one": "%lld குழு கண்டறியப்பட்டது",
-      "other": "%lld குழுக்கள் கண்டறியப்பட்டன"
-    },
     "%lld compressions": {
       "one": "%lld சுருக்கம்",
       "other": "%lld சுருக்கங்கள்"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld செயலில் உள்ள நாள், 30 நாட்கள்",
       "other": "%lld செயலில் உள்ள நாட்கள், 30 நாட்கள்"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld புகைப்படத்தை நீக்க முடியவில்லை",
-      "other": "%lld புகைப்படங்களை நீக்க முடியவில்லை"
     },
     "Delete %lld item": {
       "one": "%lld உருப்படியை நீக்கு",

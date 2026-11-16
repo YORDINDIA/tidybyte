@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "此项目将从照片中删除。",
     "This photo will be deleted from Photos.": "此照片将从照片中删除。",
     "This screenshot will be deleted from Photos.": "此截图将从照片中删除。",
-    "%lld of %lld items couldn't be prepared to share.": "%lld 项（共 %lld 项）无法准备分享。"
+    "%lld of %lld items couldn't be prepared to share.": "%lld 项（共 %lld 项）无法准备分享。",
+    "Google returned the same page twice, so the list is incomplete.": "Google 两次返回了同一页，因此列表不完整。",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "无法在此设备上保存你的 Google 登录信息，而且 Google 仍保留着访问权限。请在你的 Google 账户的第三方访问设置中移除 TidyByte。",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte 离开了前台，因此停止了 Live Photo 转换。转换期间请保持 TidyByte 打开，然后重试。"
   },
   "plurals": {
     "%lld issues found": {
@@ -861,15 +864,6 @@
     "%lld Live Photos": {
       "other": "%lld 个 Live Photos"
     },
-    "%lld burst groups": {
-      "other": "%lld 个连拍组"
-    },
-    "%lld groups": {
-      "other": "%lld 个组"
-    },
-    "%lld groups found": {
-      "other": "找到 %lld 个组"
-    },
     "%lld compressions": {
       "other": "%lld 次压缩"
     },
@@ -890,9 +884,6 @@
     },
     "%lld active day, 30 days": {
       "other": "30 天内活跃 %lld 天"
-    },
-    "Failed to delete %lld photo": {
-      "other": "无法删除 %lld 张照片"
     },
     "Delete %lld item": {
       "other": "删除 %lld 个项目"

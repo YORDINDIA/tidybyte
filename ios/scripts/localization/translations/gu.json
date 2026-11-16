@@ -771,11 +771,11 @@
     "the original videos": "મૂળ વિડિયો",
     "the still image of each Live Photo as a new photo": "દરેક Live Photo ની સ્થિર ઇમેજ નવા ફોટા તરીકે",
     "this month": "આ મહિને",
-    "to": "થી",
+    "to": "માં",
     "today": "આજે",
     "used": "વપરાયું",
     "→ %@": "→ %@",
-    "Couldn't load the video: %@": "વિડિઓ લોડ કરી શકાયો નથી: %@",
+    "Couldn't load the video: %@": "વિડિયો લોડ કરી શકાયો નથી: %@",
     "Deletes the frames marked for deletion. The starred frame of each burst is kept.": "કાઢી નાખવા માટે ચિહ્નિત ફ્રેમ્સ કાઢી નાખે છે. દરેક બર્સ્ટની સ્ટાર કરેલી ફ્રેમ રાખવામાં આવે છે.",
     "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": "એપ ફોરગ્રાઉન્ડમાંથી નીકળી જવાથી TidyByte એ કોમ્પ્રેશન બંધ કર્યું. કોમ્પ્રેસ થતી વખતે TidyByte ખુલ્લું રાખો, પછી ફરી પ્રયાસ કરો.",
     "%@ %@": "%@ %@",
@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "આ આઇટમ ફોટોમાંથી કાઢી નાખવામાં આવશે.",
     "This photo will be deleted from Photos.": "આ ફોટો ફોટોમાંથી કાઢી નાખવામાં આવશે.",
     "This screenshot will be deleted from Photos.": "આ સ્ક્રીનશોટ ફોટોમાંથી કાઢી નાખવામાં આવશે.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld આઇટમ (કુલ %lld માંથી) શેર કરવા માટે તૈયાર કરી શકાઈ નહીં."
+    "%lld of %lld items couldn't be prepared to share.": "%lld આઇટમ (કુલ %lld માંથી) શેર કરવા માટે તૈયાર કરી શકાઈ નહીં.",
+    "Google returned the same page twice, so the list is incomplete.": "Google એ એક જ પેજ બે વાર પાછું મોકલ્યું, તેથી યાદી અધૂરી છે.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "આ ડિવાઇસ પર તમારું Google સાઇન-ઇન સાચવી શકાયું નહીં, અને Google પાસે હજી પણ ઍક્સેસ છે. તમારા Google ખાતાની થર્ડ-પાર્ટી ઍક્સેસ સેટિંગ્સમાંથી TidyByte દૂર કરો.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte એ Live Photo નું રૂપાંતર બંધ કર્યું, કારણ કે તે ફોરગ્રાઉન્ડમાંથી નીકળી ગયું. રૂપાંતર ચાલુ હોય ત્યારે TidyByte ખુલ્લું રાખો, પછી ફરી પ્રયાસ કરો."
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld બર્સ્ટ જૂથ",
-      "other": "%lld બર્સ્ટ જૂથ"
-    },
-    "%lld groups": {
-      "one": "%lld જૂથ",
-      "other": "%lld જૂથ"
-    },
-    "%lld groups found": {
-      "one": "%lld જૂથ મળ્યું",
-      "other": "%lld જૂથ મળ્યાં"
-    },
     "%lld compressions": {
       "one": "%lld કોમ્પ્રેશન",
       "other": "%lld કોમ્પ્રેશન"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld સક્રિય દિવસ, 30 દિવસ",
       "other": "%lld સક્રિય દિવસો, 30 દિવસ"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld ફોટો કાઢી નાખી શકાયો નથી",
-      "other": "%lld ફોટા કાઢી નાખી શકાયા નથી"
     },
     "Delete %lld item": {
       "one": "%lld આઇટમ કાઢી નાખો",
@@ -1088,7 +1075,7 @@
     },
     "Failed to delete %lld photo: %@": {
       "one": "%lld ફોટો કાઢી નાખવામાં નિષ્ફળ: %@",
-      "other": "%lld ફોટો કાઢી નાખવામાં નિષ્ફળ: %@"
+      "other": "%lld ફોટા કાઢી નાખવામાં નિષ્ફળ: %@"
     },
     "Updated %lld day ago": {
       "one": "%lld દિવસ પહેલાં અપડેટ થયું",

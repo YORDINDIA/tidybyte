@@ -352,6 +352,7 @@ struct SessionCompletionView: View {
                         Image(systemName: icon)
                             .font(.title3)
                             .foregroundStyle(color)
+                            .accessibilityHidden(true)
                         Spacer()
                     }
                     Text(label)
@@ -366,6 +367,7 @@ struct SessionCompletionView: View {
                         .font(.title3)
                         .foregroundStyle(color)
                         .frame(width: 32)
+                        .accessibilityHidden(true)
 
                     Text(label)
                         .font(.body)

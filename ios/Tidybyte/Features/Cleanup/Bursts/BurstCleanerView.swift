@@ -257,11 +257,15 @@ struct BurstCleanerView: View {
 
     /// Accessibility sizes: the counts as one line of text, without the card.
     private var compactSummary: some View {
-        Text("\(viewModel.totalBurstCount) total · \(viewModel.deletableCount) removable · \(viewModel.savingsBytes.formattedFileSize)")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, Spacing.xs)
+        VStack(alignment: .leading, spacing: 2) {
+            Text(L10n.format("%lld burst group", fallback: "%lld burst groups", viewModel.groups.count))
+                .font(.caption.bold())
+            Text("\(viewModel.totalBurstCount) total · \(viewModel.deletableCount) removable · \(viewModel.savingsBytes.formattedFileSize)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, Spacing.xs)
     }
 
     private var summaryHeader: some View {

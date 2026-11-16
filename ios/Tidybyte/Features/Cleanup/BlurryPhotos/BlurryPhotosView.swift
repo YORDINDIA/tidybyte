@@ -311,6 +311,8 @@ struct BlurryPhotosView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityAddTraits(.isButton)
                 .accessibilityLabel("Preview photo, \(photo.asset.displaySize)")
+                // VoiceOver activation opens the preview, as a tap does.
+                .accessibilityAction(.default) { previewPhoto = photo }
 
             // Score indicator
             HStack(spacing: Spacing.xs) {

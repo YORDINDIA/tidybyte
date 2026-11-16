@@ -64,8 +64,6 @@ struct ComparisonDescriptor<G: ComparisonGroup> {
     let keepTitle: String
     /// Same wording in every tool: "Delete" marks, "Don't Delete" unmarks.
     let deleteTitle: String
-    /// Pill background opacity: 0.8 (Duplicates) vs 0.85 (Similar) — preserved.
-    let pillOpacity: Double
 }
 
 extension ComparisonDescriptor where G == DuplicateComparison {
@@ -77,7 +75,6 @@ extension ComparisonDescriptor where G == DuplicateComparison {
             keepBestTitle: L10n.string("Keep as Best"),
             keepTitle: L10n.string("Don't Delete"),
             deleteTitle: L10n.string("Delete"),
-            pillOpacity: 0.8
         )
     }
 }
@@ -95,7 +92,6 @@ extension ComparisonDescriptor where G == SimilarComparison {
             keepBestTitle: L10n.string("Keep as Best"),
             keepTitle: L10n.string("Don't Delete"),
             deleteTitle: L10n.string("Delete"),
-            pillOpacity: 0.85
         )
     }
 }
@@ -289,7 +285,7 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
         .foregroundStyle(.white)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)
-        .background(color.opacity(descriptor.pillOpacity))
+        .background(color)
         .clipShape(Capsule())
         .padding(Spacing.sm)
     }

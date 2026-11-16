@@ -310,7 +310,7 @@ struct GooglePhotosReviewSheet: View {
                             VStack(alignment: .leading, spacing: Spacing.xs) {
                                 Text(item?.filename ?? "").font(.subheadline).lineLimit(1)
                                 if let date = item?.createTime {
-                                    Text(date, format: .dateTime.day().month(.abbreviated).year()).font(.caption).foregroundStyle(.secondary)
+                                    Text(date, style: .date).font(.caption).foregroundStyle(.secondary)
                                 }
                             }
                             Spacer()

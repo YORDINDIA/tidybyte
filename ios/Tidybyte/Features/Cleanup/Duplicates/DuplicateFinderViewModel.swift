@@ -166,12 +166,9 @@ final class DuplicateFinderViewModel {
     /// access `existingIds` is empty, which would read as every asset deleted.
     func pruneDeleted(authorization: PHAuthorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)) async {
         guard scanState == .completed, !isDeleting else { return }
-        guard CompressionJournal.canReadLibrary(authorization) else { return }
-        let known = Set(allGroups.flatMap { $0.assets.map(\.id) })
-        guard !known.isEmpty else { return }
-        let present = await photoService.existingIds(Array(known))
+        let gone = await CleanupDeletion.vanishedIds(among: Set(allGroups.flatMap { $0.assets.map(\.id) }), authorization: authorization)
         guard scanState == .completed, !isDeleting else { return }
-        pruneGone(known.subtracting(present))
+        pruneGone(gone)
     }
 
     /// Removes `gone` from every group. A group left with one item disappears,
@@ -244,6 +241,9 @@ final class DuplicateFinderViewModel {
         // C6: intersect with survivors instead of recomputing select-all-non-best,
         // so explicit keep-deselections survive the delete round-trip.
         selectedForDeletion.formIntersection(Set(allGroups.flatMap { $0.assets.map(\.id) }))
+        // A keeper is never marked. A re-picked keeper may have been selected as a
+        // copy, and with no delete toggle the user could not clear it.
+        selectedForDeletion.subtract(allGroups.map(\.bestAssetId))
         ScanResults.record(.duplicates, count: totalDuplicateCount)
     }
 

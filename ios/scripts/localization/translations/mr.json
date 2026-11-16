@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "हा आयटम फोटोंमधून हटवला जाईल.",
     "This photo will be deleted from Photos.": "हा फोटो फोटोंमधून हटवला जाईल.",
     "This screenshot will be deleted from Photos.": "हा स्क्रीनशॉट फोटोंमधून हटवला जाईल.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld आयटम (एकूण %lld पैकी) शेअर करण्यासाठी तयार करता आले नाहीत."
+    "%lld of %lld items couldn't be prepared to share.": "%lld आयटम (एकूण %lld पैकी) शेअर करण्यासाठी तयार करता आले नाहीत.",
+    "Google returned the same page twice, so the list is incomplete.": "Google ने एकच पान दोनदा परत पाठवले, त्यामुळे यादी अपूर्ण आहे.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "या डिव्हाइसवर तुमचे Google साइन-इन सेव्ह करता आले नाही, आणि Google कडे अजूनही प्रवेश आहे. तुमच्या Google खात्यातील थर्ड-पार्टी प्रवेश सेटिंग्जमधून TidyByte काढा.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte फोरग्राउंडमधून बाहेर गेल्यामुळे Live Photo रूपांतरण थांबले. रूपांतरण सुरू असताना TidyByte उघडे ठेवा, मग पुन्हा प्रयत्न करा."
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld बर्स्ट गट",
-      "other": "%lld बर्स्ट गट"
-    },
-    "%lld groups": {
-      "one": "%lld गट",
-      "other": "%lld गट"
-    },
-    "%lld groups found": {
-      "one": "%lld गट सापडला",
-      "other": "%lld गट सापडले"
-    },
     "%lld compressions": {
       "one": "%lld कंप्रेशन",
       "other": "%lld कंप्रेशन"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld सक्रिय दिवस, 30 दिवस",
       "other": "%lld सक्रिय दिवस, 30 दिवस"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld फोटो हटवता आला नाही",
-      "other": "%lld फोटो हटवता आले नाहीत"
     },
     "Delete %lld item": {
       "one": "%lld आयटम हटवा",

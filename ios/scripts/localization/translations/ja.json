@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "この項目を写真から削除します。",
     "This photo will be deleted from Photos.": "この写真を写真アプリから削除します。",
     "This screenshot will be deleted from Photos.": "このスクリーンショットを写真から削除します。",
-    "%lld of %lld items couldn't be prepared to share.": "%lld 件（全 %lld 件中）を共有用に準備できませんでした。"
+    "%lld of %lld items couldn't be prepared to share.": "%lld 件（全 %lld 件中）を共有用に準備できませんでした。",
+    "Google returned the same page twice, so the list is incomplete.": "Google が同じページを 2 回返したため、リストは不完全です。",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "この端末に Google へのサインイン情報を保存できず、Google にはまだアクセス権が残っています。Google アカウントのサードパーティ アクセス設定から TidyByte を削除してください。",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte はフォアグラウンドから離れたため、Live Photo の変換を停止しました。変換中は TidyByte を開いたままにして、もう一度お試しください。"
   },
   "plurals": {
     "%lld issues found": {
@@ -861,15 +864,6 @@
     "%lld Live Photos": {
       "other": "%lld枚のLive Photo"
     },
-    "%lld burst groups": {
-      "other": "%lld個のバースト"
-    },
-    "%lld groups": {
-      "other": "%lld個のグループ"
-    },
-    "%lld groups found": {
-      "other": "%lld個のグループが見つかりました"
-    },
     "%lld compressions": {
       "other": "%lld件の圧縮"
     },
@@ -890,9 +884,6 @@
     },
     "%lld active day, 30 days": {
       "other": "%lld日アクティブ、30日間"
-    },
-    "Failed to delete %lld photo": {
-      "other": "%lld枚の写真を削除できませんでした"
     },
     "Delete %lld item": {
       "other": "%lld個の項目を削除"

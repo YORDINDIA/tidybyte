@@ -241,22 +241,10 @@ final class LocaleFormattingTests: XCTestCase {
         XCTAssertTrue(russian.contains("5"), "Expected the count, got: \(russian)")
     }
 
-    /// Documents a known limitation rather than asserting correct behaviour.
-    ///
-    /// `String.localizedStringWithFormat` picks the CLDR plural category with
-    /// `Locale.current`, and no Foundation API accepts a locale for that. When
-    /// the app language and the device language differ, the wrong category can
-    /// be selected even though the variants themselves are right.
-    ///
-    /// The test asserts the *current* behaviour so the day someone lands real
-    /// category selection, this fails and points at the fix. It is deliberately
-    /// not written as "assert correct" — that would fail today and be muted.
-    func testPluralCategoryFollowsTheDeviceLocaleNotTheAppLanguage() throws {
-        // Only meaningful when the host is not already Russian.
-        try XCTSkipIf(
-            Locale.current.language.languageCode == "ru",
-            "Host is Russian, so the wrong category would not be observable."
-        )
+    /// Counted forms follow the chosen app language, not the device locale. The
+    /// simulator runs as en_US, where Russian 5 would otherwise be the English
+    /// `other` form.
+    func testPluralCategoryFollowsTheChosenAppLanguage() throws {
 
         let counts = [1, 2, 5, 21]
         let rendered = counts.map { L10n.format("%lld items", language: .russian, $0) }

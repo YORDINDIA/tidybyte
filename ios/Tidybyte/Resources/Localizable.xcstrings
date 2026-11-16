@@ -4881,436 +4881,6 @@
         }
       }
     },
-    "%lld burst groups": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld burst group"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld burst groups"
-                }
-              }
-            }
-          }
-        },
-        "hi": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld बर्स्ट समूह"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld बर्स्ट समूह"
-                }
-              }
-            }
-          }
-        },
-        "bn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld বার্স্ট গ্রুপ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld বার্স্ট গ্রুপ"
-                }
-              }
-            }
-          }
-        },
-        "ta": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld பர்ஸ்ட் குழு"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld பர்ஸ்ட் குழுக்கள்"
-                }
-              }
-            }
-          }
-        },
-        "te": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld బరస్ట్ సమూహం"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld బరస్ట్ సమూహాలు"
-                }
-              }
-            }
-          }
-        },
-        "mr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld बर्स्ट गट"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld बर्स्ट गट"
-                }
-              }
-            }
-          }
-        },
-        "gu": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld બર્સ્ટ જૂથ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld બર્સ્ટ જૂથ"
-                }
-              }
-            }
-          }
-        },
-        "kn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಬರ್ಸ್ಟ್ ಗುಂಪು"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಬರ್ಸ್ಟ್ ಗುಂಪುಗಳು"
-                }
-              }
-            }
-          }
-        },
-        "ml": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ബർസ്റ്റ് ഗ്രൂപ്പ്"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ബർസ്റ്റ് ഗ്രൂപ്പുകൾ"
-                }
-              }
-            }
-          }
-        },
-        "pa": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਬਰਸਟ ਗਰੁੱਪ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਬਰਸਟ ਗਰੁੱਪ"
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupo de ráfaga"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos de ráfaga"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos de ráfaga"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupe de rafale"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupes de rafale"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupes de rafale"
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Seriengruppe"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Seriengruppen"
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupo de rajada"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos de rajadas"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos de rajadas"
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppo in raffica"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppi in raffica"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppi in raffica"
-                }
-              }
-            }
-          }
-        },
-        "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld個のバースト"
-                }
-              }
-            }
-          }
-        },
-        "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld개 버스트"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld 个连拍组"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld серия"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld серии"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld серий"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld серии"
-                }
-              }
-            }
-          }
-        },
-        "ar": {
-          "variations": {
-            "plural": {
-              "zero": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعات متتابعة"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعة متتابعة"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعتان متتابعتان"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعات متتابعة"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعة متتابعة"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعة متتابعة"
-                }
-              }
-            }
-          }
-        },
-        "he": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld רצף"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld רצפים"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld רצפים"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld bursts cleaned down to single photos.": {
       "localizations": {
         "en": {
@@ -8477,867 +8047,7 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld समूह मिले"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld समूह मिले"
-                }
-              }
-            }
-          }
-        },
-        "bn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld গ্রুপ পাওয়া গেছে"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld গ্রুপ পাওয়া গেছে"
-                }
-              }
-            }
-          }
-        },
-        "ta": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld குழு கண்டறியப்பட்டது"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld குழுக்கள் கண்டறியப்பட்டன"
-                }
-              }
-            }
-          }
-        },
-        "te": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld సమూహం కనుగొనబడింది"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld సమూహాలు కనుగొనబడ్డాయి"
-                }
-              }
-            }
-          }
-        },
-        "mr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld गट सापडला"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld गट सापडले"
-                }
-              }
-            }
-          }
-        },
-        "gu": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld જૂથ મળ્યું"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld જૂથ મળ્યાં"
-                }
-              }
-            }
-          }
-        },
-        "kn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಗುಂಪು ಸಿಕ್ಕಿತು"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಗುಂಪುಗಳು ಸಿಕ್ಕಿವೆ"
-                }
-              }
-            }
-          }
-        },
-        "ml": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ഗ്രൂപ്പ് കണ്ടെത്തി"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ഗ്രൂപ്പുകൾ കണ്ടെത്തി"
-                }
-              }
-            }
-          }
-        },
-        "pa": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਗਰੁੱਪ ਲੱਭਾ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਗਰੁੱਪ ਲੱਭੇ"
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupo encontrado"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos encontrados"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos encontrados"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupe trouvé"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupes trouvés"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupes trouvés"
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Gruppe gefunden"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Gruppen gefunden"
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupo encontrado"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos encontrados"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos encontrados"
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppo trovato"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppi trovati"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppi trovati"
-                }
-              }
-            }
-          }
-        },
-        "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld個のグループが見つかりました"
-                }
-              }
-            }
-          }
-        },
-        "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld개 그룹 발견"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "找到 %lld 个组"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Найдена %lld группа"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Найдено %lld группы"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Найдено %lld групп"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Найдено %lld группы"
-                }
-              }
-            }
-          }
-        },
-        "ar": {
-          "variations": {
-            "plural": {
-              "zero": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تم العثور على %lld مجموعات"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تم العثور على %lld مجموعة"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تم العثور على %lld مجموعتين"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تم العثور على %lld مجموعات"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تم العثور على %lld مجموعة"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تم العثور على %lld مجموعة"
-                }
-              }
-            }
-          }
-        },
-        "he": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "נמצאה %lld קבוצה"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "נמצאו %lld קבוצות"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "נמצאו %lld קבוצות"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld groups": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld group"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groups"
-                }
-              }
-            }
-          }
-        },
-        "hi": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld समूह"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld समूह"
-                }
-              }
-            }
-          }
-        },
-        "bn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld গ্রুপ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld গ্রুপ"
-                }
-              }
-            }
-          }
-        },
-        "ta": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld குழு"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld குழுக்கள்"
-                }
-              }
-            }
-          }
-        },
-        "te": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld సమూహం"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld సమూహాలు"
-                }
-              }
-            }
-          }
-        },
-        "mr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld गट"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld गट"
-                }
-              }
-            }
-          }
-        },
-        "gu": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld જૂથ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld જૂથ"
-                }
-              }
-            }
-          }
-        },
-        "kn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಗುಂಪು"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಗುಂಪುಗಳು"
-                }
-              }
-            }
-          }
-        },
-        "ml": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ഗ്രൂപ്പ്"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ഗ്രൂപ്പുകൾ"
-                }
-              }
-            }
-          }
-        },
-        "pa": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਗਰੁੱਪ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਗਰੁੱਪ"
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupo"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupe"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupes"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groupes"
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Gruppe"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Gruppen"
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupo"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld grupos"
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppo"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppi"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld gruppi"
-                }
-              }
-            }
-          }
-        },
-        "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld個のグループ"
-                }
-              }
-            }
-          }
-        },
-        "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld개 그룹"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld 个组"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld группа"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld группы"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld групп"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld группы"
-                }
-              }
-            }
-          }
-        },
-        "ar": {
-          "variations": {
-            "plural": {
-              "zero": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعات"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعة"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعتان"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعات"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعة"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld مجموعة"
-                }
-              }
-            }
-          }
-        },
-        "he": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld קבוצה"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld קבוצות"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld קבוצות"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld groups found": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld group found"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld groups found"
-                }
-              }
-            }
-          }
-        },
-        "hi": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld समूह मिले"
+                  "value": "%lld समूह मिला"
                 }
               },
               "other": {
@@ -39662,7 +38372,7 @@
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "વિડિઓ લોડ કરી શકાયો નથી: %@"
+            "value": "વિડિયો લોડ કરી શકાયો નથી: %@"
           }
         },
         "kn": {
@@ -39686,7 +38396,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo cargar el video: %@"
+            "value": "No se pudo cargar el vídeo: %@"
           }
         },
         "fr": {
@@ -40267,6 +38977,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "לא ניתן היה להכין את הפריטים שנבחרו לשיתוף."
+          }
+        }
+      }
+    },
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस डिवाइस पर आपका Google साइन-इन सहेजा नहीं जा सका, और Google के पास अब भी पहुँच है। अपने Google खाते की तृतीय-पक्ष पहुँच सेटिंग में TidyByte हटाएँ।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ডিভাইসে আপনার Google সাইন-ইন সংরক্ষণ করা যায়নি, এবং Google এখনও অ্যাক্সেস রেখেছে। আপনার Google অ্যাকাউন্টের তৃতীয়-পক্ষ অ্যাক্সেস সেটিংসে TidyByte সরিয়ে দিন।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இந்தச் சாதனத்தில் உங்கள் Google உள்நுழைவைச் சேமிக்க முடியவில்லை, மேலும் Google இன்னும் அணுகலை வைத்திருக்கிறது. உங்கள் Google கணக்கின் மூன்றாம் தரப்பு அணுகல் அமைப்புகளில் TidyByte-ஐ நீக்கவும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఈ పరికరంలో మీ Google సైన్-ఇన్‌ను సేవ్ చేయలేకపోయాం, మరియు Google ఇంకా యాక్సెస్ ఉంచుకుంది. మీ Google ఖాతాలోని థర్డ్-పార్టీ యాక్సెస్ సెట్టింగ్‌లలో TidyByte ను తీసివేయండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "या डिव्हाइसवर तुमचे Google साइन-इन सेव्ह करता आले नाही, आणि Google कडे अजूनही प्रवेश आहे. तुमच्या Google खात्यातील थर्ड-पार्टी प्रवेश सेटिंग्जमधून TidyByte काढा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "આ ડિવાઇસ પર તમારું Google સાઇન-ઇન સાચવી શકાયું નહીં, અને Google પાસે હજી પણ ઍક્સેસ છે. તમારા Google ખાતાની થર્ડ-પાર્ટી ઍક્સેસ સેટિંગ્સમાંથી TidyByte દૂર કરો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಈ ಸಾಧನದಲ್ಲಿ ನಿಮ್ಮ Google ಸೈನ್-ಇನ್ ಉಳಿಸಲಾಗಲಿಲ್ಲ, ಮತ್ತು Google ಇನ್ನೂ ಪ್ರವೇಶ ಇಟ್ಟುಕೊಂಡಿದೆ. ನಿಮ್ಮ Google ಖಾತೆಯ ಮೂರನೇ-ಪಕ್ಷದ ಪ್ರವೇಶ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ TidyByte ಅನ್ನು ತೆಗೆದುಹಾಕಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഈ ഉപകരണത്തിൽ നിങ്ങളുടെ Google സൈൻ ഇൻ സേവ് ചെയ്യാനായില്ല, Google ഇപ്പോഴും ആക്‌സസ് നിലനിർത്തുന്നു. നിങ്ങളുടെ Google അക്കൗണ്ടിലെ മൂന്നാം കക്ഷി ആക്‌സസ് ക്രമീകരണങ്ങളിൽ TidyByte നീക്കം ചെയ്യുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਇਸ ਡਿਵਾਈਸ 'ਤੇ ਤੁਹਾਡਾ Google ਸਾਈਨ-ਇਨ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ, ਅਤੇ Google ਅਜੇ ਵੀ ਪਹੁੰਚ ਰੱਖਦਾ ਹੈ। ਆਪਣੇ Google ਖਾਤੇ ਦੀਆਂ ਤੀਜੀ-ਧਿਰ ਪਹੁੰਚ ਸੈਟਿੰਗਾਂ ਵਿੱਚੋਂ TidyByte ਹਟਾਓ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar tu inicio de sesión de Google en este dispositivo, y Google aún mantiene el acceso. Elimina TidyByte en la configuración de acceso de terceros de tu cuenta de Google."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d'enregistrer votre connexion Google sur cet appareil, et Google conserve encore l'accès. Supprimez TidyByte dans les paramètres d'accès des applications tierces de votre compte Google."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Google-Anmeldung konnte auf diesem Gerät nicht gespeichert werden, und Google hat den Zugriff noch. Entferne TidyByte in den Einstellungen für Drittanbieter-Zugriffe deines Google-Kontos."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar seu login do Google neste dispositivo, e o Google ainda mantém o acesso. Remova o TidyByte nas configurações de acesso de terceiros da sua Conta do Google."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile salvare l'accesso a Google su questo dispositivo, e Google mantiene ancora l'accesso. Rimuovi TidyByte nelle impostazioni di accesso di terze parti del tuo account Google."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この端末に Google へのサインイン情報を保存できず、Google にはまだアクセス権が残っています。Google アカウントのサードパーティ アクセス設定から TidyByte を削除してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기기에 Google 로그인 정보를 저장하지 못했고, Google에는 아직 접근 권한이 남아 있습니다. Google 계정의 타사 앱 액세스 설정에서 TidyByte를 삭제하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在此设备上保存你的 Google 登录信息，而且 Google 仍保留着访问权限。请在你的 Google 账户的第三方访问设置中移除 TidyByte。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось сохранить вход в Google на этом устройстве, и Google всё ещё хранит доступ. Удалите TidyByte в настройках доступа сторонних приложений вашего аккаунта Google."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر حفظ تسجيل دخولك إلى Google على هذا الجهاز، ولا يزال Google يحتفظ بالوصول. أزِل TidyByte من إعدادات الوصول للتطبيقات الخارجية في حساب Google."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא ניתן לשמור את ההתחברות שלך ל-Google במכשיר הזה, וגוגל עדיין שומרת את ההרשאה. הסר את TidyByte בהגדרות הגישה של צד שלישי בחשבון Google שלך."
           }
         }
       }
@@ -45834,7 +44674,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Excluir 1 item"
+            "value": "Apagar 1 item"
           }
         },
         "it": {
@@ -48676,7 +47516,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elimina los fotogramas marcados para borrar. Se conserva el fotograma marcado con estrella de cada ráfaga."
+            "value": "Se eliminarán los fotogramas marcados para eliminar. Se conserva el fotograma marcado con estrella de cada ráfaga."
           }
         },
         "fr": {
@@ -52901,436 +51741,6 @@
         }
       }
     },
-    "Failed to delete %lld photo": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Failed to delete %lld photo"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Failed to delete %lld photos"
-                }
-              }
-            }
-          }
-        },
-        "hi": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld फ़ोटो हटाने में विफल"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld फ़ोटो हटाने में विफल"
-                }
-              }
-            }
-          }
-        },
-        "bn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ফটো মোছা যায়নি"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ফটো মোছা যায়নি"
-                }
-              }
-            }
-          }
-        },
-        "ta": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld புகைப்படத்தை நீக்க முடியவில்லை"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld புகைப்படங்களை நீக்க முடியவில்லை"
-                }
-              }
-            }
-          }
-        },
-        "te": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ఫోటోను తొలగించలేకపోయాం"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ఫోటోలను తొలగించలేకపోయాం"
-                }
-              }
-            }
-          }
-        },
-        "mr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld फोटो हटवता आला नाही"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld फोटो हटवता आले नाहीत"
-                }
-              }
-            }
-          }
-        },
-        "gu": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ફોટો કાઢી નાખી શકાયો નથી"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ફોટા કાઢી નાખી શકાયા નથી"
-                }
-              }
-            }
-          }
-        },
-        "kn": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಫೋಟೋ ಅಳಿಸಲಾಗಲಿಲ್ಲ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ಫೋಟೋಗಳನ್ನು ಅಳಿಸಲಾಗಲಿಲ್ಲ"
-                }
-              }
-            }
-          }
-        },
-        "ml": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ഫോട്ടോ ഇല്ലാതാക്കാനായില്ല"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ഫോട്ടോകൾ ഇല്ലാതാക്കാനായില്ല"
-                }
-              }
-            }
-          }
-        },
-        "pa": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਫ਼ੋਟੋ ਮਿਟਾਉਣੀ ਅਸਫਲ"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld ਫ਼ੋਟੋਆਂ ਮਿਟਾਉਣੀਆਂ ਅਸਫਲ"
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "No se pudo eliminar %lld foto"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "No se pudieron eliminar %lld fotos"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "No se pudieron eliminar %lld fotos"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Échec de la suppression de %lld photo"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Échec de la suppression de %lld photos"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Échec de la suppression de %lld photos"
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Foto konnte nicht gelöscht werden"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Fotos konnten nicht gelöscht werden"
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Falha ao apagar %lld foto"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Falha ao apagar %lld fotos"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Falha ao apagar %lld fotos"
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Impossibile eliminare %lld foto"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Impossibile eliminare %lld foto"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Impossibile eliminare %lld foto"
-                }
-              }
-            }
-          }
-        },
-        "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld枚の写真を削除できませんでした"
-                }
-              }
-            }
-          }
-        },
-        "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld장의 사진을 삭제하지 못했습니다"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "无法删除 %lld 张照片"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Не удалось удалить %lld снимок"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Не удалось удалить %lld снимка"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Не удалось удалить %lld снимков"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Не удалось удалить %lld снимка"
-                }
-              }
-            }
-          }
-        },
-        "ar": {
-          "variations": {
-            "plural": {
-              "zero": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تعذر حذف %lld صور"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تعذر حذف %lld صورة"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تعذر حذف %lld صورتين"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تعذر حذف %lld صور"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تعذر حذف %lld صورة"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "تعذر حذف %lld صورة"
-                }
-              }
-            }
-          }
-        },
-        "he": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "מחיקת %lld תמונה נכשלה"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "מחיקת %lld תמונות נכשלה"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "מחיקת %lld תמונות נכשלה"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "Failed to delete %lld photo: %@": {
       "localizations": {
         "en": {
@@ -53453,7 +51863,7 @@
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld ફોટો કાઢી નાખવામાં નિષ્ફળ: %@"
+                  "value": "%lld ફોટા કાઢી નાખવામાં નિષ્ફળ: %@"
                 }
               }
             }
@@ -58177,6 +56587,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "Google החזיר שגיאה (%lld)."
+          }
+        }
+      }
+    },
+    "Google returned the same page twice, so the list is incomplete.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google returned the same page twice, so the list is incomplete."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google ने एक ही पेज दो बार लौटाया, इसलिए सूची अधूरी है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google একই পেজ দুইবার ফেরত দিয়েছে, তাই তালিকাটি অসম্পূর্ণ।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google ஒரே பக்கத்தை இரண்டு முறை திருப்பி அனுப்பியதால் பட்டியல் முழுமையடையவில்லை."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google ఒకే పేజీని రెండుసార్లు తిరిగి ఇచ్చింది, కాబట్టి జాబితా అసంపూర్ణంగా ఉంది."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google ने एकच पान दोनदा परत पाठवले, त्यामुळे यादी अपूर्ण आहे."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google એ એક જ પેજ બે વાર પાછું મોકલ્યું, તેથી યાદી અધૂરી છે."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google ಒಂದೇ ಪುಟವನ್ನು ಎರಡು ಬಾರಿ ಹಿಂತಿರುಗಿಸಿತು, ಆದ್ದರಿಂದ ಪಟ್ಟಿ ಅಪೂರ್ಣವಾಗಿದೆ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഒരേ പേജ് Google രണ്ടു തവണ തിരികെ നൽകി, അതിനാൽ പട്ടിക അപൂർണ്ണമാണ്."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google ਨੇ ਇੱਕੋ ਪੰਨਾ ਦੋ ਵਾਰ ਵਾਪਸ ਭੇਜਿਆ, ਇਸ ਲਈ ਸੂਚੀ ਅਧੂਰੀ ਹੈ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google devolvió la misma página dos veces, así que la lista está incompleta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google a renvoyé deux fois la même page, la liste est donc incomplète."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google hat dieselbe Seite zweimal zurückgegeben, daher ist die Liste unvollständig."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Google retornou a mesma página duas vezes, então a lista está incompleta."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google ha restituito due volte la stessa pagina, quindi l'elenco è incompleto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google が同じページを 2 回返したため、リストは不完全です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google가 같은 페이지를 두 번 반환해 목록이 불완전합니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google 两次返回了同一页，因此列表不完整。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google дважды вернул одну и ту же страницу, поэтому список неполный."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أعاد Google الصفحة نفسها مرتين، لذلك القائمة غير مكتملة."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google החזיר את אותו עמוד פעמיים, ולכן הרשימה אינה שלמה."
           }
         }
       }
@@ -116371,6 +114911,136 @@
         }
       }
     },
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ऐप फ़ोरग्राउंड से हट जाने के कारण TidyByte ने Live Photo का रूपांतरण रोक दिया। रूपांतरण के दौरान TidyByte खुला रखें, फिर दोबारा कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সামনের অংশ ছেড়ে যাওয়ায় TidyByte Live Photo রূপান্তর বন্ধ করেছে। রূপান্তরের সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "முன்புலத்திலிருந்து வெளியேறியதால் TidyByte Live Photo மாற்றத்தை நிறுத்தியது. மாற்றம் நடக்கும்போது TidyByte-ஐ திறந்து வைத்திருங்கள், பின்னர் மீண்டும் முயற்சிக்கவும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "యాప్ ముందుభాగం నుండి వెళ్లిపోవడంతో TidyByte Live Photo మార్పిడిని ఆపివేసింది. మార్పిడి జరుగుతున్నప్పుడు TidyByte ను తెరిచి ఉంచండి, ఆ తర్వాత మళ్లీ ప్రయత్నించండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte फोरग्राउंडमधून बाहेर गेल्यामुळे Live Photo रूपांतरण थांबले. रूपांतरण सुरू असताना TidyByte उघडे ठेवा, मग पुन्हा प्रयत्न करा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte એ Live Photo નું રૂપાંતર બંધ કર્યું, કારણ કે તે ફોરગ્રાઉન્ડમાંથી નીકળી ગયું. રૂપાંતર ચાલુ હોય ત્યારે TidyByte ખુલ્લું રાખો, પછી ફરી પ્રયાસ કરો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte ಮುನ್ನೆಲೆಯಿಂದ ಹೊರಹೋದ ಕಾರಣ Live Photo ಪರಿವರ್ತನೆಯನ್ನು ನಿಲ್ಲಿಸಲಾಯಿತು. ಪರಿವರ್ತನೆಯ ಸಮಯದಲ್ಲಿ TidyByte ಅನ್ನು ತೆರೆದಿಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte മുൻനിരയിൽ നിന്ന് പോയതിനാൽ Live Photo പരിവർത്തനം നിർത്തി. പരിവർത്തനം നടക്കുമ്പോൾ TidyByte തുറന്നുവെക്കുക, പിന്നീട് വീണ്ടും ശ്രമിക്കുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte ਫੋਰਗ੍ਰਾਊਂਡ ਤੋਂ ਬਾਹਰ ਚਲੇ ਜਾਣ ਕਾਰਨ Live Photo ਰੂਪਾਂਤਰਨ ਰੋਕਿਆ ਗਿਆ। ਰੂਪਾਂਤਰਨ ਦੌਰਾਨ TidyByte ਖੁੱਲ੍ਹਾ ਰੱਖੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte detuvo la conversión de Live Photo porque salió del primer plano. Mantén TidyByte abierto mientras convierte y, después, vuelve a intentarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte a arrêté la conversion Live Photo car l'app a quitté le premier plan. Gardez TidyByte ouvert pendant la conversion, puis réessayez."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte hat die Live-Photo-Konvertierung beendet, weil die App in den Hintergrund gewechselt ist. Lass TidyByte während der Konvertierung geöffnet und versuche es dann erneut."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O TidyByte interrompeu a conversão de Live Photo porque saiu do primeiro plano. Mantenha o TidyByte aberto enquanto ele converte e tente novamente."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte ha interrotto la conversione di Live Photo perché è uscito dal primo piano. Tieni TidyByte aperto mentre converte, poi riprova."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte はフォアグラウンドから離れたため、Live Photo の変換を停止しました。変換中は TidyByte を開いたままにして、もう一度お試しください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "앱이 포그라운드를 벗어나 TidyByte가 Live Photo 변환을 중단했습니다. 변환하는 동안 TidyByte를 열어 두고 다시 시도하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte 离开了前台，因此停止了 Live Photo 转换。转换期间请保持 TidyByte 打开，然后重试。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte остановил конвертацию Live Photo, потому что приложение ушло с переднего плана. Не закрывайте TidyByte во время конвертации, затем попробуйте снова."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "توقّف TidyByte عن تحويل Live Photo لأنه انتقل إلى الخلفية. أبقِ TidyByte مفتوحًا أثناء التحويل، ثم حاوِل مرة أخرى."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte הפסיקה את המרת Live Photo כי האפליקציה יצאה מהחזית. השאירו את TidyByte פתוחה בזמן ההמרה, ואז נסו שוב."
+          }
+        }
+      }
+    },
     "TidyByte stopped compression because it left the foreground. Keep TidyByte open while it compresses, then try again.": {
       "localizations": {
         "en": {
@@ -134792,25 +133462,25 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "से"
+            "value": "में"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "থেকে"
+            "value": "তে"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "முதல்"
+            "value": "க்கு"
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "నుండి"
+            "value": "కు"
           }
         },
         "mr": {
@@ -134822,25 +133492,25 @@
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "થી"
+            "value": "માં"
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ರಿಂದ"
+            "value": "ಗೆ"
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "മുതൽ"
+            "value": "ലേക്ക്"
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਤੋਂ"
+            "value": "ਵਿੱਚ"
           }
         },
         "es": {

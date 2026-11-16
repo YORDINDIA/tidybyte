@@ -795,7 +795,10 @@
     "This item will be deleted from Photos.": "Dieses Objekt wird aus Fotos gelöscht.",
     "This photo will be deleted from Photos.": "Dieses Foto wird aus Fotos gelöscht.",
     "This screenshot will be deleted from Photos.": "Dieser Screenshot wird aus Fotos gelöscht.",
-    "%lld of %lld items couldn't be prepared to share.": "%lld von %lld Objekten konnten nicht zum Teilen vorbereitet werden."
+    "%lld of %lld items couldn't be prepared to share.": "%lld von %lld Objekten konnten nicht zum Teilen vorbereitet werden.",
+    "Google returned the same page twice, so the list is incomplete.": "Google hat dieselbe Seite zweimal zurückgegeben, daher ist die Liste unvollständig.",
+    "Couldn't save your Google sign-in on this device, and Google still holds the access. Remove TidyByte in your Google Account's third-party access settings.": "Deine Google-Anmeldung konnte auf diesem Gerät nicht gespeichert werden, und Google hat den Zugriff noch. Entferne TidyByte in den Einstellungen für Drittanbieter-Zugriffe deines Google-Kontos.",
+    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": "TidyByte hat die Live-Photo-Konvertierung beendet, weil die App in den Hintergrund gewechselt ist. Lass TidyByte während der Konvertierung geöffnet und versuche es dann erneut."
   },
   "plurals": {
     "%lld issues found": {
@@ -882,18 +885,6 @@
       "one": "%lld Live Photo",
       "other": "%lld Live Photos"
     },
-    "%lld burst groups": {
-      "one": "%lld Seriengruppe",
-      "other": "%lld Seriengruppen"
-    },
-    "%lld groups": {
-      "one": "%lld Gruppe",
-      "other": "%lld Gruppen"
-    },
-    "%lld groups found": {
-      "one": "%lld Gruppe gefunden",
-      "other": "%lld Gruppen gefunden"
-    },
     "%lld compressions": {
       "one": "%lld Komprimierung",
       "other": "%lld Komprimierungen"
@@ -921,10 +912,6 @@
     "%lld active day, 30 days": {
       "one": "%lld aktiver Tag, 30 Tage",
       "other": "%lld aktive Tage, 30 Tage"
-    },
-    "Failed to delete %lld photo": {
-      "one": "%lld Foto konnte nicht gelöscht werden",
-      "other": "%lld Fotos konnten nicht gelöscht werden"
     },
     "Delete %lld item": {
       "one": "%lld Objekt löschen",

@@ -87,6 +87,16 @@ final class IOSCleanupBScanTests: XCTestCase {
         }
     }
 
+    /// The stall clock must never run backwards, or a deadline could move back.
+    func testLoadStallClockNeverGoesBack() {
+        var previous = LoadStall.now()
+        for _ in 0..<1_000 {
+            let current = LoadStall.now()
+            XCTAssertGreaterThanOrEqual(current, previous)
+            previous = current
+        }
+    }
+
     /// The lock serializes writes from concurrent queues, as the PhotoKit callbacks do.
     func testLockedValueSerializesConcurrentWrites() {
         let counter = LockedValue(0)
@@ -141,6 +151,40 @@ final class IOSCleanupBScanTests: XCTestCase {
         XCTAssertEqual(text, PhotoCompressionError.imageDataLoadFailed.localizedDescription)
     }
 
+    // MARK: - Background stop messages (PR #27 review)
+
+    /// A failed batch must not replace the background message the user needs.
+    func testFailureSummaryYieldsToBackgroundStop() {
+        XCTAssertNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 1, stoppedForBackground: true))
+        XCTAssertNotNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 1, stoppedForBackground: false))
+        XCTAssertNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 0, stoppedForBackground: false))
+    }
+
+    @MainActor
+    func testVideoBackgroundStopSetsFlagAndMessage() {
+        let viewModel = VideoCompressionViewModel()
+        viewModel.stopForBackground()
+        XCTAssertTrue(viewModel.stoppedForBackground)
+        XCTAssertEqual(viewModel.errorMessage, CompressionError.exportInterrupted.localizedDescription)
+    }
+
+    @MainActor
+    func testPhotoBackgroundStopSetsFlagAndMessage() {
+        let viewModel = PhotoCompressionViewModel()
+        viewModel.stopForBackground()
+        XCTAssertTrue(viewModel.stoppedForBackground)
+        XCTAssertEqual(viewModel.errorMessage, CompressionError.exportInterrupted.localizedDescription)
+    }
+
+    @MainActor
+    func testLivePhotoBackgroundStopSetsFlagAndConversionMessage() {
+        let viewModel = LivePhotosConverterViewModel()
+        viewModel.stopForBackground()
+        XCTAssertTrue(viewModel.stoppedForBackground)
+        // The conversion wording, not the compression wording.
+        XCTAssertTrue(viewModel.errorMessage?.contains("Live Photo") == true, viewModel.errorMessage ?? "nil")
+    }
+
     // MARK: - Journal reconcile library gate
 
     /// Without Photos access the rows must stay pending. This test never reaches
@@ -171,7 +215,8 @@ final class IOSCleanupBScanTests: XCTestCase {
 
     func testReconcileReadsLibraryOnlyWithAccess() {
         XCTAssertTrue(CompressionJournal.canReadLibrary(.authorized))
-        XCTAssertTrue(CompressionJournal.canReadLibrary(.limited))
+        // Limited access hides unselected originals, so it must not settle rows.
+        XCTAssertFalse(CompressionJournal.canReadLibrary(.limited))
         XCTAssertFalse(CompressionJournal.canReadLibrary(.denied))
         XCTAssertFalse(CompressionJournal.canReadLibrary(.restricted))
         XCTAssertFalse(CompressionJournal.canReadLibrary(.notDetermined))

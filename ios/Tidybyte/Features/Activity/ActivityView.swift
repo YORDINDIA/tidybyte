@@ -290,7 +290,7 @@ struct ActivityView: View {
                         .foregroundStyle(color(for: event.kind))
                     Text(LocalizedStringKey(event.kind.title))
                         .font(.subheadline)
-                    Text(event.date, format: .dateTime.day().month(.abbreviated).year())
+                    Text(Formatters.dateTime(event.date, in: locale))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text(L10n.format("%lld item", fallback: "%lld items", event.itemCount))
@@ -312,7 +312,7 @@ struct ActivityView: View {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(LocalizedStringKey(event.kind.title))
                             .font(.subheadline)
-                        Text(event.date, format: .dateTime.day().month(.abbreviated).year())
+                        Text(Formatters.dateTime(event.date, in: locale))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
