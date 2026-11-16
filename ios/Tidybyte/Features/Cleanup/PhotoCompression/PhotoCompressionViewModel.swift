@@ -260,22 +260,52 @@ final class PhotoCompressionViewModel {
         guard !items.isEmpty else { return }
         isMeasuring = true
         measureTask = Task {
+            defer {
+                isMeasuring = false
+                measureTask = nil
+            }
             for item in items {
-                if Task.isCancelled { break }
+                if Task.isCancelled { return }
                 let key = Self.sizeKey(item.id, item.selectedPreset)
                 do {
                     measuredSizes[key] = try await compressionService.measureCompressedSize(assetId: item.id, preset: item.selectedPreset)
-                } catch PhotoCompressionError.cannotReachTarget {
-                    // Marks "can't reach" for the row: 0 never comes from a real encode.
-                    measuredSizes[key] = 0
                 } catch {
-                    // A load or encode failure is not "can't fit". Say what failed.
-                    errorMessage = error.localizedDescription
+                    switch Self.measureFailure(for: error) {
+                    case .cannotFit:
+                        // Marks "can't reach" for the row: 0 never comes from a real encode.
+                        measuredSizes[key] = 0
+                    case .cancelled:
+                        // The screen closed. Leaving is not a failure, so show nothing.
+                        return
+                    case .message(let text):
+                        // A load or encode failure is not "can't fit". Say what failed.
+                        errorMessage = text
+                    }
                 }
             }
-            isMeasuring = false
-            measureTask = nil
         }
+    }
+
+    /// What a failed "Check Sizes" encode means for the row.
+    enum MeasureFailure: Equatable {
+        case cannotFit
+        case cancelled
+        case message(String)
+    }
+
+    nonisolated static func measureFailure(for error: Error) -> MeasureFailure {
+        if error is CancellationError { return .cancelled }
+        switch error as? PhotoCompressionError {
+        case .cancelled?: return .cancelled
+        case .cannotReachTarget?: return .cannotFit
+        default: return .message(error.localizedDescription)
+        }
+    }
+
+    /// iOS ended the background time: stop the batch and say why.
+    func stopForBackground() {
+        errorMessage = CompressionError.exportInterrupted.localizedDescription
+        cancelCompression()
     }
 
     /// Conservative synchronous savings estimate for the row hint: scale the
@@ -499,6 +529,7 @@ final class PhotoCompressionViewModel {
             modelContext: modelContext,
             handlers: handlers,
             deleteOriginals: deleteOriginals,
+            onBackgroundExpiry: { [weak self] in self?.stopForBackground() },
             execute: { [weak self] id, index, report in
                 guard let self else { throw CancellationError() }
                 let preset = self.photos[index].selectedPreset

@@ -40,11 +40,6 @@ struct CompressionHistoryView: View {
         return id
     }
 
-    /// Read by the formatted values below: the environment is what makes this
-    /// row re-render on a language change. `Formatters` resolves against
-    /// `Locale.current` on its own, which never changes.
-    @Environment(\.locale) private var locale
-
     var body: some View {
         Group {
             if records.isEmpty {
@@ -86,7 +81,7 @@ struct CompressionHistoryView: View {
                                 .frame(width: 24)
 
                             VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text(Formatters.dateTime(record.compressedAt, in: locale))
+                                Text(record.compressedAt, format: .dateTime.day().month(.abbreviated).year().hour().minute())
                                     .font(.subheadline)
 
                                 Text(Self.presetLabel(record.exportPreset))

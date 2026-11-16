@@ -255,7 +255,7 @@ struct LivePhotosConverterView: View {
 
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         if let date = item.asset.creationDate {
-                            Text(date, style: .date)
+                            Text(date, format: .dateTime.day().month(.abbreviated).year())
                                 .font(.subheadline)
                         }
 

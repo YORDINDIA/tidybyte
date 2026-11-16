@@ -331,13 +331,18 @@ enum CompressionJournal {
         status == .authorized || status == .limited
     }
 
-    static func reconcile(modelContext: ModelContext) async {
+    /// `authorization` defaults to the live status. Tests pass a status, because
+    /// the test host has no Photos access.
+    static func reconcile(
+        modelContext: ModelContext,
+        authorization: PHAuthorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+    ) async {
         let descriptor = FetchDescriptor<CompressionRecord>(
             predicate: #Predicate { $0.outcome == "pending" }
         )
         guard let pendings = try? modelContext.fetch(descriptor), !pendings.isEmpty else { return }
         // Pending rows stay as they are until a load with library access.
-        guard canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite)) else { return }
+        guard canReadLibrary(authorization) else { return }
         AppLog.compression.info("Reconciling \(pendings.count, privacy: .public) pending compression record(s)")
         var resolved: [(CompressionRecord, Resolution)] = []
         // Rows still owned by a live swap (a running batch, or saved copies

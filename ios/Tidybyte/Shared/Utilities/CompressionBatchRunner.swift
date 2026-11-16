@@ -1,5 +1,54 @@
 import Photos
 import SwiftData
+import UIKit
+
+/// Keeps a batch running while the user is away: the screen stays awake, and
+/// iOS grants background time to finish the step in flight. Every path must
+/// call `end()`. `CompressionBatchRunner.run` does so with `defer`.
+@MainActor
+final class CompressionSession {
+    /// Batches running now. The screen setting is restored when the last one ends.
+    private static var active = 0
+    private static var idleTimerWasDisabled = false
+
+    private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    private var ended = false
+
+    /// `onExpire` runs when iOS ends the background time. Use it to cancel
+    /// the batch, so it stops cleanly before the app is suspended.
+    static func begin(onExpire: @escaping @MainActor () -> Void) -> CompressionSession {
+        let app = UIApplication.shared
+        if active == 0 { idleTimerWasDisabled = app.isIdleTimerDisabled }
+        active += 1
+        app.isIdleTimerDisabled = true
+
+        let session = CompressionSession()
+        session.backgroundTask = app.beginBackgroundTask(withName: "TidyByte compression") {
+            Task { @MainActor in
+                onExpire()
+                session.stopBackgroundTime()
+            }
+        }
+        return session
+    }
+
+    /// Idempotent. Restores the screen setting once no batch is running.
+    func end() {
+        guard !ended else { return }
+        ended = true
+        Self.active -= 1
+        if Self.active == 0 {
+            UIApplication.shared.isIdleTimerDisabled = Self.idleTimerWasDisabled
+        }
+        stopBackgroundTime()
+    }
+
+    fileprivate func stopBackgroundTime() {
+        guard backgroundTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(backgroundTask)
+        backgroundTask = .invalid
+    }
+}
 
 /// Shared per-item loop for the photo + video batch compressions (COMP-12).
 ///
@@ -224,9 +273,13 @@ enum CompressionBatchRunner {
         modelContext: ModelContext,
         handlers: Handlers,
         deleteOriginals: Bool = true,
+        onBackgroundExpiry: @escaping @MainActor () -> Void = {},
         execute: @MainActor @Sendable (String, Int, @escaping @MainActor @Sendable (Float) -> Void) async throws
             -> CompressionItemOutcome
     ) async -> Result {
+        // Ends on every path: finish, cancel, error and return from the loop.
+        let session = CompressionSession.begin(onExpire: onBackgroundExpiry)
+        defer { session.end() }
         let orderedIds = sortedBatchIds(selected: selected, fileSizes: fileSizes)
         var saved: [PendingOriginal] = []
         var failed = 0, skipped = 0

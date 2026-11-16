@@ -297,7 +297,7 @@ struct PhotoCompressionView: View {
     private func photoDetails(_ photo: PhotoItem) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             if let date = photo.asset.creationDate {
-                Text(date, style: .date)
+                Text(date, format: .dateTime.day().month(.abbreviated).year())
                     .font(.subheadline)
             }
             Menu {

@@ -262,7 +262,7 @@ struct VideoCompressionView: View {
     private func videoDetails(_ video: VideoItem) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             if let date = video.asset.creationDate {
-                Text(date, style: .date)
+                Text(date, format: .dateTime.day().month(.abbreviated).year())
                     .font(.subheadline)
             }
             Menu {

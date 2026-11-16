@@ -201,6 +201,12 @@ final class VideoCompressionViewModel {
         batchTask?.cancel()
     }
 
+    /// iOS ended the background time: stop the batch and say why.
+    func stopForBackground() {
+        errorMessage = CompressionError.exportInterrupted.localizedDescription
+        cancelCompression()
+    }
+
     /// "Try Again" on the Originals Kept alert: one more delete commit.
     /// Clears `keptOriginals` synchronously so the alert does not re-present.
     func retryRemovingOriginals() {
@@ -355,6 +361,7 @@ final class VideoCompressionViewModel {
             isSizeUnknown: isSizeUnknown,
             modelContext: modelContext,
             handlers: handlers,
+            onBackgroundExpiry: { [weak self] in self?.stopForBackground() },
             execute: { [weak self] id, index, report in
                 guard let self else { throw CancellationError() }
                 // Captured before the await so the failure audit trail below stays

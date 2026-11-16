@@ -150,6 +150,12 @@ final class LivePhotosConverterViewModel {
         batchTask?.cancel()
     }
 
+    /// iOS ended the background time: stop Convert All and say why.
+    func stopForBackground() {
+        errorMessage = CompressionError.exportInterrupted.localizedDescription
+        cancelConvertAll()
+    }
+
     func convertSingle(itemId: String, modelContext: ModelContext) async {
         // COMP-18: never start a single conversion while Convert All is
         // running (double spinners, double counts).
@@ -249,6 +255,9 @@ final class LivePhotosConverterViewModel {
         errorMessage = nil
         isCancelled = false
         convertingAll = true
+        // Keeps the screen awake and the batch alive in the background. Ends on every exit.
+        let session = CompressionSession.begin(onExpire: { [weak self] in self?.stopForBackground() })
+        defer { session.end() }
         // D1 (review pass): resolve leftovers from interrupted conversions
         // before starting a batch.
         await CompressionJournal.reconcile(modelContext: modelContext)
@@ -359,12 +368,13 @@ final class LivePhotosConverterViewModel {
                 options.isNetworkAccessAllowed = true
 
                 // Network access is allowed, so a stalled iCloud download could leave
-                // the completion handler unfired forever. Bound it with a timeout +
+                // the completion handler unfired forever. Bound it with a stall timeout +
                 // request cancellation, wired before the request so even a synchronous
                 // callback cancels the timer. Without this the item hangs in `.converting`.
+                // Each data chunk is progress, so a steady download is not cut off.
+                let stall = StallWatch()
                 var requestID: PHAssetResourceDataRequestID = 0
-                let timeoutTask = Task {
-                    try? await Task.sleep(for: .seconds(30))
+                let timeoutTask = watchForStall(stall) {
                     resumer.resume(throwing: LivePhotoError.conversionTimedOut)
                 }
                 resumer.onResume = {
@@ -376,6 +386,8 @@ final class LivePhotosConverterViewModel {
                     for: photoResource,
                     options: options
                 ) { chunk in
+                    let at = LoadStall.now()
+                    Task { await stall.recordProgress(at: at) }
                     data.append(chunk)
                 } completionHandler: { error in
                     if let error {
