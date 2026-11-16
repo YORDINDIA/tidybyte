@@ -54,6 +54,7 @@ public enum ReviewSafety {
 
     public static func verify(_ item: ReviewItem) throws {
         guard let url = item.url, let root = item.root, item.canChange, isAllowed(url),
+            !PathSafetyPolicy().isProtectedFromCleanup(url: url, isDirectory: item.isPackage),
             contains(url, in: root),
             contains(url.deletingLastPathComponent().resolvingSymlinksInPath(), in: root.resolvingSymlinksInPath()),
             let expected = item.identity, try identity(at: url) == expected
@@ -62,6 +63,11 @@ public enum ReviewSafety {
                 String(localized: "The file changed or is outside the approved scope. Scan again."))
         }
         if item.isPackage {
+            // A package is a folder on disk: trashing it takes its contents too.
+            if case .deny = PathSafetyPolicy().decide(target: url, isDirectory: true, descendants: true) {
+                throw CleanupError.message(
+                    String(localized: "The document package holds protected data, so it cannot be changed here."))
+            }
             let current = try packageSummary(url)
             guard current.version == item.packageVersion, current.downloaded else {
                 throw CleanupError.message(String(localized: "The document package changed. Scan again."))

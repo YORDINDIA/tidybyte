@@ -60,12 +60,23 @@ public struct FileHashCacheEntry: Codable, Sendable {
     public var sizeBytes: Int64
     public var modifiedAt: Date?
     public var fullHash: String
+    /// Inode and status-change time when the hash was taken. A replaced file or a
+    /// rewrite that restores mtime still changes these, so the cached hash is not reused.
+    public var inode: UInt64?
+    /// Status-change time in nanoseconds since the epoch. An integer keeps the full
+    /// precision of the file system's timestamp, so equality is exact.
+    public var changedAtNanoseconds: Int64?
 
-    public init(path: String, sizeBytes: Int64, modifiedAt: Date?, fullHash: String) {
+    public init(
+        path: String, sizeBytes: Int64, modifiedAt: Date?, fullHash: String,
+        inode: UInt64? = nil, changedAtNanoseconds: Int64? = nil
+    ) {
         self.path = path
         self.sizeBytes = sizeBytes
         self.modifiedAt = modifiedAt
         self.fullHash = fullHash
+        self.inode = inode
+        self.changedAtNanoseconds = changedAtNanoseconds
     }
 }
 
@@ -230,13 +241,24 @@ public actor SQLiteStore {
         // complete standalone database if it is later copied with FileManager.
         try checkpointWAL()
 
-        try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
-        if FileManager.default.fileExists(atPath: destination.path) {
-            try FileManager.default.removeItem(at: destination)
+        // Never export over the live database or its WAL and shared-memory files.
+        let livePath = databaseURL.resolvingSymlinksInPath().path
+        let targetPath = destination.resolvingSymlinksInPath().path
+        guard targetPath != livePath, !targetPath.hasPrefix(livePath + "-") else {
+            let message = String(
+                localized: "Choose a different file. The export would overwrite the live database.",
+                comment: "Error when the export destination is the live database")
+            throw DatabaseError.exportFailed(message)
         }
 
+        try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+        // Back up to a sibling file first. The existing export is replaced only after the backup is complete.
+        let staging = destination.deletingLastPathComponent()
+            .appendingPathComponent(".\(destination.lastPathComponent).\(UUID().uuidString).partial")
+        defer { try? FileManager.default.removeItem(at: staging) }
+
         var destinationHandle: OpaquePointer?
-        let openResult = sqlite3_open_v2(destination.path, &destinationHandle, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE, nil)
+        let openResult = sqlite3_open_v2(staging.path, &destinationHandle, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE, nil)
         guard openResult == SQLITE_OK, let destinationHandle else {
             let message = destinationHandle.flatMap { sqlite3_errmsg($0) }.map { String(cString: $0) } ?? String(localized: "Unable to open export destination.", comment: "Error when opening the export destination database")
             if let destinationHandle {
@@ -252,7 +274,11 @@ public actor SQLiteStore {
         }
 
         var stepResult = sqlite3_backup_step(backup, -1)
+        var busyRetries = 0
         while stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED {
+            // Bounded: the store actor is blocked for the whole wait, so give up after about 5 s.
+            busyRetries += 1
+            if busyRetries > 500 { break }
             // Nap between retries: a hot spin pegs a core while contended.
             sqlite3_sleep(10)
             stepResult = sqlite3_backup_step(backup, -1)
@@ -266,6 +292,11 @@ public actor SQLiteStore {
         sqlite3_close(destinationHandle)
         guard finishResult == SQLITE_OK else {
             throw DatabaseError.exportFailed(String(localized: "Database export could not be finalized.", comment: "Error when finalizing a database backup"))
+        }
+        if FileManager.default.fileExists(atPath: destination.path) {
+            _ = try FileManager.default.replaceItemAt(destination, withItemAt: staging)
+        } else {
+            try FileManager.default.moveItem(at: staging, to: destination)
         }
     }
 
@@ -314,7 +345,18 @@ public actor SQLiteStore {
         }
     }
 
+    /// Test seam: session rows written with these statuses fail, so the status-write
+    /// fallbacks in ScanOrchestrator can be exercised. Empty in production.
+    var failingSessionStatuses: Set<ScanSessionStatus> = []
+
+    func setFailingSessionStatuses(_ statuses: Set<ScanSessionStatus>) {
+        failingSessionStatuses = statuses
+    }
+
     public func saveScanSession(_ session: ScanSession) throws {
+        if failingSessionStatuses.contains(session.status) {
+            throw DatabaseError.stepFailed("injected fault for status \(session.status.rawValue)")
+        }
         try upsert(session, id: session.id, table: .scanSessions)
     }
 
@@ -407,7 +449,9 @@ public actor SQLiteStore {
 
     /// Cached full hash for `path`, valid only when size and mtime both match.
     /// Returns nil on any mismatch so the caller re-hashes.
-    public func cachedFullHash(forPath path: String, sizeBytes: Int64, modifiedAt: Date?) throws -> String? {
+    public func cachedFullHash(
+        forPath path: String, sizeBytes: Int64, modifiedAt: Date?, inode: UInt64? = nil, changedAtNanoseconds: Int64? = nil
+    ) throws -> String? {
         let rows: [FileHashCacheEntry] = try selectJSON(
             "SELECT json FROM \(SQLiteTable.fileHashes.rawValue) WHERE id = ? LIMIT 1",
             values: [.text(path)],
@@ -416,6 +460,11 @@ public actor SQLiteStore {
         guard let entry = rows.first, entry.sizeBytes == sizeBytes else {
             return nil
         }
+        // When the caller knows the file's identity, a stored entry without the same
+        // identity is a miss: it may describe a different file at the same path.
+        if let inode, entry.inode != inode { return nil }
+        // Exact match only: any status change, however small, makes the cached hash unusable.
+        if let changedAtNanoseconds, entry.changedAtNanoseconds != changedAtNanoseconds { return nil }
         switch (entry.modifiedAt, modifiedAt) {
         case (nil, nil):
             return entry.fullHash
@@ -484,14 +533,15 @@ public actor SQLiteStore {
 
     // MARK: Last-session restore
 
-    /// The most recent scan session that reached a terminal state. Running
-    /// sessions are skipped: a session still marked running at launch belongs
-    /// to a crashed process (failStaleRunningSessions retires those first).
+    /// The most recent scan session that completed. Failed and cancelled sessions
+    /// are skipped: they hold no results to restore. Running sessions are skipped
+    /// too: a session still marked running at launch belongs to a crashed process
+    /// (failStaleRunningSessions retires those first).
     public func latestFinishedScanSession() throws -> ScanSession? {
         let sessions: [ScanSession] = try selectJSON(
             """
             SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
-            WHERE json_extract(json, '$.status') != 'running'
+            WHERE json_extract(json, '$.status') = 'completed'
             ORDER BY created_at DESC LIMIT 1
             """,
             values: [],
@@ -500,21 +550,65 @@ public actor SQLiteStore {
         return sessions.first
     }
 
-    /// Marks crashed runs as failed so they never read as fresh results and
-    /// purgeOldData can retire them. Sessions newer than the cutoff may belong
-    /// to a concurrently running app (the LaunchAgent, MCP server) and stay.
+    /// Marks abandoned running sessions as failed so they never read as fresh
+    /// results and purgeOldData can retire them. Rows without an owner keep the
+    /// insert-time rule. A row with an owner is retired only when that process has
+    /// exited, so a long scan that is still running is never failed.
     /// Returns how many sessions were retired.
     @discardableResult
     public func failStaleRunningSessions(olderThan cutoff: Date) throws -> Int {
-        try execute(
+        let legacy: [ScanSession] = try selectJSON(
             """
-            UPDATE \(SQLiteTable.scanSessions.rawValue)
-            SET json = json_set(json, '$.status', 'failed')
-            WHERE json_extract(json, '$.status') = 'running' AND created_at < ?
+            SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
+            WHERE json_extract(json, '$.status') = 'running'
+              AND json_extract(json, '$.ownerProcessID') IS NULL AND created_at < ?
             """,
-            values: [.real(cutoff.timeIntervalSince1970)]
+            values: [.real(cutoff.timeIntervalSince1970)],
+            as: ScanSession.self
         )
-        return changedRowCount()
+        let owned: [ScanSession] = try selectJSON(
+            """
+            SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
+            WHERE json_extract(json, '$.status') = 'running' AND json_extract(json, '$.ownerProcessID') IS NOT NULL
+            """,
+            values: [],
+            as: ScanSession.self
+        )
+        let abandoned = legacy + owned.filter(Self.ownerHasExited)
+        for session in abandoned {
+            try execute(
+                "UPDATE \(SQLiteTable.scanSessions.rawValue) SET json = json_set(json, '$.status', 'failed') WHERE id = ?",
+                values: [.text(session.id)]
+            )
+        }
+        return abandoned.count
+    }
+
+    /// True when the process that owns a running session no longer exists.
+    static func ownerHasExited(_ session: ScanSession) -> Bool {
+        guard let owner = session.ownerProcessID, owner != getpid() else { return false }
+        if kill(owner, 0) != 0 {
+            // ESRCH: no such process. EPERM means it exists but belongs to another user.
+            return errno == ESRCH
+        }
+        // The PID exists. It is the owner only if its start time matches the recorded one.
+        guard let recorded = session.ownerProcessStart, let current = processStartTime(of: owner) else {
+            return false
+        }
+        return recorded != current
+    }
+
+    /// Start time of `pid` in microseconds since the epoch, from the kernel process table.
+    /// Nil when the process does not exist or cannot be read.
+    static func processStartTime(of pid: pid_t) -> Int64? {
+        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
+        var info = kinfo_proc()
+        var size = MemoryLayout<kinfo_proc>.size
+        guard sysctl(&mib, 4, &info, &size, nil, 0) == 0, size == MemoryLayout<kinfo_proc>.size else {
+            return nil
+        }
+        let start = info.kp_proc.p_starttime
+        return Int64(start.tv_sec) * 1_000_000 + Int64(start.tv_usec)
     }
 
     public func loadFindings(for sessionID: String) throws -> [Finding] {
@@ -693,6 +787,15 @@ public actor SQLiteStore {
         )
     }
 
+    /// One snapshot by ID, however old. Nil when no such snapshot exists.
+    public func storageSnapshot(id: String) throws -> StorageSnapshot? {
+        try selectJSON(
+            "SELECT json FROM \(SQLiteTable.storageSnapshots.rawValue) WHERE id = ? LIMIT 1",
+            values: [.text(id)],
+            as: StorageSnapshot.self
+        ).first
+    }
+
     public func recentSnapshots(limit: Int = 30) throws -> [StorageSnapshot] {
         try selectJSON(
             "SELECT json FROM \(SQLiteTable.storageSnapshots.rawValue) ORDER BY created_at DESC LIMIT ?",
@@ -784,6 +887,10 @@ public actor SQLiteStore {
     }
 
     private static func migrate(database: OpaquePointer) throws {
+        // Refuse a file from a newer build before anything is written: switching to
+        // WAL, creating tables and creating indexes all modify the file.
+        let currentVersion = try getUserVersion(database: database)
+        try Self.refuseNewerSchema(currentVersion)
         // WAL mode may fail on some filesystems (network drives, certain configurations).
         // Fall back to non-WAL mode if WAL cannot be enabled.
         do {
@@ -822,7 +929,6 @@ public actor SQLiteStore {
         // Schema version tracking. Any future schema additions (e.g.
         // ALTER TABLE ... ADD COLUMN) must be guarded by a user_version check so
         // they run exactly once on existing databases.
-        let currentVersion = try getUserVersion(database: database)
 
         // v2: initial tracked version (base schema above is idempotent).
         // v3: undo_records.operation_log_id column + index + backfill, so undo
@@ -892,6 +998,18 @@ public actor SQLiteStore {
         if currentVersion < 6 {
             // Cleanup tables are additive and deliberately excluded from scan retention.
             try setUserVersion(6, database: database)
+        }
+    }
+
+    /// Highest user_version this build migrates to.
+    static let schemaVersion: Int32 = 6
+
+    /// A file written by a newer build may hold tables and columns this build
+    /// does not know. Refuse it rather than write to it.
+    private static func refuseNewerSchema(_ version: Int32) throws {
+        guard version <= schemaVersion else {
+            throw DatabaseError.migrationFailed(
+                "The database schema is version \(version), newer than this app supports (\(schemaVersion)).")
         }
     }
 

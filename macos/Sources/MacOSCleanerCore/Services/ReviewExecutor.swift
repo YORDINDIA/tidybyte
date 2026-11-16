@@ -75,7 +75,16 @@ public actor ReviewExecutor {
             throw CleanupError.message(String(localized: "The action is missing a move destination."))
         }
         if let output = event.outputURL {
-            event.outputIdentity = try? ReviewSafety.identity(at: output)
+            // Without an identity the restore step cannot prove the file is still ours.
+            // Report that now instead of leaving a completed action with no way back.
+            do {
+                event.outputIdentity = try ReviewSafety.identity(at: output)
+            } catch {
+                throw CleanupError.message(String(localized: """
+                    The item was moved, but its recovery record could not be saved. \
+                    Check Trash or the destination in Finder.
+                    """))
+            }
             event.recoveryBookmark = try? output.bookmarkData(options: .withSecurityScope)
         }
     }
@@ -90,7 +99,11 @@ public actor ReviewExecutor {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
             event.outputURL = directory
             try await store.saveActivity(event)
-            _ = try await photos.export(decision.item, to: directory)
+            // The Photos original is deleted next. Refuse unless every resource was exported.
+            let exported = try await photos.export(decision.item, to: directory)
+            guard !exported.isEmpty, exported.count == decision.item.resources.count else {
+                throw CleanupError.message(String(localized: "Export verification failed. The Photos original was kept."))
+            }
             event.state = .outputReady
             try await store.saveActivity(event)
             try Task.checkCancellation()

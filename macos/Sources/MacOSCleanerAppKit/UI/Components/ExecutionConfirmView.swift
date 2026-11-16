@@ -9,6 +9,10 @@ struct ExecutionConfirmView: View {
     // plan twice per render; recompute it only when the plan actually changes.
     @State private var planCurrent = true
 
+    private var hasFileActions: Bool {
+        request.actions.contains { $0.actionType != .runPackageManagerCleanup }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.elementSection) {
             Label(String(localized: "Review Changes"), systemImage: "checklist")
@@ -18,7 +22,7 @@ struct ExecutionConfirmView: View {
                     localized: "\(request.actions.count) approved actions · \(request.fileCount) known unique items")
             )
             if !request.areaCounts.isEmpty {
-                Text(request.areaCounts.map { "\($0.area.title) \($0.count)" }.formatted(.list(type: .and)))
+                Text(request.areaCounts.map { String(localized: "\($0.area.title) \($0.count)") }.formatted(.list(type: .and)))
                     .foregroundStyle(.secondary)
             }
             ForEach(request.operationTypes) { type in
@@ -74,14 +78,16 @@ struct ExecutionConfirmView: View {
             HStack {
                 Button(String(localized: "Cancel")) { dismiss() }.keyboardShortcut(.cancelAction)
                 Spacer()
-                Button(request.confirmTitle, role: request.isTrashOnly ? .destructive : nil) {
-                    dismiss()
-                    // File actions only: package-manager commands are
-                    // confirmed in their own dedicated step below.
-                    Task { await model.executeConfirmedRequest(request, packageCommandsOnly: false) }
+                if hasFileActions {
+                    Button(request.confirmTitle, role: request.isTrashOnly ? .destructive : nil) {
+                        dismiss()
+                        // File actions only: package-manager commands are
+                        // confirmed in their own dedicated step below.
+                        Task { await model.executeConfirmedRequest(request, packageCommandsOnly: false) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!planCurrent)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(!planCurrent)
             }
             if request.hasPackageCommands {
                 Divider()

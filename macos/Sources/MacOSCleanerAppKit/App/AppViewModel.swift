@@ -131,7 +131,7 @@ final class AppViewModel {
     private(set) var scanCurrentStep: Int = 0
     private(set) var scanTotalSteps: Int = 0
     private(set) var scanPhaseText = ""
-    private(set) var generatedReportURL: URL?
+    var generatedReportURL: URL?
     private(set) var showScanSummaryToast = false
     private(set) var activeScanSummary: String?
     private(set) var undoRecords: [UndoRecord] = []
@@ -150,7 +150,10 @@ final class AppViewModel {
     var dismissedScanNoticeIDs: Set<String> = []
     var selectedRegretReason: String?
     private(set) var spaceForecast: SpaceForecaster.Forecast?
-    // MARK: - Top-level tabs (Agent 6; state lives here, behavior in AppViewModel+Tabs.swift)
+    /// True while the forecast and timeline load, so the Changes tab shows progress, not "not enough history".
+    private(set) var isLoadingTimeline = false
+    @ObservationIgnored private var timelineLoadsInFlight = 0
+    // MARK: - Top-level tabs (state lives here, behavior in AppViewModel+Tabs.swift)
 
     /// Selected top-level tab. Explore is the existing scan/review workspace;
     /// the other tabs are read-first surfaces that reuse scan results.
@@ -171,9 +174,6 @@ final class AppViewModel {
     var showsPlanner = false
     var showsInspector = false
     var searchFocusRequest = 0
-    /// Which half of the Explore workspace is visible. Splits the previous
-    /// mega-scroll (Dashboard + review queue on one page) into two focused
-    /// pages: Dashboard for metrics, Review for the approval queue.
     /// Installed applications enumerated by ApplicationFootprintService.
     /// Loaded lazily when the Applications tab appears.
     var installedApplications: [InstalledApplication] = []
@@ -186,7 +186,7 @@ final class AppViewModel {
     /// Apps that left /Applications while Tidybyte ran, by bundle ID.
     var removedApplications: [String: InstalledApplication] = [:]
     @ObservationIgnored var removalWatcher: ApplicationRemovalWatcher?
-    // MARK: - Explore visualizations (Agent 4; persisted via SettingsKey)
+    // MARK: - Explore visualizations (persisted via SettingsKey)
 
     /// Selected Explore visualization tab. Stored as a raw string so the view
     /// layer's `ExploreViewKind` (a UI enum) never leaks into the model.
@@ -210,15 +210,6 @@ final class AppViewModel {
     var newerSnapshotID: String?
     var snapshotDiff: SnapshotDiff?
     var snapshotDiffError: String?
-
-    /// Top-level navigation tabs. Order matches the tab bar.
-    enum RegretReason: String, CaseIterable {
-        case neededLater = "Needed later"
-        case misclassified = "Misclassified"
-        case shouldHaveArchived = "Should have archived, not deleted"
-        case wrongProject = "Wrong project"
-        case tooAggressive = "Too aggressive"
-    }
 
     struct ScanSummary: Equatable {
         let duration: TimeInterval
@@ -247,7 +238,7 @@ final class AppViewModel {
     private let orchestrator: ScanOrchestrator
     private let executor: ActionExecutor
     private let undoService: UndoManagerService
-    private let reportGenerator: ReportGenerator
+    let reportGenerator: ReportGenerator
     let notifications: NotificationScheduler
     internal let planner: PlannerAgent
     private let inboxManager: InboxManager
@@ -486,17 +477,11 @@ final class AppViewModel {
         showOnboarding = selectedMode == .selectedFolders
     }
 
-    func openLatestReport() {
-        guard let reportURL = generatedReportURL else {
-            errorMessage = String(localized: "No report generated yet.")
+    func createInbox() async {
+        guard !isScanning, !isExecuting else {
+            errorMessage = String(localized: "Wait until the current scan or cleanup finishes.")
             return
         }
-        NSWorkspace.shared.open(reportURL)
-        statusMessage = String(localized: "Opened last report.")
-    }
-
-    func createInbox() async {
-        guard !isScanning, !isExecuting else { return }
         let root: URL?
         if let inboxRoot {
             root = inboxRoot
@@ -545,7 +530,10 @@ final class AppViewModel {
     }
 
     func saveAPIKey() async {
-        guard !isScanning, !isExecuting else { return }
+        guard !isScanning, !isExecuting else {
+            errorMessage = String(localized: "Wait until the current scan or cleanup finishes.")
+            return
+        }
         do {
             // Key the keychain entry by provider so switching providers keeps
             // per-provider keys separate.
@@ -781,7 +769,8 @@ final class AppViewModel {
                             localized: "Crawling… \(seen) items",
                             comment: "Live crawl progress")
                     }
-                    self.statusMessage = String(localized: "Scan 2/5: \(self.scanPhaseText).")
+                    self.statusMessage = String(
+                        localized: "Scan \(self.scanCurrentStep)/\(self.scanTotalSteps): \(self.scanPhaseText).")
                 } else {
                     self.scanPhaseText = progress.phase
                     self.statusMessage = String(localized: "Scan \(progress.currentStep)/\(progress.totalSteps): \(progress.phase).")
@@ -857,8 +846,12 @@ final class AppViewModel {
         currentPlan.riskBreakdown = Dictionary(grouping: currentPlan.actions, by: \.risk).mapValues(\.count)
         plan = currentPlan
         selectedActionID = currentPlan.actions.first { $0.findingID == findingID }?.id
-        Task {
-            try? await store.savePlan(currentPlan)
+        Task { [weak self] in
+            do {
+                try await self?.store.savePlan(currentPlan)
+            } catch {
+                self?.logger.warning("Plan persistence failed: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -901,20 +894,18 @@ final class AppViewModel {
         }
     }
 
-    func executeApprovedActions() async {
-        await executeApprovedActions(allowingRiskUpTo: .forbidden)
-    }
+    #if DEBUG
+    /// Test-only. It runs approved actions with no package-command confirmation.
+    /// Production runs through `executeConfirmedRequest`, which carries the step.
+    func executeApprovedActions() async { await executeApprovedActions(allowingRiskUpTo: .forbidden) }
+    #endif
 
     func executeConfirmedRequest(_ request: ExecutionRequest, packageCommandsOnly: Bool = false) async {
         guard request.isCurrent(in: self) else {
             errorMessage = String(localized: "The plan changed. Review the current actions and confirm again.")
             return
         }
-        // Package-manager commands are non-undoable, so the UI confirms them
-        // in a dedicated step, separate from file actions (AGENTS.md flow).
-        let ids = packageCommandsOnly
-            ? Set(request.actions.filter { $0.actionType == .runPackageManagerCleanup }.map(\.id))
-            : request.actionIDs
+        let ids = Self.confirmedActionIDs(in: request.actions, packageCommandsOnly: packageCommandsOnly)
         await executeApprovedActions(allowingRiskUpTo: request.maximumRisk, confirmedActionIDs: ids)
     }
 
@@ -1082,6 +1073,13 @@ final class AppViewModel {
     }
 
     func loadStorageTimeline() async {
+        // Overlapping loads (Monitor and scan completion) share one flag: it clears only when the last one ends.
+        timelineLoadsInFlight += 1
+        isLoadingTimeline = true
+        defer {
+            timelineLoadsInFlight -= 1
+            isLoadingTimeline = timelineLoadsInFlight > 0
+        }
         do {
             let forecaster = SpaceForecaster(store: store)
             spaceForecast = try await forecaster.forecast(volumeURL: FileManager.default.homeDirectoryForCurrentUser)
@@ -1096,7 +1094,10 @@ final class AppViewModel {
     }
 
     func restore(_ undo: UndoRecord) async {
-        guard !isScanning, !isExecuting else { return }
+        guard !isScanning, !isExecuting else {
+            errorMessage = String(localized: "Wait until the current scan or cleanup finishes.")
+            return
+        }
         do {
             let restored = try await undoService.restore(undo)
             undoRecords = undoRecords.map { item in
@@ -1109,7 +1110,10 @@ final class AppViewModel {
     }
 
     func restoreWithReason(_ undo: UndoRecord) async {
-        guard !isScanning, !isExecuting else { return }
+        guard !isScanning, !isExecuting else {
+            errorMessage = String(localized: "Wait until the current scan or cleanup finishes.")
+            return
+        }
         do {
             let restored = try await undoService.restore(undo, regretReason: selectedRegretReason)
             undoRecords = undoRecords.map { item in
@@ -1130,8 +1134,10 @@ final class AppViewModel {
         }
         // Re-entrancy + race guards: no planning while a scan/execution runs,
         // and no overlapping NL commands (last-writer-wins clobbering).
+        // The Ask Tidybyte sheet shows errorMessage, not statusMessage, so
+        // every refusal below must land there. Errors stay until dismissed.
         guard !isScanning, !isExecuting, !isPlanning else {
-            statusMessage = String(localized: "Wait for the current operation to finish before running a command.")
+            errorMessage = String(localized: "Wait for the current operation to finish before running a command.")
             return false
         }
         isPlanning = true
@@ -1146,9 +1152,13 @@ final class AppViewModel {
         )
         // Cancellation, a new scan (even if finished), or any changed decision
         // invalidates the result prepared from the old plan.
-        guard !Task.isCancelled, !isScanning, !isExecuting,
-            generation == scanGeneration, signature == executionPlanSignature else { return false }
+        guard !Task.isCancelled else { return false }
+        guard !isScanning, !isExecuting, generation == scanGeneration, signature == executionPlanSignature else {
+            errorMessage = String(localized: "The plan changed while Tidybyte was planning. Run the command again.")
+            return false
+        }
         self.plan = updatedPlan
+        schedulePlanPersistence()
         selectedActionID = updatedPlan.actions.first?.id
         if updatedPlan.actions.isEmpty {
             statusMessage = String(localized: "No actions match '\(command)'. Try a different command or say 'everything' to restore.")
@@ -1209,26 +1219,9 @@ final class AppViewModel {
         return outcome.notices.filter { !dismissedScanNoticeIDs.contains($0.id) }
     }
 
-    func generateReport(to directory: URL? = nil) async {
-        guard let outcome, let currentPlan = plan else {
-            statusMessage = String(localized: "Run a scan first to generate a report.")
-            return
-        }
-        guard !isScanning, !isExecuting else { return }
+    func applyCalibrationPreset(_ preset: String, ruleType: MemoryRuleType) async {
         do {
-            // The destination is injectable so callers (and tests) can direct the PDF
-            // anywhere; the default keeps the historical ~/Tidybyte Reports location.
-            let reportDirectory = directory ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(AppIdentity.reportsFolderName, isDirectory: true)
-            generatedReportURL = try await reportGenerator.generateCleanupReport(outcome: outcome, plan: currentPlan, destination: reportDirectory)
-            statusMessage = String(localized: "Local PDF report generated.")
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func applyCalibrationPreset(_ preset: String) async {
-        do {
-            try await memory.applyCalibrationPreference(preset)
+            try await memory.applyCalibrationPreference(preset, ruleType: ruleType)
             statusMessage = String(localized: "Preference saved.", comment: "Calibration preset applied message")
         } catch {
             errorMessage = error.localizedDescription
@@ -1244,34 +1237,14 @@ final class AppViewModel {
         statusMessage = message
     }
 
-    func exportDatabase() async {
-        guard !isScanning, !isExecuting else { return }
-        do {
-            let panel = NSSavePanel()
-            panel.nameFieldStringValue = "MacOSCleaner-\(Date().formatted(date: .numeric, time: .omitted)).sqlite"
-            panel.allowedContentTypes = [.data]
-            guard let window = NSApp.mainWindow else { return }
-            let response = await panel.beginSheetModal(for: window)
-            guard response == .OK, let destination = panel.url else { return }
-            guard !isScanning, !isExecuting else {
-                errorMessage = String(localized: "Cannot export while a scan or execution is in progress.")
-                return
-            }
-            // exportCopy checkpoints the WAL and runs a sqlite3 backup, so the exported
-            // file contains committed WAL content that a plain FileManager copy would miss.
-            try await store.exportCopy(to: destination)
-            statusMessage = String(localized: "Database exported successfully.")
-        } catch {
-            errorMessage = String(localized: "Failed to export database: \(error.localizedDescription)")
-        }
-    }
-
     func clearAllData() async {
         guard !isScanning, !isExecuting, !cleanup.isBusy, !cleanup.isSaving else {
             errorMessage = String(localized: "Cannot clear data while a scan, media cleanup, or execution is in progress.")
             return
         }
         do {
+            // A pending settings save must not write the settings back after the store is wiped.
+            await cleanup.cancelPendingSettingsSave()
             try await keychain.deleteAllAPIKeys()
             try await store.deleteAllData()
             await cleanup.resetAfterClear()
@@ -1330,6 +1303,7 @@ final class AppViewModel {
         footprintItemsByAppID = [:]
         stagedUninstallAppIDs = []
         fullDiskAccessHint = nil
+        dismissedScanNoticeIDs = []
     }
 
     private func resetExecutionState() {
@@ -1399,6 +1373,11 @@ final class AppViewModel {
             merged.append(normalized)
         }
         return merged
+    }
+
+    /// Persists only the AI-during-scans flag. The scan sheet uses this, so Cancel cannot save its other edits.
+    func saveIncludeAI() {
+        defaults.set(includeAI, forKey: SettingsKey.includeAI.rawValue)
     }
 
     func saveSettings() {

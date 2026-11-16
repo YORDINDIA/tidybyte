@@ -11,6 +11,7 @@ struct SunburstView: View {
     var maxDepth: Int
     var nameFilter: String
 
+    @State private var memo = ExploreTreeMemo()
     @State private var selectedID: String?
 
     private var filtered: [FileRecord] {
@@ -18,7 +19,7 @@ struct SunburstView: View {
     }
 
     private var groups: [ExploreGroup] {
-        ExploreTreeBuilder.build(files: filtered, grouping: grouping, maxDepth: maxDepth)
+        memo.groups(files: files, grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
     }
 
     private var sectors: [SunburstSector] {
@@ -89,32 +90,35 @@ struct SunburstView: View {
         let endAngle = Angle.degrees(-90 + sector.endFraction * 360)
         let palette = ExploreChartPalette.palette(for: sector)
         let isSelected = selectedID == sector.id
-        return RingSegment(
+        let ring = RingSegment(
             innerRadius: innerRadius,
             outerRadius: max(innerRadius + 2, outerRadius - 1.5),
             startAngle: startAngle,
             endAngle: endAngle
         )
-        .fill(isSelected ? palette.mid : palette.mid.opacity(sector.depth == 1 ? 0.9 : 0.62))
-        .overlay(
-            RingSegment(
-                innerRadius: innerRadius,
-                outerRadius: max(innerRadius + 2, outerRadius - 1.5),
-                startAngle: startAngle,
-                endAngle: endAngle
-            )
-            .stroke(
-                isSelected ? Color.primary : Color(nsColor: .windowBackgroundColor),
-                lineWidth: isSelected ? 2 : 1
-            )
-        )
-        .onTapGesture { toggle(sector, isSelected: isSelected) }
-        .help("\(sector.name), \(sector.bytes.formattedByteCount)")
+        // A Button makes every ring reachable by keyboard and VoiceOver, not only
+        // by pointer. The hit area is the ring itself, not its bounding box.
+        return Button {
+            toggle(sector, isSelected: isSelected)
+        } label: {
+            ring
+                .fill(isSelected ? palette.mid : palette.mid.opacity(sector.depth == 1 ? 0.9 : 0.62))
+                .overlay(
+                    ring
+                        .stroke(
+                            isSelected ? Color.primary : Color(nsColor: .windowBackgroundColor),
+                            lineWidth: isSelected ? 2 : 1
+                        )
+                )
+                .contentShape(ring)
+        }
+        .buttonStyle(.plain)
+        .help(String(localized: "\(sector.name), \(sector.bytes.formattedByteCount)"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(sector.name), \(sector.bytes.formattedByteCount), depth \(sector.depth)"))
+        .accessibilityLabel(
+            Text(String(localized: "\(sector.name), \(sector.bytes.formattedByteCount), depth \(sector.depth)")))
         .accessibilityHint(String(localized: "Selects this segment"))
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-        .accessibilityAction { toggle(sector, isSelected: isSelected) }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     /// Pointer and VoiceOver share one path; the segment list below the chart
@@ -168,9 +172,9 @@ struct SunburstView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .help("\(group.name), \(group.bytes.formattedByteCount)")
+                    .help(String(localized: "\(group.name), \(group.bytes.formattedByteCount)"))
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("\(group.name), \(group.bytes.formattedByteCount)"))
+                    .accessibilityLabel(Text(String(localized: "\(group.name), \(group.bytes.formattedByteCount)")))
                 }
             }
             if let selected = selectedSector {

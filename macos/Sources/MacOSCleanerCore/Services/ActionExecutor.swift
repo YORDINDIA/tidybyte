@@ -30,7 +30,8 @@ public enum ActionExecutorError: Error, LocalizedError, Sendable {
     /// The action already ran once (executedAt stamped); refusing to run it again.
     case alreadyExecuted(String)
     case batchLimitExceeded(String)
-    case staleAudit(String)
+    /// The caller cancelled the batch. Actions not yet started were not run.
+    case cancelled(remaining: Int)
     /// The undo trail could not be persisted ahead of the mutation, so the
     /// mutation was refused — deleting without a recoverable trail is never acceptable.
     case undoTrailUnavailable(String)
@@ -47,7 +48,7 @@ public enum ActionExecutorError: Error, LocalizedError, Sendable {
         case .manualReviewRequired(let action): String(localized: "Manual review is still required before executing \(action.rawValue).")
         case .alreadyExecuted(let id): String(localized: "Action \(id) was already executed and cannot run again.")
         case .batchLimitExceeded(let reason): String(localized: "Batch limit exceeded: \(reason)")
-        case .staleAudit(let reason): String(localized: "Stale safety audit: \(reason)")
+        case .cancelled(let remaining): String(localized: "Execution cancelled; \(remaining) remaining actions were not run.")
         case .undoTrailUnavailable(let reason): String(localized: "Could not record the undo trail (\(reason)); the action was not performed.")
         case .toolRunning(let name): String(localized: "Quit \(name) first, then try again.")
         }
@@ -62,16 +63,21 @@ public actor ActionExecutor {
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "ActionExecutor")
     private let executorVersion = "1.0"
     private let commandTimeout: TimeInterval
+    private let policy: PathSafetyPolicy
     /// Set by cancelExecution(); checked between actions so long batches can
     /// stop after the current action instead of running everything.
     private var isCancelled = false
 
-    public init(store: SQLiteStore, auditor: SafetyAuditor = SafetyAuditor(), fileManager: FileManager = .default, trash: TrashService? = nil, commandTimeout: TimeInterval = 600) {
+    public init(
+        store: SQLiteStore, auditor: SafetyAuditor = SafetyAuditor(), fileManager: FileManager = .default,
+        trash: TrashService? = nil, commandTimeout: TimeInterval = 600, policy: PathSafetyPolicy = PathSafetyPolicy()
+    ) {
         self.store = store
         self.auditor = auditor
         self.fileManager = fileManager
         self.trash = trash ?? FileSystemTrashProvider()
         self.commandTimeout = commandTimeout
+        self.policy = policy
     }
 
     /// Stop the in-flight batch after the currently executing action completes.
@@ -113,9 +119,10 @@ public actor ActionExecutor {
         isCancelled = false
         for action in executableActions {
             // Cancellation lands between actions: the in-flight action finishes
-            // (its undo trail stays consistent), remaining ones never start.
-            if isCancelled {
-                failures.append(String(localized: "Execution cancelled; remaining actions were not run."))
+            // (its undo trail stays consistent), remaining ones never start. Both
+            // the explicit flag and the caller's task cancellation count.
+            if isCancelled || Task.isCancelled {
+                failures.append(ActionExecutorError.cancelled(remaining: executableActions.count - completed).localizedDescription)
                 break
             }
             do {
@@ -128,9 +135,6 @@ public actor ActionExecutor {
                 let audit = try await auditor.audit(action: action, filesByID: filesByID)
                 guard audit.decision == .allowed else {
                     throw ActionExecutorError.manualReviewRequired(action.actionType)
-                }
-                guard Date().timeIntervalSince(audit.auditedAt) <= ExecutionLimits.auditFreshnessWindow else {
-                    throw ActionExecutorError.staleAudit("Re-approve \(action.id). Its safety audit expired.")
                 }
                 let result = try await execute(action: action, filesByID: filesByID, packageCandidates: packageCandidates)
                 // Persist undo records and operation logs immediately after each action.
@@ -894,11 +898,13 @@ public actor ActionExecutor {
     /// symlink into a protected area must not become a move/rename target.
     private func validatedDestination(_ destination: URL) throws {
         let resolved = destination.resolvingSymlinksInPath()
-        if case .deny = PathSafetyPolicy().decide(target: resolved, isDirectory: true) {
+        if case .deny = policy.decide(target: resolved, isDirectory: true) {
             throw SafetyAuditError.unsafeDestination(destination)
         }
     }
 
+    /// Moves each target into the destination folder under its own name (the
+    /// action name suggests an in-place rename, but no name is set here).
     private func rename(action: PlannedAction, filesByID: [String: FileRecord]) async throws -> ExecutionSummary {
         guard let destination = action.destination else {
             throw ActionExecutorError.missingDestination

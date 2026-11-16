@@ -11,6 +11,7 @@ struct BubblesView: View {
     var maxDepth: Int
     var nameFilter: String
 
+    @State private var memo = ExploreTreeMemo()
     @State private var selectedID: String?
     private let bubbleLimit = 24
 
@@ -27,7 +28,7 @@ struct BubblesView: View {
     }
 
     private var groups: [ExploreGroup] {
-        let roots = ExploreTreeBuilder.build(files: filtered, grouping: grouping, maxDepth: maxDepth)
+        let roots = memo.groups(files: files, grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
         return Array(roots.sorted { $0.bytes > $1.bytes }.prefix(bubbleLimit))
     }
 
@@ -164,9 +165,9 @@ struct BubblesView: View {
         }
         .buttonStyle(.plain)
         .position(x: xOffset + bubble.center.x * canvas, y: bubble.center.y * canvas)
-        .help("\(bubble.group.name), \(bubble.group.bytes.formattedByteCount)")
+        .help(String(localized: "\(bubble.group.name), \(bubble.group.bytes.formattedByteCount)"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(bubble.group.name), \(bubble.group.bytes.formattedByteCount)"))
+        .accessibilityLabel(Text(String(localized: "\(bubble.group.name), \(bubble.group.bytes.formattedByteCount)")))
         .accessibilityHint(String(localized: "Shows group details"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
@@ -180,7 +181,7 @@ struct BubblesView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer()
-                Text("\(group.bytes.formattedByteCount) · \(group.fileCount) files")
+                Text(String(localized: "\(group.bytes.formattedByteCount) · \(ExploreCopy.fileCount(group.fileCount))"))
                     .appFont(.caption)
                     .monospacedDigit()
                     .foregroundStyle(Color.secondary)

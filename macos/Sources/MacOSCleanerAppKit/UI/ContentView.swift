@@ -85,6 +85,10 @@ struct ContentView: View {
             OnboardingView(model: model).interactiveDismissDisabled()
         }
         .onChange(of: model.searchFocusRequest) { isSearchFocused = true }
+        .onChange(of: model.errorMessage) { _, message in
+            // G-07: a failure must reach VoiceOver even when no one is looking at the strip.
+            if let message { AccessibilityNotification.Announcement(message).post() }
+        }
         .onChange(of: model.destination) {
             model.searchText = ""
             if !model.destination.supportsInspector { model.showsInspector = false }
@@ -96,6 +100,8 @@ struct ContentView: View {
             // one-shot outcome worth a toast.
             let message = model.statusMessage
             guard !message.isEmpty, !model.isScanning else { return }
+            // VoiceOver users get no visual toast, so announce the outcome too.
+            AccessibilityNotification.Announcement(message).post()
             statusToastTask?.cancel()
             statusToast = message
             statusToastTask = Task {
@@ -105,6 +111,9 @@ struct ContentView: View {
             }
         }
         .task {
+            // Errors raised before this window appeared (for example the bootstrap database fallback) are not announced
+            // by onChange, so announce them once here.
+            if let message = model.errorMessage { AccessibilityNotification.Announcement(message).post() }
             await model.cleanup.load()
             await model.loadUndoHistory()
             await model.restoreLastSession()

@@ -37,7 +37,9 @@ struct MonitorExportView: View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             readingRow(
                 label: String(localized: "CPU", comment: "Export row"),
-                value: String(localized: "\(Int(snapshot.cpu.usagePercent), specifier: "%d")%", comment: "Percent value"))
+                value: String(
+                    localized: "\(MetricFormatting.whole(snapshot.cpu.usagePercent), specifier: "%d")%",
+                    comment: "Percent value"))
             readingRow(
                 label: String(localized: "Memory", comment: "Export row"),
                 value: MetricFormatting.byteCount(snapshot.memory.usedBytes))

@@ -120,7 +120,6 @@ public actor AlertEngine {
         var findings: [Finding] = []
         let window = thresholds.cpuWindowMinutes * 60
         for group in snapshot.groups {
-            let key = group.bundleID ?? group.name
             findings.append(
                 contentsOf: cpuFindings(
                     group: group, thresholds: thresholds, window: window, cpuWindows: &cpuWindows, now: now))

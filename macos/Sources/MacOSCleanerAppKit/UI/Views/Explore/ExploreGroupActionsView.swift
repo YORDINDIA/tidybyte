@@ -76,6 +76,10 @@ struct ExploreGroupActionsView: View {
             }
             .accessibilityElement(children: .contain)
             .accessibilityLabel(String(localized: "Group actions for \(group.name)"))
+            .onChange(of: group.id) { _, _ in
+                // A message about one group must not survive a change of selection.
+                actionMessage = nil
+            }
         }
     }
 }

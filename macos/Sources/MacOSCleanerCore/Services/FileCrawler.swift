@@ -227,7 +227,7 @@ public actor FileCrawler {
         _ root: URL, sessionID: String, policy: PathSafetyPolicy, closed: Set<String>
     ) -> RootExpansion {
         // A protected root (.ssh, SIP path, Trash) is never crawled at all.
-        if policy.shouldSkipTraversal(of: root) || closed.contains(root.standardizedFileURL.path) {
+        if policy.shouldSkipTraversal(of: root) || FullDiskAccess.isClosed(root.standardizedFileURL.path, in: closed) {
             logger.warning("Skipping protected scan root: \(root.path, privacy: .public)")
             return RootExpansion(skippedRoot: true)
         }
@@ -250,7 +250,7 @@ public actor FileCrawler {
                 expansion.errors += 1
                 continue
             }
-            if record.kind == .directory, !policy.shouldSkipTraversal(of: child), !closed.contains(child.path) {
+            if record.kind == .directory, !policy.shouldSkipTraversal(of: child), !FullDiskAccess.isClosed(child.path, in: closed) {
                 expansion.folders.append(child)
             } else if record.kind == .package {
                 // Packages are containers (see crawlFolder): measure the
@@ -282,10 +282,13 @@ public actor FileCrawler {
             }
             output.append(record)
         }
+        // Unreadable entries are counted, so the scan reports them instead of skipping them silently.
+        let unreadable = ErrorCount()
         guard let enumerator = FileManager.default.enumerator(
             at: folder, includingPropertiesForKeys: [], options: [.skipsPackageDescendants],
             errorHandler: { url, error in
                 logger.warning("Crawler skipped \(url.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                unreadable.value += 1
                 return true
             })
         else { return (output, 1) }
@@ -309,7 +312,7 @@ public actor FileCrawler {
                     counter.add(batch, folderName: nil)
                     batch = 0
                 }
-                let skipped = policy.shouldSkipTraversal(of: url) || closed.contains(url.path)
+                let skipped = policy.shouldSkipTraversal(of: url) || FullDiskAccess.isClosed(url.path, in: closed)
                 if skipped { enumerator.skipDescendants() }
                 guard let record = makeRecord(for: url, sessionID: sessionID, policy: policy) else {
                     errors += 1
@@ -320,7 +323,8 @@ public actor FileCrawler {
                 // record would otherwise carry only the directory entry's own
                 // size (a few KB). Measure the subtree so Explore and the
                 // trash estimate see the package's real footprint.
-                if record.kind == .package, withinBudget {
+                // A package is one record however large its subtree, so it is always measured.
+                if record.kind == .package {
                     let summary = rolledUp(record, sessionID: sessionID, policy: policy, closed: closed)
                     output += summary.records
                     errors += summary.errors
@@ -345,7 +349,7 @@ public actor FileCrawler {
         }
         if batch > 0 { counter.add(batch, folderName: nil) }
         foldOverflow(overflow, into: &output)
-        return (output, errors)
+        return (output, errors + unreadable.value)
     }
 
     /// Adds the bytes of loose files that got no record to their folder's
@@ -454,7 +458,7 @@ public actor FileCrawler {
                         finished = true
                         return
                     }
-                    if policy.shouldSkipTraversal(of: url) || closed.contains(url.path) {
+                    if policy.shouldSkipTraversal(of: url) || FullDiskAccess.isClosed(url.path, in: closed) {
                         enumerator.skipDescendants()
                         return
                     }

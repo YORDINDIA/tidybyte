@@ -138,6 +138,9 @@ struct SpaceBuckets: View {
         Button {
             Task {
                 await model.startSession(items: items)
+                // startSession refuses stale results; stay put rather than open
+                // Swipe with no session.
+                guard model.session != nil else { return }
                 model.selectedTool = .swipe
                 onSessionStart?()
             }

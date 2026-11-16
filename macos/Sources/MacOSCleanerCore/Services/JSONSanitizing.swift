@@ -8,19 +8,64 @@ import Foundation
 /// catch those: one non-finite monitor reading aborted the whole server
 /// (see the crash reports). Sanitize first, then validate before serializing.
 public enum JSONSanitizing {
-    /// Replaces anything JSON cannot represent: non-finite doubles become 0
-    /// (a dropped reading, not a crash), unknown values become descriptions.
+    /// Replaces anything JSON cannot represent. Non-finite numbers and nil become
+    /// JSON null, so a missing reading stays visibly missing. Other unknown values
+    /// become their description.
     public static func sanitized(_ value: Any) -> Any {
+        if let number = sanitizedNumber(value) { return number }
         switch value {
         case let bool as Bool: return bool
-        case let int as Int: return int
-        case let int64 as Int64: return int64
-        case let double as Double: return double.isFinite ? double : 0
         case let string as String: return string
+        case is NSNull: return NSNull()
         case let array as [Any]: return array.map { sanitized($0) }
         case let dictionary as [String: Any]: return dictionary.mapValues { sanitized($0) }
-        default: return String(describing: value)
+        default: return isNil(value) ? NSNull() : String(describing: value)
         }
+    }
+
+    /// Integers pass through. Floating-point values pass through when finite.
+    private static func sanitizedNumber(_ value: Any) -> Any? {
+        sanitizedSignedInteger(value) ?? sanitizedUnsignedInteger(value) ?? sanitizedFloatingPoint(value)
+    }
+
+    private static func sanitizedSignedInteger(_ value: Any) -> Any? {
+        switch value {
+        case let int as Int: return int
+        case let int64 as Int64: return int64
+        case let int32 as Int32: return int32
+        case let int16 as Int16: return int16
+        case let int8 as Int8: return int8
+        default: return nil
+        }
+    }
+
+    private static func sanitizedUnsignedInteger(_ value: Any) -> Any? {
+        switch value {
+        case let uint as UInt: return uint
+        case let uint64 as UInt64: return uint64
+        case let uint32 as UInt32: return uint32
+        case let uint16 as UInt16: return uint16
+        case let uint8 as UInt8: return uint8
+        default: return nil
+        }
+    }
+
+    private static func sanitizedFloatingPoint(_ value: Any) -> Any? {
+        switch value {
+        case let double as Double: return finite(double)
+        case let float as Float: return finite(float)
+        default: return nil
+        }
+    }
+
+    private static func finite<T: BinaryFloatingPoint>(_ value: T) -> Any {
+        value.isFinite ? value : NSNull()
+    }
+
+    /// True for an Optional that holds nil, whatever its wrapped type.
+    private static func isNil(_ value: Any) -> Bool {
+        if case Optional<Any>.none = value { return true }
+        return false
     }
 
     /// Sanitizes, validates, then serializes. Returns nil when the payload

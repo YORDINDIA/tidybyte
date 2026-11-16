@@ -36,10 +36,18 @@ public actor MediaAnalysisService {
                     if item.photoID != nil {
                         digests[item.id] = Self.resourceSignature(item)
                     } else if let url = item.url, hashCandidates.contains(item.id) {
-                        let cached = try await store.loadCleanupState(String.self, key: "hash:" + item.reviewKey)
-                        let digest = try cached ?? FingerprintService.fullHash(for: url)
-                        try await store.saveCleanupState(digest, key: "hash:" + item.reviewKey)
-                        digests[item.id] = digest
+                        // The key carries inode and status-change time too: a replaced file
+                        // with the same size and a restored mtime must not reuse the digest.
+                        // Without a stamp the digest is computed and not cached.
+                        if let stamp = DuplicateDetector.changeStamp(of: url) {
+                            let key = "hash:" + item.reviewKey + "|\(stamp.inode)|\(stamp.changedAtNanoseconds)"
+                            let cached = try await store.loadCleanupState(String.self, key: key)
+                            let digest = try cached ?? FingerprintService.fullHash(for: url)
+                            try await store.saveCleanupState(digest, key: key)
+                            digests[item.id] = digest
+                        } else {
+                            digests[item.id] = try FingerprintService.fullHash(for: url)
+                        }
                     }
                     if item.kind == .image {
                         let measured = try await measure(item, settings: settings)
@@ -90,8 +98,7 @@ public actor MediaAnalysisService {
             var quick: [String: [String]] = [:]
             for item in files {
                 try Task.checkCancellation()
-                if let url = item.url {
-                    let digest = try FingerprintService.quickHash(for: url, sizeBytes: item.bytes)
+                if let url = item.url, let digest = try? FingerprintService.quickHash(for: url, sizeBytes: item.bytes) {
                     quick[digest, default: []].append(item.id)
                 }
             }
@@ -122,7 +129,7 @@ public actor MediaAnalysisService {
             case .duplicates, .similar, .bursts: grouped.contains(item.id)
             case .formatPairs: grouped.contains(item.id) || isCompoundPhoto(item)
             case .blurry: qualityIssue(item, sensitivity: result.settings.blurSensitivity) != nil
-            case .large: item.bytes >= Int64(result.settings.largeMegabytes * 1_000_000)
+            case .large: Double(item.bytes) >= result.settings.largeMegabytes * 1_000_000
             case .screenshots: item.facts.isScreenshot
             case .screenRecordings: item.facts.isScreenRecording
             case .categories, .imageCompression: item.kind == .image
@@ -251,7 +258,7 @@ public actor MediaAnalysisService {
                     (other.perceptualHash ^ measurement.perceptualHash).nonzeroBitCount <= 12
                 else { continue }
                 var distance: Float = 0
-                try feature.computeDistance(&distance, to: otherFeature)
+                guard (try? feature.computeDistance(&distance, to: otherFeature)) != nil else { continue }
                 if distance <= 0.35 {
                     found = index
                     break
@@ -345,7 +352,9 @@ extension MediaAnalysisService {
                 let size = try await track.load(.naturalSize)
                 // Corrupt files can report NaN/inf dimensions; Int(Double.nan)
                 // is a trap, not a throwable error, and it killed the whole scan.
-                if size.width.isFinite, size.height.isFinite {
+                // Bounded as well as finite: a corrupt header can claim any size.
+                let limit: CGFloat = 1_000_000
+                if size.width.isFinite, size.height.isFinite, abs(size.width) < limit, abs(size.height) < limit {
                     facts.width = Int(size.width)
                     facts.height = Int(size.height)
                 }

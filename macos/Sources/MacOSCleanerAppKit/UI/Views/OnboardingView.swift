@@ -12,6 +12,7 @@ struct OnboardingView: View {
     @AppStorage(OnboardingView.stepKey) private var step = 0
     @AppStorage(AppDelegate.menuBarExtraKey) private var showsMenuBarExtra = false
     @State private var hasFullDiskAccess = FullDiskAccess.isGranted()
+    @State private var isAuthorizingPhotos = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -104,13 +105,18 @@ struct OnboardingView: View {
                     step = 3
                 }
                 Button(String(localized: "Allow Photos Access")) {
+                    // A second press while the system prompt is open must not start another request.
+                    guard !isAuthorizingPhotos else { return }
+                    isAuthorizingPhotos = true
                     Task {
                         // Include Photos only when access was granted; a denial must not block the folder scan.
                         let granted = (try? await PhotoLibraryService().authorize()) != nil
                         model.cleanup.scope.includesPhotos = granted
+                        isAuthorizingPhotos = false
                         step = 3
                     }
                 }
+                .disabled(isAuthorizingPhotos)
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
             }

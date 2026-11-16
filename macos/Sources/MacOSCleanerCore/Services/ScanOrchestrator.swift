@@ -132,6 +132,8 @@ public actor ScanOrchestrator {
         let roots = try await permissionManager.roots(for: mode, selectedFolders: selectedFolders)
         let permissions = await permissionManager.permissionsSnapshot(for: roots, mode: mode)
         var session = ScanSession(scanType: mode, rootURLs: roots, permissionsSnapshot: permissions)
+        session.ownerProcessID = getpid()
+        session.ownerProcessStart = SQLiteStore.processStartTime(of: getpid())
         try await store.saveScanSession(session)
 
         for volume in await permissionManager.mountedVolumes() {
@@ -361,7 +363,9 @@ public actor ScanOrchestrator {
                 let partialFiles = partial.files
                 let partialSessionID = session.id
                 let partialPosture = posture
-                let analysis = try? await Task.detached { () -> CancelledScanAnalysis in
+                let analysis: CancelledScanAnalysis?
+                do {
+                    analysis = try await Task.detached { () -> CancelledScanAnalysis in
                     let projects = try await projectDetector.detectProjects(in: partialFiles)
                     let (ruleFindings, ruleRecommendations) = try await ruleEngine.analyze(
                         files: partialFiles, projects: projects, sessionID: partialSessionID, posture: partialPosture)
@@ -371,7 +375,14 @@ public actor ScanOrchestrator {
                         projects: projects,
                         findings: ruleFindings + organizationFindings,
                         recommendations: ruleRecommendations + organizationRecommendations)
-                }.value
+                    }.value
+                } catch {
+                    logger.error("Rule pass on the stopped scan failed: \(error.localizedDescription, privacy: .public)")
+                    partial.notices.append(ScanNotice(message: String(
+                        localized: "The stopped scan could not analyze its files, so its findings are incomplete.",
+                        comment: "Scan notice when the rule pass fails after a stop")))
+                    analysis = nil
+                }
                 if let analysis {
                     partial.projects = analysis.projects
                     partial.findings += analysis.findings
@@ -424,7 +435,7 @@ public actor ScanOrchestrator {
                 return (partialOutcome, partialPlan)
             } catch {
                 session.status = .failed
-                try? await store.saveScanSession(session)
+                await persistSessionStatus(session)
                 throw error
             }
         } catch {
@@ -433,7 +444,7 @@ public actor ScanOrchestrator {
             }
             session.completedAt = Date()
             session.status = .failed
-            try? await store.saveScanSession(session)
+            await persistSessionStatus(session)
             throw error
         }
     }
@@ -490,6 +501,7 @@ public actor ScanOrchestrator {
         // The session row carries what has no bulk table: scan diagnostics and
         // package candidates. A relaunch rebuilds the whole outcome from the
         // session plus the bulk rows, so these must ride along.
+        var notices = notices
         session.notices = notices
         session.packageCandidates = packageCandidates
 
@@ -497,7 +509,16 @@ public actor ScanOrchestrator {
         // are what made Stop look unresponsive (up to a million records in one
         // transaction). A stopped scan keeps its partial results in memory for
         // review and execution, so skip the bulk writes when asked.
-        try await store.saveScanSession(session)
+        // A failed status write must not discard the finished results in memory.
+        do {
+            try await store.saveScanSession(session)
+        } catch {
+            logger.error("Could not save the final scan status: \(error.localizedDescription, privacy: .public)")
+            notices.append(ScanNotice(message: String(
+                localized: "The scan finished, but its status could not be saved. Results stay available until you quit.",
+                comment: "Scan notice when the final session status write fails")))
+        }
+        session.notices = notices
         if persistRecords {
             // The five auxiliary loaders filter by session, so their bulk
             // saves must carry the session id explicitly.
@@ -618,5 +639,15 @@ public actor ScanOrchestrator {
             wasCancelled: false,
             notifyProgress: notifyProgress
         )
+    }
+
+    /// Writes the session row on a failure or stop path. A failed write is logged,
+    /// because the row would otherwise stay `running` with no visible sign.
+    private func persistSessionStatus(_ session: ScanSession) async {
+        do {
+            try await store.saveScanSession(session)
+        } catch {
+            logger.error("Could not save scan status: \(error.localizedDescription, privacy: .public)")
+        }
     }
 }

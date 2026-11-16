@@ -154,7 +154,6 @@ public actor MoCleanScanner {
                     home.appendingPathComponent(".bun", isDirectory: true),
                     home.appendingPathComponent(".local/share/pnpm", isDirectory: true),
                     home.appendingPathComponent(".dart_tool", isDirectory: true),
-                    home.appendingPathComponent(".bundle", isDirectory: true),
                     lib.appendingPathComponent("Developer/CoreSimulator/Caches", isDirectory: true),
                     lib.appendingPathComponent("Caches/Homebrew", isDirectory: true),
                     caches.appendingPathComponent("com.anthropic.antigravity", isDirectory: true),
@@ -300,7 +299,7 @@ public actor MoCleanScanner {
         // De-dupe nested roots: if one root is contained inside another, scanning
         // both double-counts bytes (Chrome root + Chrome/GPUCache were both listed).
         let roots = Self.deduplicatedRoots(candidateRoots.filter {
-            fileManager.fileExists(atPath: $0.path) && !closed.contains($0.standardizedFileURL.path)
+            fileManager.fileExists(atPath: $0.path) && !FullDiskAccess.isClosed($0.standardizedFileURL.path, in: closed)
         })
 
         guard !roots.isEmpty else {
@@ -348,13 +347,20 @@ public actor MoCleanScanner {
         url.lastPathComponent.lowercased() == "caches"
     }
 
+    static func isDockerContainerRoot(_ rootPath: String) -> Bool {
+        rootPath.hasSuffix("/Containers/com.docker.docker")
+    }
+
     /// Roots that are never proposed for trashing, even inside a cache section.
     /// Xcode Archives hold dSYMs for shipped builds; the Bun folder is a global
     /// package store. Both are surfaced as inspect-only findings.
-    private static func isReviewOnlyRoot(_ rootPath: String, home: URL) -> Bool {
+    static func isReviewOnlyRoot(_ rootPath: String, home: URL) -> Bool {
         let lib = home.appendingPathComponent("Library", isDirectory: true)
+        // Docker's container folder holds the VM disk image with every image and
+        // volume, so it is review-only. ~/.bun is listed so it stays out of trash moves.
         let reviewOnlyPaths = [
             lib.appendingPathComponent("Developer/Xcode/Archives", isDirectory: true),
+            lib.appendingPathComponent("Containers/com.docker.docker", isDirectory: true),
             home.appendingPathComponent(".bun", isDirectory: true)
         ].map { $0.standardizedFileURL.path }
         return reviewOnlyPaths.contains(rootPath)
@@ -776,6 +782,11 @@ public actor MoCleanScanner {
     }
 
     private func reason(for section: SystemCleanSection, rootPath: String, reviewOnly: Bool = false) -> String {
+        if reviewOnly, Self.isDockerContainerRoot(rootPath) {
+            return String(
+                localized: "Review only: Docker's virtual machine disk. Trashing it deletes every image, container and volume.",
+                comment: "Mo clean review-only reason for the Docker VM disk")
+        }
         if reviewOnly {
             let message = String(
                 localized: """

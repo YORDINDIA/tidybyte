@@ -1,7 +1,7 @@
 import Foundation
 import MacOSCleanerCore
 
-// MARK: - Explore selection + staging (Agent 4 iteration 3)
+// MARK: - Explore selection + staging
 
 /// Explore visualization selection and plan-staging behavior for AppViewModel.
 /// Stored state lives on the main type (the `@Observable` macro cannot observe
@@ -91,9 +91,10 @@ extension AppViewModel {
         )
         currentPlan.actions.append(action)
         currentPlan.originalActions?.append(action)
-        schedulePlanPersistence()
         refreshPlanEstimates(plan: &currentPlan)
         plan = currentPlan
+        // Persist after the assignment: the save reads `plan` when scheduled.
+        schedulePlanPersistence()
         selectedActionID = action.id
         statusMessage = String(localized: "Staged \(record.fileName) for review in Proposed Actions.")
         return action
@@ -113,6 +114,7 @@ extension AppViewModel {
         }
         refreshPlanEstimates(plan: &currentPlan)
         plan = currentPlan
+        schedulePlanPersistence()
         if selectedActionID.map({ id in !currentPlan.actions.contains(where: { $0.id == id }) }) ?? false {
             selectedActionID = currentPlan.actions.first?.id
         }

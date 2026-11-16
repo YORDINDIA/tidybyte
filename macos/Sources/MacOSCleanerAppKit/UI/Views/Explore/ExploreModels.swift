@@ -51,7 +51,7 @@ enum ExploreSubtreeIndex {
 
     /// Every scanned record strictly below the given directory path.
     static func descendants(ofParentPath parentPath: String, in files: [FileRecord]) -> [FileRecord] {
-        let prefix = parentPath + "/"
+        let prefix = parentPath.hasSuffix("/") ? parentPath : parentPath + "/"
         return files.filter { $0.displayPath.hasPrefix(prefix) }
     }
 
@@ -61,26 +61,31 @@ enum ExploreSubtreeIndex {
     }
 }
 
-// MARK: - Live size probe
+// MARK: - Change token
 
-/// Reads both size keys for a URL in one stat call. FileRecord only carries a
-/// single size, so APFS compression savings are probed live at selection time
-/// and hidden when the filesystem cannot provide them.
 /// O(1) change token for "the scan's files changed": `[FileRecord]` is not
 /// cheaply Equatable, and mapping every id per render (the old `.onChange`
-/// payload) allocated an all-files array on every body evaluation.
+/// payload) allocated an all-files array on every body evaluation. The scan
+/// session id catches a rescan whose first and last ids happen to match.
 struct ExploreFilesToken: Equatable {
     let count: Int
     let firstID: String?
     let lastID: String?
+    let sessionID: String?
 
     init(_ files: [FileRecord]) {
         count = files.count
         firstID = files.first?.id
         lastID = files.last?.id
+        sessionID = files.first?.scanSessionID
     }
 }
 
+// MARK: - Live size probe
+
+/// Reads both size keys for a URL in one stat call. FileRecord only carries a
+/// single size, so APFS compression savings are probed live at selection time
+/// and hidden when the filesystem cannot provide them.
 enum FileSizeProbe {
     struct Sizes: Equatable, Sendable {
         var logical: Int64?
@@ -118,3 +123,45 @@ enum DiskGaugeData {
     }
 }
 
+/// Memo for the group tree one Explore canvas renders. Every render used to
+/// rebuild the tree three to six times. The key covers every input, so a
+/// cached tree is never stale.
+@MainActor
+final class ExploreTreeMemo {
+    private struct Key: Equatable {
+        let token: ExploreFilesToken
+        let grouping: ExploreGrouping
+        let maxDepth: Int
+        let nameFilter: String
+    }
+
+    private var key: Key?
+    private var value: [ExploreGroup] = []
+
+    func groups(files: [FileRecord], grouping: ExploreGrouping, maxDepth: Int, nameFilter: String) -> [ExploreGroup] {
+        let build = {
+            ExploreTreeBuilder.build(
+                files: ExploreTreeBuilder.filteredFiles(files, nameFilter: nameFilter),
+                grouping: grouping,
+                maxDepth: maxDepth
+            )
+        }
+        // By Age buckets files against the current time, which the key does not cover.
+        // Rebuild it every time so the buckets do not freeze while the canvas is open.
+        guard grouping != .byAge else { return build() }
+        let next = Key(token: ExploreFilesToken(files), grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
+        if next == key { return value }
+        key = next
+        value = build()
+        return value
+    }
+}
+
+/// File-count copy for Explore labels: "1 file" or "N files".
+enum ExploreCopy {
+    static func fileCount(_ count: Int) -> String {
+        count == 1
+            ? String(localized: "1 file", comment: "Explore file count, singular")
+            : String(localized: "\(count) files", comment: "Explore file count, plural")
+    }
+}

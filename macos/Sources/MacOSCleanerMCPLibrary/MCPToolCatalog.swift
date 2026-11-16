@@ -65,7 +65,8 @@ enum MCPCleanupTool: String, CaseIterable {
             MCPKit.tool(
                 rawValue,
                 "Restore what one executed operation changed (pass its id from history). Without "
-                    + "confirm: true it only describes the restore. Ask the user first.",
+                    + "confirm: true it only describes the restore. Ask the user first. Operations "
+                    + "that move an artifact to the Trash are refused here; undo them in the app.",
                 [
                     "operation_log_id": MCPKit.string("Operation id from history."),
                     "confirm": MCPKit.boolean("true to actually undo; false or missing for a dry run.")

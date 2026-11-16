@@ -243,7 +243,10 @@ public struct PathSafetyPolicy: Sendable {
     /// resolved here so literal paths cannot hide a protected location.
     /// `destination`, when provided, is validated with the same rules
     /// (move/archive/alias/symlink outputs).
-    public func decide(target url: URL, isDirectory: Bool, destination: URL? = nil) -> PolicyDecision {
+    /// `descendants` also denies a folder or package that holds credential
+    /// material, because trashing one takes everything inside it. Set it for
+    /// destructive directory-like targets only: a destination may hold anything.
+    public func decide(target url: URL, isDirectory: Bool, destination: URL? = nil, descendants: Bool = false) -> PolicyDecision {
         let resolvedTarget = Self.resolved(url)
         let targetFlags = riskFlags(for: resolvedTarget, isDirectory: isDirectory)
         if !targetFlags.intersection(Self.allProtectionFlags).isEmpty {
@@ -252,6 +255,9 @@ public struct PathSafetyPolicy: Sendable {
         let folder = resolvedTarget.standardizedFileURL.path.lowercased() + "/"
         if Self.protectedFolders.contains(where: { $0.hasPrefix(folder) }) {
             return .deny(reason: "Contains protected data: \(resolvedTarget.path)")
+        }
+        if descendants, let blocked = firstProtectedDescendant(of: resolvedTarget) {
+            return .deny(reason: "Contains protected data: \(blocked.path)")
         }
         guard let destination else {
             return .allow
@@ -265,6 +271,97 @@ public struct PathSafetyPolicy: Sendable {
             return .deny(reason: "Destination is a protected path: \(resolvedDestination.path)")
         }
         return .allow
+    }
+
+    /// Credential material that a folder must never take along with it: a
+    /// private key, a keychain or a secrets file anywhere inside the folder
+    /// blocks trashing the folder. Names and extensions only, so the walk stays
+    /// cheap. Build and dependency folders (node_modules, DerivedData, build)
+    /// are not blocked by nested .git folders, config files or source files.
+    private static let credentialDirectoryNames: Set<String> = [
+        ".ssh", ".gnupg", ".aws", "keychains", "passwords", "1password", "bitwarden", "keepass", "mobilesync"
+    ]
+    private static let credentialFileNames: Set<String> = [
+        ".env", ".env.local", ".env.production", ".env.development", ".env.staging", ".env.test",
+        "id_rsa", "id_ed25519", "known_hosts"
+    ]
+    /// Always-secret containers and key formats (binary, no public look-alikes).
+    /// Provisioning profiles are not listed: every App Store app carries an
+    /// embedded.provisionprofile, and they are not secrets. A profile still
+    /// blocks when it is the target itself (see `protectedExtensions`).
+    private static let credentialExtensions: Set<String> = [
+        "p12", "pfx", "p8", "jks", "keystore", "keychain", "keychain-db", "gpg", "pgp"
+    ]
+    /// Coding-agent memory and config folders. IDE folders such as .vscode are not listed.
+    private static let codingAgentMemoryDirectoryNames: Set<String> = [
+        ".claude", ".codex", ".opencode", ".factory", ".openclaw", ".hermes"
+    ]
+    /// Text key formats. Public certificates use the same extensions, so the
+    /// file is blocked only when its header says it holds a private key.
+    private static let privateKeyCandidateExtensions: Set<String> = ["pem", "key"]
+
+    /// Most entries one descendant walk may visit. A larger tree is blocked rather
+    /// than walked without limit: 500,000 entries take a few seconds on this Mac.
+    static let maxDescendantEntries = 500_000
+
+    /// First descendant of `folder` that holds credential material, or nil. Returns
+    /// `folder` itself when the walk cannot finish: a child cannot be read, the
+    /// folder cannot be enumerated, or it has more than `maxDescendantEntries` entries.
+    /// Symlinks are not followed.
+    func firstProtectedDescendant(of folder: URL) -> URL? {
+        // A child that cannot be read may hold credentials. Returning false from the
+        // handler ends the walk, and the folder counts as blocked.
+        let unreadable = UnreadableFlag()
+        guard let walker = FileManager.default.enumerator(
+            at: folder, includingPropertiesForKeys: nil, options: [],
+            errorHandler: { _, _ in
+                unreadable.isSet = true
+                return false
+            }
+        ) else {
+            return folder
+        }
+        var visited = 0
+        for case let child as URL in walker {
+            visited += 1
+            if visited > Self.maxDescendantEntries { return folder }
+            if isCredentialEntry(child) { return child }
+        }
+        return unreadable.isSet ? folder : nil
+    }
+
+    /// Set from the enumerator's error handler, which runs synchronously on the walking thread.
+    private final class UnreadableFlag: @unchecked Sendable {
+        var isSet = false
+    }
+
+    /// Name-based test for one descendant. Directories and files are judged by
+    /// name, so a folder named like a credential store blocks as well.
+    private func isCredentialEntry(_ url: URL) -> Bool {
+        let name = url.lastPathComponent.lowercased()
+        let ext = url.pathExtension.lowercased()
+        if Self.credentialDirectoryNames.contains(name) || Self.credentialFileNames.contains(name)
+            || name.hasPrefix("com.apple.dt.") || Self.credentialExtensions.contains(ext)
+            || ext == "xcarchive" || Self.codingAgentMemoryDirectoryNames.contains(name) {
+            return true
+        }
+        return Self.privateKeyCandidateExtensions.contains(ext) && Self.mayHoldPrivateKey(url)
+    }
+
+    /// Largest key-like file that is searched in full. A larger file counts as a key.
+    private static let keyInspectionLimit = 4 * 1024 * 1024
+
+    /// True when a key-like file is, or may be, a private key. A directory with a key
+    /// name (a Keynote package, for example) is not a key. A file that cannot be read
+    /// or is too large to search is treated as a key. Otherwise the whole file is
+    /// searched for the marker, so a certificate placed before the key is still seen.
+    private static func mayHoldPrivateKey(_ url: URL) -> Bool {
+        if (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true { return false }
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return true }
+        defer { try? handle.close() }
+        guard let data = try? handle.read(upToCount: keyInspectionLimit + 1) else { return true }
+        if data.count > keyInspectionLimit { return true }
+        return data.range(of: Data("PRIVATE KEY".utf8)) != nil
     }
 
     /// Never-delete folders in the home folder. Trashing a folder that holds

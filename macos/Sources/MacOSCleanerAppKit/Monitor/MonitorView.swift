@@ -33,7 +33,7 @@ struct MonitorView: View {
                     inspection: inspection,
                     history: model.selectedAppHistory
                 ) { pid, force in
-                    model.quit(pid: pid, force: force)
+                    model.quit(pid: pid, confirmedStart: inspection.startedAt, force: force)
                 }
                 .inspectorColumnWidth(min: 300, ideal: 380, max: 520)
             } else if model.selectedGroupID != nil {
@@ -287,7 +287,14 @@ struct HistoryChartSeries: View {
                 liveFallback
             }
         }
-        .task(id: model.historyRange) { await reload() }
+        // Reload on a range change, then once a minute while the tab shows, so the
+        // chart picks up samples recorded since it appeared.
+        .task(id: model.historyRange) {
+            while !Task.isCancelled {
+                await reload()
+                try? await Task.sleep(for: .seconds(60))
+            }
+        }
     }
 
     /// No stored points yet (fresh install): the live ring stands in so the
@@ -308,11 +315,10 @@ struct HistoryChartSeries: View {
         }
     }
 
+    /// Stored points only. When there are none, liveFallback draws the live ring,
+    /// so the fallback updates every tick instead of freezing a copy.
     private func reload() async {
-        let stored = await model.series(metric: metric)
-        points = stored.isEmpty
-            ? model.livePoints(metric: metric).map { MetricsHistoryStore.SeriesPoint(timestamp: $0.0, average: $0.1, peak: nil) }
-            : stored
+        points = await model.series(metric: metric)
     }
 }
 
@@ -327,7 +333,7 @@ struct GPUTabView: View {
             ForEach(devices) { device in
                 MetricTileView(
                     title: device.name, icon: "bolt",
-                    value: device.utilizationPercent.map { String(format: "%.0f", $0) } ?? "—",
+                    value: device.utilizationPercent.map { String(format: "%.0f", $0) } ?? "-",
                     unit: device.utilizationPercent == nil ? nil : "%",
                     context: device.coreCount.map { String(localized: "\($0) cores", comment: "GPU core count") },
                     tint: MonitorTab.gpu.tint)
@@ -374,7 +380,7 @@ struct BatteryTabView: View {
                     MetricTileView(
                         title: String(localized: "Battery", comment: "Battery tile"),
                         icon: "battery.100",
-                        value: power.level.map { MetricFormatting.percent($0) } ?? "—", unit: nil,
+                        value: power.level.map { MetricFormatting.percent($0) } ?? "-", unit: nil,
                         context: power.isCharging
                             ? String(localized: "Charging", comment: "Battery state")
                             : power.timeToEmptySeconds.map { MetricFormatting.duration($0) },
@@ -425,7 +431,10 @@ struct BatteryTabView: View {
             } else {
                 ForEach(power.assertions.prefix(10)) { assertion in
                     HStack {
-                        Text(assertion.processName).font(.callout)
+                        Text(assertion.processName)
+                            .font(.callout)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
                         Spacer()
                         Text(assertion.kind).font(.callout).foregroundStyle(.secondary)
                         if assertion.heldSeconds > 0 {

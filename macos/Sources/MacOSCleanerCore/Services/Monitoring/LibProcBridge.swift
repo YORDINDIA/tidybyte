@@ -33,7 +33,8 @@ enum LibProc {
     }
 
     /// The subset of `rusage_info_v4` the monitor reads, converted to friendly
-    /// units. The kernel returns times in nanoseconds.
+    /// units. The kernel returns CPU times in mach absolute time units. Those
+    /// are nanoseconds only on Intel; Apple silicon runs a 125/3 timebase.
     struct UsageReport {
         var cpuTimeSeconds: Double
         var residentBytes: Int64
@@ -45,14 +46,11 @@ enum LibProc {
         var pageIns: Int64
         var wakeups: Int64
         var energy: Double
-        var startedAt: Date?
     }
 
     /// Reads the per-pid usage report. Returns nil when the process is gone or
-    /// protected. `mach_absolute_time` fields are converted with the timebase
-    /// and the caller's boot date — one KERN_BOOTTIME sysctl per sample, not
-    /// one per process.
-    static func usageReport(pid: pid_t, bootDate: Date?) -> UsageReport? {
+    /// protected. Mach absolute time fields are converted with the timebase.
+    static func usageReport(pid: pid_t) -> UsageReport? {
         var info = RUsageInfoV4()
         let result = withUnsafeMutablePointer(to: &info) { pointer in
             pointer.withMemoryRebound(to: UnsafeMutableRawPointer.self, capacity: 1) { raw in
@@ -61,8 +59,10 @@ enum LibProc {
         }
         guard result == 0 else { return nil }
         let timebase = machTimebase()
+        // Reading the raw ticks as nanoseconds made CPU time 42x too low on Apple silicon.
+        let cpuNanoseconds = Double(info.userTime + info.systemTime) * Double(timebase.numer) / Double(timebase.denom)
         return UsageReport(
-            cpuTimeSeconds: Double(info.userTime + info.systemTime) / 1_000_000_000,
+            cpuTimeSeconds: cpuNanoseconds / 1_000_000_000,
             residentBytes: Int64(bitPattern: info.residentSize),
             footprintBytes: Int64(bitPattern: info.footprint),
             lifetimeMaxFootprintBytes: Int64(bitPattern: info.lifetimeMaxFootprint),
@@ -73,8 +73,7 @@ enum LibProc {
             wakeups: Int64(bitPattern: info.idleWakeups + info.interruptWakeups),
             // billedEnergy is already an energy reading in vendor units, not
             // a floating-point bit pattern; bit-casting it produced nonsense.
-            energy: Double(info.billedEnergy),
-            startedAt: date(fromMachAbsTime: info.startAbsTime, timebase: timebase, bootDate: bootDate))
+            energy: Double(info.billedEnergy))
     }
 
     /// Reads the task info block (thread count, page faults). Returns nil when
@@ -91,17 +90,32 @@ enum LibProc {
         return info
     }
 
+    /// PROC_PIDTBSDINFO and the size of struct proc_bsdinfo. The start time is
+    /// the last 16 bytes: pbi_start_tvsec at offset 120, pbi_start_tvusec at 128.
+    /// Tests check both offsets against the kernel process table.
+    static let procPIDTBSDInfo: Int32 = 3
+    static let bsdInfoSize = 136
+
+    /// The kernel start time of the live process at `pid`, or nil when it is gone
+    /// or not visible to this user. The same p_start value the process table carries.
+    static func startTime(pid: pid_t) -> (seconds: Int64, microseconds: Int64)? {
+        var raw = [UInt8](repeating: 0, count: bsdInfoSize)
+        let written = raw.withUnsafeMutableBytes { buffer in
+            procPIDInfo(pid, procPIDTBSDInfo, 0, buffer.baseAddress, Int32(bsdInfoSize))
+        }
+        guard written == Int32(bsdInfoSize) else { return nil }
+        return raw.withUnsafeBytes { bytes in
+            (seconds: Int64(bitPattern: bytes.loadUnaligned(fromByteOffset: 120, as: UInt64.self)),
+             microseconds: Int64(bitPattern: bytes.loadUnaligned(fromByteOffset: 128, as: UInt64.self)))
+        }
+    }
+
     static func machTimebase() -> (numer: UInt32, denom: UInt32) {
         var base = mach_timebase_info_data_t()
         mach_timebase_info(&base)
         return (base.numer, base.denom)
     }
 
-    static func date(fromMachAbsTime absTime: UInt64, timebase: (numer: UInt32, denom: UInt32), bootDate: Date?) -> Date? {
-        guard absTime > 0, let boot = bootDate else { return nil }
-        let nanoseconds = absTime * UInt64(timebase.numer) / UInt64(timebase.denom)
-        return boot.addingTimeInterval(Double(nanoseconds) / 1_000_000_000)
-    }
 }
 
 /// `struct rusage_info_v4` from the SDK, mirrored field for field. The uuid is

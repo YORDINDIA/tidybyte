@@ -75,6 +75,7 @@ struct SwipeReviewView: View {
                     if let session = model.session { ReviewBatchSummary(decisions: session.decisions, model: model) }
                     HStack {
                         Button(String(localized: "Cancel")) { confirms = false }
+                            .keyboardShortcut(.cancelAction)
                         Spacer()
                         Button(String(localized: "Apply these changes"), role: .destructive) {
                             confirms = false

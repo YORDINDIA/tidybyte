@@ -20,7 +20,14 @@ public actor KeychainStore {
     private let inMemory: Bool
     private var testValues: [String: String] = [:]
 
-    public init(inMemory: Bool = false) { self.inMemory = inMemory }
+    /// Test seam: when set, every read throws it, so callers can show how a Keychain
+    /// failure is handled. Nil in production.
+    private let injectedLoadError: KeychainError?
+
+    public init(inMemory: Bool = false, injectedLoadError: KeychainError? = nil) {
+        self.inMemory = inMemory
+        self.injectedLoadError = injectedLoadError
+    }
 
     public func saveAPIKey(_ apiKey: String, account: String = "openai-compatible") throws {
         if inMemory { testValues[account] = apiKey; return }
@@ -57,6 +64,7 @@ public actor KeychainStore {
     }
 
     public func loadAPIKey(account: String = "openai-compatible") throws -> String? {
+        if let injectedLoadError { throw injectedLoadError }
         if inMemory { return testValues[account] }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

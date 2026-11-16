@@ -208,18 +208,33 @@ public enum ProcessInspector {
 /// goes through the confirm-dialog policy in the UI layer, and force-quit is
 /// always the second, explicit step.
 public enum ProcessActions {
-    /// SIGTERM first. Returns false when the process was already gone or the
-    /// pid is not a real process id (pid 0 would signal the process group).
+    /// SIGTERM first. Returns false when the process was already gone, the pid
+    /// is not a real process id (pid 0 would signal the process group), or the
+    /// pid now belongs to a different process than the one the user confirmed.
     @discardableResult
-    public static func quit(pid: pid_t) -> Bool {
-        guard pid > 0 else { return false }
-        return kill(pid, SIGTERM) == 0
+    public static func quit(pid: pid_t, confirmedStart: Date?) -> Bool {
+        signal(pid, confirmedStart: confirmedStart, SIGTERM)
     }
 
     /// SIGKILL. The UI asks before calling this.
     @discardableResult
-    public static func forceQuit(pid: pid_t) -> Bool {
-        guard pid > 0 else { return false }
-        return kill(pid, SIGKILL) == 0
+    public static func forceQuit(pid: pid_t, confirmedStart: Date?) -> Bool {
+        signal(pid, confirmedStart: confirmedStart, SIGKILL)
+    }
+
+    /// The kernel start time of the live process at `pid`, or nil when it is gone.
+    static func liveStart(pid: pid_t) -> Date? {
+        guard let start = LibProc.startTime(pid: pid) else { return nil }
+        return ProcessProbe.startDate(seconds: start.seconds, microseconds: start.microseconds)
+    }
+
+    /// Pids are reused. The start time is checked and the signal sent in one
+    /// synchronous block, so no other work runs between them. Missing start time
+    /// fails closed. The window that remains is the gap between the start-time
+    /// read and the kill(2) call. macOS has no pidfd or other handle that would
+    /// close it, so it is documented here rather than removed.
+    private static func signal(_ pid: pid_t, confirmedStart: Date?, _ signal: Int32) -> Bool {
+        guard pid > 0, let confirmedStart, liveStart(pid: pid) == confirmedStart else { return false }
+        return kill(pid, signal) == 0
     }
 }

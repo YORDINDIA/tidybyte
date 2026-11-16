@@ -216,12 +216,20 @@ struct ActionRow: View {
                 Text(affectedBytes.formattedByteCount).monospacedDigit().font(.callout)
                     .help(String(localized: "Affected file size; reclaimable space depends on the operation"))
                 HStack {
+                    // M-19: the active decision is bold and tinted, so the row
+                    // shows its state without a second label.
                     Button(String(localized: "Reject")) { model.reject(action) }
                         .disabled(action.executedAt != nil)
+                        .fontWeight(isRejected ? .semibold : nil)
+                        .foregroundStyle(isRejected ? SemanticScale.error : Color.accentColor)
+                        .accessibilityAddTraits(isRejected ? .isSelected : [])
                     Button(String(localized: "Approve")) { model.approve(action) }
                         .disabled(
                             action.risk == .forbidden || action.executedAt != nil
                                 || !action.actionType.isExecutable)
+                        .fontWeight(isApproved ? .semibold : nil)
+                        .foregroundStyle(isApproved ? SemanticScale.success : Color.accentColor)
+                        .accessibilityAddTraits(isApproved ? .isSelected : [])
                 }
                 .buttonStyle(.borderless).controlSize(.small)
             }
@@ -231,6 +239,12 @@ struct ActionRow: View {
         .accessibilityElement(children: .contain)
     }
 
+    private var isApproved: Bool {
+        action.userDecision == .approved || action.userDecision == .alwaysDoThis
+    }
+    private var isRejected: Bool {
+        action.userDecision == .rejected || action.userDecision == .neverDoThisHere
+    }
     private var stateLabel: String {
         if action.risk == .forbidden { return String(localized: "Blocked") }
         if !action.actionType.isExecutable { return String(localized: "Review only") }

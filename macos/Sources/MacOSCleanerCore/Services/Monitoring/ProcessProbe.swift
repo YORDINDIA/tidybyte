@@ -102,6 +102,9 @@ public actor ProcessProbe {
         var diskWrittenBytes: Int64
         var wakeups: Int64
         var energy: Double
+        /// Identifies the process that produced these counters, so a reused pid
+        /// does not diff against its predecessor's totals.
+        var startedAt: Date?
     }
 
     public init() {}
@@ -111,9 +114,6 @@ public actor ProcessProbe {
     public func sample(includeCommandLine: Bool = false) -> [ProcessSample] {
         let entries = Self.kernelProcessTable()
         let now = Date()
-        // KERN_BOOTTIME is constant for the session: one sysctl per sample,
-        // not one per process.
-        let bootDate = Self.bootDate()
         var samples: [ProcessSample] = []
         samples.reserveCapacity(entries.count)
         var seen = Set<pid_t>()
@@ -121,8 +121,8 @@ public actor ProcessProbe {
         for entry in entries {
             let pid = pid_t(entry.kp_proc.p_pid)
             seen.insert(pid)
-            var sample = baseSample(from: entry, pid: pid, bootDate: bootDate)
-            applyUsageReport(to: &sample, now: now, bootDate: bootDate)
+            var sample = baseSample(from: entry, pid: pid)
+            applyUsageReport(to: &sample, now: now)
             if sample.executablePath == nil {
                 // Only pids never seen before pay the proc_pidpath read.
                 if let cached = executablePaths[pid] {
@@ -153,7 +153,7 @@ public actor ProcessProbe {
         return samples
     }
 
-    private func baseSample(from entry: kinfo_proc, pid: pid_t, bootDate: Date?) -> ProcessSample {
+    private func baseSample(from entry: kinfo_proc, pid: pid_t) -> ProcessSample {
         let proc = entry.kp_proc
         let eproc = entry.kp_eproc
         let state: ProcessSample.State = switch Int32(proc.p_stat) {
@@ -163,7 +163,7 @@ public actor ProcessProbe {
         case SZOMB: .zombie
         default: .unknown
         }
-        let started = Self.date(fromTimeInterval: proc.p_starttime, bootDate: bootDate)
+        let started = Self.date(fromTimeInterval: proc.p_starttime)
         return ProcessSample(
             pid: pid,
             parentPID: pid_t(eproc.e_ppid),
@@ -177,14 +177,15 @@ public actor ProcessProbe {
 
     /// Merges the per-pid usage report and turns counter deltas into rates
     /// using the time since this pid's previous report.
-    private func applyUsageReport(to sample: inout ProcessSample, now: Date, bootDate: Date?) {
-        guard let usage = LibProc.usageReport(pid: sample.pid, bootDate: bootDate) else { return }
+    private func applyUsageReport(to sample: inout ProcessSample, now: Date) {
+        guard let usage = LibProc.usageReport(pid: sample.pid) else { return }
         let counters = ProcessUsageCounters(
             cpuTimeSeconds: usage.cpuTimeSeconds,
             diskReadBytes: usage.diskReadBytes,
             diskWrittenBytes: usage.diskWrittenBytes,
             wakeups: usage.wakeups,
-            energy: usage.energy)
+            energy: usage.energy,
+            startedAt: sample.startedAt)
         sample.cpuTimeSeconds = usage.cpuTimeSeconds
         sample.residentBytes = usage.residentBytes
         sample.physFootprintBytes = usage.footprintBytes
@@ -198,11 +199,9 @@ public actor ProcessProbe {
             sample.threadCount = task.threadCount
             sample.virtualBytes = Int64(bitPattern: task.virtualSize)
         }
-        if let start = usage.startedAt { sample.startedAt = start }
 
-        if let previous = previousUsage[sample.pid] {
-            let interval = max(0.001, previousTimestamp.map { now.timeIntervalSince($0) } ?? 1)
-            let delta = Self.rates(from: previous, to: counters, interval: interval)
+        let interval = max(0.001, previousTimestamp.map { now.timeIntervalSince($0) } ?? 1)
+        if let delta = Self.tickRates(previous: previousUsage[sample.pid], current: counters, interval: interval) {
             sample.cpuPercent = delta.cpuPercent
             sample.diskReadPerSecond = delta.diskReadPerSecond
             sample.diskWritePerSecond = delta.diskWritePerSecond
@@ -251,6 +250,18 @@ extension ProcessProbe {
     }
 }
 
+extension ProcessProbe {
+    /// Rates for one pid since its previous tick. nil when the pid now belongs
+    /// to a different process, so a reused pid never diffs against its
+    /// predecessor's totals. Start times are the kernel's exact p_start values.
+    static func tickRates(previous: ProcessUsageCounters?, current: ProcessUsageCounters, interval: TimeInterval)
+        -> UsageRates? {
+        // Both start times must be known. Two unknown starts are not evidence of the same process.
+        guard let previous, let start = current.startedAt, previous.startedAt == start else { return nil }
+        return rates(from: previous, to: current, interval: interval)
+    }
+}
+
 // MARK: - System calls (pure-ish, testable with injected buffers)
 
 extension ProcessProbe {
@@ -259,12 +270,12 @@ extension ProcessProbe {
         var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_ALL]
         var size = 0
         guard sysctl(&mib, 3, nil, &size, nil, 0) == 0, size > 0 else { return [] }
-        // The table can grow between the sizing call and the read. A failed
-        // read leaves the required size in readSize; retry with it while it
-        // actually grew, and give up on any other failure.
-        for _ in 0..<3 {
+        // The table grows as processes start. A failed read leaves the required
+        // size in readSize; retry with it while the table actually grew. Spare
+        // entries cover the processes that start between the two calls.
+        for _ in 0..<5 {
             let stride = MemoryLayout<kinfo_proc>.stride
-            var entries = [kinfo_proc](repeating: kinfo_proc(), count: size / stride + 1)
+            var entries = [kinfo_proc](repeating: kinfo_proc(), count: size / stride + 64)
             var readSize = entries.count * stride
             guard sysctl(&mib, 3, &entries, &readSize, nil, 0) == 0 else {
                 guard readSize > entries.count * stride else { return [] }
@@ -308,9 +319,10 @@ extension ProcessProbe {
         return parseArguments(data.prefix(readSize))
     }
 
-    /// KERN_PROCARGS2 layout: a native-endian int32 argc, the executable
-    /// path, zero padding, then argv[0…argc-1] and finally the environment
-    /// block. Returns argv without argv[0] duplicating the executable path.
+    /// KERN_PROCARGS2 layout: a native-endian int32 argc, the executable path,
+    /// its NUL terminator, NUL padding to an 8-byte boundary, then argc argv
+    /// strings, each NUL-terminated, then the environment. An empty argument is an
+    /// empty NUL-terminated string and is kept, so later arguments do not shift.
     static func parseArguments(_ data: Data) -> [String] {
         let bytes = [UInt8](data)
         let argcSize = MemoryLayout<Int32>.size
@@ -321,29 +333,37 @@ extension ProcessProbe {
             | UInt32(bytes[2]) << 16 | UInt32(bytes[3]) << 24
         let argc = Int(Int32(bitPattern: argcBits))
         guard argc > 0, argc < 4096 else { return [] }
-        var strings: [String] = []
         var index = argcSize
-        while index < bytes.count {
-            while index < bytes.count, bytes[index] == 0 { index += 1 }
+        // Skip the executable path and its NUL terminator. The kernel then pads so that
+        // argv starts at an index that is 4 (mod 8): measured on macOS for executable
+        // paths of 10 and 8 characters, argv[0] began at index 20 both times. Padding
+        // is skipped only up to that boundary, so an empty argv[0], which is a lone NUL
+        // sitting on the boundary, is kept and later arguments do not shift.
+        while index < bytes.count, bytes[index] != 0 { index += 1 }
+        if index < bytes.count { index += 1 }
+        while index < bytes.count, bytes[index] == 0, (index - argcSize) % 8 != 0 { index += 1 }
+        var arguments: [String] = []
+        while arguments.count < argc, index < bytes.count {
             let start = index
             while index < bytes.count, bytes[index] != 0 { index += 1 }
-            if index > start {
-                strings.append(String(bytes: bytes[start..<index], encoding: .utf8) ?? "")
-            }
+            arguments.append(String(bytes: bytes[start..<index], encoding: .utf8) ?? "")
             index += 1
         }
-        // First string is the executable path; argv follows, argc entries.
-        return Array(strings.dropFirst().prefix(argc))
+        return arguments
     }
 
-    /// Converts the kernel's boot-relative timeval into an absolute date.
-    static func date(fromTimeInterval timeval: timeval, bootDate: Date?) -> Date? {
+    /// Converts the kernel's p_starttime into a date. It is wall-clock time
+    /// since the epoch: adding the boot date to it put every fallback start
+    /// time about a boot interval in the future (2083 on the test Mac).
+    static func date(fromTimeInterval timeval: timeval) -> Date? {
         guard timeval.tv_sec > 0 || timeval.tv_usec > 0 else { return nil }
-        let seconds = Double(timeval.tv_sec) + Double(timeval.tv_usec) / 1_000_000
-        // p_starttime is wall-clock based on this kernel generation; compare
-        // against boot time rather than "now" so long uptime stays correct.
-        guard let boot = bootDate else { return nil }
-        return boot.addingTimeInterval(seconds)
+        return startDate(seconds: Int64(timeval.tv_sec), microseconds: Int64(timeval.tv_usec))
+    }
+
+    /// One formula for every start time, so a sampled process and a live process
+    /// with the same kernel start compare equal.
+    static func startDate(seconds: Int64, microseconds: Int64) -> Date {
+        Date(timeIntervalSince1970: Double(seconds) + Double(microseconds) / 1_000_000)
     }
 
     public static func bootDate() -> Date? {

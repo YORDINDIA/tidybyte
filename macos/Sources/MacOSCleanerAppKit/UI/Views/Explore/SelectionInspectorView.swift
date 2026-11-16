@@ -27,6 +27,7 @@ struct SelectionInspectorView: View {
                             .font(.headline).textSelection(.enabled)
                         Text(record.displayPath).font(.system(.caption, design: .monospaced))
                             .foregroundStyle(.secondary).textSelection(.enabled)
+                            .lineLimit(2).truncationMode(.middle)
                         LabeledContent(String(localized: "Kind"), value: record.kind.displayName)
                     }
                     sizeDetails(record)
@@ -43,18 +44,29 @@ struct SelectionInspectorView: View {
             }
         }
         .quickLookPreview($previewURL)
-        .onChange(of: model.selectedExploreRecordID) {
+        // Key on the record shown, not the selection id: with no selection the
+        // inspector shows the focused folder, and a focus change must refresh it too.
+        .onChange(of: record?.id) {
             didCopyPath = false
             liveSizes = nil
             liveOwner = nil
             liveTags = nil
         }
-        .task(id: model.selectedExploreRecordID) {
+        .task(id: record?.id) {
             guard let selected = record else { return }
             let url = selected.url
-            liveSizes = FileSizeProbe.sizes(for: url)
-            liveOwner = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.ownerAccountName] as? String
-            liveTags = (try? URL(fileURLWithPath: url.path).resourceValues(forKeys: [.tagNamesKey]))?.tagNames
+            // stat and xattr reads run off the main actor; results land only if still current.
+            let live = await Task.detached(priority: .utility) {
+                (
+                    FileSizeProbe.sizes(for: url),
+                    (try? FileManager.default.attributesOfItem(atPath: url.path))?[.ownerAccountName] as? String,
+                    (try? URL(fileURLWithPath: url.path).resourceValues(forKeys: [.tagNamesKey]))?.tagNames
+                )
+            }.value
+            guard !Task.isCancelled else { return }
+            liveSizes = live.0
+            liveOwner = live.1
+            liveTags = live.2
         }
     }
 
@@ -63,8 +75,10 @@ struct SelectionInspectorView: View {
         let totals = model.subtreeTotals
         let total = ExploreSubtreeIndex.subtreeBytes(for: record, totals: totals)
         let sizes = liveSizes
-        let logical = record.kind == .directory ? total : sizes?.logical ?? total
-        let allocated = record.kind == .directory ? nil : sizes?.allocated
+        // A folder or package is a container: its size is the rolled-up total, not the entry size.
+        let isContainer = record.kind == .directory || record.kind == .package
+        let logical = isContainer ? total : sizes?.logical ?? total
+        let allocated = isContainer ? nil : sizes?.allocated
         let parent = ExploreSubtreeIndex.parentPath(of: record.displayPath)
         let parentBytes = totals[parent] ?? files.filter { $0.kind != .directory }.reduce(0) { $0 + $1.sizeBytes }
         return Section(String(localized: "Size")) {

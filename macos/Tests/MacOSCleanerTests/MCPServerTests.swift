@@ -163,13 +163,13 @@ final class MCPServerTests: XCTestCase {
         XCTAssertTrue(text.contains("8-character"), "Expected the short-id guidance, got: \(text)")
     }
 
-    func testUnknownToolIsAnError() async throws {
+    func testUnknownToolIsAProtocolError() async throws {
         let kit = try makeKit()
         let response = try await handle(kit, Self.toolCall(id: "7", name: "format_disk"))
-        let result = try XCTUnwrap(response["result"] as? [String: Any])
-        XCTAssertEqual(result["isError"] as? Bool, true)
-        let text = try textResult(of: response)
-        XCTAssertTrue(text.contains("Unknown tool"))
+        XCTAssertNil(response["result"])
+        let error = try XCTUnwrap(response["error"] as? [String: Any])
+        XCTAssertEqual(error["code"] as? Int, -32602)
+        XCTAssertTrue((error["message"] as? String)?.contains("Unknown tool") == true)
     }
 
     /// JSONSerialization raises Objective-C exceptions for NaN and infinity
@@ -190,10 +190,11 @@ final class MCPServerTests: XCTestCase {
         let data = try XCTUnwrap(MCPKit.dataForPayload(payload), "A NaN payload must serialize, not crash")
         let roundTrip = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         let result = try XCTUnwrap(roundTrip?["result"] as? [String: Any])
-        XCTAssertEqual(result["cpu"] as? Double, 0)
-        XCTAssertEqual((result["readings"] as? [Double])?[1], 0)
+        // A non-finite reading becomes JSON null, so a missing value stays visibly missing.
+        XCTAssertTrue(result["cpu"] is NSNull)
+        XCTAssertTrue(((result["readings"] as? [Any])?[1]) is NSNull)
         XCTAssertEqual(result["fine"] as? Int, 3)
-        XCTAssertEqual((result["nested"] as? [String: Any])?["usage"] as? Double, 0)
+        XCTAssertTrue((result["nested"] as? [String: Any])?["usage"] is NSNull)
     }
 
     /// Full round-trip of a monitor tool through the dispatcher: read-only

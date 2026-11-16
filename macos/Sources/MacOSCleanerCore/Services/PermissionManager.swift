@@ -42,6 +42,16 @@ public enum FullDiskAccess {
         })
     }
 
+    /// True when `path` is one of the closed containers or lies inside one.
+    static func isClosed(_ path: String, in closed: Set<String>) -> Bool {
+        // APFS is case-insensitive by default, so "Library/containers" is the same folder.
+        let lowered = path.lowercased()
+        return closed.contains(where: { root in
+            let loweredRoot = root.lowercased()
+            return lowered == loweredRoot || lowered.hasPrefix(loweredRoot + "/")
+        })
+    }
+
     /// true = opened, false = permission denied, nil = not there.
     static func canOpen(_ url: URL) -> Bool? {
         let descriptor = open(url.path, O_RDONLY)

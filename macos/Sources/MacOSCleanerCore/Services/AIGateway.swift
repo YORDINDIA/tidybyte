@@ -125,8 +125,9 @@ public actor AIGateway {
         // uses the provider account); fall back to the legacy shared account ONLY
         // for the default provider — sending a legacy key to a different provider
         // would leak one vendor's credential to another.
+        // A Keychain failure propagates. Only a missing item means "no key stored".
         let apiKey: String
-        if let providerKey = try? await keychain.loadAPIKey(account: settings.providerName),
+        if let providerKey = try await keychain.loadAPIKey(account: settings.providerName),
            !providerKey.isEmpty {
             apiKey = providerKey
         } else if settings.providerName == Self.defaultProviderName,
@@ -196,9 +197,13 @@ public actor AIGateway {
                        let seconds = Double(retryAfter.trimmingCharacters(in: .whitespaces)) {
                         retryDelayOverride = min(seconds, 60)
                     }
-                    let body = String(data: data, encoding: .utf8) ?? "(no body)"
-                    // Truncate to avoid leaking API keys or other sensitive data in error messages.
-                    let truncatedBody = String(body.prefix(200))
+                    // A provider may echo the request back. Remove the key before the body
+                    // reaches an error message, a scan notice or the log.
+                    // Only 200 characters are kept. The window is wider than that by the key's
+                    // length (at most four bytes per character), so a key that starts inside the
+                    // kept text is removed whole, and the rest of a large body is never decoded.
+                    let head = ProcessRunner.readableText(Data(data.prefix(4 * (200 + apiKey.count))))
+                    let truncatedBody = String(head.replacingOccurrences(of: apiKey, with: "[redacted]").prefix(200))
                     throw AIGatewayError.invalidResponse(statusCode: statusCode, body: truncatedBody)
                 }
                 let envelope = try decoder.decode(ChatCompletionEnvelope.self, from: data)
@@ -217,10 +222,10 @@ public actor AIGateway {
                     || Task.isCancelled {
                     throw CancellationError()
                 }
-                // Client errors (4xx except 429) are permanent — do not retry.
-                // Only server errors (5xx) and rate limits (429) benefit from retries.
+                // Client errors (4xx except 408 and 429) are permanent — do not retry.
+                // Server errors (5xx), request timeouts (408) and rate limits (429) benefit from retries.
                 if case AIGatewayError.invalidResponse(let statusCode, _) = error,
-                   statusCode >= 400 && statusCode < 500 && statusCode != 429 {
+                   statusCode >= 400 && statusCode < 500 && statusCode != 429 && statusCode != 408 {
                     throw error
                 }
                 // Malformed JSON is deterministic — the model will produce the same

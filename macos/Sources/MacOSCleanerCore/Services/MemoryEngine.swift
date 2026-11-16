@@ -43,16 +43,18 @@ public actor MemoryEngine {
                     adjusted.reason += String(localized: " Memory rule applied: \(rule.rule)", comment: "Suffix appended to reason when a memory rule is applied")
                     // "Never" suppresses every destructive action, not just trash —
                     // the user said no to this file, so .move/.archive are equally unwanted.
-                    // A fold rewrites the file's inode too, so it is equally unwanted.
+                    // A fold rewrites the file's inode too, and a package cleanup
+                    // deletes data outside the file system, so both are equally unwanted.
                     switch adjusted.actionType {
-                    case .moveToTrash, .move, .rename, .archive, .cloneDeduplicate:
+                    case .moveToTrash, .move, .rename, .archive, .cloneDeduplicate, .runPackageManagerCleanup:
                         adjusted.actionType = .inspectOnly
                     default:
                         break
                     }
                 case .preferArchive:
-                    // Inspect-only findings stay review-only; archiving them would make them actionable.
-                    guard adjusted.actionType != .inspectOnly else { break }
+                    // Only file trash moves become archives. Inspect-only findings stay review-only,
+                    // and package or provider cleanups have no file to archive.
+                    guard adjusted.actionType == .moveToTrash else { break }
                     adjusted.actionType = .archive
                     adjusted.reason += String(localized: " Memory rule applied: \(rule.rule)", comment: "Suffix appended to reason when a memory rule is applied")
                 case .always:
@@ -229,6 +231,28 @@ public actor MemoryEngine {
         }
     }
 
+    /// Stores a calibration preference with the rule type the caller chose. Use this
+    /// form: the free-text inference below reads "Prefer archiving files ..." as
+    /// `.always` because it looks for the phrase "prefer archive".
+    public func applyCalibrationPreference(
+        _ preference: String,
+        ruleType: MemoryRuleType,
+        scopeType: String = "global",
+        scopeValue: String = ""
+    ) async throws {
+        try await saveOrReinforceRule(
+            scopeType: scopeType,
+            scopeValue: scopeValue,
+            actionType: nil,
+            ruleType: ruleType,
+            rule: preference,
+            source: String(localized: "explicit user setting", comment: "Source label for user calibration preference"),
+            confidence: 0.95,
+            matchOnRuleText: true
+        )
+    }
+
+    /// Legacy form: infers the rule type from the text. Prefer the `ruleType:` form.
     public func applyCalibrationPreference(
         _ preference: String,
         scopeType: String = "global",

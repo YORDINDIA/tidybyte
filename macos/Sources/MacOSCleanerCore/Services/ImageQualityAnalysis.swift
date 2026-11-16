@@ -22,7 +22,7 @@ enum ImageQualityAnalysis {
         facts.capturedAt = captureDate(properties) ?? original.capturedAt
         let apple = properties?[kCGImagePropertyMakerAppleDictionary] as? [String: Any]
         facts.contentIdentifier = apple?["17"] as? String
-        let sample = luminanceSamples(image, side: 64)
+        let sample = try luminanceSamples(image, side: 64)
         let mean = sample.reduce(0, +) / Double(max(1, sample.count))
         facts.luminance = mean
         facts.clippedHighlights = Double(sample.filter { $0 > 0.98 }.count) / Double(max(1, sample.count))
@@ -37,7 +37,7 @@ enum ImageQualityAnalysis {
         }
         facts.sharpness = gradient / (62 * 62)
         var hash: UInt64 = 0
-        let small = luminanceSamples(image, side: 8)
+        let small = try luminanceSamples(image, side: 8)
         let smallMean = small.reduce(0, +) / 64
         for (index, value) in small.enumerated() where value > smallMean { hash |= UInt64(1) << index }
         let classification = try classify(image, sensitivity: sensitivity)
@@ -87,15 +87,21 @@ enum ImageQualityAnalysis {
         return (feature.results?.first, category)
     }
 
-    private static func luminanceSamples(_ image: CGImage, side: Int) -> [Double] {
+    /// Throws when the bitmap cannot be created. A silent blank sample would read as a
+    /// black, blurred image and distort the quality facts.
+    private static func luminanceSamples(_ image: CGImage, side: Int) throws -> [Double] {
         var pixels = [UInt8](repeating: 0, count: side * side)
-        pixels.withUnsafeMutableBytes { buffer in
+        let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
             guard
                 let context = CGContext(
                     data: buffer.baseAddress, width: side, height: side, bitsPerComponent: 8,
                     bytesPerRow: side, space: CGColorSpaceCreateDeviceGray(), bitmapInfo: 0)
-            else { return }
+            else { return false }
             context.draw(image, in: CGRect(x: 0, y: 0, width: side, height: side))
+            return true
+        }
+        guard drawn else {
+            throw CleanupError.message(String(localized: "This image cannot be analyzed."))
         }
         return pixels.map { Double($0) / 255 }
     }

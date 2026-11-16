@@ -49,7 +49,6 @@ struct OverviewTabView: View {
     private func tiles(_ snapshot: SystemSnapshot) -> some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: Spacing.elementNormal)], spacing: Spacing.elementNormal) {
             coreTiles(snapshot)
-            deviceTiles(snapshot)
             devTiles(snapshot)
         }
     }
@@ -104,7 +103,7 @@ struct OverviewTabView: View {
                 title: String(localized: "Sensors"), icon: "thermometer.medium",
                 value: String(format: "%.0f", temperature.celsius), unit: "°C",
                 context: fans.first.map {
-                    String(localized: "Fans at \(Int($0.rpm), specifier: "%d") rpm", comment: "Fan speed context")
+                    String(localized: "Fans at \(MetricFormatting.whole($0.rpm), specifier: "%d") rpm", comment: "Fan speed context")
                 },
                 tint: MonitorTab.disk.tint)
             ForEach(fans.prefix(3)) { fan in
@@ -114,7 +113,7 @@ struct OverviewTabView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     Spacer()
-                    Text(String(localized: "\(Int(fan.rpm), specifier: "%d") rpm", comment: "Fan speed"))
+                    Text(String(localized: "\(MetricFormatting.whole(fan.rpm), specifier: "%d") rpm", comment: "Fan speed"))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
@@ -148,11 +147,6 @@ struct OverviewTabView: View {
         }
     }
 
-    @ViewBuilder
-    private func deviceTiles(_ snapshot: SystemSnapshot) -> some View {
-        // Device-specific tiles (audio, Bluetooth) join here as probes report.
-    }
-
     private func summaryCards(_ snapshot: SystemSnapshot) -> some View {
         HStack(spacing: Spacing.elementNormal) {
             SummaryCardView(
@@ -162,11 +156,11 @@ struct OverviewTabView: View {
             if let temperature = snapshot.sensors.first {
                 SummaryCardView(
                     title: String(localized: "Temperature", comment: "Overview card"),
-                    value: String(format: "%.0f", temperature.celsius),
+                    value: String(format: "%.0f°C", temperature.celsius),
                     context: temperature.name)
             } else {
                 SummaryCardView(
-                    title: String(localized: "Load Average", comment: "Overview card"),
+                    title: String(localized: "Load, 5 minutes", comment: "Overview card"),
                     value: String(format: "%.2f", snapshot.cpu.loadAverage5),
                     context: String(localized: "5 minute window", comment: "Load card context"))
             }
@@ -190,9 +184,10 @@ struct SummaryCardView: View {
             Text(context)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
         .padding(Spacing.cardInternal)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .monitorCard()
     }
 }

@@ -10,8 +10,7 @@ import MacOSCleanerCore
 // only, never delete — and exits without showing a window.
 
 if CommandLine.arguments.contains("--autoscan") {
-    await AutoScanRunner.run()
-    exit(0)
+    exit(await AutoScanRunner.run())
 }
 
 // `tidybyte monitor <status|top|ports|agents|limits> [--json]`: one-shot

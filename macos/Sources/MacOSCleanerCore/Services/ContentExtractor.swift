@@ -86,7 +86,9 @@ public actor ContentExtractor {
         file: FileRecord,
         privacyMode: PrivacyMode
     ) async -> (textPreview: String?, ocrText: String?, language: String?, topics: [String], imageLabels: [String], videoLabels: [String]) {
-        guard case .allow = policy.decide(target: file.url, isDirectory: file.kind == .directory) else {
+        // Files named like credentials are never read, even in the snippet modes.
+        guard case .allow = policy.decide(target: file.url, isDirectory: file.kind == .directory),
+              !Self.isCredentialLike(file.url) else {
             return (nil, nil, nil, ["protected"], [], [])
         }
 
@@ -166,8 +168,33 @@ public actor ContentExtractor {
             if let _ = try? String(data: data.prefix(validLength), encoding: .utf8) { break }
             validLength -= 1
         }
-        return String(data: data.prefix(validLength), encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return Self.textIfPrintable(String(data: data.prefix(validLength), encoding: .utf8))
+    }
+
+    /// Name fragments that mark a file as credential material. Separators are
+    /// dropped before matching, so "api-key", "api_key" and "apikey" all count.
+    private static let credentialNameHints = [
+        "password", "passwd", "secret", "credential", "token", "apikey", "privatekey", "keychain", ".env"
+    ]
+
+    /// Folder names that mark everything inside them as credential material.
+    private static let credentialFolderNames: Set<String> = ["secrets", "credentials", "secret", "credential"]
+
+    /// True when the file name or any enclosing folder name looks like credential material.
+    static func isCredentialLike(_ url: URL) -> Bool {
+        let name = url.lastPathComponent.lowercased().filter { $0 != "-" && $0 != "_" && $0 != " " }
+        if credentialNameHints.contains(where: { name.contains($0) }) { return true }
+        return url.pathComponents.dropLast().contains { credentialFolderNames.contains($0.lowercased()) }
+    }
+
+    /// Trimmed text, or nil when the decoded content holds NUL or other control
+    /// bytes. Binary data that happens to decode as UTF-8 must not become a preview.
+    private static func textIfPrintable(_ decoded: String?) -> String? {
+        guard let decoded else { return nil }
+        let allowedControls: Set<Unicode.Scalar> = ["\n", "\r", "\t"]
+        let hasControl = decoded.unicodeScalars.contains { $0.value < 0x20 && !allowedControls.contains($0) }
+        guard !hasControl else { return nil }
+        return decoded.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func readPDFPreview(_ url: URL) async -> String? {
@@ -190,8 +217,7 @@ public actor ContentExtractor {
             timeout: 10
         )
         guard result.exitCode == 0 else { return nil }
-        let text = result.stdout
-        return String(text.prefix(4096)).trimmingCharacters(in: .whitespacesAndNewlines)
+        return Self.textIfPrintable(String(result.stdout.prefix(4096)))
     }
 
     private func readVideoPreview(_ url: URL) -> [String] {

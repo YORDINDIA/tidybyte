@@ -101,7 +101,7 @@ enum ExploreChartPalette {
     }
 }
 
-private extension Array {
+extension Array {
     subscript(safeIfValid index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
@@ -129,6 +129,12 @@ enum ExploreTreeBuilder {
         members(of: group, in: files).max { $0.sizeBytes < $1.sizeBytes }
     }
 
+    /// Items one record stands for in a file count. A summarized folder stands
+    /// for its items; a plain folder or package stands for none.
+    static func itemCount(of file: FileRecord) -> Int {
+        file.rolledUpItemCount ?? (file.kind == .directory || file.kind == .package ? 0 : 1)
+    }
+
     /// All scanned records belonging to a group: folder groups match by path
     /// prefix (their `id` is the folder path), type groups match by extension,
     /// age groups match by last-touched bucket.
@@ -137,6 +143,9 @@ enum ExploreTreeBuilder {
             let ext = String(group.id.dropFirst(4))
             if ext == String(localized: "No Extension", comment: "Explore extension key for files without one") {
                 return files.filter { ($0.fileExtension ?? "").isEmpty }
+            }
+            if ext == summarizedFoldersTitle {
+                return files.filter { $0.rolledUpItemCount != nil }
             }
             let wanted = ext.hasPrefix(".") ? String(ext.dropFirst()) : ext
             return files.filter { ($0.fileExtension ?? "").lowercased() == wanted.lowercased() }
@@ -231,144 +240,18 @@ enum ExploreTreeBuilder {
         }
     }
 
-    // MARK: - By Folder
-
-    private final class FolderTrieNode {
-        let name: String
-        let path: String
-        var bytes: Int64 = 0
-        var fileCount: Int = 0
-        var children: [String: FolderTrieNode] = [:]
-
-        init(name: String, path: String) {
-            self.name = name
-            self.path = path
-        }
-    }
-
-    private static func buildFolderTree(
-        files: [FileRecord],
-        maxDepth: Int,
-        maxChildren: Int
-    ) -> [ExploreGroup] {
-        guard !files.isEmpty else {
-            return []
-        }
-        let componentLists = files.map { $0.url.pathComponents }
-        let commonLength = commonPrefixLength(of: componentLists)
-        let commonPath = joinComponents(componentLists.first?.prefix(commonLength) ?? [])
-        let rootName: String = {
-            let last = URL(fileURLWithPath: commonPath).lastPathComponent
-            return last.isEmpty ? commonPath : last
-        }()
-        let root = FolderTrieNode(name: rootName, path: commonPath)
-        for file in files {
-            let components = file.url.pathComponents
-            let relative = Array(components.dropFirst(commonLength))
-            // The last component is the file itself; intermediate components
-            // are folders. A summarized folder is a folder all the way down, and
-            // stands for every item inside. Anything deeper than maxDepth rolls up.
-            let items = file.rolledUpItemCount
-            let folders = Array((items == nil ? relative.dropLast() : relative[...]).prefix(maxDepth))
-            root.bytes += max(0, file.sizeBytes)
-            root.fileCount += items ?? 1
-            var node = root
-            var pathSoFar = commonPath
-            for folder in folders {
-                pathSoFar += "/" + folder
-                if node.children[folder] == nil {
-                    node.children[folder] = FolderTrieNode(name: folder, path: pathSoFar)
-                }
-                guard let next = node.children[folder] else {
-                    break
-                }
-                next.bytes += max(0, file.sizeBytes)
-                next.fileCount += items ?? 1
-                node = next
-            }
-        }
-        // Depth-1 children of the common root are the top-level groups.
-        let top = root.children.values.sorted { $0.bytes > $1.bytes }
-        return cappedGroups(from: top, maxChildren: maxChildren, paletteBase: 0)
-    }
-
-    private static func cappedGroups(
-        from nodes: [FolderTrieNode],
-        maxChildren: Int,
-        paletteBase: Int
-    ) -> [ExploreGroup] {
-        let kept = Array(nodes.prefix(max(1, maxChildren)))
-        var groups = kept.enumerated().map { index, node in
-            convertNode(node, paletteIndex: paletteBase + index)
-        }
-        let remainder = nodes.dropFirst(kept.count)
-        if !remainder.isEmpty {
-            let bytes = remainder.reduce(Int64(0)) { $0 + $1.bytes }
-            let count = remainder.reduce(0) { $0 + $1.fileCount }
-            groups.append(ExploreGroup(
-                id: "__other__",
-                name: String(localized: "Other", comment: "Explore rollup group for small entries"),
-                bytes: bytes,
-                fileCount: count,
-                detail: nil,
-                paletteIndex: paletteBase + kept.count,
-                children: []
-            ))
-        }
-        return groups
-    }
-
-    private static func convertNode(_ node: FolderTrieNode, paletteIndex: Int) -> ExploreGroup {
-        let kids = node.children.values.sorted { $0.bytes > $1.bytes }
-        return ExploreGroup(
-            id: node.path.isEmpty ? node.name : node.path,
-            name: node.name,
-            bytes: node.bytes,
-            fileCount: node.fileCount,
-            detail: node.path,
-            paletteIndex: paletteIndex,
-            usesFolderPastel: true,
-            children: kids.map { convertNode($0, paletteIndex: paletteIndex) }
-        )
-    }
-
-    private static func commonPrefixLength(of lists: [[String]]) -> Int {
-        guard let first = lists.first else {
-            return 0
-        }
-        var length = 0
-        for component in first {
-            let matchesAll = lists.allSatisfy { $0.count > length && $0[length] == component }
-            guard matchesAll else {
-                break
-            }
-            length += 1
-        }
-        return length
-    }
-
-    private static func joinComponents(_ components: ArraySlice<String>) -> String {
-        let parts = Array(components)
-        guard !parts.isEmpty else {
-            return "/"
-        }
-        if parts == ["/"] {
-            return "/"
-        }
-        var joined = parts.joined(separator: "/")
-        if !joined.hasPrefix("/") {
-            joined = "/" + joined
-        }
-        return joined
-    }
-
     // MARK: - By Type
+
+    /// Group title for summarized folders in By Type. Shared with `members(of:)`.
+    private static var summarizedFoldersTitle: String {
+        String(localized: "Summarized Folders", comment: "Explore group for folders shown as one total")
+    }
 
     private static func buildTypeGroups(files: [FileRecord], maxChildren: Int) -> [ExploreGroup] {
         let grouped = Dictionary(grouping: files) { file -> String in
             // A folder name is not a file type: summarized folders get one group.
             if file.rolledUpItemCount != nil {
-                return String(localized: "Summarized Folders", comment: "Explore group for folders shown as one total")
+                return summarizedFoldersTitle
             }
             let ext = (file.fileExtension ?? "").lowercased()
             return ext.isEmpty
@@ -385,7 +268,7 @@ enum ExploreTreeBuilder {
                 id: "ext:\(entry.key)",
                 name: entry.key,
                 bytes: entry.files.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
-                fileCount: entry.files.reduce(0) { $0 + ($1.rolledUpItemCount ?? 1) },
+                fileCount: entry.files.reduce(0) { $0 + itemCount(of: $1) },
                 detail: nil,
                 paletteIndex: index,
                 children: []
@@ -398,7 +281,7 @@ enum ExploreTreeBuilder {
                 id: "__other__",
                 name: String(localized: "Other", comment: "Explore rollup group for small entries"),
                 bytes: rest.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
-                fileCount: rest.reduce(0) { $0 + ($1.rolledUpItemCount ?? 1) },
+                fileCount: rest.reduce(0) { $0 + itemCount(of: $1) },
                 detail: nil,
                 paletteIndex: kept.count,
                 children: []
@@ -411,12 +294,12 @@ enum ExploreTreeBuilder {
 
     private static func buildAgeGroups(files: [FileRecord]) -> [ExploreGroup] {
         let now = Date()
-        let buckets: [(id: String, title: String, upperBoundDays: Double?)] = [
-            ("7d", String(localized: "Last 7 days", comment: "Explore age bucket"), 7),
-            ("30d", String(localized: "Last 30 days", comment: "Explore age bucket"), 30),
-            ("90d", String(localized: "Last 90 days", comment: "Explore age bucket"), 90),
-            ("1y", String(localized: "Last year", comment: "Explore age bucket"), 365),
-            ("older", String(localized: "Over a year ago", comment: "Explore age bucket"), nil),
+        let buckets: [(id: String, title: String)] = [
+            ("7d", String(localized: "Last 7 days", comment: "Explore age bucket")),
+            ("30d", String(localized: "Last 30 days", comment: "Explore age bucket")),
+            ("90d", String(localized: "Last 90 days", comment: "Explore age bucket")),
+            ("1y", String(localized: "Last year", comment: "Explore age bucket")),
+            ("older", String(localized: "Over a year ago", comment: "Explore age bucket"))
         ]
         var bucketed: [String: [FileRecord]] = [:]
         var unknown: [FileRecord] = []
@@ -449,7 +332,7 @@ enum ExploreTreeBuilder {
                 id: "age:\(bucket.id)",
                 name: bucket.title,
                 bytes: members.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
-                fileCount: members.count,
+                fileCount: members.reduce(0) { $0 + itemCount(of: $1) },
                 detail: nil,
                 paletteIndex: index,
                 children: []
@@ -460,7 +343,7 @@ enum ExploreTreeBuilder {
                 id: "age:unknown",
                 name: String(localized: "Unknown date", comment: "Explore age bucket for files without dates"),
                 bytes: unknown.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
-                fileCount: unknown.count,
+                fileCount: unknown.reduce(0) { $0 + itemCount(of: $1) },
                 detail: nil,
                 paletteIndex: buckets.count,
                 children: []

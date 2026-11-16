@@ -33,7 +33,10 @@ struct RelationshipGraphView: View {
                 
                 .foregroundStyle(Color.primary)
             Spacer()
-            Text(String(localized: "\(edges.count) connections", comment: "Relationship edge count"))
+            Text(
+                edges.count == 1
+                    ? String(localized: "1 connection", comment: "Relationship edge count, singular")
+                    : String(localized: "\(edges.count) connections", comment: "Relationship edge count"))
                 .appFont(.labelMedium)
                 
                 .foregroundStyle(Color.secondary)

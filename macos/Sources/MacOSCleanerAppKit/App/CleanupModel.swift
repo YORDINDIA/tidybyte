@@ -20,7 +20,18 @@ final class CleanupModel {
             }
         }
     }
-    var settings = CleanupSettings()
+    /// Every change persists from the model, so any surface that binds to a
+    /// setting saves it, whether or not its view stays on screen (MAC-29).
+    var settings = CleanupSettings() {
+        didSet {
+            guard !suppressSettingsSave, settings != oldValue else { return }
+            scheduleSettingsSave()
+        }
+    }
+    /// Set while the stored settings are read or cleared, so loading does not write them back.
+    var suppressSettingsSave = false
+    /// The latest pending settings save. Clear All Data cancels and awaits it before the store is wiped.
+    var settingsSaveTask: Task<Void, Never>?
     var result: AnalysisResult?
     var session: ReviewSession?
     var reviewed: [String: ReviewChoice] = [:]
@@ -79,7 +90,11 @@ final class CleanupModel {
         defer { hasLoaded = true }
         do {
             scope = try await store.loadCleanupState(ReviewScope.self, key: "scope") ?? scope
-            settings = try await store.loadCleanupState(CleanupSettings.self, key: "settings") ?? settings
+            if let stored = try await store.loadCleanupState(CleanupSettings.self, key: "settings") {
+                suppressSettingsSave = true
+                settings = stored
+                suppressSettingsSave = false
+            }
             session = (try await store.loadCleanupState(ReviewSession?.self, key: "draft")).flatMap { $0 }
             result = try await store.loadCleanupState(AnalysisResult.self, key: "inventory")
             result?.isFresh = false
@@ -181,25 +196,18 @@ final class CleanupModel {
                 if analyzed.isFresh { try await store.saveCleanupSnapshot(snapshot) }
                 try await reloadHistory()
                 startMonitoring()
-                try await updateReminder()
+                await refreshReminder()
             } catch is CancellationError { result?.isFresh = false } catch { surfaceError(error) }
         }
     }
 
-    func cancel() { task?.cancel() }
-
-    func saveSettings() async {
-        do {
-            try await store.saveCleanupState(settings, key: "settings")
-            if result?.settingsVersion != settings.analysisVersion {
-                result?.isFresh = false
-            } else {
-                result?.settings = settings
-            }
-            try await updateReminder()
-        } catch { self.error = error.localizedDescription }
+    /// A denied reminder permission must not turn a scan or a settings change into a failure,
+    /// so the reminder error becomes a notice.
+    func refreshReminder() async {
+        do { try await updateReminder() } catch { notice = error.localizedDescription }
     }
 
+    func cancel() { task?.cancel() }
     func items(for tool: CleanupTool) -> [ReviewItem] {
         guard let result else { return [] }
         return MediaAnalysisService.candidates(tool, in: result)
@@ -337,7 +345,10 @@ extension CleanupModel {
         _ decisions: [ReviewDecision], tool: CleanupTool, batchID: String,
         completion: @escaping @MainActor () async throws -> Void
     ) {
-        guard !isBusy else { return }
+        guard !isBusy else {
+            error = String(localized: "Wait until the current cleanup finishes, then try again.")
+            return
+        }
         isBusy = true
         error = nil
         notice = nil
@@ -449,7 +460,10 @@ extension CleanupModel {
     }
 
     func restore(_ event: ActivityEvent) async {
-        guard !isBusy, !isSaving else { return }
+        guard !isBusy, !isSaving else {
+            error = String(localized: "Wait until the current cleanup finishes, then restore again.")
+            return
+        }
         isBusy = true
         defer { isBusy = false }
         do {

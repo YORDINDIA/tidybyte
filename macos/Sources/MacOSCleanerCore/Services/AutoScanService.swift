@@ -146,7 +146,12 @@ public enum LaunchAgentInstaller {
     }
 
     public static func remove() {
-        try? service.unregister()
+        do {
+            try service.unregister()
+        } catch {
+            // The signature is kept for existing callers; the failure is logged, not hidden.
+            logger.error("Could not unregister autoscan agent: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     private static let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "LaunchAgentInstaller")
@@ -188,29 +193,40 @@ public enum AutoScanRunner {
     private static let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "AutoScanRunner")
     public static let lastRunKey = "lastAutoScanDate"
 
-    /// Returns when the run finished (exit code conveys success). Top-level
-    /// `--autoscan` handling in the executable exits the process afterwards.
+    /// Runs the gated maintenance pass and returns the process exit code:
+    /// 0 when the pass finished, was not due, or auto-scan is disabled; 1 when
+    /// the pass failed. The executable passes this value to `exit`.
     @discardableResult
-    public static func run() async -> Bool {
+    public static func run() async -> Int32 {
         let defaults = UserDefaults.standard
         guard defaults.bool(forKey: AutoScanSettingsKey.enabled.rawValue) else {
             logger.info("Auto-scan disabled; exiting")
-            return false
+            return 0
         }
         guard isDue(defaults: defaults) else {
-            return false
+            return 0
         }
+        return await runPass(defaults: defaults) { try await runMaintenancePass() }
+    }
+
+    /// Runs one pass and maps its outcome to an exit code. The pass is a
+    /// parameter so the failure branch can be tested without a real scan.
+    static func runPass(
+        defaults: UserDefaults,
+        pass: () async throws -> MaintenanceSummary
+    ) async -> Int32 {
         do {
-            let summary = try await runMaintenancePass()
+            let summary = try await pass()
             defaults.set(Date(), forKey: lastRunKey)
             await NotificationScheduler().scheduleScanCompletedNotification(
                 reclaimedBytes: summary.freedBytes
             )
             logger.info("Auto-scan finished: \(summary.foldCount) folds, \(summary.failureCount) failures")
-            return true
+            // Per-action failures are recorded in the summary, not thrown, so the exit code reads them here.
+            return summary.failureCount > 0 ? 1 : 0
         } catch {
             logger.error("Auto-scan failed: \(error.localizedDescription, privacy: .public)")
-            return false
+            return 1
         }
     }
 
@@ -236,7 +252,7 @@ public enum AutoScanRunner {
         return due
     }
 
-    private struct MaintenanceSummary {
+    struct MaintenanceSummary {
         let foldCount: Int
         let failureCount: Int
         let freedBytes: Int64

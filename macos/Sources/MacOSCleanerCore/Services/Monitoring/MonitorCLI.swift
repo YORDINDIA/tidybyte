@@ -55,8 +55,10 @@ public enum MonitorCLI {
         let engine = MonitoringEngine(
             history: nil, alertEngine: nil, isLightweight: true, includesSlowProbes: includesSlowProbes)
         // Two ticks: the first establishes counter baselines, the second
-        // produces real rates.
+        // produces real rates. Rates divide by the time between the ticks. Back-to-back
+        // calls leave only milliseconds between them, which inflates every rate.
         _ = await engine.sample(interval: 1)
+        try? await Task.sleep(for: .seconds(1))
         var snapshot = await engine.sample(interval: 1)
         if snapshot.groups.isEmpty {
             snapshot.groups = AppProcessCatalog.group(snapshot.processes, mode: .byApp)

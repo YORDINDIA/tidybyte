@@ -10,8 +10,7 @@ public struct SafetyAuditResult: Codable, Sendable {
     public var decision: SafetyDecision
     public var reasons: [String]
     public var undoStatus: UndoStatus
-    /// When the audit ran. Executors treat audits older than `auditFreshnessWindow`
-    /// as stale and must re-audit before mutating.
+    /// When the audit ran. Executors audit each action immediately before running it.
     public var auditedAt: Date
 }
 
@@ -19,8 +18,6 @@ public struct SafetyAuditResult: Codable, Sendable {
 public enum ExecutionLimits {
     public static let maxActionsPerBatch = 200
     public static let maxBytesPerBatch: Int64 = 50_000_000_000
-    /// An audit older than this must be re-run before mutation.
-    public static let auditFreshnessWindow: TimeInterval = 60
 }
 
 public enum SafetyAuditError: Error, LocalizedError, Sendable {
@@ -28,6 +25,9 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
     case identityMismatch(URL)
     case unapprovedAction
     case unsafePath(URL, Set<RiskFlag>)
+    /// A folder or package holds credential material, or holds content that cannot
+    /// be checked. `child` is the entry that blocked it.
+    case containsProtectedContent(folder: URL, child: URL)
     case symlinkTarget(URL)
     case cloudSideEffect(URL)
     case highRiskDestructiveAction(URL)
@@ -35,7 +35,6 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
     /// Target existed at audit time but is gone by mutation time — nothing to act on.
     case targetVanished(URL)
     case unsafeDestination(URL)
-    case staleAudit(URL)
     /// A cloneDeduplicate action names no keeper (destination), or the keeper
     /// is not among the scanned files.
     case missingKeeper(URL?)
@@ -54,6 +53,10 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
         case .unsafePath(let url, let flags):
             let flagNames = flags.map(\.rawValue).joined(separator: ", ")
             return String(localized: "Unsafe path rejected: \(url.path) (\(flagNames))", comment: "Safety audit protected-path rejection")
+        case .containsProtectedContent(let folder, let child):
+            return String(
+                localized: "Not trashed: \(folder.path) holds protected or unreadable content (\(child.path)).",
+                comment: "Safety audit rejection for a folder with protected contents")
         case .symlinkTarget(let url):
             return String(localized: "Destructive actions against symlinks are rejected: \(url.path)", comment: "Safety audit symlink rejection")
         case .cloudSideEffect(let url):
@@ -66,8 +69,6 @@ public enum SafetyAuditError: Error, LocalizedError, Sendable {
             return String(localized: "Target no longer exists on disk: \(url.path)", comment: "Target vanished before execution")
         case .unsafeDestination(let url):
             return String(localized: "Action destination is not safe: \(url.path)", comment: "Unsafe action destination error")
-        case .staleAudit(let url):
-            return String(localized: "Safety audit for \(url.path) is stale; re-audit before executing.", comment: "Stale audit error")
         case .missingKeeper(let url):
             if let url {
                 return String(localized: "Clone action has no keeper file on record: \(url.path)", comment: "Missing clone keeper error")
@@ -219,8 +220,15 @@ public actor SafetyAuditor {
                 throw SafetyAuditError.symlinkTarget(record.url)
             }
             if requiresIntegrity(action.actionType) {
-                if case .deny = policy.decide(target: record.url, isDirectory: record.kind == .directory) {
-                    throw SafetyAuditError.unsafePath(record.url, policy.riskFlags(for: record.url, isDirectory: record.kind == .directory))
+                let isDirectory = record.kind == .directory
+                if case .deny = policy.decide(target: record.url, isDirectory: isDirectory) {
+                    throw SafetyAuditError.unsafePath(record.url, policy.riskFlags(for: record.url, isDirectory: isDirectory))
+                }
+                // Trashing a folder takes its contents along. Tags and clone folds
+                // change nothing that is removed, so only destructive actions check contents.
+                if isDestructive(action.actionType), record.kind != .regularFile,
+                   let blocked = policy.firstProtectedDescendant(of: record.url) {
+                    throw SafetyAuditError.containsProtectedContent(folder: record.url, child: blocked)
                 }
             }
             // `decide` already resolves symlinked ancestors internally; this

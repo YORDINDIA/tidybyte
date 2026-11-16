@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import os
 @preconcurrency import Vision
@@ -109,6 +110,9 @@ public actor DuplicateDetector {
         var uniqueStorage: [FileRecord] = []
         uniqueStorage.reserveCapacity(candidates.count)
         for file in candidates {
+            // One representative per inode joins the grouping. Its other names add
+            // nothing new, so they are dropped. The representative itself is never
+            // a trash target (see `selectKeeper`).
             if let device = file.identity.deviceIdentifier,
                let inode = file.identity.inodeIdentifier {
                 guard seenInodes.insert("\(device)-\(inode)").inserted else { continue }
@@ -170,12 +174,19 @@ public actor DuplicateDetector {
             // mtime both match, so unchanged files skip the disk entirely.
             var resolvedHashes: [String: String] = [:]
             var pendingHash: [String: FileRecord] = [:]
+            // Only a file whose identity can be read is cached. Without a stamp the
+            // cache cannot tell a replaced file from the old one, so it is hashed fresh.
+            var stamps: [String: (inode: UInt64, changedAtNanoseconds: Int64)] = [:]
             for file in fullHashCandidates {
-                if let hashCache,
+                let stamp = Self.changeStamp(of: file.url)
+                if let stamp { stamps[file.id] = stamp }
+                if let hashCache, let stamp,
                    let cached = try? await hashCache.cachedFullHash(
                         forPath: file.url.path,
                         sizeBytes: file.sizeBytes,
-                        modifiedAt: file.modifiedAt
+                        modifiedAt: file.modifiedAt,
+                        inode: stamp.inode,
+                        changedAtNanoseconds: stamp.changedAtNanoseconds
                    ) {
                     resolvedHashes[file.id] = cached
                 } else {
@@ -203,12 +214,15 @@ public actor DuplicateDetector {
             // Persist fresh hashes so the next scan skips re-reading these files.
             if let hashCache, !freshHashes.isEmpty {
                 let entries = freshHashes.compactMap { entry -> FileHashCacheEntry? in
-                    guard let hash = entry.value, let file = pendingHash[entry.key] else { return nil }
+                    guard let hash = entry.value, let file = pendingHash[entry.key],
+                          let stamp = stamps[file.id] else { return nil }
                     return FileHashCacheEntry(
                         path: file.url.path,
                         sizeBytes: file.sizeBytes,
                         modifiedAt: file.modifiedAt,
-                        fullHash: hash
+                        fullHash: hash,
+                        inode: stamp.inode,
+                        changedAtNanoseconds: stamp.changedAtNanoseconds
                     )
                 }
                 try? await hashCache.saveFileHashes(entries)
@@ -321,9 +335,14 @@ public actor DuplicateDetector {
     /// while a local copy exists — folding a local file onto a cloud-synced
     /// twin would make the sync engine see an inode swap.
     static func selectKeeper(sortedNewestFirst members: [FileRecord]) -> (keeper: FileRecord, duplicates: [FileRecord])? {
-        guard let newest = members.first, members.count > 1 else { return nil }
-        let keeper = members.first { $0.cloudProvider == nil } ?? newest
-        return (keeper, members.filter { $0.id != keeper.id })
+        guard members.count > 1 else { return nil }
+        // A file with other hard links keeps its storage when the other names go.
+        // It stays the keeper, and no file with other hard links is ever a trash target.
+        let keeper = members.first { ($0.linkCount ?? 1) > 1 }
+            ?? members.first { $0.cloudProvider == nil }
+            ?? members[0]
+        let duplicates = members.filter { $0.id != keeper.id && ($0.linkCount ?? 1) <= 1 }
+        return duplicates.isEmpty ? nil : (keeper, duplicates)
     }
 
     /// Newest copy of an exact-match group wins the keeper slot — the same
@@ -560,5 +579,14 @@ public actor DuplicateDetector {
                 ))
             }
         }
+    }
+
+    /// Inode and status-change time from one lstat, with the time kept as integer
+    /// nanoseconds. Nil when the file cannot be read.
+    static func changeStamp(of url: URL) -> (inode: UInt64, changedAtNanoseconds: Int64)? {
+        var info = stat()
+        guard lstat(url.path, &info) == 0 else { return nil }
+        let nanoseconds = Int64(info.st_ctimespec.tv_sec) * 1_000_000_000 + Int64(info.st_ctimespec.tv_nsec)
+        return (UInt64(info.st_ino), nanoseconds)
     }
 }
