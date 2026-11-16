@@ -271,9 +271,9 @@ struct SessionCompletionView: View {
         pendingExit = nil
         Task {
             await viewModel.commitDeletions()
-            // Only leave once the deletion actually committed — on failure the
-            // error alert keeps the user on the review screen with a Retry.
-            guard viewModel.deletionCommitted else { return }
+            // Only leave once nothing is pending. `deletionCommitted` stays true
+            // after an earlier batch, so it cannot tell a failed retry apart.
+            guard !viewModel.hasPendingDeletions else { return }
             performExit(to: destination)
         }
     }

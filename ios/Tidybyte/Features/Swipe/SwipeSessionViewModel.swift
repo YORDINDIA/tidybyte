@@ -533,6 +533,9 @@ final class SwipeSessionViewModel {
         // drops pending ids (`deckAssets`), so rebuilding from `assets` alone
         // reports zero freed bytes for them.
         let sizeById = pendingDeletionSizeById
+        // Ids this batch sends. A swipe made while the request is in flight
+        // joins `pendingDeletionIds` and must survive the success path.
+        let requestedIds = Set(pendingDeletionIds)
         do {
             let result = try await photoService.deleteAssets(identifiers: pendingDeletionIds)
             let confirmedIds = result.deletedIds
@@ -541,12 +544,12 @@ final class SwipeSessionViewModel {
             committedDeletionBytes += freedBytes
             CleanupLedger.shared.record(kind: .swipe, deletedIds: confirmedIds, sizeOf: { sizeById[$0] ?? 0 })
             deletionCommitted = true
-            // Replace the optimistic per-swipe tally with the exact one — same
-            // visible result on first-pass success, no double-count on retry.
-            sessionStats.deletedCount = committedDeletionCount
-            sessionStats.deletedBytes = committedDeletionBytes
-            pendingDeletionIds.removeAll()
-            pendingDeletionSizeById.removeAll()
+            pendingDeletionIds.removeAll { requestedIds.contains($0) }
+            for id in requestedIds { pendingDeletionSizeById.removeValue(forKey: id) }
+            // Replace the optimistic per-swipe tally with the exact one. Swipes
+            // still pending after the commit stay in the tally.
+            sessionStats.deletedCount = committedDeletionCount + pendingDeletionIds.count
+            sessionStats.deletedBytes = committedDeletionBytes + pendingDeletionBytes
             HapticHelper.notification(.success)
         } catch is CancellationError {
             // A cancel is not a failure: nothing was deleted, so stay quiet

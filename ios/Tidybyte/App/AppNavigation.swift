@@ -97,7 +97,6 @@ final class AppNavigation {
     func showActivity() {
         storagePath = [.activity]
         selectedTab = .storage
-        requestSwipeDismissal()
     }
 
     /// Parks a request that would destroy a hosted session's uncommitted
@@ -171,7 +170,9 @@ final class AppNavigation {
         // replays when the user next lands on the swipe home (A1).
         if let session = activeSwipeSession, session.hasPendingDeletions {
             pendingSwipeFilter = filter
-            selectedTab = .swipe
+            // Switch to the tab that hosts the session. The review is requested
+            // on that session, so switching to `.swipe` would show nothing.
+            selectedTab = activeSwipeSessionTab ?? .swipe
             session.requestDeletionReview()
             return
         }

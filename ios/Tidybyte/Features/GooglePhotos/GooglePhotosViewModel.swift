@@ -172,6 +172,9 @@ final class GooglePhotosViewModel {
         if case GoogleAuthError.signedOut = error {
             isSignedIn = false
             result = nil
+            quota = nil
+            selectedIds = []
+            doneIds = []
         }
         errorMessage = error.localizedDescription
     }

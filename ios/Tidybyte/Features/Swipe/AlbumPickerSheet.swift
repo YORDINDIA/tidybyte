@@ -238,8 +238,9 @@ struct AlbumPickerSheet: View {
 
     private func selectAlbum(_ album: AlbumInfo) {
         guard !isAddingToAlbum else { return }
+        // Set before the Task starts: two taps before it runs would both pass the guard.
+        isAddingToAlbum = true
         Task {
-            isAddingToAlbum = true
             defer { isAddingToAlbum = false }
             if let failure = await onAlbumSelected(album.id) {
                 errorMessage = failure
