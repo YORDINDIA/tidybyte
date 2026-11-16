@@ -195,7 +195,13 @@ actor VideoCompressionService {
             if Task.isCancelled || exportSession.status == .cancelled {
                 throw CompressionError.cancelled
             }
-            throw CompressionError.exportFailed(exportSession.error?.localizedDescription ?? L10n.string("Unknown error"))
+            // Domain and code in the text: AVFoundation's sentence is often
+            // generic, and the row text is the only thing a reporter can send.
+            guard let error = exportSession.error as NSError? else {
+                throw CompressionError.exportFailed(L10n.string("Unknown error"))
+            }
+            AppLog.compression.error("Export failed: \(String(describing: error), privacy: .public)")
+            throw CompressionError.exportFailed("\(error.localizedDescription) (\(error.domain) \(error.code))")
         }
 
         // Verify the exported file exists and is non-empty before trusting it.

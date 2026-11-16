@@ -270,6 +270,9 @@ enum CompressionBatchRunner {
                     skipped += 1
                     continue
                 }
+                // The full error, for the journal, load and save steps. The
+                // export step logs its NSError where it throws.
+                AppLog.compression.error("Compression failed for \(id, privacy: .public): \(String(describing: error), privacy: .public)")
                 failed += 1
                 handlers.setState(index, .failed(error.localizedDescription))
             }
