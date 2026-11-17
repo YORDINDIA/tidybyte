@@ -18,12 +18,12 @@ TidyByte is a native iOS app (Swift/SwiftUI, iOS 17+) that helps users clean up 
 
 ## Testing devices
 
-- **Boot one iPhone simulator only.** Run every build, test and manual check on that one device. Do not boot an iPad or an iPhone Duo simulator to check a layout, and do not run the suite again once per device.
+- **Boot one iPhone simulator only.** Run every simulator build, test and manual layout check on that one device. Do not boot an iPad or an iPhone Duo simulator to check a layout, and do not run the suite again once per device. Photo-library operations still need a physical device (see above).
 - **Every change must still work on iPhone, iPad and iPhone Duo.** Check the other sizes from the one booted iPhone:
   1. Base layout on geometry (window width, size class), not on `userInterfaceIdiom`. A Duo inner display reports `.phone` but is wide.
   2. Make sure the view works at these widths: Duo outer 466 × 678 pt, Duo inner 669 × 951 pt, narrowest iPad 744 pt, and iPad in all orientations.
-  3. To see a view at one of these sizes, host it at a fixed frame inside the booted iPhone (a unit test with `UIHostingController` at that frame, or a `#Preview` with a fixed-size layout). Do not boot a new device for it.
-  4. `IPadLayoutUITests` and `DuoLayoutUITests` gate on window width, so they skip or pass on the iPhone. Keep new wide-layout tests geometry-gated the same way.
+  3. To see a view at one of these sizes, host it at a fixed frame inside the booted iPhone (a unit test with `UIHostingController` at that frame, or a `#Preview` with a fixed-size layout). A fixed frame does not change the size class, so also set it: `.environment(\.horizontalSizeClass, .regular)` for the 669 pt and iPad widths, `.compact` for 466 pt. Do not boot a new device for it.
+  4. `IPadLayoutUITests` skips when the window is narrower than 600 pt, so it skips on the iPhone. `DuoLayoutUITests` runs on every window and only changes its edge-band assertion at 600 pt. A new test that checks only the wide layout must skip explicitly (`XCTSkipUnless` on window width), or it passes on the iPhone without testing anything.
 
 ## Architecture
 
