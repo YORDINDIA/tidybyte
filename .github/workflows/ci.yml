@@ -19,6 +19,9 @@ jobs:
   # was a wait for a free macOS runner. Pushes to main always run it.
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       ios: ${{ steps.diff.outputs.ios }}
     steps:
@@ -31,7 +34,8 @@ jobs:
           if [ "$EVENT" != pull_request ]; then echo "ios=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')
           echo "$files"
-          if grep -qE '^(ios/|\.github/workflows/ci\.yml$)' <<< "$files"; then
+          # An empty list is treated as unknown, so the iOS job runs.
+          if [ -z "$files" ] || grep -qE '^(ios/|\.github/workflows/ci\.yml$)' <<< "$files"; then
             echo "ios=true" >> "$GITHUB_OUTPUT"
           else
             echo "ios=false" >> "$GITHUB_OUTPUT"
@@ -45,7 +49,10 @@ jobs:
   build-and-test:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.ios != 'false' }}
-    runs-on: macos-15
+    # macos-15 often gives no runner at all: the job waits 15 minutes and is
+    # cancelled (actions/runner-images#15291). macos-26 ships the same
+    # Xcode_26.3.app, and macos.yml already runs there.
+    runs-on: macos-26
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
       # One DerivedData for Build, the catalog refresh and Test. refresh.sh
