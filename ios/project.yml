@@ -18,8 +18,8 @@ settings:
     CURRENT_PROJECT_VERSION: 11
     MARKETING_VERSION: "1.2.0"
     # Google Photos source (optional). The iOS OAuth client ID from Google
-    # Cloud, e.g. 1234-abc.apps.googleusercontent.com. Empty hides the source in
-    # release builds. Setup: ios/docs/google-photos-oauth-setup.md.
+    # Cloud, e.g. 1234-abc.apps.googleusercontent.com. Empty (or not a
+    # *.apps.googleusercontent.com ID) hides the source in every build. Setup: ios/docs/google-photos-oauth-setup.md.
     GOOGLE_IOS_CLIENT_ID: ""
     INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "TidyByte needs access to your photo library to help you organize and clean up photos and videos."
     INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "TidyByte needs write access to save compressed videos and converted photos."

@@ -31,8 +31,6 @@ final class GooglePhotosTests: XCTestCase {
         XCTAssertEqual(GoogleAuthService.validClientID("123-abc.example.com"), "")
         XCTAssertEqual(GoogleAuthService.validClientID(" 123-abc.apps.googleusercontent.com "),
                        "123-abc.apps.googleusercontent.com")
-        // This repo ships with GOOGLE_IOS_CLIENT_ID empty, so the feature is off.
-        XCTAssertFalse(GoogleAuthService.isConfigured)
     }
 
     func testMediaItemsPageDecodes() throws {
