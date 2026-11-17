@@ -170,6 +170,9 @@ struct CardView: View {
                                 backgroundColor: .clear
                             )
                             .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                            .scaleEffect(zoomState.scale)
+                            .offset(zoomState.offset)
                             .allowsHitTesting(false)
                         }
                     }

@@ -96,11 +96,18 @@ final class GooglePhotosViewModel {
     func loadPreviewImage(for item: CloudMediaItem) async -> UIImage? {
         guard isSignedIn else { return nil }
         let generation = sessionGeneration
-        guard let data = try? await api.thumbnailData(of: item, size: 1600),
-              generation == sessionGeneration else {
+        do {
+            let data = try await api.thumbnailData(of: item, size: 1600)
+            guard generation == sessionGeneration else { return nil }
+            return UIImage(data: data)
+        } catch GoogleAuthError.signedOut {
+            if generation == sessionGeneration {
+                handle(GoogleAuthError.signedOut)
+            }
+            return nil
+        } catch {
             return nil
         }
-        return UIImage(data: data)
     }
 
     func deselectAll() {

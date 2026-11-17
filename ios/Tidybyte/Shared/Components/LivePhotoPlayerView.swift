@@ -31,6 +31,9 @@ struct LivePhotoPlayerView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: PHLivePhotoView, context: Context) {
+        if uiView.backgroundColor != backgroundColor {
+            uiView.backgroundColor = backgroundColor
+        }
         // COMP-14: the page went inactive — tear down immediately (a pager
         // keeps adjacent pages alive, so dismantleUIView is never called).
         guard isActive else {
