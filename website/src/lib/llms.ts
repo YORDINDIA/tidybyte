@@ -106,6 +106,20 @@ function hasAriaHiddenTrue(attrs: string): boolean {
   return false;
 }
 
+function appendSubtreeBoundary(out: string, html: string, nextIndex: number): string {
+  const prevChar = out.slice(-1);
+  const nextChar = html.slice(nextIndex, nextIndex + 1);
+  if (
+    prevChar &&
+    nextChar &&
+    !/[\s(\["'“‘]/.test(prevChar) &&
+    !/[\s.,;:!?)\]"'”’]/.test(nextChar)
+  ) {
+    return `${out} `;
+  }
+  return out;
+}
+
 /**
  * Removes every element subtree marked with `aria-hidden="true"`, tracking
  * nested tags of the same tag name so decorative mockups and hidden badges do
@@ -131,6 +145,7 @@ function stripAriaHidden(html: string): string {
         out += html.slice(lastIndex, match.index);
         if (isSelfClosing) {
           lastIndex = match.index + full.length;
+          out = appendSubtreeBoundary(out, html, lastIndex);
         } else {
           hideTag = tag;
           hideStart = match.index;
@@ -145,6 +160,7 @@ function stripAriaHidden(html: string): string {
         depth--;
         if (depth === 0) {
           lastIndex = match.index + full.length;
+          out = appendSubtreeBoundary(out, html, lastIndex);
           hideTag = "";
           hideStart = -1;
         }
@@ -155,7 +171,8 @@ function stripAriaHidden(html: string): string {
   }
 
   if (depth > 0 && hideStart >= 0) {
-    return out;
+    const snippet = html.slice(hideStart, hideStart + 80).replace(/\s+/g, " ");
+    throw new Error(`Unclosed <${hideTag} aria-hidden="true"> subtree near: ${snippet}`);
   }
   return out + html.slice(lastIndex);
 }

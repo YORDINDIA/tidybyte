@@ -506,8 +506,14 @@
         else if (dx < -60) commitSwipe('delete');
         else syncPositions();
       }
-      deck.addEventListener('pointerup', finishDrag);
-      deck.addEventListener('pointercancel', finishDrag);
+      // Listen at document level so a pointer that leaves the deck before
+      // horizontal capture is established still cleans up drag state.
+      document.addEventListener('pointerup', finishDrag);
+      document.addEventListener('pointercancel', finishDrag);
+      window.addEventListener('blur', function () {
+        if (!dragStart) return;
+        finishDrag({ type: 'pointercancel', pointerId: activePointerId });
+      });
 
       syncPositions();
     }

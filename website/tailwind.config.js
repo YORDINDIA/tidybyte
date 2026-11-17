@@ -87,7 +87,7 @@ module.exports = {
         content: '1120px',
       },
       boxShadow: {
-        // Soft, low shadows only — depth comes from card-vs-canvas contrast.
+        // Soft elevation on cards, deeper layered elevation on floating mockups.
         card: '0 1px 2px rgba(38, 34, 24, 0.05), 0 12px 30px -16px rgba(38, 34, 24, 0.14)',
         pop: '0 22px 50px -18px rgba(24, 22, 18, 0.28), 0 4px 14px -6px rgba(24, 22, 18, 0.12)',
       },
