@@ -87,13 +87,13 @@ module.exports = {
         content: '1120px',
       },
       boxShadow: {
-        // Soft, low shadows only — depth comes from card-vs-canvas contrast.
-        card: '0 1px 2px rgba(38, 34, 24, 0.05), 0 10px 28px -14px rgba(38, 34, 24, 0.14)',
-        pop: '0 16px 40px -16px rgba(38, 34, 24, 0.22)',
+        // Soft elevation on cards, deeper layered elevation on floating mockups.
+        card: '0 1px 2px rgba(38, 34, 24, 0.05), 0 12px 30px -16px rgba(38, 34, 24, 0.14)',
+        pop: '0 22px 50px -18px rgba(24, 22, 18, 0.28), 0 4px 14px -6px rgba(24, 22, 18, 0.12)',
       },
       backgroundImage: {
         'hero-glow':
-          'radial-gradient(ellipse 80% 55% at 50% -20%, rgba(255, 77, 139, 0.12), transparent 70%)',
+        'radial-gradient(ellipse 75% 55% at 50% -15%, rgba(255, 77, 139, 0.15), transparent 68%), radial-gradient(ellipse 45% 45% at 78% 12%, rgba(10, 132, 255, 0.09), transparent 70%)',
       },
     },
   },

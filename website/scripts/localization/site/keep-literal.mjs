@@ -20,7 +20,6 @@ export const KEEP_LITERAL = new Set([
   "App Store",
   "GitHub",
   "Vision",
-  "Photos",
   "SHA-256",
   "WhatsApp",
   "Telegram",
@@ -33,10 +32,35 @@ export const KEEP_LITERAL = new Set([
   "MB",
   "KB",
   "60s",
+  "12:05",
+  "2012-08-09",
+  "2024-10-14",
+  "2025-06-22",
+  "2025-11-03",
+  "1080p HD",
+  "macOS 26",
+  "APFS",
   "Macintosh HD",
   "IMG_4032.jpg",
   "IMG_4032 2.jpg",
   "holiday-video.mp4",
+  "/Applications",
+  "~/Downloads",
+  "~/Pictures",
+  "~/Library/Developer",
+  "~/Pictures/IMG_4032.jpg",
+  "~/Downloads/IMG_4032 2.jpg",
+  "~/Movies/holiday-video.mp4",
+  "Xcode DerivedData",
+  "node_modules",
+  "Homebrew Cache",
+  "Docker Build Cache",
+  "~/Library/Developer/Xcode/DerivedData",
+  "~/Projects/node_modules",
+  "~/Library/Caches/Homebrew",
+  "~/Library/Containers/com.docker.docker",
+  "sha256:9f8a4c12",
+  "sha256:3e1b8d09",
   "&middot;",
   "&#x2039;",
 ]);
@@ -44,8 +68,8 @@ export const KEEP_LITERAL = new Set([
 /// True when a page string is deliberately not translated.
 ///
 /// Matches the trimmed string exactly. A partial match would be wrong: the
-/// string "Photos never leave your phone" contains "Photos" and must be
-/// translated, while the bare legend label "Photos" must not.
+/// string "Macintosh HD is almost full" contains "Macintosh HD" and must be
+/// translated, while the bare disk label "Macintosh HD" must not.
 export function isKeepLiteral(text) {
   return KEEP_LITERAL.has(text.trim());
 }
