@@ -7,19 +7,63 @@ on:
     branches: [main]
 
 # A new push to a pull request cancels that PR's older run, which no one will
-# read. Runs on main are never cancelled, so every commit there gets a result.
+# read. Each commit on main gets its own group, so main runs neither wait for
+# each other nor cancel a pending run.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # The iOS app lives in ios/. Both jobs here are required checks on main, so
-  # they run on every pull request, including Mac-only ones; the Mac app has its
-  # own workflow, macos.yml.
+  # Decides if a pull request touches the iOS app. A docs-only or website-only
+  # pull request then skips the 15 to 30 minute macOS job, and most of that time
+  # was a wait for a free macOS runner. Pushes to main always run it.
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      ios: ${{ steps.diff.outputs.ios }}
+    steps:
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then echo "ios=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # The files API lists at most 3000 files; a bigger PR counts as unknown.
+          # A failed call ends this step (bash -e), and build-and-test then runs.
+          count=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .changed_files)
+          if [ "$count" -ge 3000 ]; then echo "ios=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # Old paths too: a file renamed out of ios/ still changes the iOS app.
+          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[] | .filename, (.previous_filename // empty)')
+          echo "$files"
+          # An empty list is treated as unknown, so the iOS job runs.
+          if [ -z "$files" ] || grep -qE '^(ios/|\.github/workflows/ci\.yml$)' <<< "$files"; then
+            echo "ios=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ios=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # The iOS app lives in ios/. Both build-and-test and site are required checks
+  # on main. A job skipped by `if` reports success, so a pull request that does
+  # not touch ios/ can still merge. The condition fails open: if `changes`
+  # fails or gives no answer, the iOS job runs. The Mac app has its own
+  # workflow, macos.yml.
   build-and-test:
-    runs-on: macos-15
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.ios != 'false' }}
+    # macos-15 often gives no runner at all: the job waits 15 minutes and is
+    # cancelled (actions/runner-images#15291). macos-26 ships the same
+    # Xcode_26.3.app, and macos.yml already runs there.
+    runs-on: macos-26
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      # One DerivedData for Build, the catalog refresh and Test. refresh.sh
+      # reads DERIVED_DATA_PATH; without it, it did a second cold build into its
+      # own folder (2 to 3 minutes).
+      DERIVED_DATA_PATH: ${{ github.workspace }}/ios/build/DerivedData
     defaults:
       run:
         working-directory: ios
@@ -66,6 +110,7 @@ jobs:
             -project Tidybyte.xcodeproj \
             -scheme Tidybyte \
             -destination "$DESTINATION" \
+            -derivedDataPath "$DERIVED_DATA_PATH" \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
@@ -140,6 +185,7 @@ jobs:
             -project Tidybyte.xcodeproj \
             -scheme Tidybyte \
             -destination "$DESTINATION" \
+            -derivedDataPath "$DERIVED_DATA_PATH" \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
