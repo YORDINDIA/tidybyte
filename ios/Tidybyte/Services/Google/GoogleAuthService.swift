@@ -23,9 +23,15 @@ final class GoogleAuthService: NSObject {
     /// `GoogleClientID` in Info.plist, set from the `GOOGLE_IOS_CLIENT_ID`
     /// build setting. Empty means the Google source is not configured.
     nonisolated static var clientID: String {
-        let value = (Bundle.main.object(forInfoDictionaryKey: "GoogleClientID") as? String ?? "")
-            .trimmingCharacters(in: .whitespaces)
-        return value.hasSuffix(".apps.googleusercontent.com") ? value : ""
+        validClientID(Bundle.main.object(forInfoDictionaryKey: "GoogleClientID") as? String)
+    }
+
+    /// The trimmed ID if it is a Google iOS client ID, otherwise "".
+    /// An unexpanded `$(GOOGLE_IOS_CLIENT_ID)` or a placeholder counts as unset.
+    nonisolated static func validClientID(_ raw: String?) -> String {
+        let value = (raw ?? "").trimmingCharacters(in: .whitespaces)
+        let suffix = ".apps.googleusercontent.com"
+        return value.hasSuffix(suffix) && value.count > suffix.count ? value : ""
     }
 
     nonisolated static var isConfigured: Bool { !clientID.isEmpty }

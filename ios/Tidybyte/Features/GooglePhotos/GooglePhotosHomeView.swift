@@ -1,19 +1,13 @@
 import SwiftUI
 
 /// Wraps a tab's iPhone content with the "iPhone / Google Photos" switch.
-/// Release builds show the switch only when a Google client ID is set, so an
-/// unconfigured build looks exactly like before.
+/// Every build (Debug and Release) shows the switch only when a valid Google
+/// client ID is set, so an unconfigured build has no Google Photos UI at all.
 struct MediaSourceGate<Content: View>: View {
     @AppStorage(MediaSource.storageKey) private var source: MediaSource = .iPhone
     @ViewBuilder var content: () -> Content
 
-    private var showsSwitch: Bool {
-        #if DEBUG
-        true
-        #else
-        GoogleAuthService.isConfigured
-        #endif
-    }
+    private var showsSwitch: Bool { GoogleAuthService.isConfigured }
 
     var body: some View {
         Group {
