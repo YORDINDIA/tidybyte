@@ -16,24 +16,148 @@ export function contentFor(route: string): string {
   return bodyFor(meta.contentFile);
 }
 
+const NAMED_ENTITIES: Record<string, string> = {
+  mdash: "\u2014",
+  ndash: "\u2013",
+  rsquo: "'",
+  lsquo: "'",
+  rdquo: '"',
+  ldquo: '"',
+  quot: '"',
+  apos: "'",
+  hellip: "…",
+  larr: "←",
+  rarr: "\u2192",
+  gt: ">",
+  lt: "<",
+  amp: "&",
+  nbsp: " ",
+  middot: "\u00b7",
+  copy: "©",
+  reg: "®",
+  trade: "™",
+  times: "×",
+  laquo: "«",
+  raquo: "»",
+  lsaquo: "‹",
+  rsaquo: "›",
+  bull: "•",
+  uarr: "↑",
+  darr: "↓",
+  harr: "↔",
+};
+
+function decodeNumericEntity(body: string): string | null {
+  const code =
+    body[1] === "x" || body[1] === "X"
+      ? Number.parseInt(body.slice(2), 16)
+      : Number.parseInt(body.slice(1), 10);
+  if (
+    !Number.isFinite(code) ||
+    code <= 0 ||
+    code > 0x10ffff ||
+    (code >= 0xd800 && code <= 0xdfff)
+  ) {
+    return null;
+  }
+  return String.fromCodePoint(code);
+}
+
 export function decodeEntities(s: string): string {
-  return s
-    .replace(/&mdash;/g, "\u2014")
-    .replace(/&ndash;/g, "\u2013")
-    .replace(/&rsquo;/g, "'")
-    .replace(/&#x27;/g, "'")
-    .replace(/&lsquo;/g, "'")
-    .replace(/&rdquo;/g, '"')
-    .replace(/&ldquo;/g, '"')
-    .replace(/&quot;/g, '"')
-    .replace(/&hellip;/g, "…")
-    .replace(/&larr;/g, "←")
-    .replace(/&gt;/g, ">")
-    .replace(/&lt;/g, "<")
-    .replace(/&amp;/g, "&")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&middot;/g, "\u00b7")
-    .replace(/&rarr;/g, "\u2192");
+  return s.replace(
+    /&(#[xX][0-9a-fA-F]+|#[0-9]+|[a-zA-Z][a-zA-Z0-9]*);/g,
+    (match, body: string) => {
+      if (body[0] === "#") return decodeNumericEntity(body) ?? match;
+      return Object.prototype.hasOwnProperty.call(NAMED_ENTITIES, body)
+        ? NAMED_ENTITIES[body]
+        : match;
+    },
+  );
+}
+
+const VOID_TAGS = new Set([
+  "area",
+  "base",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr",
+]);
+
+const HTML_TAG_RE =
+  /<(\/?)([a-zA-Z][a-zA-Z0-9-]*)(?:(?=\s|\/?>)((?:[^>"'/]|\/(?!>)|"[^"]*"|'[^']*')*))(\/?)>/g;
+
+function hasAriaHiddenTrue(attrs: string): boolean {
+  const attrRe = /\s([a-zA-Z0-9:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g;
+  for (const m of attrs.matchAll(attrRe)) {
+    if (m[1].toLowerCase() === "aria-hidden") {
+      const val = (m[2] ?? m[3] ?? m[4] ?? "").trim().toLowerCase();
+      if (val === "true") return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Removes every element subtree marked with `aria-hidden="true"`, tracking
+ * nested tags of the same tag name so decorative mockups and hidden badges do
+ * not leak fragments into Markdown exports.
+ */
+function stripAriaHidden(html: string): string {
+  HTML_TAG_RE.lastIndex = 0;
+  let out = "";
+  let lastIndex = 0;
+  let hideTag = "";
+  let hideStart = -1;
+  let depth = 0;
+
+  let match: RegExpExecArray | null;
+  while ((match = HTML_TAG_RE.exec(html)) !== null) {
+    const [full, closingSlash, rawName, attrs = "", selfClosingSlash] = match;
+    const tag = rawName.toLowerCase();
+    const isClosing = closingSlash === "/";
+    const isSelfClosing = selfClosingSlash === "/" || VOID_TAGS.has(tag);
+
+    if (depth === 0) {
+      if (!isClosing && hasAriaHiddenTrue(attrs)) {
+        out += html.slice(lastIndex, match.index);
+        if (isSelfClosing) {
+          lastIndex = match.index + full.length;
+        } else {
+          hideTag = tag;
+          hideStart = match.index;
+          depth = 1;
+        }
+      }
+      continue;
+    }
+
+    if (tag === hideTag) {
+      if (isClosing) {
+        depth--;
+        if (depth === 0) {
+          lastIndex = match.index + full.length;
+          hideTag = "";
+          hideStart = -1;
+        }
+      } else if (!isSelfClosing) {
+        depth++;
+      }
+    }
+  }
+
+  if (depth > 0 && hideStart >= 0) {
+    return out;
+  }
+  return out + html.slice(lastIndex);
 }
 
 function absolutize(url: string): string {
@@ -49,13 +173,18 @@ function absolutize(url: string): string {
  */
 export function htmlToMarkdown(html: string): string {
   let s = html;
-  // Drop non-content subtrees: breadcrumbs, in-page TOC (anchor-only links),
-  // figures/SVGs (images carry no text AI needs here).
+  // Drop HTML comments and non-content subtrees: decorative/hidden subtrees
+  // (`aria-hidden="true"`), breadcrumbs, in-page TOC, figures/SVGs.
+  s = s.replace(/<!--[\s\S]*?-->/g, "");
+  s = stripAriaHidden(s);
   s = s.replace(/<nav aria-label="Breadcrumb"[\s\S]*?<\/nav>/g, "");
   s = s.replace(/<nav aria-labelledby="toc-h"[\s\S]*?<\/nav>/g, "");
   s = s.replace(/<figure[\s\S]*?<\/figure>/g, "");
   s = s.replace(/<svg[\s\S]*?<\/svg>/g, "");
   s = s.replace(/<picture[\s\S]*?<\/picture>/g, "");
+  // Separate adjacent sibling nodes (e.g. flex label/value pairs) with a
+  // space so stripped tags never glue adjacent text together.
+  s = s.replace(/(<\/[a-zA-Z0-9-]+>)(?=<[a-zA-Z0-9-]+)/g, "$1 ");
   // Links -> [text](url) before tags are stripped.
   s = s.replace(
     /<a\s[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g,
