@@ -1,14 +1,11 @@
+import Darwin
 import Foundation
 import MacOSCleanerCore
 import MacOSCleanerMCPLibrary
 
-// Tidybyte MCP server: newline-delimited JSON-RPC over stdio. Point an
-// MCP client at the built binary; tools and the dry-run/confirm flow live
-// in MCPKit (destructive actions are refused there by policy and must be
-// approved in the app).
-//
-// TIDYBYTE_DB redirects the SQLite database (tests / e2e runs) so
-// scripted servers never touch the user's real history.
+// Tidybyte MCP server: newline-delimited JSON-RPC over stdio.
+// Ignore SIGPIPE so a closed stdout pipe returns EPIPE instead of killing the process.
+signal(SIGPIPE, SIG_IGN)
 
 func makeStore() throws -> SQLiteStore {
     if let override = ProcessInfo.processInfo.environment["TIDYBYTE_DB"] {
@@ -21,8 +18,6 @@ let kit: MCPKit
 do {
     kit = try MCPKit(store: makeStore())
 } catch {
-    // Same fallback rule as the app bootstrap: a temporary database beats
-    // refusing to start — scans still work, history is session-only.
     let temporary = FileManager.default.temporaryDirectory
         .appendingPathComponent("tidybyte-mcp-\(UUID().uuidString).sqlite")
     kit = try MCPKit(store: SQLiteStore(databaseURL: temporary))
@@ -33,11 +28,6 @@ do {
 actor InFlightRequest {
     private var id: String?
     private var task: Task<Data?, Never>?
-    /// The reader runs ahead of the loop, so a cancellation can arrive before
-    /// its request is registered. Those ids are kept here and applied by
-    /// `start`; dropping them would let a cancelled request run to completion.
-    /// Bounded, because an id that never starts (a client typo) must not grow
-    /// this set for the life of the process.
     private var earlyCancels: [String] = []
     private static let earlyCancelLimit = 16
 
@@ -55,8 +45,6 @@ actor InFlightRequest {
         task = nil
     }
 
-    /// Cancels only the request the client named, so a late cancellation cannot
-    /// hit the request that started after it.
     func cancel(requestID: String) {
         if id == requestID {
             task?.cancel()
@@ -68,9 +56,17 @@ actor InFlightRequest {
     }
 }
 
-/// Identity that matches a cancellation to its request: the JSON-RPC id as text.
+/// Type-tagged request key so boolean `true`/`false` never collides with integer `1`/`0`.
 func requestKey(_ id: Any?) -> String {
-    String(describing: id ?? NSNull())
+    guard let id else { return "null" }
+    if let string = id as? String { return "s:\(string)" }
+    if let number = id as? NSNumber {
+        if CFGetTypeID(number) == CFBooleanGetTypeID() {
+            return "b:\(number.boolValue)"
+        }
+        return "n:\(number.stringValue)"
+    }
+    return "o:\(String(describing: id))"
 }
 
 /// The request id a `notifications/cancelled` line names, or nil for any other line.
@@ -85,11 +81,6 @@ func cancelledRequestID(in line: String) -> String? {
 
 let inFlight = InFlightRequest()
 
-// readLine blocks, so it runs on its own thread and feeds the request loop
-// through a stream. The loop still processes ONE request at a time (MCPKit's
-// state stays serial). The reader applies cancellations as they arrive, so a
-// `notifications/cancelled` aborts the in-flight request instead of waiting for
-// it to finish.
 let lines = AsyncStream<String> { continuation in
     Task.detached(priority: .userInitiated) {
         while let line = readLine(strippingNewline: true) {
@@ -106,33 +97,22 @@ for await line in lines {
     guard !line.isEmpty else { continue }
     guard let data = line.data(using: .utf8),
           let request = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) else {
-        // Unparseable bytes — JSON-RPC "Parse error".
         MCPKit.emit(MCPKit.errorPayload(id: NSNull(), code: -32700, message: "Parse error"))
         continue
     }
-    // Well-formed JSON that is not a request object (an array/scalar) is an
-    // "Invalid Request" (-32600), not a parse error. MCP removed batch
-    // support, so arrays are rejected outright.
     guard let object = request as? [String: Any] else {
         MCPKit.emit(MCPKit.errorPayload(id: NSNull(), code: -32600, message: "Invalid Request"))
         continue
     }
     if object["id"] == nil {
-        // Notifications get no reply. Cancellations were applied by the reader.
         continue
     }
-    // Serialize the response inside the task so only Sendable Data crosses
-    // back; the request object is loop-local and unreachable by the reader,
-    // so passing it in unchecked is sound. dataForPayload sanitizes first:
-    // JSONSerialization throws for NaN readings, which aborts the server.
     nonisolated(unsafe) let requestObject = object
     let task = Task { () -> Data? in
         guard let response = await kit.handle(request: requestObject) else { return nil }
         return MCPKit.dataForPayload(response.payload)
     }
     await inFlight.start(id: requestKey(object["id"]), task: task)
-    // MCP: the receiver of a cancellation stops processing and sends no
-    // response for that request, so a cancelled task writes nothing.
     if let responseData = await task.value, !task.isCancelled {
         MCPKit.emitRaw(responseData)
     }

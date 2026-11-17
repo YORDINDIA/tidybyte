@@ -11,13 +11,11 @@ public final class MonitoringSettings {
         self.defaults = defaults
     }
 
-    /// Seconds between ticks. Faster means smoother charts and more battery.
     public var intervalSeconds: Double {
         get { defaults.object(forKey: MonitoringKeys.intervalSeconds) as? Double ?? MonitoringDefaults.intervalSeconds }
         set { defaults.set(newValue, forKey: MonitoringKeys.intervalSeconds) }
     }
 
-    /// Days of history kept. The engine prunes beyond this.
     public var historyRetentionDays: Int {
         get { defaults.object(forKey: MonitoringKeys.historyRetentionDays) as? Int ?? MonitoringDefaults.historyRetentionDays }
         set { defaults.set(newValue, forKey: MonitoringKeys.historyRetentionDays) }
@@ -28,7 +26,7 @@ public final class MonitoringSettings {
         set { defaults.set(newValue, forKey: MonitoringKeys.alertsEnabled) }
     }
 
-    /// Sustained CPU percentage that triggers an alert.
+    /// Sustained system-CPU share (0...100%, normalized by logical cores).
     public var alertCPUPercent: Double {
         get { defaults.object(forKey: MonitoringKeys.alertCPUPercent) as? Double ?? MonitoringDefaults.alertCPUPercent }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertCPUPercent) }
@@ -39,7 +37,6 @@ public final class MonitoringSettings {
         set { defaults.set(newValue, forKey: MonitoringKeys.alertCPUWindowMinutes) }
     }
 
-    /// Memory growth over an hour that triggers an alert.
     public var alertMemoryGrowthBytes: Int64 {
         get { defaults.object(forKey: MonitoringKeys.alertMemoryGrowthBytes) as? Int64 ?? Int64(MonitoringDefaults.alertMemoryGrowthBytes) }
         set { defaults.set(newValue, forKey: MonitoringKeys.alertMemoryGrowthBytes) }
@@ -63,14 +60,10 @@ public final class MonitoringSettings {
         set { defaults.set(newValue, forKey: MonitoringKeys.density) }
     }
 
-    /// Whether the combined menu bar panel extra is inserted. Unset mirrors
-    /// the scenes' `true` default.
     public var isMenuBarPanelEnabled: Bool {
         defaults.object(forKey: MonitoringKeys.menuBarPanelEnabled) as? Bool ?? MonitoringDefaults.menuBarPanelEnabled
     }
 
-    /// True when any per-metric menu bar extra is enabled, so the engine can
-    /// tell whether any surface is showing monitor data.
     public var hasEnabledMenuBarMetric: Bool {
         MonitoringKeys.menuBarMetrics.contains {
             defaults.object(forKey: $0.key) as? Bool ?? $0.defaultEnabled
@@ -79,9 +72,8 @@ public final class MonitoringSettings {
 }
 
 /// The sampling loop. One tick gathers the cheap probes every interval and
-/// rotates the expensive ones (lsof, docker, bluetooth, per-process network)
-/// on slower cadences, then publishes the snapshot and hands it to the
-/// history store and alert engine.
+/// schedules expensive ones (nettop, lsof, docker, bluetooth, pmset) behind
+/// `RefreshGate`s on slower cadences so fast ticks never stall.
 public actor MonitoringEngine {
     private static let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "MonitoringEngine")
 
@@ -89,16 +81,14 @@ public actor MonitoringEngine {
     private let sensors = SMCSensors()
     private let history: MetricsHistoryStore?
     private let alertEngine: AlertEngine?
-    /// Lightweight mode (the CLI) skips the probes that can take seconds —
-    /// docker, bluetooth, pmset — so `monitor status` stays snappy.
     private let isLightweight: Bool
-    /// False drops the per-process detail round (nettop, dev servers, agent
-    /// sessions) that tools like `monitor status` never read.
     private let includesSlowProbes: Bool
 
     private var previousCPUTicks: HostProbes.CPUTicks?
     private var previousMemoryCounters: HostProbes.MemoryCounters?
+    private var previousDiskCounters: DiskProbe.DiskCounters?
     private var previousNetworkCounters: [NetworkProbe.InterfaceCounters]?
+    private var previousNettopByPID: [pid_t: NettopSample] = [:]
     private var previousTimestamp: Date?
     private var cachedBluetooth: [BluetoothDeviceReading] = []
     private var cachedNetworkPerProcess: [pid_t: ProcessNetworkUsage] = [:]
@@ -107,18 +97,24 @@ public actor MonitoringEngine {
     private var cachedDevServers: [DevServerReading] = []
     private var cachedPower = PowerReading()
     private var lastRecordAt: Date?
+    private var slowProcessRefresh = RefreshGate()
+    private var powerRefresh = RefreshGate()
     private var containerRefresh = RefreshGate()
     private var bluetoothRefresh = RefreshGate()
 
-    /// Days of history the store keeps; Settings keeps this in sync.
+    private struct NettopSample {
+        var totalIn: Int64
+        var totalOut: Int64
+        var at: Date
+        var startedAt: Date?
+    }
+
     public var historyRetentionDays: Int = MonitoringDefaults.historyRetentionDays
 
-    /// Settings-driven retention; called from the UI each tick.
     public func setRetentionDays(_ days: Int) {
         historyRetentionDays = max(MetricsHistoryStore.minimumRetentionDays, days)
     }
 
-    /// Slow-path counters; each expensive probe runs this many ticks apart.
     private var tickCounter = 0
 
     public init(
@@ -131,17 +127,15 @@ public actor MonitoringEngine {
         self.includesSlowProbes = includesSlowProbes
     }
 
-    /// Grouping granularity the user picked; the model keeps it in sync.
     public var groupingMode: AppProcessCatalog.GroupingMode = .byApp
 
-    /// The UI calls this when the grouping picker changes; the next tick (and
-    /// every tick after) groups under the new mode.
     public func setGroupingMode(_ mode: AppProcessCatalog.GroupingMode) {
         groupingMode = mode
     }
 
-    /// One full sample. `tick` controls slow-path cadence; tests can drive it.
-    public func sample(interval: TimeInterval) async -> SystemSnapshot {
+    /// One full sample. `forceSlowProbes` awaits slow process probes inline for
+    /// one-shot CLI/MCP calls; continuous UI ticks leave it false.
+    public func sample(interval: TimeInterval, forceSlowProbes: Bool = false) async -> SystemSnapshot {
         tickCounter += 1
         let processes = await processProbe.sample()
         let now = Date()
@@ -155,18 +149,15 @@ public actor MonitoringEngine {
         let memory = HostProbes.memoryReading(previous: previousMemoryCounters, interval: elapsed)
         previousMemoryCounters = memory.counters
 
-        // One route-table read per tick: sample here, diff the snapshots.
+        let disk = sampleDisk(processes: processes, interval: elapsed)
+
         let networkCounters = NetworkProbe.sampleCounters()
         let network = NetworkProbe.reading(
             previous: previousNetworkCounters, current: networkCounters, interval: elapsed)
         previousNetworkCounters = networkCounters
         previousTimestamp = now
 
-        // System-wide disk rate: the sum of per-process rusage deltas is the
-        // honest public-API approximation of disk activity.
-        let diskRate = DiskActivity.rate(processes: processes)
-
-        await refreshSlowPaths(processes: processes)
+        await refreshSlowPaths(processes: processes, forceSlowProbes: forceSlowProbes)
 
         let groups = AppProcessCatalog.group(processes, mode: groupingMode, networkUsage: cachedNetworkPerProcess)
         let snapshot = SystemSnapshot(
@@ -174,9 +165,7 @@ public actor MonitoringEngine {
             interval: elapsed,
             cpu: cpu,
             memory: memory.reading,
-            disk: DiskIOReading(
-                readBytesPerSecond: diskRate.read, writeBytesPerSecond: diskRate.write,
-                totalReadBytes: nil, totalWriteBytes: nil),
+            disk: disk,
             network: network,
             gpu: GPUReading(devices: GPUProbe.devices()),
             neural: NeuralEngineProbe.reading(),
@@ -190,15 +179,37 @@ public actor MonitoringEngine {
             devServers: cachedDevServers,
             agents: cachedAgents,
             containers: cachedContainers,
-            uptime: ProcessProbe.uptime(now: now))
+            uptime: ProcessProbe.uptime(now: now),
+            thermalPressure: Self.currentThermalPressure())
 
         await publish(snapshot, now: now)
         return snapshot
     }
 
-    /// Hands one snapshot to the history store and the alert engine. History
-    /// records at most every 15 seconds (charts stay coarse anyway), while
-    /// retention pruning runs every tick and self-throttles to daily.
+    private func sampleDisk(processes: [ProcessSample], interval: TimeInterval) -> DiskIOReading {
+        if let counters = DiskProbe.sampleCounters() {
+            let reading = DiskProbe.reading(previous: previousDiskCounters, current: counters, interval: interval)
+            previousDiskCounters = counters
+            return reading
+        }
+        let diskRate = DiskActivity.rate(processes: processes)
+        return DiskIOReading(
+            readBytesPerSecond: diskRate.read,
+            writeBytesPerSecond: diskRate.write,
+            totalReadBytes: nil,
+            totalWriteBytes: nil)
+    }
+
+    private static func currentThermalPressure() -> ThermalPressure {
+        switch ProcessInfo.processInfo.thermalState {
+        case .nominal: .nominal
+        case .fair: .fair
+        case .serious: .serious
+        case .critical: .critical
+        @unknown default: .nominal
+        }
+    }
+
     private func publish(_ snapshot: SystemSnapshot, now: Date) async {
         if let history {
             let shouldRecord = lastRecordAt.map { now.timeIntervalSince($0) >= 15 } ?? true
@@ -213,120 +224,208 @@ public actor MonitoringEngine {
         }
     }
 
-    /// Expensive probes run on rotating cadences so no tick pays for all of
-    /// them: network per process and ports every 8 ticks, power every 15,
-    /// docker every 15, bluetooth every 30. Lightweight mode (the CLI) drops
-    /// docker and bluetooth entirely and reads power without pmset.
-    private func refreshSlowPaths(processes: [ProcessSample]) async {
-        if includesSlowProbes, tickCounter % 8 == 1 {
-            async let network: Void = refreshNetworkPerProcess(processes)
-            async let devServers: Void = refreshDevServers(processes: processes)
-            async let agents: Void = refreshAgents(processes: processes)
-            _ = await (network, devServers, agents)
+    private func refreshSlowPaths(processes: [ProcessSample], forceSlowProbes: Bool) async {
+        if forceSlowProbes {
+            if includesSlowProbes {
+                async let net: Void = refreshNetworkPerProcess(processes)
+                async let ports: Void = refreshDevServers(processes: processes)
+                async let agents: Void = refreshAgents(processes: processes)
+                async let power: PowerReading = isLightweight ? PowerProbe.batteryReading() : PowerProbe.reading()
+                _ = await (net, ports, agents)
+                cachedPower = await power
+            } else {
+                cachedPower = await PowerProbe.batteryReading()
+            }
+            return
         }
-        if tickCounter % 15 == 1 {
-            cachedPower = isLightweight ? await PowerProbe.batteryReading() : await PowerProbe.reading()
+        if includesSlowProbes, tickCounter % 8 == 1, slowProcessRefresh.begin() {
+            Task {
+                defer { slowProcessRefresh.end() }
+                async let net: Void = refreshNetworkPerProcess(processes)
+                async let ports: Void = refreshDevServers(processes: processes)
+                async let agents: Void = refreshAgents(processes: processes)
+                _ = await (net, ports, agents)
+            }
         }
-        // Docker and system_profiler each take seconds; refresh them in an
-        // actor-isolated task so the sampling actor stays free while the
-        // probe awaits and the tick cadence never hiccups.
-        // One refresh in flight at a time: a slow docker or system_profiler must
-        // not stack up a new process every cadence.
+        if tickCounter % 15 == 1, powerRefresh.begin() {
+            Task {
+                defer { powerRefresh.end() }
+                cachedPower = isLightweight ? await PowerProbe.batteryReading() : await PowerProbe.reading()
+            }
+        }
         if tickCounter % 15 == 2, !isLightweight, containerRefresh.begin() {
             Task {
-                cachedContainers = await ContainerProbe.containers()
-                containerRefresh.end()
+                defer { containerRefresh.end() }
+                if let latest = await ContainerProbe.fetchContainers() {
+                    cachedContainers = latest
+                }
             }
         }
         if tickCounter % 30 == 3, !isLightweight, bluetoothRefresh.begin() {
             Task {
+                defer { bluetoothRefresh.end() }
                 cachedBluetooth = await BluetoothProbe.devices()
-                bluetoothRefresh.end()
             }
         }
     }
 
     private func refreshNetworkPerProcess(_ processes: [ProcessSample]) async {
-        guard let output = try? await SystemTool.run("/usr/bin/nettop", arguments: [
-            "-P", "-x", "-L", "1"
-        ]) else { return }
-        let rates = Self.parseNettopCSV(output)
+        let nettopURL = URL(fileURLWithPath: "/usr/bin/nettop")
+        guard FileManager.default.isExecutableFile(atPath: nettopURL.path) else { return }
+        let run = await ProcessRunner.run(nettopURL, arguments: ["-P", "-x", "-L", "1"], timeout: 5)
+        guard run.exitCode == 0, !run.stdout.isEmpty else { return }
+        let now = Date()
+        let rows = Self.parseNettopCSV(run.stdout)
         let byPID = Dictionary(processes.map { ($0.pid, $0) }, uniquingKeysWith: { first, _ in first })
         let byName = Dictionary(grouping: processes, by: { $0.name })
         var merged: [pid_t: ProcessNetworkUsage] = [:]
-        for row in rates {
-            let usage = ProcessNetworkUsage(
-                downloadPerSecond: row.downloadPerSecond, uploadPerSecond: row.uploadPerSecond)
-            // The nettop identifier carries the pid; match on it first.
-            if let pid = row.pid, let match = byPID[pid] {
-                merged[match.pid] = usage
+        var cumulativeTotals: [pid_t: (inBytes: Int64, outBytes: Int64)] = [:]
+
+        for row in rows {
+            if row.isRateSample {
+                applyRateRow(row, byPID: byPID, byName: byName, merged: &merged)
                 continue
             }
-            // Name fallback (pid truncated or process gone): attach to at
-            // most one same-named candidate, never the whole fleet.
-            guard let candidate = byName[row.name]?.first, merged[candidate.pid] == nil else { continue }
-            merged[candidate.pid] = usage
+            guard let pid = row.pid, byPID[pid] != nil,
+                  let totalIn = row.totalBytesIn, let totalOut = row.totalBytesOut else { continue }
+            let existing = cumulativeTotals[pid] ?? (0, 0)
+            cumulativeTotals[pid] = (existing.inBytes + totalIn, existing.outBytes + totalOut)
         }
+        applyCumulativeTotals(cumulativeTotals, byPID: byPID, at: now, merged: &merged)
         cachedNetworkPerProcess = merged
     }
 
-    /// One nettop row: the process name, the pid when the identifier carried
-    /// one, and the two rate columns.
+    private func applyRateRow(
+        _ row: NettopRow, byPID: [pid_t: ProcessSample],
+        byName: [String: [ProcessSample]], merged: inout [pid_t: ProcessNetworkUsage]
+    ) {
+        let usage = ProcessNetworkUsage(downloadPerSecond: row.downloadPerSecond, uploadPerSecond: row.uploadPerSecond)
+        if let pid = row.pid, let match = byPID[pid] {
+            merged[match.pid] = usage
+        } else if let candidate = byName[row.name]?.first, merged[candidate.pid] == nil {
+            merged[candidate.pid] = usage
+        }
+    }
+
+    private func applyCumulativeTotals(
+        _ cumulativeTotals: [pid_t: (inBytes: Int64, outBytes: Int64)],
+        byPID: [pid_t: ProcessSample], at now: Date, merged: inout [pid_t: ProcessNetworkUsage]
+    ) {
+        guard !cumulativeTotals.isEmpty else { return }
+        var nextSamples: [pid_t: NettopSample] = [:]
+        for (pid, totals) in cumulativeTotals {
+            let startedAt = byPID[pid]?.startedAt
+            nextSamples[pid] = NettopSample(totalIn: totals.inBytes, totalOut: totals.outBytes, at: now, startedAt: startedAt)
+            guard let previous = previousNettopByPID[pid],
+                  let start = startedAt, previous.startedAt == start,
+                  totals.inBytes >= previous.totalIn, totals.outBytes >= previous.totalOut else { continue }
+            let elapsed = now.timeIntervalSince(previous.at)
+            guard elapsed > 0.05 else { continue }
+            merged[pid] = ProcessNetworkUsage(
+                downloadPerSecond: Double(totals.inBytes - previous.totalIn) / elapsed,
+                uploadPerSecond: Double(totals.outBytes - previous.totalOut) / elapsed)
+        }
+        previousNettopByPID = nextSamples
+    }
+
+    private func refreshDevServers(processes: [ProcessSample]) async {
+        cachedDevServers = await DevEnvironmentProbe.servers(processes: processes)
+    }
+
+    private func refreshAgents(processes: [ProcessSample]) async {
+        let workingDirectories = await DevEnvironmentProbe.workingDirectories(
+            pids: Set(processes.filter { AgentProbe.kind(of: $0) != nil }.map(\.pid)))
+        cachedAgents = await AgentProbe.sessions(processes: processes, workingDirectories: workingDirectories)
+    }
+
+    public func shutdown() async {
+        await sensors.restoreFanControl()
+    }
+
+    public func regroup(
+        snapshot: SystemSnapshot, mode: AppProcessCatalog.GroupingMode
+    ) async -> SystemSnapshot? {
+        guard !snapshot.processes.isEmpty else { return nil }
+        var updated = snapshot
+        updated.groups = AppProcessCatalog.group(
+            snapshot.processes, mode: mode, networkUsage: cachedNetworkPerProcess)
+        return updated
+    }
+}
+
+// MARK: - Nettop CSV parsing
+
+extension MonitoringEngine {
     public struct NettopRow: Sendable, Equatable {
         public var name: String
         public var pid: pid_t?
         public var downloadPerSecond: Double
         public var uploadPerSecond: Double
+        public var totalBytesIn: Int64?
+        public var totalBytesOut: Int64?
+        public var isRateSample: Bool
+
+        public init(
+            name: String, pid: pid_t?, downloadPerSecond: Double, uploadPerSecond: Double,
+            totalBytesIn: Int64? = nil, totalBytesOut: Int64? = nil, isRateSample: Bool = false
+        ) {
+            self.name = name
+            self.pid = pid
+            self.downloadPerSecond = downloadPerSecond
+            self.uploadPerSecond = uploadPerSecond
+            self.totalBytesIn = totalBytesIn
+            self.totalBytesOut = totalBytesOut
+            self.isRateSample = isRateSample
+        }
     }
 
-    /// nettop logging mode is CSV with a header row: time, then per-process
-    /// rows of `name.pid,bytes_in,bytes_out` style columns. This is a best
-    /// effort parser over the stable `-P -x -L 1` shape.
     public static func parseNettopCSV(_ output: String) -> [NettopRow] {
         var result: [NettopRow] = []
         let lines = output.split(separator: "\n").map(String.init)
         guard lines.count > 1 else { return result }
-        // Header-driven layout: time, process ("name.pid"), then byte
-        // counters. Rate columns win when nettop emits them.
         let header = csvFields(lines[0])
         func column(_ candidates: [String]) -> Int? {
             candidates.compactMap { header.firstIndex(of: $0) }.first
         }
         let processIndex = column(["process"]) ?? 1
-        let inIndex = column(["bytes_in_per_s", "bytes_in"]) ?? 2
-        let outIndex = column(["bytes_out_per_s", "bytes_out"]) ?? 3
+        let rateInIndex = column(["bytes_in_per_s"])
+        let rateOutIndex = column(["bytes_out_per_s"])
+        let totalInIndex = column(["bytes_in"])
+        let totalOutIndex = column(["bytes_out"])
+        let hasRates = rateInIndex != nil && rateOutIndex != nil
+        let primaryIn = rateInIndex ?? totalInIndex ?? 2
+        let primaryOut = rateOutIndex ?? totalOutIndex ?? 3
+
         for line in lines.dropFirst() {
             let fields = csvFields(line)
-            // A row with more fields than the header has an unquoted comma inside
-            // the process name. The extra fields belong to that name, so the
-            // numeric columns sit that many places further right.
             let extra = fields.count - header.count
             guard extra >= 0, processIndex + extra < fields.count else { continue }
-            func field(_ column: Int) -> String { fields[column + extra] }
-            guard let bytesIn = Double(field(inIndex)), let bytesOut = Double(field(outIndex)) else { continue }
+            func field(_ column: Int) -> String {
+                let target = column + extra
+                return target < fields.count ? fields[target] : ""
+            }
+            guard let inVal = Double(field(primaryIn)), let outVal = Double(field(primaryOut)) else { continue }
             let identifier = fields[processIndex...(processIndex + extra)].joined(separator: ",")
-            // "Safari.123" → name "Safari", pid 123; a name that does not end
-            // in a numeric pid stays whole.
             var name = identifier
             var pid: pid_t?
             if let lastDot = identifier.lastIndex(of: ".") {
                 let suffix = identifier[identifier.index(after: lastDot)...]
-                if let value = pid_t(suffix), suffix.allSatisfy(\.isNumber) {
+                if let value = pid_t(suffix), !suffix.isEmpty, suffix.allSatisfy(\.isNumber) {
                     pid = value
                     name = String(identifier[identifier.startIndex..<lastDot])
                 }
             }
+            let totalIn = totalInIndex.flatMap { Int64(field($0)) } ?? (hasRates ? nil : Int64(inVal))
+            let totalOut = totalOutIndex.flatMap { Int64(field($0)) } ?? (hasRates ? nil : Int64(outVal))
             result.append(
                 NettopRow(
                     name: name, pid: pid,
-                    downloadPerSecond: bytesIn, uploadPerSecond: bytesOut))
+                    downloadPerSecond: inVal, uploadPerSecond: outVal,
+                    totalBytesIn: totalIn, totalBytesOut: totalOut, isRateSample: hasRates))
         }
         return result
     }
 
-    /// Splits one CSV line. A field in double quotes may contain commas, and a
-    /// doubled quote inside one is a literal quote. The quotes themselves are
-    /// removed, so a quoted "Acme,Ltd.123" reaches the caller as Acme,Ltd.123.
     static func csvFields(_ line: String) -> [String] {
         var fields: [String] = []
         var current = ""
@@ -359,37 +458,8 @@ public actor MonitoringEngine {
         fields.append(current)
         return fields.map { $0.trimmingCharacters(in: .whitespaces) }
     }
-
-    private func refreshDevServers(processes: [ProcessSample]) async {
-        cachedDevServers = await DevEnvironmentProbe.servers(processes: processes)
-    }
-
-    private func refreshAgents(processes: [ProcessSample]) async {
-        let workingDirectories = await DevEnvironmentProbe.workingDirectories(
-            pids: Set(processes.filter { AgentProbe.kind(of: $0) != nil }.map(\.pid)))
-        cachedAgents = await AgentProbe.sessions(processes: processes, workingDirectories: workingDirectories)
-    }
-
-    /// Restores fan control the session changed; called on app quit.
-    public func shutdown() async {
-        await sensors.restoreFanControl()
-    }
-
-    /// Re-groups a snapshot's processes under a new granularity without a new
-    /// tick, so the table updates the moment the picker changes.
-    public func regroup(
-        snapshot: SystemSnapshot, mode: AppProcessCatalog.GroupingMode
-    ) async -> SystemSnapshot? {
-        guard !snapshot.processes.isEmpty else { return nil }
-        var updated = snapshot
-        updated.groups = AppProcessCatalog.group(
-            snapshot.processes, mode: mode, networkUsage: cachedNetworkPerProcess)
-        return updated
-    }
 }
 
-/// At most one background refresh at a time. begin() returns false while one is
-/// running, so a slow probe cannot stack processes on every cadence.
 struct RefreshGate {
     private(set) var isBusy = false
 
@@ -404,7 +474,6 @@ struct RefreshGate {
     }
 }
 
-/// System-wide disk rate from per-process disk counters.
 enum DiskActivity {
     static func rate(processes: [ProcessSample]) -> (read: Double, write: Double) {
         let read = processes.reduce(0.0) { $0 + max(0, $1.diskReadPerSecond) }

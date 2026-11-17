@@ -4,32 +4,24 @@ import IOKit
 import IOKit.ps
 import Metal
 
-/// GPU inventory and utilization. Device identity comes from Metal; the busy
-/// percentage comes from the IOAccelerator registry entry's performance
-/// statistics, which the driver publishes publicly on Apple silicon.
+/// GPU inventory and utilization. Device identity comes from Metal; live
+/// utilization and memory counters come from IOAccelerator PerformanceStatistics.
 public enum GPUProbe {
     public static func devices() -> [GPUDeviceReading] {
         var readings: [GPUDeviceReading] = []
         var seenRegistryIDs = Set<UInt64>()
         for device in MTLCopyAllDevices() {
             let registryID = device.registryID
-            guard !seenRegistryIDs.contains(registryID) else { continue }
-            seenRegistryIDs.insert(registryID)
+            guard seenRegistryIDs.insert(registryID).inserted else { continue }
             readings.append(
                 GPUDeviceReading(
                     name: device.name,
                     vendor: "Apple",
-                    utilizationPercent: nil,
-                    coreCount: nil,
                     memoryLimitBytes: Int64(device.recommendedMaxWorkingSetSize),
                     isLowPower: device.isLowPower,
                     registryID: registryID))
         }
-        // One registry walk per reading; the stats dictionary is reused both
-        // for the merge below and for filling in Metal devices' missing slots.
         let statisticsByRegistryID = acceleratorStatistics()
-        // The registry can carry accelerators Metal does not enumerate (or the
-        // app may not have Metal access in a sandbox); merge their stats in.
         for (registryID, statistics) in statisticsByRegistryID where !seenRegistryIDs.contains(registryID) {
             seenRegistryIDs.insert(registryID)
             readings.append(
@@ -37,16 +29,23 @@ public enum GPUProbe {
                     name: statistics.name ?? "GPU",
                     vendor: "Apple",
                     utilizationPercent: statistics.utilizationPercent,
+                    rendererUtilizationPercent: statistics.rendererUtilizationPercent,
+                    tilerUtilizationPercent: statistics.tilerUtilizationPercent,
+                    coreCount: statistics.coreCount,
+                    inUseMemoryBytes: statistics.inUseMemoryBytes,
+                    allocatedMemoryBytes: statistics.allocatedMemoryBytes,
                     registryID: registryID))
         }
         for index in readings.indices {
-            let statistics = statisticsByRegistryID[readings[index].registryID ?? 0]
-            if readings[index].utilizationPercent == nil {
-                readings[index].utilizationPercent = statistics?.utilizationPercent
-            }
-            if readings[index].coreCount == nil {
-                readings[index].coreCount = statistics?.coreCount
-            }
+            guard let statistics = statisticsByRegistryID[readings[index].registryID ?? 0] else { continue }
+            readings[index].utilizationPercent = readings[index].utilizationPercent ?? statistics.utilizationPercent
+            readings[index].rendererUtilizationPercent = readings[index].rendererUtilizationPercent
+                ?? statistics.rendererUtilizationPercent
+            readings[index].tilerUtilizationPercent = readings[index].tilerUtilizationPercent
+                ?? statistics.tilerUtilizationPercent
+            readings[index].coreCount = readings[index].coreCount ?? statistics.coreCount
+            readings[index].inUseMemoryBytes = readings[index].inUseMemoryBytes ?? statistics.inUseMemoryBytes
+            readings[index].allocatedMemoryBytes = readings[index].allocatedMemoryBytes ?? statistics.allocatedMemoryBytes
         }
         return readings
     }
@@ -54,32 +53,50 @@ public enum GPUProbe {
     struct AcceleratorStatistics {
         var name: String?
         var utilizationPercent: Double?
+        var rendererUtilizationPercent: Double?
+        var tilerUtilizationPercent: Double?
         var coreCount: Int?
+        var inUseMemoryBytes: Int64?
+        var allocatedMemoryBytes: Int64?
     }
 
-    /// Reads "PerformanceStatistics" from every IOAccelerator entry. Keys and
-    /// availability vary by driver; missing values stay missing.
+    private static func directProperty(_ entry: io_registry_entry_t, key: String) -> Any? {
+        IORegistryEntryCreateCFProperty(entry, key as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue()
+    }
+
+    private static func entryProperty(_ entry: io_registry_entry_t, key: String) -> Any? {
+        if let direct = directProperty(entry, key: key) { return direct }
+        return IORegistryEntrySearchCFProperty(
+            entry, kIOServicePlane, key as CFString, kCFAllocatorDefault,
+            IOOptionBits(kIORegistryIterateRecursively))
+    }
+
+    /// Reads "PerformanceStatistics" and model/core metadata from every IOAccelerator entry.
     static func acceleratorStatistics() -> [UInt64: AcceleratorStatistics] {
         var result: [UInt64: AcceleratorStatistics] = [:]
         guard let iterator = IOKitSupport.Iterator(serviceName: "IOAccelerator") else { return result }
         defer { IOObjectRelease(iterator.object) }
         while let entry = iterator.next() {
             defer { IOObjectRelease(entry) }
-            guard let dictionary = IORegistryEntryCreateCFProperty(entry, "PerformanceStatistics" as CFString, kCFAllocatorDefault, 0)?
-                .takeRetainedValue() as? [String: Any] else { continue }
+            guard let dictionary = directProperty(entry, key: "PerformanceStatistics") as? [String: Any] else {
+                continue
+            }
             let registryID = IOKitSupport.registryID(of: entry)
-            let utilization = (dictionary["Device Utilization %"] as? NSNumber)?.doubleValue
             let coreCount = (dictionary["gpu-core-count"] as? NSNumber)?.intValue
-                ?? ((IORegistryEntrySearchCFProperty(
-                    entry, kIOServicePlane, "gpu-core-count" as CFString, kCFAllocatorDefault,
-                    IOOptionBits(kIORegistryIterateRecursively)) as? NSNumber)?.intValue)
-            let name = (dictionary["Model"] as? String) ?? (IORegistryEntrySearchCFProperty(
-                entry, kIOServicePlane, "model" as CFString, kCFAllocatorDefault,
-                IOOptionBits(kIORegistryIterateRecursively)) as? String)
+                ?? (entryProperty(entry, key: "gpu-core-count") as? NSNumber)?.intValue
+            let rawModel = (dictionary["Model"] as? String)
+                ?? (entryProperty(entry, key: "model") as? String)
+                ?? (entryProperty(entry, key: "model") as? Data).flatMap { data in
+                    String(bytes: data.prefix { $0 != 0 }, encoding: .utf8)
+                }
             result[registryID] = AcceleratorStatistics(
-                name: name?.trimmingCharacters(in: .whitespacesAndNewlines),
-                utilizationPercent: utilization,
-                coreCount: coreCount)
+                name: rawModel?.trimmingCharacters(in: .whitespacesAndNewlines),
+                utilizationPercent: (dictionary["Device Utilization %"] as? NSNumber)?.doubleValue,
+                rendererUtilizationPercent: (dictionary["Renderer Utilization %"] as? NSNumber)?.doubleValue,
+                tilerUtilizationPercent: (dictionary["Tiler Utilization %"] as? NSNumber)?.doubleValue,
+                coreCount: coreCount,
+                inUseMemoryBytes: (dictionary["In use system memory"] as? NSNumber)?.int64Value,
+                allocatedMemoryBytes: (dictionary["Alloc system memory"] as? NSNumber)?.int64Value)
         }
         return result
     }
@@ -89,9 +106,12 @@ public enum GPUProbe {
 /// public interface, so this reports presence on Apple silicon and leaves the
 /// number honestly missing when it cannot be measured.
 public enum NeuralEngineProbe {
+    private static let isAppleSiliconCached: Bool = {
+        ProcessInfo.cachedHardwareModel.hasPrefix("arm") || isAppleSiliconByCPU()
+    }()
+
     public static func reading() -> NeuralEngineReading {
-        let isAppleSilicon = ProcessInfo.processInfo.machineHardwareModel().hasPrefix("arm") || isAppleSiliconByCPU()
-        guard isAppleSilicon else { return NeuralEngineReading(isAppleSilicon: false) }
+        guard isAppleSiliconCached else { return NeuralEngineReading(isAppleSilicon: false) }
         return NeuralEngineReading(
             isAppleSilicon: true,
             utilizationPercent: nil,
@@ -123,24 +143,40 @@ public enum PowerProbe {
         let smart = smartBattery()
         let hasBattery = source.hasBattery || smart != nil
         guard hasBattery else { return PowerReading(hasBattery: false) }
+        let isCharging = source.isCharging ?? smart?.isCharging ?? false
+        let level = source.level ?? smart.flatMap { smart -> Double? in
+            let cap = smart.maxCapacity > 0 ? smart.maxCapacity : 100
+            return min(1, max(0, Double(smart.currentCapacity) / Double(cap)))
+        }
+        let timeToEmpty: TimeInterval? = if let sourceEmpty = source.timeToEmpty {
+            sourceEmpty
+        } else if !source.isPluggedIn, let smart, smart.timeToEmpty > 0, smart.timeToEmpty < 65_535 {
+            Double(smart.timeToEmpty) * 60
+        } else {
+            nil
+        }
+        let healthFraction: Double? = smart.flatMap { smart in
+            guard smart.designCapacity > 0 else { return nil }
+            let fullCharge = smart.rawMaxCapacity ?? (smart.maxCapacity > 100 ? smart.maxCapacity : nil)
+            guard let fullCharge, fullCharge > 0 else { return nil }
+            return min(1, max(0, Double(fullCharge) / Double(smart.designCapacity)))
+        }
+        let wattage: Double? = smart.flatMap { smart in
+            guard smart.voltage > 0 else { return nil }
+            return Double(smart.amperage) * Double(smart.voltage) / 1_000_000
+        }
         return PowerReading(
             hasBattery: true,
-            level: source.level ?? smart.map { Double($0.currentCapacity) / Double(max(1, $0.maxCapacity)) },
-            isCharging: source.isCharging ?? smart?.isCharging ?? false,
+            level: level,
+            isCharging: isCharging,
             isPluggedIn: source.isPluggedIn,
-            isCharged: source.isCharged,
-            timeToEmptySeconds: source.timeToEmpty ?? smart.map { Double($0.timeToEmpty) * 60 },
-            timeToFullSeconds: source.timeToFull,
+            isCharged: source.isPluggedIn && source.isCharged,
+            timeToEmptySeconds: timeToEmpty,
+            timeToFullSeconds: isCharging ? source.timeToFull : nil,
             cycleCount: smart?.cycleCount,
-            healthFraction: smart.map { smart in
-                guard smart.maxCapacity > 0 else { return 1 }
-                return min(1, Double(smart.designCapacity) / Double(max(1, smart.maxCapacity)))
-            },
+            healthFraction: healthFraction,
             temperatureCelsius: smart.map { Double($0.temperature) / 100 },
-            wattage: smart.map { smart in
-                let milliVolts = Double(max(1, smart.voltage))
-                return Double(smart.amperage) * milliVolts / 1_000_000
-            },
+            wattage: wattage,
             powerSource: source.name)
     }
 
@@ -155,19 +191,23 @@ public enum PowerProbe {
         var name: String?
     }
 
-    /// Applies one power source's state to the running facts.
+    /// Applies the internal battery's power state to the running facts.
     static func applyPowerState(_ description: [String: Any], to facts: inout PowerSourceFacts) {
         switch description[kIOPSPowerSourceStateKey] as? String {
         case kIOPSACPowerValue:
             facts.isPluggedIn = true
-            facts.isCharging = (description[kIOPSIsChargingKey] as? Bool) ?? false
+            let charging = (description[kIOPSIsChargingKey] as? Bool) ?? false
+            facts.isCharging = charging
             if let minutes = description[kIOPSTimeToFullChargeKey] as? Int, minutes > 0 {
                 facts.timeToFull = TimeInterval(minutes * 60)
             }
-            if (description[kIOPSCurrentCapacityKey] as? Int) == 100 { facts.isCharged = true }
+            let explicitCharged = description[kIOPSIsChargedKey] as? Bool
+            let atHundred = (description[kIOPSCurrentCapacityKey] as? Int) == 100 && !charging
+            facts.isCharged = explicitCharged ?? atHundred
         case kIOPSBatteryPowerValue:
             facts.isPluggedIn = false
             facts.isCharging = false
+            facts.isCharged = false
             if let minutes = description[kIOPSTimeToEmptyKey] as? Int, minutes > 0 {
                 facts.timeToEmpty = TimeInterval(minutes * 60)
             }
@@ -179,19 +219,23 @@ public enum PowerProbe {
     static func powerSources() -> PowerSourceFacts {
         var facts = PowerSourceFacts()
         guard let sourceList = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
-            let sources = IOPSCopyPowerSourcesList(sourceList)?.takeRetainedValue() as? [CFTypeRef] else {
+              let sources = IOPSCopyPowerSourcesList(sourceList)?.takeRetainedValue() as? [CFTypeRef] else {
             return facts
         }
         for source in sources {
             guard let description = IOPSGetPowerSourceDescription(sourceList, source)?
-                .takeUnretainedValue() as? [String: Any] else { continue }
-            if description[kIOPSTypeKey] as? String == kIOPSInternalBatteryType { facts.hasBattery = true }
+                .takeUnretainedValue() as? [String: Any],
+                  (description[kIOPSTypeKey] as? String) == kIOPSInternalBatteryType else {
+                continue
+            }
+            facts.hasBattery = true
             if let percent = description[kIOPSCurrentCapacityKey] as? Int,
-                let capacity = description[kIOPSMaxCapacityKey] as? Int, capacity > 0 {
-                facts.level = Double(percent) / Double(capacity)
+               let capacity = description[kIOPSMaxCapacityKey] as? Int, capacity > 0 {
+                facts.level = min(1, max(0, Double(percent) / Double(capacity)))
             }
             Self.applyPowerState(description, to: &facts)
             facts.name = description[kIOPSNameKey] as? String
+            break
         }
         return facts
     }
@@ -199,6 +243,7 @@ public enum PowerProbe {
     struct SmartBatteryFacts {
         var currentCapacity: Int
         var maxCapacity: Int
+        var rawMaxCapacity: Int?
         var designCapacity: Int
         var cycleCount: Int
         var temperature: Int
@@ -208,8 +253,7 @@ public enum PowerProbe {
         var timeToEmpty: Int
     }
 
-    /// Reads the AppleSmartBattery registry entry. Desktops have none, which
-    /// keeps this honest on Mac minis and Studio displays.
+    /// Reads the AppleSmartBattery registry entry. Desktops have none.
     static func smartBattery() -> SmartBatteryFacts? {
         guard let iterator = IOKitSupport.Iterator(serviceName: "AppleSmartBattery") else { return nil }
         defer { IOObjectRelease(iterator.object) }
@@ -219,15 +263,22 @@ public enum PowerProbe {
             IORegistryEntryCreateCFProperty(entry, key as CFString, kCFAllocatorDefault, 0)?
                 .takeRetainedValue() as? NSNumber
         }
+        func signedInt64(_ key: String) -> Int? {
+            guard let number = property(key) else { return nil }
+            return Int(clamping: Int64(bitPattern: number.uint64Value))
+        }
         guard let maxCapacity = property("MaxCapacity")?.intValue else { return nil }
+        let rawMax = property("AppleRawMaxCapacity")?.intValue ?? property("NominalChargeCapacity")?.intValue
+        let amperage = signedInt64("Amperage") ?? signedInt64("InstantAmperage") ?? 0
         return SmartBatteryFacts(
             currentCapacity: property("CurrentCapacity")?.intValue ?? 0,
             maxCapacity: maxCapacity,
-            designCapacity: property("DesignCapacity")?.intValue ?? maxCapacity,
+            rawMaxCapacity: rawMax,
+            designCapacity: property("DesignCapacity")?.intValue ?? rawMax ?? maxCapacity,
             cycleCount: property("CycleCount")?.intValue ?? 0,
             temperature: property("Temperature")?.intValue ?? 0,
             voltage: property("Voltage")?.intValue ?? 0,
-            amperage: property("Amperage")?.intValue ?? 0,
+            amperage: amperage,
             isCharging: property("IsCharging")?.boolValue ?? false,
             timeToEmpty: property("TimeRemaining")?.intValue ?? 0)
     }
@@ -239,10 +290,6 @@ public enum PowerProbe {
     }
 
     /// Parses the "Listed by owning process" section; pure and testable.
-    /// Lines look like
-    /// `pid 175(cupsd): [0x0000c0010001] 11:27:58 PreventUserIdleSystemSleep named: "…"`
-    /// — after the parenthesised process name come the assertion id in
-    /// brackets, the held time, the assertion kind, and the detail.
     static func parseAssertions(_ output: String) -> [PowerAssertionReading] {
         var readings: [PowerAssertionReading] = []
         var seenIDs = Set<String>()
@@ -256,12 +303,10 @@ public enum PowerProbe {
             guard inList else { continue }
             if text.hasPrefix("Kernel Assertions") || text.hasPrefix("No kernel assertions") { break }
             guard text.hasPrefix("pid "), let open = text.firstIndex(of: "("),
-                let close = text.firstIndex(of: ")"), open < close else { continue }
+                  let close = text.firstIndex(of: ")"), open < close else { continue }
             let pid = pid_t(text.dropFirst(4).prefix(while: \.isNumber)) ?? 0
             let name = String(text[text.index(after: open)..<close])
             let remainder = String(text[text.index(after: close)...]).trimmingCharacters(in: .whitespaces)
-            // Skip the "[0x…]" assertion id and any trailing colon token so
-            // the held time and kind land in the right slots.
             let tokens = remainder.split(separator: " ", omittingEmptySubsequences: true)
                 .filter { !$0.hasPrefix("[0x") && !$0.hasSuffix(":") }
             guard tokens.count >= 2 else { continue }
@@ -274,9 +319,6 @@ public enum PowerProbe {
                     .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
                 if detail?.isEmpty == true { detail = nil }
             }
-            // One process can hold several assertions of the same kind; the
-            // view's ForEach identifies rows by pid-name-kind, so duplicates
-            // must be folded here or SwiftUI crashes on repeated IDs.
             let reading = PowerAssertionReading(pid: pid, processName: name, kind: kind, detail: detail, heldSeconds: held)
             if seenIDs.insert(reading.id).inserted {
                 readings.append(reading)
@@ -295,7 +337,6 @@ public enum PowerProbe {
 
 // MARK: - Shared IOKit helpers
 
-/// Registry iteration shared by the GPU and battery probes.
 enum IOKitSupport {
     struct Iterator {
         let object: io_iterator_t
@@ -322,19 +363,21 @@ enum IOKitSupport {
 }
 
 extension ProcessInfo {
-    /// hw.model via sysctl, e.g. "Mac15,6".
-    func machineHardwareModel() -> String {
+    static let cachedHardwareModel: String = {
         var size = 0
         sysctlbyname("hw.model", nil, &size, nil, 0)
         guard size > 0 else { return "" }
         var buffer = [CChar](repeating: 0, count: size)
-        sysctlbyname("hw.model", &buffer, &size, nil, 0)
-        return String(cString: buffer)
+        guard sysctlbyname("hw.model", &buffer, &size, nil, 0) == 0 else { return "" }
+        let bytes = buffer.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }
+        return String(bytes: bytes, encoding: .utf8) ?? ""
+    }()
+
+    func machineHardwareModel() -> String {
+        Self.cachedHardwareModel
     }
 }
 
-/// Runs an Apple system tool and returns stdout. Thin wrapper so probes do
-/// not each duplicate error handling; the caller decides how to degrade.
 enum SystemTool {
     static func run(_ path: String, arguments: [String]) async throws -> String {
         guard FileManager.default.isExecutableFile(atPath: path) else {
@@ -350,7 +393,6 @@ enum SystemTool {
 
 public enum MonitoringError: Error, LocalizedError, Sendable {
     case toolUnavailable(String)
-    /// Path plus the tool's own stderr.
     case toolFailed(String, String)
 
     public var errorDescription: String? {

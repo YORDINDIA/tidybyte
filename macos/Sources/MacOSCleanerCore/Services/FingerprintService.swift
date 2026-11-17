@@ -104,12 +104,15 @@ public enum FingerprintService {
                 let hash = SHA256.hash(data: data)
                 resumeOnce(hash.map { String(format: "%02x", $0) }.joined())
             }
+            request.revision = VNGenerateImageFeaturePrintRequestRevision2
 
-            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            do {
-                try handler.perform([request])
-            } catch {
-                resumeOnce(nil)
+            autoreleasepool {
+                let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+                do {
+                    try handler.perform([request])
+                } catch {
+                    resumeOnce(nil)
+                }
             }
         }
     }
@@ -117,19 +120,21 @@ public enum FingerprintService {
     /// Decodes a CGImage from a file URL on the cooperative thread pool
     /// (CGImageSource operations are thread-safe).
     private static func decodeCGImage(from url: URL) async -> CGImage? {
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
-            return nil
+        autoreleasepool {
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+                return nil
+            }
+            // Feature prints are resolution-tolerant, so cap the decode at 2048px:
+            // a 100MP photo decoded at full resolution materializes ~400MB of RGBA
+            // per worker, and the near-duplicate pass decodes 4 images at a time
+            // over whole photo libraries.
+            let options: [CFString: Any] = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceThumbnailMaxPixelSize: 2048,
+                kCGImageSourceShouldCacheImmediately: true
+            ]
+            return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
         }
-        // Feature prints are resolution-tolerant, so cap the decode at 2048px:
-        // a 100MP photo decoded at full resolution materializes ~400MB of RGBA
-        // per worker, and the near-duplicate pass decodes 4 images at a time
-        // over whole photo libraries.
-        let options: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceThumbnailMaxPixelSize: 2048,
-            kCGImageSourceShouldCacheImmediately: true
-        ]
-        return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
     }
 
     /// Feature print of an image, for DISTANCE comparison between two images
@@ -160,11 +165,14 @@ public enum FingerprintService {
                 }
                 resumeOnce(ImageFeaturePrint(observation: result))
             }
-            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            do {
-                try handler.perform([request])
-            } catch {
-                resumeOnce(nil)
+            request.revision = VNGenerateImageFeaturePrintRequestRevision2
+            autoreleasepool {
+                let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+                do {
+                    try handler.perform([request])
+                } catch {
+                    resumeOnce(nil)
+                }
             }
         }
     }

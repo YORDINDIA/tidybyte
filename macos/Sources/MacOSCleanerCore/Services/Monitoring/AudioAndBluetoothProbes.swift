@@ -4,8 +4,7 @@ import Foundation
 /// Output/input device state plus per-app audio activity, through the public
 /// process-object audio APIs (macOS 14.2+). macOS does not let one app set
 /// another app's volume, so this reports who is audible on which direction
-/// and controls the default devices; the mixer UI labels it accordingly and
-/// never pretends a control exists that the system does not expose.
+/// and controls the default devices.
 public enum AudioProbe {
     public static func reading() -> AudioReading {
         var reading = AudioReading()
@@ -20,15 +19,12 @@ public enum AudioProbe {
         }
         reading.isMicrophoneActive = isInputRunning()
         reading.apps = audibleProcesses()
-        // Public macOS APIs expose activity, not other apps' volume knobs.
         reading.supportsPerAppVolume = false
         return reading
     }
 
     // MARK: - Per-app activity
 
-    /// Every process the HAL currently knows is playing or recording, with
-    /// the direction it is active in.
     static func audibleProcesses() -> [AppVolumeReading] {
         guard let ids = processObjectIDs() else { return [] }
         return ids.compactMap { processActivity(object: $0) }
@@ -45,15 +41,18 @@ public enum AudioProbe {
         guard AudioObjectGetPropertyDataSize(systemObject, &property, 0, nil, &size) == noErr, size > 0 else {
             return nil
         }
-        var ids = [AudioObjectID](repeating: 0, count: Int(size) / MemoryLayout<AudioObjectID>.size)
-        guard AudioObjectGetPropertyData(systemObject, &property, 0, nil, &size, &ids) == noErr else { return nil }
-        return ids
+        let stride = MemoryLayout<AudioObjectID>.size
+        var ids = [AudioObjectID](repeating: 0, count: Int(size) / stride)
+        var actualSize = size
+        guard AudioObjectGetPropertyData(systemObject, &property, 0, nil, &actualSize, &ids) == noErr else { return nil }
+        let count = min(ids.count, Int(actualSize) / stride)
+        return Array(ids.prefix(count))
     }
 
     static func processActivity(object: AudioObjectID) -> AppVolumeReading? {
         var pid: pid_t = 0
         guard uintProperty(object: object, selector: AudioObjectPropertySelector(kAudioProcessPropertyPID), into: &pid),
-            pid != 0 else { return nil }
+              pid != 0 else { return nil }
         var isRunning: UInt32 = 0
         _ = uintProperty(object: object, selector: AudioObjectPropertySelector(kAudioProcessPropertyIsRunning), into: &isRunning)
         var runsInput: UInt32 = 0
@@ -74,13 +73,16 @@ public enum AudioProbe {
             isRunning: isRunning != 0)
     }
 
-    static func uintProperty<T>(object: AudioObjectID, selector: AudioObjectPropertySelector, into value: inout T)
-        -> Bool {
+    static func uintProperty<T: FixedWidthInteger>(
+        object: AudioObjectID, selector: AudioObjectPropertySelector, into value: inout T
+    ) -> Bool {
         var property = AudioObjectPropertyAddress(
             mSelector: selector, mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain)
         var size = UInt32(MemoryLayout<T>.size)
-        return AudioObjectGetPropertyData(object, &property, 0, nil, &size, &value) == noErr
+        return withUnsafeMutablePointer(to: &value) { pointer in
+            AudioObjectGetPropertyData(object, &property, 0, nil, &size, pointer) == noErr
+        }
     }
 
     // MARK: - Device level
@@ -90,13 +92,12 @@ public enum AudioProbe {
         guard AudioObjectHasProperty(object, &address) else { return nil }
         var size: UInt32 = 0
         guard AudioObjectGetPropertyDataSize(object, &address, 0, nil, &size) == noErr else { return nil }
-        // Volume may arrive as one scalar or a list per channel; average them.
         let count = Int(size) / MemoryLayout<Float32>.size
         guard count > 0 else { return nil }
         var values = [Float32](repeating: 0, count: count)
         var readSize = UInt32(count * MemoryLayout<Float32>.size)
         guard AudioObjectGetPropertyData(object, &address, 0, nil, &readSize, &values) == noErr else { return nil }
-        let valid = values.filter { $0.isFinite && $0 >= 0 }
+        let valid = values.prefix(min(count, Int(readSize) / MemoryLayout<Float32>.size)).filter { $0.isFinite && $0 >= 0 }
         guard !valid.isEmpty else { return nil }
         return Double(valid.reduce(0, +) / Float32(valid.count))
     }
@@ -113,7 +114,7 @@ public enum AudioProbe {
         var size = UInt32(MemoryLayout<AudioObjectID>.size)
         guard AudioObjectGetPropertyData(
             AudioObjectID(kAudioObjectSystemObject), &property, 0, nil, &size, &device) == noErr,
-            device != 0 else { return nil }
+              device != 0 else { return nil }
         return device
     }
 
@@ -122,11 +123,13 @@ public enum AudioProbe {
             mSelector: kAudioObjectPropertyName,
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain)
-        var name: CFString?
-        var size = UInt32(MemoryLayout<CFString?>.size)
-        guard AudioObjectGetPropertyData(device, &property, 0, nil, &size, &name) == noErr,
-            let resolved = name as String? else { return nil }
-        return resolved
+        var unmanagedName: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        let status = withUnsafeMutablePointer(to: &unmanagedName) { pointer in
+            AudioObjectGetPropertyData(device, &property, 0, nil, &size, pointer)
+        }
+        guard status == noErr, let name = unmanagedName?.takeRetainedValue() else { return nil }
+        return name as String
     }
 
     static func defaultDeviceName(_ type: DeviceType) -> String? {
@@ -134,51 +137,107 @@ public enum AudioProbe {
         return deviceName(device: device)
     }
 
-    /// Sets the default output device volume (0…1). The one volume knob macOS
-    /// gives every app.
+    /// Sets the default output device volume (0…1), falling back to channels 1/2
+    /// when the device exposes per-channel controls instead of master element 0.
     public static func setOutputVolume(_ volume: Double) -> Bool {
         guard let device = defaultDevice(.output) else { return false }
-        var property = AudioObjectPropertyAddress(
+        var scalar = Float32(min(1, max(0, volume)))
+        let size = UInt32(MemoryLayout<Float32>.size)
+        let mainAddress = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyVolumeScalar,
             mScope: kAudioObjectPropertyScopeOutput,
             mElement: kAudioObjectPropertyElementMain)
-        var scalar = Float32(min(1, max(0, volume)))
-        var size = UInt32(MemoryLayout<Float32>.size)
-        return AudioObjectSetPropertyData(device, &property, 0, nil, size, &scalar) == noErr
+        if setScalarProperty(device: device, address: mainAddress, value: &scalar, size: size) {
+            return true
+        }
+        var updated = false
+        for channel: AudioObjectPropertyElement in [1, 2] {
+            var channelScalar = scalar
+            let channelAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyVolumeScalar,
+                mScope: kAudioObjectPropertyScopeOutput,
+                mElement: channel)
+            if setScalarProperty(device: device, address: channelAddress, value: &channelScalar, size: size) {
+                updated = true
+            }
+        }
+        return updated
     }
 
     public static func setOutputMuted(_ muted: Bool) -> Bool {
         guard let device = defaultDevice(.output) else { return false }
-        var property = AudioObjectPropertyAddress(
+        var value: UInt32 = muted ? 1 : 0
+        let size = UInt32(MemoryLayout<UInt32>.size)
+        let mainAddress = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyMute,
             mScope: kAudioObjectPropertyScopeOutput,
             mElement: kAudioObjectPropertyElementMain)
-        var value: UInt32 = muted ? 1 : 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        return AudioObjectSetPropertyData(device, &property, 0, nil, size, &value) == noErr
+        if setScalarProperty(device: device, address: mainAddress, value: &value, size: size) {
+            return true
+        }
+        var updated = false
+        for channel: AudioObjectPropertyElement in [1, 2] {
+            var channelValue = value
+            let channelAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyMute,
+                mScope: kAudioObjectPropertyScopeOutput,
+                mElement: channel)
+            if setScalarProperty(device: device, address: channelAddress, value: &channelValue, size: size) {
+                updated = true
+            }
+        }
+        return updated
+    }
+
+    private static func setScalarProperty<T>(
+        device: AudioObjectID,
+        address: AudioObjectPropertyAddress,
+        value: inout T,
+        size: UInt32
+    ) -> Bool {
+        var property = address
+        guard AudioObjectHasProperty(device, &property) else { return false }
+        var settable: DarwinBoolean = false
+        guard AudioObjectIsPropertySettable(device, &property, &settable) == noErr, settable.boolValue else {
+            return false
+        }
+        return withUnsafePointer(to: &value) { pointer in
+            AudioObjectSetPropertyData(device, &property, 0, nil, size, pointer) == noErr
+        }
     }
 
     static func deviceVolume(device: AudioObjectID, scope: AudioObjectPropertyScope) -> Double? {
-        scalarProperty(
+        if let mainChannel = scalarProperty(
             object: device,
             property: AudioObjectPropertyAddress(
                 mSelector: kAudioDevicePropertyVolumeScalar, mScope: scope,
-                mElement: kAudioObjectPropertyElementMain))
+                mElement: kAudioObjectPropertyElementMain)) {
+            return mainChannel
+        }
+        let channels = [AudioObjectPropertyElement(1), AudioObjectPropertyElement(2)].compactMap {
+            scalarProperty(
+                object: device,
+                property: AudioObjectPropertyAddress(
+                    mSelector: kAudioDevicePropertyVolumeScalar, mScope: scope, mElement: $0))
+        }
+        guard !channels.isEmpty else { return nil }
+        return channels.reduce(0, +) / Double(channels.count)
     }
 
     static func deviceMuted(device: AudioObjectID, scope: AudioObjectPropertyScope) -> Bool? {
-        var property = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyMute, mScope: scope,
-            mElement: kAudioObjectPropertyElementMain)
-        guard AudioObjectHasProperty(device, &property) else { return nil }
-        var value: UInt32 = 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        guard AudioObjectGetPropertyData(device, &property, 0, nil, &size, &value) == noErr else { return nil }
-        return value != 0
+        for element in [kAudioObjectPropertyElementMain, AudioObjectPropertyElement(1), AudioObjectPropertyElement(2)] {
+            var property = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyMute, mScope: scope, mElement: element)
+            guard AudioObjectHasProperty(device, &property) else { continue }
+            var value: UInt32 = 0
+            var size = UInt32(MemoryLayout<UInt32>.size)
+            if AudioObjectGetPropertyData(device, &property, 0, nil, &size, &value) == noErr {
+                return value != 0
+            }
+        }
+        return nil
     }
 
-    /// True while any process holds the input device running — the "mic live"
-    /// badge.
     static func isInputRunning() -> Bool {
         guard let device = defaultDevice(.input) else { return false }
         var property = AudioObjectPropertyAddress(
@@ -193,7 +252,7 @@ public enum AudioProbe {
 }
 
 /// Paired Bluetooth accessories and their battery levels, from
-/// system_profiler's JSON report (an Apple tool, no private framework).
+/// system_profiler's JSON report.
 public enum BluetoothProbe {
     public static func devices() async -> [BluetoothDeviceReading] {
         guard let output = try? await SystemTool.run(
@@ -201,13 +260,10 @@ public enum BluetoothProbe {
         return Self.parse(output)
     }
 
-    /// Parses the system_profiler JSON: `SPBluetoothDataType` is a list whose
-    /// first entry holds `device_connected` and `device_not_connected`.
-    /// Pure and testable.
     public static func parse(_ json: String) -> [BluetoothDeviceReading] {
         guard let data = json.data(using: .utf8),
-            let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let entries = root["SPBluetoothDataType"] as? [[String: Any]] else { return [] }
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let entries = root["SPBluetoothDataType"] as? [[String: Any]] else { return [] }
         var readings: [BluetoothDeviceReading] = []
         var seenIDs = Set<String>()
         for entry in entries {
@@ -222,9 +278,6 @@ public enum BluetoothProbe {
                         address: device["device_address"] as? String,
                         isConnected: isConnected,
                         batteryLevels: batteryLevels(from: device))
-                    // system_profiler omits addresses for some disconnected
-                    // devices, so same-named entries can collide on id — and
-                    // duplicate ForEach IDs crash the device tab.
                     guard seenIDs.insert(reading.id).inserted else { continue }
                     readings.append(reading)
                 }
@@ -236,19 +289,22 @@ public enum BluetoothProbe {
     static func batteryLevels(from device: [String: Any]) -> [String: Double] {
         var levels: [String: Double] = [:]
         func addBattery(_ label: String, _ key: String) {
-            if let text = device[key] as? String { levels[label] = parsePercent(text) }
+            if let text = device[key] as? String, let parsed = parsePercent(text) {
+                levels[label] = parsed
+            }
         }
         addBattery("Device", "device_batteryLevelMain")
         addBattery("Left", "device_batteryLevelLeft")
         addBattery("Right", "device_batteryLevelRight")
         addBattery("Case", "device_batteryLevelCase")
-        addBattery("Case", "device_batteryLevelCombined")
+        addBattery("Combined", "device_batteryLevelCombined")
         return levels
     }
 
     static func parsePercent(_ text: String) -> Double? {
-        let digits = text.filter(\.isNumber)
-        guard let value = Double(digits) else { return nil }
-        return min(1, value / 100)
+        let numeric = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .filter { $0.isNumber || $0 == "." }
+        guard !numeric.isEmpty, let value = Double(numeric), value.isFinite else { return nil }
+        return min(1, max(0, value / 100))
     }
 }

@@ -21,18 +21,30 @@ public enum SystemStatus {
     public static func memory() -> MemorySnapshot? {
         guard let stats = vmStatistics64() else { return nil }
         return snapshot(
-            stats, pageSize: Int64(getpagesize()), totalBytes: Int64(ProcessInfo.processInfo.physicalMemory),
+            stats, pageSize: hostPageSize(), totalBytes: Int64(ProcessInfo.processInfo.physicalMemory),
             swapUsedBytes: swapUsed(), pressureLevel: sysctlInt("kern.memorystatus_vm_pressure_level"))
+    }
+
+    static func hostPageSize() -> Int64 {
+        let host = mach_host_self()
+        defer { mach_port_deallocate(mach_task_self_, host) }
+        var pageSize: vm_size_t = 0
+        if host_page_size(host, &pageSize) == KERN_SUCCESS, pageSize > 0 {
+            return Int64(pageSize)
+        }
+        return Int64(getpagesize())
     }
 
     /// One mach VM statistics fetch, shared by `memory()` and the monitor's
     /// HostProbes so both surfaces read the same counters the same way.
     static func vmStatistics64() -> vm_statistics64? {
+        let host = mach_host_self()
+        defer { mach_port_deallocate(mach_task_self_, host) }
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
         let result = withUnsafeMutablePointer(to: &stats) {
             $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-                host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
+                host_statistics64(host, HOST_VM_INFO64, $0, &count)
             }
         }
         return result == KERN_SUCCESS ? stats : nil

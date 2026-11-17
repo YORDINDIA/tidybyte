@@ -21,21 +21,46 @@ public struct InstalledAppIndex: Sendable {
     }
 
     /// Spotlight's list of application bundles plus the standard app folders.
-    /// Nil when Spotlight indexing is off or the listing came back truncated:
-    /// without a complete inventory no data may be called orphaned (fail
-    /// closed — an app missing from a partial list must never be staged for
-    /// deletion).
+    /// Uses `mdutil`/`mdfind` on Direct builds and `NSMetadataQuery` + bundle scan
+    /// inside the App Store sandbox. Nil when no inventory can be determined.
     public static func live(home: URL) async -> InstalledAppIndex? {
-        let status = await ProcessRunner.run(
-            URL(fileURLWithPath: "/usr/bin/mdutil"), arguments: ["-s", "/"], timeout: 10)
-        guard status.exitCode == 0, status.stdout.contains("Indexing enabled") else { return nil }
-        let found = await ProcessRunner.run(
-            URL(fileURLWithPath: "/usr/bin/mdfind"),
-            arguments: ["kMDItemContentType == 'com.apple.application-bundle'"], timeout: 30)
-        guard found.exitCode == 0, !found.truncated else { return nil }
-        let bundles = found.stdout.split(separator: "\n").map { URL(fileURLWithPath: String($0)) }
-            + standardBundles(home: home)
-        return InstalledAppIndex(bundleIDs: Set(bundles.compactMap { Bundle(url: $0)?.bundleIdentifier }))
+        if DistributionChannel.supportsAdvanced {
+            let status = await ProcessRunner.run(
+                URL(fileURLWithPath: "/usr/bin/mdutil"), arguments: ["-s", "/"], timeout: 10)
+            guard status.exitCode == 0, status.stdout.contains("Indexing enabled") else { return nil }
+            let found = await ProcessRunner.run(
+                URL(fileURLWithPath: "/usr/bin/mdfind"),
+                arguments: ["kMDItemContentType == 'com.apple.application-bundle'"], timeout: 30)
+            guard found.exitCode == 0, !found.truncated else { return nil }
+            let bundles = found.stdout.split(separator: "\n").map { URL(fileURLWithPath: String($0)) }
+                + standardBundles(home: home)
+            return InstalledAppIndex(bundleIDs: Set(bundles.compactMap { Bundle(url: $0)?.bundleIdentifier }))
+        }
+        let queryBundles = await spotlightBundlesViaMetadataQuery(timeoutSeconds: 5)
+        let bundles = queryBundles + standardBundles(home: home) + nestedApplicationBundles(home: home)
+        let ids = Set(bundles.compactMap { Bundle(url: $0)?.bundleIdentifier })
+        return ids.isEmpty ? nil : InstalledAppIndex(bundleIDs: ids)
+    }
+
+    @MainActor
+    private static func spotlightBundlesViaMetadataQuery(timeoutSeconds: UInt64) async -> [URL] {
+        await AppMetadataQueryRunner().run(timeoutSeconds: timeoutSeconds)
+    }
+
+    private static func nestedApplicationBundles(home: URL) -> [URL] {
+        let roots = ["/Applications", home.appendingPathComponent("Applications").path]
+        return roots.flatMap { root -> [URL] in
+            let rootURL = URL(fileURLWithPath: root, isDirectory: true)
+            guard let children = try? FileManager.default.contentsOfDirectory(
+                at: rootURL, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+            ) else { return [] }
+            return children.filter { $0.pathExtension != "app" }.flatMap { subfolder -> [URL] in
+                let contents = (try? FileManager.default.contentsOfDirectory(
+                    at: subfolder, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+                )) ?? []
+                return contents.filter { $0.pathExtension == "app" }
+            }
+        }
     }
 
     /// App bundles in the standard app folders. Fast; no Spotlight.
@@ -55,5 +80,63 @@ public struct InstalledAppIndex: Sendable {
         guard parts.count >= 3, parts.allSatisfy({ !$0.isEmpty }), !name.contains(" "),
             let first = parts.first, first.allSatisfy({ $0.isLowercase && $0.isLetter }) else { return false }
         return !name.lowercased().hasPrefix("com.apple.")
+    }
+}
+
+@MainActor
+private final class AppMetadataQueryRunner: NSObject {
+    private var query: NSMetadataQuery?
+    private var continuation: CheckedContinuation<[URL], Never>?
+    private var timeoutTask: Task<Void, Never>?
+
+    func run(timeoutSeconds: UInt64) async -> [URL] {
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            let metadataQuery = NSMetadataQuery()
+            metadataQuery.predicate = NSPredicate(format: "kMDItemContentType == 'com.apple.application-bundle'")
+            metadataQuery.searchScopes = [NSMetadataQueryIndexedLocalComputerScope]
+            self.query = metadataQuery
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleQueryFinish(_:)),
+                name: .NSMetadataQueryDidFinishGathering,
+                object: metadataQuery
+            )
+            self.timeoutTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: timeoutSeconds * 1_000_000_000)
+                self?.finish(urls: [])
+            }
+            if !metadataQuery.start() {
+                finish(urls: [])
+            }
+        }
+    }
+
+    @objc private func handleQueryFinish(_ notification: Notification) {
+        guard let query else {
+            finish(urls: [])
+            return
+        }
+        query.disableUpdates()
+        var urls: [URL] = []
+        for case let item as NSMetadataItem in query.results {
+            if let path = item.value(forAttribute: kMDItemPath as String) as? String {
+                urls.append(URL(fileURLWithPath: path))
+            }
+        }
+        finish(urls: urls)
+    }
+
+    private func finish(urls: [URL]) {
+        guard let continuation else { return }
+        self.continuation = nil
+        timeoutTask?.cancel()
+        timeoutTask = nil
+        if let query {
+            NotificationCenter.default.removeObserver(self, name: .NSMetadataQueryDidFinishGathering, object: query)
+            query.stop()
+            self.query = nil
+        }
+        continuation.resume(returning: urls)
     }
 }

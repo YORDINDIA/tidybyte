@@ -2,6 +2,8 @@ import Foundation
 import os
 import SQLite3
 
+private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
 public enum DatabaseError: Error, LocalizedError, Sendable {
     case openFailed(String)
     case migrationFailed(String)
@@ -77,6 +79,26 @@ public struct FileHashCacheEntry: Codable, Sendable {
         self.fullHash = fullHash
         self.inode = inode
         self.changedAtNanoseconds = changedAtNanoseconds
+    }
+
+    /// True when this cached hash still describes the file at `(sizeBytes, modifiedAt, inode, changedAtNanoseconds)`.
+    public func matches(
+        sizeBytes: Int64,
+        modifiedAt: Date?,
+        inode: UInt64? = nil,
+        changedAtNanoseconds: Int64? = nil
+    ) -> Bool {
+        guard self.sizeBytes == sizeBytes else { return false }
+        if let inode, self.inode != inode { return false }
+        if let changedAtNanoseconds, self.changedAtNanoseconds != changedAtNanoseconds { return false }
+        switch (self.modifiedAt, modifiedAt) {
+        case (nil, nil):
+            return true
+        case let (expected?, actual?):
+            return abs(actual.timeIntervalSince(expected)) <= 1
+        default:
+            return false
+        }
     }
 }
 
@@ -295,6 +317,12 @@ public actor SQLiteStore {
         }
         if FileManager.default.fileExists(atPath: destination.path) {
             _ = try FileManager.default.replaceItemAt(destination, withItemAt: staging)
+            for sidecar in ["-wal", "-shm"] {
+                let sidecarURL = URL(fileURLWithPath: destination.path + sidecar)
+                if FileManager.default.fileExists(atPath: sidecarURL.path) {
+                    try? FileManager.default.removeItem(at: sidecarURL)
+                }
+            }
         } else {
             try FileManager.default.moveItem(at: staging, to: destination)
         }
@@ -457,22 +485,35 @@ public actor SQLiteStore {
             values: [.text(path)],
             as: FileHashCacheEntry.self
         )
-        guard let entry = rows.first, entry.sizeBytes == sizeBytes else {
+        guard let entry = rows.first,
+              entry.matches(
+                  sizeBytes: sizeBytes,
+                  modifiedAt: modifiedAt,
+                  inode: inode,
+                  changedAtNanoseconds: changedAtNanoseconds
+              ) else {
             return nil
         }
-        // When the caller knows the file's identity, a stored entry without the same
-        // identity is a miss: it may describe a different file at the same path.
-        if let inode, entry.inode != inode { return nil }
-        // Exact match only: any status change, however small, makes the cached hash unusable.
-        if let changedAtNanoseconds, entry.changedAtNanoseconds != changedAtNanoseconds { return nil }
-        switch (entry.modifiedAt, modifiedAt) {
-        case (nil, nil):
-            return entry.fullHash
-        case let (expected?, actual?):
-            return abs(actual.timeIntervalSince(expected)) <= 1 ? entry.fullHash : nil
-        default:
-            return nil
+        return entry.fullHash
+    }
+
+    /// Batch-loads cached full-hash entries for `paths` in chunked `IN` queries
+    /// so duplicate detection avoids N+1 actor/SQL round-trips.
+    public func cachedFullHashes(forPaths paths: [String]) throws -> [String: FileHashCacheEntry] {
+        guard !paths.isEmpty else { return [:] }
+        var entriesByPath: [String: FileHashCacheEntry] = [:]
+        let uniquePaths = Array(Set(paths))
+        let chunkSize = 400
+        for start in stride(from: 0, to: uniquePaths.count, by: chunkSize) {
+            let chunk = Array(uniquePaths[start..<min(start + chunkSize, uniquePaths.count)])
+            let placeholders = Array(repeating: "?", count: chunk.count).joined(separator: ", ")
+            let sql = "SELECT json FROM \(SQLiteTable.fileHashes.rawValue) WHERE id IN (\(placeholders))"
+            let rows: [FileHashCacheEntry] = try selectJSON(sql, values: chunk.map { .text($0) }, as: FileHashCacheEntry.self)
+            for entry in rows {
+                entriesByPath[entry.path] = entry
+            }
         }
+        return entriesByPath
     }
 
     /// File records for a path prefix, using the v5 file_path index instead of
@@ -543,6 +584,25 @@ public actor SQLiteStore {
             SELECT json FROM \(SQLiteTable.scanSessions.rawValue)
             WHERE json_extract(json, '$.status') = 'completed'
             ORDER BY created_at DESC LIMIT 1
+            """,
+            values: [],
+            as: ScanSession.self
+        )
+        return sessions.first
+    }
+
+    /// Most recent completed scan session that persisted at least one file record or finding,
+    /// so empty/skipped runs do not overwrite a restorable previous session.
+    public func latestRestorableScanSession() throws -> ScanSession? {
+        let sessions: [ScanSession] = try selectJSON(
+            """
+            SELECT s.json FROM \(SQLiteTable.scanSessions.rawValue) s
+            WHERE json_extract(s.json, '$.status') = 'completed'
+              AND (
+                  EXISTS (SELECT 1 FROM \(SQLiteTable.fileRecords.rawValue) f WHERE f.scan_session_id = s.id)
+                  OR EXISTS (SELECT 1 FROM \(SQLiteTable.findings.rawValue) fn WHERE fn.scan_session_id = s.id)
+              )
+            ORDER BY s.created_at DESC LIMIT 1
             """,
             values: [],
             as: ScanSession.self
@@ -651,13 +711,14 @@ public actor SQLiteStore {
         )
     }
 
-    /// Fingerprints carry no session column; they join to file records by id.
+    /// Fingerprints belong to a scan session (`scan_session_id` is stamped on save
+    /// and keyed compositely since schema v7 so rescans never steal prior sessions).
     public func loadFingerprints(forSession sessionID: String) throws -> [FileFingerprint] {
         try selectJSON(
             """
-            SELECT fp.json FROM \(SQLiteTable.fingerprints.rawValue) AS fp
-            JOIN \(SQLiteTable.fileRecords.rawValue) AS fr ON fr.id = fp.id
-            WHERE fr.scan_session_id = ?
+            SELECT json FROM \(SQLiteTable.fingerprints.rawValue)
+            WHERE scan_session_id = ?
+            ORDER BY created_at
             """,
             values: [.text(sessionID)],
             as: FileFingerprint.self
@@ -787,6 +848,42 @@ public actor SQLiteStore {
         )
     }
 
+    /// Loads recently executed actions directly via SQL JSON extraction without
+    /// decoding every full `Plan` row in the database.
+    public func loadRecentExecutedActions(limit: Int = 200) throws -> [PlannedAction] {
+        guard limit > 0 else { return [] }
+        let rows: [PlannedAction] = try selectJSON(
+            """
+            SELECT json FROM (
+                SELECT pa.json AS json, json_extract(pa.json, '$.executedAt') AS executed_at
+                FROM \(SQLiteTable.plannedActions.rawValue) pa
+                WHERE json_extract(pa.json, '$.executedAt') IS NOT NULL
+                UNION ALL
+                SELECT j.value AS json, json_extract(j.value, '$.executedAt') AS executed_at
+                FROM \(SQLiteTable.plans.rawValue) p, json_each(p.json, '$.originalActions') j
+                WHERE json_type(p.json, '$.originalActions') = 'array'
+                  AND json_extract(j.value, '$.executedAt') IS NOT NULL
+                UNION ALL
+                SELECT j.value AS json, json_extract(j.value, '$.executedAt') AS executed_at
+                FROM \(SQLiteTable.plans.rawValue) p, json_each(p.json, '$.actions') j
+                WHERE json_type(p.json, '$.actions') = 'array'
+                  AND json_extract(j.value, '$.executedAt') IS NOT NULL
+            )
+            ORDER BY executed_at DESC
+            """,
+            values: [],
+            as: PlannedAction.self
+        )
+        var seenIDs = Set<String>()
+        var unique: [PlannedAction] = []
+        unique.reserveCapacity(min(rows.count, limit))
+        for action in rows where seenIDs.insert(action.id).inserted {
+            unique.append(action)
+            if unique.count >= limit { break }
+        }
+        return unique
+    }
+
     /// One snapshot by ID, however old. Nil when no such snapshot exists.
     public func storageSnapshot(id: String) throws -> StorageSnapshot? {
         try selectJSON(
@@ -805,7 +902,7 @@ public actor SQLiteStore {
     }
 
     public func snapshotComparison() async throws -> (current: StorageSnapshot?, previous: StorageSnapshot?, delta: Int64) {
-        let snapshots = try await recentSnapshots(limit: 2)
+        let snapshots = try recentSnapshots(limit: 2)
         let current = snapshots.first
         let previous = snapshots.count > 1 ? snapshots[1] : nil
         let delta = (current?.totalBytes ?? 0) - (previous?.totalBytes ?? 0)
@@ -814,67 +911,50 @@ public actor SQLiteStore {
 
     public func purgeOldData(keepingDays: Int = 90) throws {
         let cutoffDate = Calendar.current.date(byAdding: .day, value: -keepingDays, to: Date())?.timeIntervalSince1970 ?? 0
-        var deletedRows = 0
-        func executeCounting(_ sql: String, values: [SQLiteValue]) throws {
-            try execute(sql, values: values)
-            deletedRows += changedRowCount()
-        }
-        // Delete old scan sessions (never purge running sessions). `status`
-        // lives inside the JSON blob (the table schema is id/scan_session_id/
-        // created_at/json), so it is read via json_extract.
-        try executeCounting(
-            "DELETE FROM \(SQLiteTable.scanSessions.rawValue) WHERE created_at < ? AND json_extract(json, '$.status') != 'running'",
-            values: [.real(cutoffDate)]
-        )
-        // Delete orphaned records in all session-scoped tables (no matching session).
-        // Tables with a scan_session_id column that links to scan_sessions.
-        let sessionScopedTables: [SQLiteTable] = [
-            .fileRecords, .contentSummaries, .findings, .recommendations,
-            .plannedActions, .relationshipEdges
-        ]
-        for table in sessionScopedTables {
+        let deletedRows = try withTransaction {
+            var count = 0
+            func executeCounting(_ sql: String, values: [SQLiteValue]) throws {
+                try execute(sql, values: values)
+                count += changedRowCount()
+            }
             try executeCounting(
-                "DELETE FROM \(table.rawValue) WHERE scan_session_id NOT IN (SELECT id FROM \(SQLiteTable.scanSessions.rawValue))",
+                "DELETE FROM \(SQLiteTable.scanSessions.rawValue) WHERE created_at < ? AND json_extract(json, '$.status') != 'running'",
+                values: [.real(cutoffDate)]
+            )
+            let sessionTables: [SQLiteTable] = [
+                .fileRecords, .fingerprints, .contentSummaries, .projects,
+                .findings, .recommendations, .plannedActions, .relationshipEdges
+            ]
+            let sessionsTable = SQLiteTable.scanSessions.rawValue
+            for table in sessionTables {
+                try executeCounting(
+                    "DELETE FROM \(table.rawValue) WHERE scan_session_id IS NOT NULL "
+                        + "AND scan_session_id NOT IN (SELECT id FROM \(sessionsTable))",
+                    values: [])
+            }
+            try executeCounting(
+                "DELETE FROM \(SQLiteTable.fingerprints.rawValue) WHERE scan_session_id IS NULL "
+                    + "AND id NOT IN (SELECT json_extract(json, '$.id') FROM \(SQLiteTable.fileRecords.rawValue))",
                 values: [])
-        }
-        // Delete orphaned fingerprints (linked to file_records via id=fileID; FileFingerprint
-        // has no scanSessionID so scan_session_id is always NULL and the old join was a no-op).
-        try executeCounting(
-            "DELETE FROM \(SQLiteTable.fingerprints.rawValue) WHERE id NOT IN (SELECT id FROM \(SQLiteTable.fileRecords.rawValue))",
-            values: [])
-        // Delete orphaned plans (linked to scan_sessions via scan_session_id).
-        try executeCounting(
-            "DELETE FROM \(SQLiteTable.plans.rawValue) WHERE scan_session_id NOT IN (SELECT id FROM \(SQLiteTable.scanSessions.rawValue))",
-            values: [])
-
-        // Undo records are not session-scoped and were never purged, so they
-        // accumulated forever. Purge records that can never be restored:
-        // expired/failed status, or available records whose validity window has
-        // passed. Uses a full-table load + Swift filter because purge is rare
-        // and the filter logic (validUntil date comparison) is simpler in Swift
-        // than in SQLite's JSON1 date parsing.
-        let allUndos = try loadUndoRecords()
-        let now = Date()
-        for undo in allUndos {
-            let expired = undo.status == .expired || undo.status == .failed
-            let validUntilExpired = undo.validUntil.map { $0 < now } ?? false
-            if expired || validUntilExpired {
+            try executeCounting(
+                "DELETE FROM \(SQLiteTable.plans.rawValue) "
+                    + "WHERE scan_session_id NOT IN (SELECT id FROM \(sessionsTable))",
+                values: [])
+            let allUndos = try loadUndoRecords()
+            let now = Date()
+            for undo in allUndos where (undo.status == .expired || undo.status == .failed) || (undo.validUntil.map { $0 < now } ?? false) {
                 try executeCounting("DELETE FROM \(SQLiteTable.undoRecords.rawValue) WHERE id = ?", values: [.text(undo.id)])
             }
+            try executeCounting(
+                "DELETE FROM \(SQLiteTable.operationLogs.rawValue) WHERE created_at < ? "
+                    + "AND id NOT IN (SELECT operation_log_id FROM \(SQLiteTable.undoRecords.rawValue) "
+                    + "WHERE operation_log_id IS NOT NULL)",
+                values: [.real(cutoffDate)]
+            )
+            return count
         }
-        // Delete orphaned operation logs: their undo records were just purged
-        // (or never existed). Only delete logs older than the cutoff so very
-        // recent logs without a linked undo (e.g. in-flight operations) are not
-        // accidentally removed.
-        try executeCounting(
-            "DELETE FROM \(SQLiteTable.operationLogs.rawValue) WHERE created_at < ? AND id NOT IN (SELECT operation_log_id FROM \(SQLiteTable.undoRecords.rawValue) WHERE operation_log_id IS NOT NULL)",
-            values: [.real(cutoffDate)]
-        )
 
-        // Vacuum to reclaim space — but only after something was actually
-        // deleted. On a multi-GB store VACUUM rewrites the whole file and can
-        // temporarily double its footprint; running it at every launch for a
-        // no-op purge is pure launch latency.
+        // VACUUM cannot execute inside a transaction.
         if deletedRows > 0 {
             try execute("VACUUM", values: [])
         }
@@ -999,10 +1079,78 @@ public actor SQLiteStore {
             // Cleanup tables are additive and deliberately excluded from scan retention.
             try setUserVersion(6, database: database)
         }
+        if currentVersion < 7 {
+            try runMigrationStep(7, database: database) {
+                try migrateV7(database: database)
+            }
+        }
+    }
+
+    private static let sessionScopedTables: Set<SQLiteTable> = [
+        .fileRecords, .fingerprints, .contentSummaries, .projects,
+        .relationshipEdges, .findings, .recommendations
+    ]
+
+    private static func migrateV7(database: OpaquePointer) throws {
+        // Backfill legacy fingerprints that lacked scan_session_id before scoping IDs.
+        try executeMigration(
+            """
+            UPDATE fingerprints SET scan_session_id = (
+                SELECT fr.scan_session_id FROM file_records fr
+                WHERE fr.id = fingerprints.id OR fr.id LIKE fingerprints.id || '::%'
+                LIMIT 1
+            ) WHERE scan_session_id IS NULL
+            """,
+            database: database
+        )
+        // Composite row keys prevent rescans from stealing unchanged StableFileID rows from prior sessions.
+        for table in sessionScopedTables {
+            try executeMigration(
+                """
+                UPDATE \(table.rawValue)
+                SET id = id || '::' || scan_session_id
+                WHERE scan_session_id IS NOT NULL
+                  AND id NOT LIKE '%::' || scan_session_id
+                """,
+                database: database
+            )
+        }
+        // Repair v5 file_path backfill where json_extract(json, '$.url') wrote file:///... URLs.
+        var selectStmt: OpaquePointer?
+        let selectSQL = """
+            SELECT id, json_extract(json, '$.url') FROM file_records
+            WHERE file_path IS NULL OR file_path LIKE 'file://%'
+            """
+        guard sqlite3_prepare_v2(database, selectSQL, -1, &selectStmt, nil) == SQLITE_OK else {
+            throw DatabaseError.migrationFailed("Unable to prepare v7 file_path repair query.")
+        }
+        defer { sqlite3_finalize(selectStmt) }
+        var updates: [(id: String, path: String)] = []
+        while sqlite3_step(selectStmt) == SQLITE_ROW {
+            guard let idPtr = sqlite3_column_text(selectStmt, 0),
+                  let urlPtr = sqlite3_column_text(selectStmt, 1) else { continue }
+            let rowID = String(cString: idPtr)
+            let rawURL = String(cString: urlPtr)
+            let resolvedPath = URL(string: rawURL)?.standardizedFileURL.path ?? rawURL
+            updates.append((rowID, resolvedPath))
+        }
+        var updateStmt: OpaquePointer?
+        guard sqlite3_prepare_v2(database, "UPDATE file_records SET file_path = ? WHERE id = ?", -1, &updateStmt, nil) == SQLITE_OK else {
+            throw DatabaseError.migrationFailed("Unable to prepare v7 file_path update.")
+        }
+        defer { sqlite3_finalize(updateStmt) }
+        for item in updates {
+            _ = sqlite3_reset(updateStmt)
+            _ = sqlite3_bind_text(updateStmt, 1, item.path, -1, sqliteTransient)
+            _ = sqlite3_bind_text(updateStmt, 2, item.id, -1, sqliteTransient)
+            guard sqlite3_step(updateStmt) == SQLITE_DONE else {
+                throw DatabaseError.migrationFailed("Failed to update repaired file_path in v7 migration.")
+            }
+        }
     }
 
     /// Highest user_version this build migrates to.
-    static let schemaVersion: Int32 = 6
+    static let schemaVersion: Int32 = 7
 
     /// A file written by a newer build may hold tables and columns this build
     /// does not know. Refuse it rather than write to it.
@@ -1137,6 +1285,14 @@ public actor SQLiteStore {
         }
     }
 
+    private func storageID(for rawID: String, table: SQLiteTable, scanSessionID: String?) -> String {
+        guard Self.sessionScopedTables.contains(table), let scanSessionID, !scanSessionID.isEmpty else {
+            return rawID
+        }
+        let suffix = "::" + scanSessionID
+        return rawID.hasSuffix(suffix) ? rawID : rawID + suffix
+    }
+
     /// Bound parameter list matching `upsertSQL(for:)` for the same table.
     private func upsertValues<T: Encodable>(
         _ object: T, id: String, table: SQLiteTable, json: String, scanSessionID: String? = nil
@@ -1144,12 +1300,13 @@ public actor SQLiteStore {
         // An explicit session wins (types without a session field); otherwise
         // extract it from the object.
         let scanSessionID = scanSessionID ?? extractScanSessionID(from: object)
+        let rowID = storageID(for: id, table: table, scanSessionID: scanSessionID)
         let operationLogID = extractOperationLogID(from: object)
         let filePath = extractFilePath(from: object)
         let now = Date().timeIntervalSince1970
         if table == .undoRecords {
             return [
-                .text(id),
+                .text(rowID),
                 scanSessionID.map { .text($0) } ?? .null,
                 operationLogID.map { .text($0) } ?? .null,
                 (object as? UndoRecord).map { .text($0.status.rawValue) } ?? .null,
@@ -1159,7 +1316,7 @@ public actor SQLiteStore {
         }
         if table == .fileRecords {
             return [
-                .text(id),
+                .text(rowID),
                 scanSessionID.map { .text($0) } ?? .null,
                 filePath.map { .text($0) } ?? .null,
                 .real(now),
@@ -1167,7 +1324,7 @@ public actor SQLiteStore {
             ]
         }
         return [
-            .text(id),
+            .text(rowID),
             scanSessionID.map { .text($0) } ?? .null,
             .real(now),
             .text(json)
@@ -1265,17 +1422,25 @@ public actor SQLiteStore {
             guard stepResult == SQLITE_ROW else {
                 break
             }
-            guard let textPointer = sqlite3_column_text(statement, 0) else {
-                continue
+            let decoded: T? = try autoreleasepool {
+                guard let textPointer = sqlite3_column_text(statement, 0) else {
+                    return nil
+                }
+                let json = String(cString: textPointer)
+                guard let data = json.data(using: .utf8) else {
+                    throw DatabaseError.decodingFailed(String(
+                        localized: "Stored JSON was not UTF-8.",
+                        comment: "Error when stored JSON cannot be decoded as UTF-8"
+                    ))
+                }
+                do {
+                    return try decoder.decode(T.self, from: data)
+                } catch {
+                    throw DatabaseError.decodingFailed(error.localizedDescription)
+                }
             }
-            let json = String(cString: textPointer)
-            guard let data = json.data(using: .utf8) else {
-                throw DatabaseError.decodingFailed(String(localized: "Stored JSON was not UTF-8.", comment: "Error when stored JSON cannot be decoded as UTF-8"))
-            }
-            do {
-                output.append(try decoder.decode(T.self, from: data))
-            } catch {
-                throw DatabaseError.decodingFailed(error.localizedDescription)
+            if let decoded {
+                output.append(decoded)
             }
         }
         return output

@@ -332,7 +332,11 @@ public actor MemoryEngine {
             let prefix = rule.scopeValue.hasSuffix("/") ? rule.scopeValue : rule.scopeValue + "/"
             return records.contains { $0.displayPath.hasPrefix(prefix) || $0.displayPath == rule.scopeValue }
         case "extension":
-            return records.contains { $0.fileExtension == rule.scopeValue }
+            let normalizedScope = rule.scopeValue
+                .trimmingCharacters(in: CharacterSet(charactersIn: "."))
+                .lowercased()
+            guard !normalizedScope.isEmpty else { return false }
+            return records.contains { $0.fileExtension?.lowercased() == normalizedScope }
         case "file":
             // Match by file ID (legacy, same-session rules) or by filesystem path
             // so path-keyed rules (e.g. regret rules) match records from later

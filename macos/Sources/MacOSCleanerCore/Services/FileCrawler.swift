@@ -87,6 +87,7 @@ public actor FileCrawler {
         // recursion is bounded: a Library inside a Library is expanded once
         // more at most, and deeper ones stay ordinary work units.
         func expand(_ root: URL, depth: Int, childTier: Int?) {
+            if Task.isCancelled { return }
             let expansion = Self.expandRoot(root, sessionID: sessionID, policy: policy, closed: closed)
             records += expansion.records
             errors += expansion.errors
@@ -96,6 +97,7 @@ public actor FileCrawler {
                     comment: "Scan notice when a requested scan root is refused by the safety policy")))
             }
             for folder in expansion.folders {
+                if Task.isCancelled { break }
                 let tier = childTier ?? Self.crawlOrder(folder)
                 if tier == Self.lastCrawlTier, depth < 2 {
                     expand(folder, depth: depth + 1, childTier: tier)
@@ -105,6 +107,7 @@ public actor FileCrawler {
             }
         }
         for root in rootURLs {
+            if Task.isCancelled { break }
             expand(root, depth: 0, childTier: nil)
         }
         // Personal folders first, then dot-folders, then ~/Library. Each tier
@@ -125,12 +128,12 @@ public actor FileCrawler {
                 }
             }
         }
-        defer { watcher?.cancel() }
         for tier in 0...Self.lastCrawlTier {
+            if Task.isCancelled { break }
             await withTaskGroup(of: ([FileRecord], Int).self) { group in
                 var pending = folders.filter { $0.tier == tier }[...]
                 func addNext() {
-                    guard let folder = pending.popFirst() else { return }
+                    guard !Task.isCancelled, let folder = pending.popFirst() else { return }
                     group.addTask {
                         Self.crawlFolder(
                             folder.url, sessionID: sessionID, policy: policy, closed: closed,
@@ -148,9 +151,13 @@ public actor FileCrawler {
         if budget.isSpent {
             Self.logger.warning("Crawl reached \(self.maxRecords) records; later folders are summarized as one record each.")
         }
+        watcher?.cancel()
+        await watcher?.value
         // One final snapshot so the sink ends on the crawl's true totals even
         // when the whole crawl finished inside the watcher's interval.
-        await progress?(counter.snapshot())
+        if !Task.isCancelled {
+            await progress?(counter.snapshot())
+        }
         // Sorted in place: a sorted copy would hold every record twice at the peak.
         records.sort { $0.displayPath < $1.displayPath }
         return CrawlOutcome(files: records, errors: errors, skippedRootNotices: skippedRootNotices)

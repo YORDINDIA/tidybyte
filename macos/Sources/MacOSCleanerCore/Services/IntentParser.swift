@@ -35,48 +35,122 @@ public struct PlanIntent: Sendable, Equatable {
 
     public var action: Action
     public var scopes: [Scope]
+    public var excludedScopes: [Scope]
 
-    public init(action: Action = .review, scopes: [Scope] = [.all]) {
+    public init(action: Action = .review, scopes: [Scope] = [.all], excludedScopes: [Scope] = []) {
         self.action = action
         self.scopes = scopes
+        self.excludedScopes = excludedScopes
     }
 }
 
 /// Pure rules-based grammar for plan commands. No LLM, no regex soup:
 /// one tokenizer pass, then deterministic action + scope extraction.
 public enum IntentParser {
+    private static let negationSeparators = [
+        "but don't ", "but dont ", "but do not ", "but never ", "but keep ",
+        "except for ", "except ", "without ", "excluding ", "exclude ", "unless ", "skip "
+    ]
+
     public static func parse(_ command: String) -> PlanIntent {
         let lowered = command.lowercased()
-        let words = Set(lowered.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty })
+        let (positiveText, negatedTexts) = splitNegations(in: lowered)
+        let positiveWords = tokenizedWords(positiveText)
 
         var action: PlanIntent.Action = .review
-        if words.contains("archive") {
-            action = .archive
-        } else if words.isDisjoint(with: ["delete", "trash", "remove"]) == false {
-            action = .delete
-        } else if words.isDisjoint(with: ["organize", "sort"]) == false {
-            action = .organize
+        if !startsWithLeadingNegation(positiveText) {
+            if positiveWords.contains("archive") {
+                action = .archive
+            } else if !positiveWords.isDisjoint(with: ["delete", "trash", "remove"]) {
+                action = .delete
+            } else if !positiveWords.isDisjoint(with: ["organize", "sort"]) {
+                action = .organize
+            }
         }
 
         var scopes: [PlanIntent.Scope] = []
-        // Restore vocabulary only belongs to review commands. "delete
-        // everything" / "archive everything" are mutating commands that must
-        // keep targeting every action; only bare "everything", "undo",
-        // "reset", "show full …" restore the original plan.
         let wantsRestore = action == .review
-            && (words.contains("everything") || lowered.contains("all actions")
-                || words.isDisjoint(with: ["undo", "reset"]) == false
-                || (words.contains("full") && words.isDisjoint(with: ["show", "restore", "reset"]) == false))
+            && (positiveWords.contains("everything")
+                || positiveText.contains("all actions")
+                || positiveText.contains("show all")
+                || positiveText.contains("restore all")
+                || !positiveWords.isDisjoint(with: ["undo", "reset"])
+                || (positiveWords.contains("full") && !positiveWords.isDisjoint(with: ["show", "restore", "reset"])))
         if wantsRestore {
             scopes.append(.restoreAll)
         }
+
+        if startsWithLeadingNegation(positiveText) {
+            let excluded = extractScopes(from: positiveText)
+            let extraExcluded = negatedTexts.flatMap { extractScopes(from: $0) }
+            return PlanIntent(
+                action: action,
+                scopes: scopes.isEmpty ? [.all] : scopes,
+                excludedScopes: deduplicatedScopes(excluded + extraExcluded)
+            )
+        }
+
+        scopes.append(contentsOf: extractScopes(from: positiveText))
+        let excludedScopes = deduplicatedScopes(negatedTexts.flatMap { extractScopes(from: $0) })
+        if scopes.isEmpty {
+            scopes = [.all]
+        }
+        return PlanIntent(action: action, scopes: scopes, excludedScopes: excludedScopes)
+    }
+
+    private static func startsWithLeadingNegation(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let prefixes = ["don't ", "dont ", "do not ", "never ", "keep ", "skip ", "exclude ", "excluding "]
+        return prefixes.contains { trimmed.hasPrefix($0) }
+    }
+
+    private static func splitNegations(in text: String) -> (positive: String, negated: [String]) {
+        var remaining = text
+        var positiveParts: [String] = []
+        var negatedParts: [String] = []
+
+        while !remaining.isEmpty {
+            var earliest: (range: Range<String.Index>, marker: String)?
+            for sep in negationSeparators {
+                if let found = remaining.range(of: sep),
+                   earliest.map({ found.lowerBound < $0.range.lowerBound }) ?? true {
+                    earliest = (found, sep)
+                }
+            }
+            guard let match = earliest else {
+                positiveParts.append(remaining)
+                break
+            }
+            let prefix = String(remaining[..<match.range.lowerBound])
+            if !prefix.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                positiveParts.append(prefix)
+            }
+            remaining = String(remaining[match.range.upperBound...])
+            if let comma = remaining.firstIndex(where: { $0 == "," || $0 == ";" }) {
+                negatedParts.append(String(remaining[..<comma]))
+                remaining = String(remaining[remaining.index(after: comma)...])
+            } else {
+                negatedParts.append(remaining)
+                break
+            }
+        }
+        return (positiveParts.joined(separator: " "), negatedParts)
+    }
+
+    private static func tokenizedWords(_ text: String) -> Set<String> {
+        Set(text.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty })
+    }
+
+    private static func extractScopes(from text: String) -> [PlanIntent.Scope] {
+        let words = tokenizedWords(text)
+        var scopes: [PlanIntent.Scope] = []
         if words.contains("duplicate") || words.contains("duplicates") {
             scopes.append(.duplicates)
         }
         if words.contains("python") || words.contains("pycache") {
             scopes.append(.pythonCaches)
         }
-        if words.contains("node") || words.contains("npm") || lowered.contains("node_modules") {
+        if words.contains("node") || words.contains("npm") || text.contains("node_modules") {
             scopes.append(.nodeModules)
         }
         if words.contains("docker") {
@@ -91,12 +165,9 @@ public enum IntentParser {
         if words.contains("log") || words.contains("logs") {
             scopes.append(.logs)
         }
-        if let days = olderThanDays(in: lowered) {
+        if let days = olderThanDays(in: text) {
             scopes.append(.olderThan(days: days))
         } else if words.contains("old") {
-            // Installers get their own scope: they are worth clearing from
-            // Desktop and Documents too, while "old downloads" stays scoped
-            // to the Downloads folder.
             if words.contains("download") || words.contains("downloads") {
                 scopes.append(.oldDownloads(days: 30))
             }
@@ -104,22 +175,28 @@ public enum IntentParser {
                 scopes.append(.oldInstallers(days: 30))
             }
         }
-        if words.isDisjoint(with: ["download", "downloads"]) == false, !scopes.contains(where: { if case .oldDownloads = $0 { return true }; return false }) {
+        if !words.isDisjoint(with: ["download", "downloads"]),
+           !scopes.contains(where: { if case .oldDownloads = $0 { return true }; return false }) {
             scopes.append(.downloads)
         }
         if words.contains("big") || words.contains("large") {
-            scopes.append(.largerThan(bytes: lowered.contains("file") || lowered.contains("files") ? 1_000_000_000 : 100_000_000))
+            scopes.append(.largerThan(bytes: text.contains("file") || text.contains("files") ? 1_000_000_000 : 100_000_000))
         }
-        if words.isDisjoint(with: ["project", "projects", "developer", "dev"]) == false {
+        if !words.isDisjoint(with: ["project", "projects", "developer", "dev"]) {
             scopes.append(.developerArtifacts)
         }
         if words.contains("safe") || words.contains("conservative") {
             scopes.append(.safeOnly)
         }
-        if scopes.isEmpty {
-            scopes = [.all]
+        return scopes
+    }
+
+    private static func deduplicatedScopes(_ scopes: [PlanIntent.Scope]) -> [PlanIntent.Scope] {
+        var unique: [PlanIntent.Scope] = []
+        for scope in scopes where !unique.contains(scope) {
+            unique.append(scope)
         }
-        return PlanIntent(action: action, scopes: scopes)
+        return unique
     }
 
     private static func olderThanDays(in lowered: String) -> Int? {

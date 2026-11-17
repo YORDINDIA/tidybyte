@@ -63,7 +63,7 @@ public actor ContentExtractor {
     }
 
     private func summarizeOne(_ file: FileRecord, privacyMode: PrivacyMode) async -> ContentSummary? {
-        guard file.kind == .regularFile || file.kind == .package else {
+        guard (file.kind == .regularFile || file.kind == .package), !file.isCloudPlaceholder else {
             return nil
         }
         let detected = await detectLocalContent(file: file, privacyMode: privacyMode)
@@ -125,12 +125,12 @@ public actor ContentExtractor {
 
         if let fileExtension = file.fileExtension, imageExtensions.contains(fileExtension) {
             let labels = imageMetadataLabels(for: file.url)
-            let ocr = privacyMode == .localOnly || privacyMode == .snippetsAI || privacyMode == .visionAI ? recognizeText(in: file.url) : nil
+            let ocr = (privacyMode == .snippetsAI || privacyMode == .visionAI) ? recognizeText(in: file.url) : nil
             return (nil, ocr, ocr.flatMap(detectLanguage), topicHints(from: ocr ?? "", filePath: file.displayPath), labels, [])
         }
 
         if let fileExtension = file.fileExtension, videoExtensions.contains(fileExtension) {
-            let labels = readVideoPreview(file.url)
+            let labels = await readVideoPreview(file.url)
             let metadataPreview = labels.joined(separator: ", ")
             return (metadataPreview.isEmpty ? nil : metadataPreview, nil, nil, [], [], labels)
         }
@@ -165,7 +165,7 @@ public actor ContentExtractor {
         // trailing incomplete sequence before decoding.
         var validLength = data.count
         while validLength > 0 {
-            if let _ = try? String(data: data.prefix(validLength), encoding: .utf8) { break }
+            if String(data: data.prefix(validLength), encoding: .utf8) != nil { break }
             validLength -= 1
         }
         return Self.textIfPrintable(String(data: data.prefix(validLength), encoding: .utf8))
@@ -220,64 +220,69 @@ public actor ContentExtractor {
         return Self.textIfPrintable(String(result.stdout.prefix(4096)))
     }
 
-    private func readVideoPreview(_ url: URL) -> [String] {
+    private func readVideoPreview(_ url: URL) async -> [String] {
         var labels: [String] = ["video"]
         let asset = AVURLAsset(url: url)
-        let duration = CMTimeGetSeconds(asset.duration)
-        if duration.isFinite && duration > 0 {
-            let minutes = Int(duration / 60)
-            let seconds = Int(duration.truncatingRemainder(dividingBy: 60))
-            labels.append("duration: \(minutes)m \(seconds)s")
+        if let loadedDuration = try? await asset.load(.duration) {
+            let duration = CMTimeGetSeconds(loadedDuration)
+            if duration.isFinite && duration > 0 {
+                let minutes = Int(duration / 60)
+                let seconds = Int(duration.truncatingRemainder(dividingBy: 60))
+                labels.append("duration: \(minutes)m \(seconds)s")
+            }
         }
         if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
            let size = attrs[.size] as? Int64 {
             labels.append("size: \(size.formattedByteCount)")
         }
-        if let track = asset.tracks(withMediaType: .video).first {
-            let size = track.naturalSize
-            // NaN/inf from a corrupt file would trap Int(_:).
-            if size.width.isFinite, size.height.isFinite {
-                labels.append("\(Int(size.width))x\(Int(size.height))")
-            }
+        if let tracks = try? await asset.loadTracks(withMediaType: .video),
+           let track = tracks.first,
+           let size = try? await track.load(.naturalSize),
+           size.width.isFinite, size.height.isFinite {
+            labels.append("\(Int(size.width))x\(Int(size.height))")
         }
         return labels
     }
 
     private func imageMetadataLabels(for url: URL) -> [String] {
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else {
-            return []
+        autoreleasepool {
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+                  let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else {
+                return []
+            }
+            var labels: [String] = ["image"]
+            if let width = properties[kCGImagePropertyPixelWidth] as? NSNumber,
+               let height = properties[kCGImagePropertyPixelHeight] as? NSNumber {
+                labels.append("\(width.intValue)x\(height.intValue)")
+            }
+            if properties[kCGImagePropertyExifDictionary] != nil {
+                labels.append("exif")
+            }
+            return labels
         }
-        var labels: [String] = ["image"]
-        if let width = properties[kCGImagePropertyPixelWidth] as? NSNumber,
-           let height = properties[kCGImagePropertyPixelHeight] as? NSNumber {
-            labels.append("\(width.intValue)x\(height.intValue)")
-        }
-        if properties[kCGImagePropertyExifDictionary] != nil {
-            labels.append("exif")
-        }
-        return labels
     }
 
     private func recognizeText(in url: URL) -> String? {
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
-            return nil
+        autoreleasepool {
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+                  let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+                return nil
+            }
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .fast
+            request.usesLanguageCorrection = false
+            let handler = VNImageRequestHandler(cgImage: image)
+            do {
+                try handler.perform([request])
+            } catch {
+                return nil
+            }
+            let text = request.results?
+                .compactMap { $0.topCandidates(1).first?.string }
+                .joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return text?.isEmpty == false ? text : nil
         }
-        let request = VNRecognizeTextRequest()
-        request.recognitionLevel = .fast
-        request.usesLanguageCorrection = false
-        let handler = VNImageRequestHandler(cgImage: image)
-        do {
-            try handler.perform([request])
-        } catch {
-            return nil
-        }
-        let text = request.results?
-            .compactMap { $0.topCandidates(1).first?.string }
-            .joined(separator: "\n")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        return text?.isEmpty == false ? text : nil
     }
 
     private func detectLanguage(_ text: String) -> String? {

@@ -137,6 +137,9 @@ public enum APFSCloneService {
               keeperStat.flags & untouchableFlags == 0 else {
             return .skipped("protected file")
         }
+        if let privateBytes = ReclaimableBytes.privateSize(of: URL(fileURLWithPath: duplicatePath)), privateBytes == 0 {
+            return .alreadyShared
+        }
         guard Date().timeIntervalSince1970 - before.mtime >= quietPeriod else {
             return .skipped("modified in the last few minutes")
         }
@@ -159,9 +162,10 @@ public enum APFSCloneService {
         var keepTemp = false
         defer {
             if !keepTemp {
-                unlink(temp)
+                _ = unlink(temp)
             }
         }
+        let unsharedBefore = ReclaimableBytes.privateSize(of: URL(fileURLWithPath: duplicatePath))
 
         // CLONE_NOFOLLOW: never clone through a symlink swapped in mid-fold.
         // CLONE_NOOWNERCOPY: ownership comes from our explicit metadata copy.
@@ -190,8 +194,9 @@ public enum APFSCloneService {
             return .failed("rename failed: \(reason)")
         }
         keepTemp = true
+        let freedBytes = unsharedBefore.map { min(before.allocatedBytes, $0) } ?? before.allocatedBytes
         logger.info("Folded \(duplicatePath, privacy: .public) onto \(keeperPath, privacy: .public)")
-        return .folded(freedBytes: before.allocatedBytes)
+        return .folded(freedBytes: freedBytes)
     }
 
     // MARK: - Unfold
@@ -223,7 +228,7 @@ public enum APFSCloneService {
         var keepTemp = false
         defer {
             if !keepTemp {
-                unlink(temp)
+                _ = unlink(temp)
             }
         }
         // COPYFILE_DATA without COPYFILE_CLONE writes real, unshared blocks.
@@ -311,12 +316,12 @@ public enum APFSCloneService {
         // file does not have must go (except what the system owns).
         for name in xattrNames(destination)
         where !sourceNames.contains(name) && !systemManagedXattrs.contains(name) {
-            removexattr(destination, name, 0)
+            _ = removexattr(destination, name, XATTR_NOFOLLOW)
         }
         for name in sourceNames where !systemManagedXattrs.contains(name) {
             guard let value = xattrValue(source, name: name) else { continue }
             let result = value.withUnsafeBytes { raw in
-                setxattr(destination, name, raw.baseAddress, raw.count, 0, 0)
+                setxattr(destination, name, raw.baseAddress, raw.count, 0, XATTR_NOFOLLOW)
             }
             if result != 0 {
                 logger.warning("xattr \(name, privacy: .public) could not be copied")
@@ -326,26 +331,29 @@ public enum APFSCloneService {
     }
 
     private static func xattrNames(_ path: String) -> [String] {
-        let size = listxattr(path, nil, 0, 0)
+        let size = listxattr(path, nil, 0, XATTR_NOFOLLOW)
         guard size > 0 else { return [] }
         var buffer = [CChar](repeating: 0, count: size)
-        let written = listxattr(path, &buffer, size, 0)
+        let written = listxattr(path, &buffer, size, XATTR_NOFOLLOW)
         guard written > 0 else { return [] }
         var names: [String] = []
         var nameStart = buffer.startIndex
         for index in buffer.startIndex..<(buffer.startIndex + written) where buffer[index] == 0 {
-            names.append(String(cString: Array(buffer[nameStart..<index]) + [0]))
+            let bytes = buffer[nameStart..<index].map { UInt8(bitPattern: $0) }
+            if let name = String(bytes: bytes, encoding: .utf8) {
+                names.append(name)
+            }
             nameStart = index + 1
         }
         return names
     }
 
     private static func xattrValue(_ path: String, name: String) -> Data? {
-        let size = getxattr(path, name, nil, 0, 0, 0)
+        let size = getxattr(path, name, nil, 0, 0, XATTR_NOFOLLOW)
         guard size > 0 else { return nil }
         var buffer = Data(count: size)
         let read = buffer.withUnsafeMutableBytes { raw in
-            getxattr(path, name, raw.baseAddress, size, 0, 0)
+            getxattr(path, name, raw.baseAddress, size, 0, XATTR_NOFOLLOW)
         }
         guard read >= 0 else { return nil }
         return buffer.prefix(read)
@@ -356,8 +364,7 @@ public enum APFSCloneService {
     fileprivate static func cString<T>(of value: T) -> String {
         var value = value
         return withUnsafeBytes(of: &value) { buffer in
-            let bytes = buffer.prefix { $0 != 0 }.map { CChar(bitPattern: $0) }
-            return String(cString: bytes + [0])
+            String(bytes: buffer.prefix { $0 != 0 }, encoding: .utf8) ?? ""
         }
     }
 
@@ -376,8 +383,8 @@ public enum APFSCloneService {
             if rightFD >= 0 { close(rightFD) }
         }
         guard leftFD >= 0, rightFD >= 0 else { return false }
-        fcntl(leftFD, F_NOCACHE, 1)
-        fcntl(rightFD, F_NOCACHE, 1)
+        _ = fcntl(leftFD, F_NOCACHE, 1)
+        _ = fcntl(rightFD, F_NOCACHE, 1)
         let bufferSize = 1 << 20
         let leftBuffer = UnsafeMutableRawPointer.allocate(
             byteCount: bufferSize, alignment: MemoryLayout<UInt8>.alignment
@@ -425,19 +432,20 @@ private final class OpenFilesSnapshot: @unchecked Sendable {
         let needsRefresh = Date().timeIntervalSince(refreshedAt) > 2
         lock.unlock()
         if needsRefresh { refresh() }
+        let candidates = Self.normalizedPaths(for: path)
         lock.lock()
         defer { lock.unlock() }
-        return paths.contains(path)
+        return candidates.contains(where: { paths.contains($0) })
     }
 
     private func refresh() {
         var writing: Set<String> = []
         let pidCount = proc_listallpids(nil, 0)
         guard pidCount > 0 else { return }
-        var pids = [pid_t](repeating: 0, count: Int(pidCount))
+        var pids = [pid_t](repeating: 0, count: Int(pidCount) + 16)
         let stored = proc_listallpids(&pids, Int32(pids.count * MemoryLayout<pid_t>.size))
         guard stored > 0 else { return }
-        for pid in pids.prefix(Int(stored)) {
+        for pid in pids.prefix(Int(stored)) where pid > 0 {
             let listSize = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, nil, 0)
             guard listSize > 0 else { continue }
             let fdCount = Int(listSize) / MemoryLayout<proc_fdinfo>.size
@@ -446,19 +454,34 @@ private final class OpenFilesSnapshot: @unchecked Sendable {
             guard storedFDs > 0 else { continue }
             for fdInfo in fdInfos.prefix(Int(storedFDs) / MemoryLayout<proc_fdinfo>.size)
             where fdInfo.proc_fdtype == UInt32(PROX_FDTYPE_VNODE) {
-                // One call yields both the open flags and the path.
+                // PROC_PIDFDVNODEPATHINFO is a proc_pidfdinfo flavor yielding open flags + path.
                 var info = vnode_fdinfowithpath()
-                let infoSize = proc_pidinfo(
-                    pid, PROC_PIDFDVNODEPATHINFO, UInt64(fdInfo.proc_fd), &info,
+                let infoSize = proc_pidfdinfo(
+                    pid, fdInfo.proc_fd, PROC_PIDFDVNODEPATHINFO, &info,
                     Int32(MemoryLayout<vnode_fdinfowithpath>.size)
                 )
                 guard infoSize > 0, info.pfi.fi_openflags & UInt32(FWRITE) != 0 else { continue }
-                writing.insert(APFSCloneService.cString(of: info.pvip.vip_path))
+                let rawPath = APFSCloneService.cString(of: info.pvip.vip_path)
+                for normalized in Self.normalizedPaths(for: rawPath) {
+                    writing.insert(normalized)
+                }
             }
         }
         lock.lock()
         paths = writing
         refreshedAt = Date()
         lock.unlock()
+    }
+
+    private static func normalizedPaths(for rawPath: String) -> [String] {
+        guard !rawPath.isEmpty else { return [] }
+        let standardized = URL(fileURLWithPath: rawPath).standardizedFileURL.path
+        let resolved = URL(fileURLWithPath: standardized).resolvingSymlinksInPath().standardizedFileURL.path
+        var results = [rawPath, standardized, resolved]
+        let firmlinkPrefix = "/System/Volumes/Data"
+        for candidate in [standardized, resolved] where candidate.hasPrefix(firmlinkPrefix + "/") {
+            results.append(String(candidate.dropFirst(firmlinkPrefix.count)))
+        }
+        return results
     }
 }

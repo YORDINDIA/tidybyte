@@ -74,11 +74,7 @@ public actor PlannerAgent {
             return updated
         }
 
-        // Sum sizes over the DEDUPED target set: the same file can appear in
-        // multiple actions (different findings) and was being counted once each.
-        let estimatedBytes = Set(actions.flatMap(\.targets))
-            .compactMap { filesByID[$0]?.sizeBytes }
-            .reduce(Int64(0), +)
+        let estimatedBytes = Self.estimatedReclaimableBytes(for: actions, filesByID: filesByID)
         let riskBreakdown = Dictionary(grouping: actions, by: \.risk).mapValues(\.count)
         return Plan(
             id: planID,
@@ -156,130 +152,18 @@ public actor PlannerAgent {
         }
 
         // --- Phase 2: Filters from the parsed intent (OR logic) ---
+        let sharedDuplicateTargets = Self.sharedTargets(in: plan.actions)
         var filters: [(PlannedAction) -> Bool] = []
         var summaryText: String?
 
         for scope in intent.scopes {
-            switch scope {
-            case .all, .restoreAll:
-                break
-            case .pythonCaches:
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return target.contains("pip") }
-                        return record.url.pathComponents.contains("__pycache__")
-                            || record.url.pathComponents.contains(".pytest_cache")
-                            || record.url.pathComponents.contains(".venv")
-                            || record.url.pathComponents.contains("venv")
-                    }
-                }
-                summaryText = String(localized: "Python caches and environments", comment: "Natural language summary fragment for Python cache filter")
-            case .largerThan(let bytes):
-                filters.append { action in
-                    action.targets.contains { (filesByID[$0]?.sizeBytes ?? 0) >= bytes }
-                }
-                summaryText = bytes >= 1_000_000_000
-                    ? String(localized: "large files (1GB+)", comment: "Natural language summary fragment for large files filter")
-                    : String(localized: "large items (100MB+)", comment: "Natural language summary fragment for broad large item filter")
-            case .duplicates:
-                let allTargetCounts = Dictionary(plan.actions.flatMap { $0.targets }.map { ($0, 1) }, uniquingKeysWith: +)
-                let sharedTargets = Set(allTargetCounts.filter { $0.value > 1 }.map(\.key))
-                filters.append { action in
-                    action.actionType == .cloneDeduplicate
-                        || action.reason.lowercased().contains("duplicate")
-                        || action.targets.contains { sharedTargets.contains($0) }
-                }
-                summaryText = String(localized: "duplicate files", comment: "Natural language summary fragment for duplicate files filter")
-            case .olderThan(let days):
-                let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
-                summaryText = String(localized: "files older than \(days) days", comment: "Natural language summary fragment for old files filter")
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        return (record.modifiedAt ?? record.createdAt ?? Date.distantPast) < cutoff
-                    }
-                }
-            case .oldDownloads(let days):
-                let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        return (record.modifiedAt ?? record.createdAt ?? Date.distantPast) < cutoff
-                            && record.url.pathComponents.contains("Downloads")
-                    }
-                }
-                summaryText = String(localized: "old files in Downloads", comment: "Natural language summary fragment for old Downloads filter")
-            case .oldInstallers(let days):
-                let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        let isInstaller = record.fileExtension.map(CleanerRuleEngine.installerExtensions.contains) ?? false
-                        return isInstaller && (record.modifiedAt ?? record.createdAt ?? Date.distantPast) < cutoff
-                    }
-                }
-                summaryText = String(localized: "old installers", comment: "Natural language summary fragment for old installers filter")
-            case .downloads:
-                filters.append { action in
-                    action.targets.contains { filesByID[$0]?.url.pathComponents.contains("Downloads") ?? false }
-                }
-                summaryText = summaryText ?? String(localized: "Downloads folder", comment: "Natural language summary fragment for Downloads filter")
-            case .caches:
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        return Self.isCacheOrTemporaryPath(record.url.pathComponents)
-                            || action.reason.lowercased().contains("cache")
-                    }
-                }
-                summaryText = summaryText ?? String(localized: "caches and temporary files", comment: "Natural language summary fragment for cache filter")
-            case .logs:
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        return record.fileExtension == "log"
-                            || record.url.pathComponents.contains("Logs")
-                            || record.url.pathComponents.contains("logs")
-                    }
-                }
-                summaryText = String(localized: "log files", comment: "Natural language summary fragment for log filter")
-            case .docker:
-                filters.append { action in
-                    if action.actionType == .runPackageManagerCleanup && action.targets.contains(where: { $0.contains("docker") }) { return true }
-                    return action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        return record.url.pathComponents.contains("Docker") || record.url.pathComponents.contains("docker")
-                            || record.fileName.lowercased().contains("docker")
-                    }
-                }
-                summaryText = String(localized: "Docker cleanup", comment: "Natural language summary fragment for Docker filter")
-            case .nodeModules:
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        return record.url.pathComponents.contains("node_modules")
-                            || record.url.pathComponents.contains(".npm")
-                            || record.fileName.lowercased().contains("npm")
-                    }
-                }
-                summaryText = String(localized: "npm and Node.js cleanup", comment: "Natural language summary fragment for npm and Node cleanup filter")
-            case .homebrew:
-                filters.append { action in
-                    action.actionType == .runPackageManagerCleanup && action.targets.contains { $0.contains("brew") || $0.contains("homebrew") }
-                }
-                summaryText = String(localized: "Homebrew cleanup", comment: "Natural language summary fragment for Homebrew filter")
-            case .developerArtifacts:
-                filters.append { action in
-                    action.targets.contains { target in
-                        guard let record = filesByID[target] else { return false }
-                        return record.url.pathComponents.contains(where: { ["node_modules", "__pycache__", ".venv", "DerivedData", "target", "build", "dist"].contains($0) })
-                            || action.reason.lowercased().contains("developer")
-                            || action.reason.lowercased().contains("build artifact")
-                    }
-                }
-                summaryText = String(localized: "developer artifacts", comment: "Natural language summary fragment for developer artifacts filter")
-            case .safeOnly:
-                break
+            if let fragment = Self.summaryFragment(for: scope) {
+                summaryText = (scope == .downloads || scope == .caches) ? (summaryText ?? fragment) : fragment
+            }
+            if let predicate = Self.scopePredicate(
+                for: scope, filesByID: filesByID, sharedDuplicateTargets: sharedDuplicateTargets
+            ) {
+                filters.append(predicate)
             }
         }
 
@@ -307,6 +191,23 @@ public actor PlannerAgent {
             }
         }
 
+        if !intent.excludedScopes.isEmpty {
+            let excludedPredicates = intent.excludedScopes.compactMap {
+                Self.scopePredicate(for: $0, filesByID: filesByID, sharedDuplicateTargets: sharedDuplicateTargets)
+            }
+            if !excludedPredicates.isEmpty {
+                plan.actions = plan.actions.filter { action in
+                    !excludedPredicates.contains { $0(action) }
+                }
+                if filters.isEmpty && !intent.scopes.contains(.safeOnly) {
+                    plan.summary = String(
+                        localized: "Filtered plan excluding selected items.",
+                        comment: "Plan summary for NL exclusion filter"
+                    )
+                }
+            }
+        }
+
         // "everything" / "show all" / "full restore" / "undo" / "reset" — restore original actions.
         // Driven by the parsed intent now, not raw-string matching, so the
         // grammar owns the vocabulary in one place.
@@ -328,11 +229,223 @@ public actor PlannerAgent {
     }
 
     private func refreshEstimates(_ plan: inout Plan, filesByID: [String: FileRecord]) {
-        plan.estimatedReclaimableBytes = Set(plan.actions.flatMap(\.targets))
-            .compactMap { filesByID[$0]?.sizeBytes }
-            .reduce(Int64(0), +)
+        plan.estimatedReclaimableBytes = Self.estimatedReclaimableBytes(for: plan.actions, filesByID: filesByID)
         plan.estimatedFilesAffected = Set(plan.actions.flatMap(\.targets)).count
         plan.riskBreakdown = Dictionary(grouping: plan.actions, by: \.risk).mapValues(\.count)
+    }
+
+    private static let zeroReclaimActions: Set<ActionType> = [.tag, .createAlias, .createSymlink]
+
+    private static func estimatedReclaimableBytes(
+        for actions: [PlannedAction],
+        filesByID: [String: FileRecord]
+    ) -> Int64 {
+        let targetIDs = Set(
+            actions.filter { !zeroReclaimActions.contains($0.actionType) }.flatMap(\.targets)
+        )
+        let records = targetIDs.compactMap { filesByID[$0] }.sorted { lhs, rhs in
+            let lp = lhs.url.standardizedFileURL.path
+            let rp = rhs.url.standardizedFileURL.path
+            if lp.count != rp.count { return lp.count < rp.count }
+            return lp < rp
+        }
+        let needsSubtreeLookup = records.contains {
+            ($0.kind == .directory || $0.kind == .package) && $0.sizeBytes == 0
+        }
+        let subtreeSizes = needsSubtreeLookup
+            ? zeroSizedDirectoryTotals(for: records, filesByID: filesByID)
+            : [:]
+        var coveredFolders: [String] = []
+        var total: Int64 = 0
+        for record in records {
+            let path = record.url.standardizedFileURL.path
+            if coveredFolders.contains(where: { path.hasPrefix($0) }) {
+                continue
+            }
+            if record.kind == .directory || record.kind == .package {
+                coveredFolders.append(path + "/")
+                total += record.sizeBytes > 0 ? record.sizeBytes : (subtreeSizes[path] ?? 0)
+            } else {
+                total += max(0, record.sizeBytes)
+            }
+        }
+        return total
+    }
+
+    private static func zeroSizedDirectoryTotals(
+        for records: [FileRecord],
+        filesByID: [String: FileRecord]
+    ) -> [String: Int64] {
+        let sortedFiles = filesByID.values
+            .filter { ($0.rolledUpItemCount != nil || ![.directory, .package].contains($0.kind)) && $0.sizeBytes > 0 }
+            .sorted { $0.url.standardizedFileURL.path < $1.url.standardizedFileURL.path }
+        let sortedPaths = sortedFiles.map { $0.url.standardizedFileURL.path }
+        var totals: [String: Int64] = [:]
+        for dir in records where (dir.kind == .directory || dir.kind == .package) && dir.sizeBytes == 0 {
+            let dirPath = dir.url.standardizedFileURL.path
+            let prefix = dirPath + "/"
+            let start = SortedPathSearch.lowerBound(sortedPaths, prefix)
+            let end = SortedPathSearch.upperBound(sortedPaths, prefix)
+            var sum: Int64 = 0
+            for idx in start..<end {
+                sum += max(0, sortedFiles[idx].sizeBytes)
+            }
+            totals[dirPath] = sum
+        }
+        return totals
+    }
+
+    private static func sharedTargets(in actions: [PlannedAction]) -> Set<String> {
+        let counts = Dictionary(actions.flatMap { $0.targets }.map { ($0, 1) }, uniquingKeysWith: +)
+        return Set(counts.filter { $0.value > 1 }.map(\.key))
+    }
+
+    private static func summaryFragment(for scope: PlanIntent.Scope) -> String? {
+        switch scope {
+        case .all, .restoreAll, .safeOnly: nil
+        case .pythonCaches:
+            String(localized: "Python caches and environments", comment: "Natural language summary fragment for Python cache filter")
+        case .largerThan(let bytes):
+            bytes >= 1_000_000_000
+                ? String(localized: "large files (1GB+)", comment: "Natural language summary fragment for large files filter")
+                : String(localized: "large items (100MB+)", comment: "Natural language summary fragment for broad large item filter")
+        case .duplicates:
+            String(localized: "duplicate files", comment: "Natural language summary fragment for duplicate files filter")
+        case .olderThan(let days):
+            String(localized: "files older than \(days) days", comment: "Natural language summary fragment for old files filter")
+        case .oldDownloads:
+            String(localized: "old files in Downloads", comment: "Natural language summary fragment for old Downloads filter")
+        case .oldInstallers:
+            String(localized: "old installers", comment: "Natural language summary fragment for old installers filter")
+        case .downloads:
+            String(localized: "Downloads folder", comment: "Natural language summary fragment for Downloads filter")
+        case .caches:
+            String(localized: "caches and temporary files", comment: "Natural language summary fragment for cache filter")
+        case .logs:
+            String(localized: "log files", comment: "Natural language summary fragment for log filter")
+        case .docker:
+            String(localized: "Docker cleanup", comment: "Natural language summary fragment for Docker filter")
+        case .nodeModules:
+            String(localized: "npm and Node.js cleanup", comment: "Natural language summary fragment for npm and Node cleanup filter")
+        case .homebrew:
+            String(localized: "Homebrew cleanup", comment: "Natural language summary fragment for Homebrew filter")
+        case .developerArtifacts:
+            String(localized: "developer artifacts", comment: "Natural language summary fragment for developer artifacts filter")
+        }
+    }
+
+    private static func scopePredicate(
+        for scope: PlanIntent.Scope,
+        filesByID: [String: FileRecord],
+        sharedDuplicateTargets: Set<String>
+    ) -> ((PlannedAction) -> Bool)? {
+        switch scope {
+        case .all, .restoreAll, .safeOnly:
+            return nil
+        case .pythonCaches:
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return target.contains("pip") }
+                    return record.url.pathComponents.contains("__pycache__")
+                        || record.url.pathComponents.contains(".pytest_cache")
+                        || record.url.pathComponents.contains(".venv")
+                        || record.url.pathComponents.contains("venv")
+                }
+            }
+        case .largerThan(let bytes):
+            return { action in action.targets.contains { (filesByID[$0]?.sizeBytes ?? 0) >= bytes } }
+        case .duplicates:
+            return { action in
+                action.actionType == .cloneDeduplicate
+                    || action.reason.lowercased().contains("duplicate")
+                    || action.targets.contains { sharedDuplicateTargets.contains($0) }
+            }
+        case .olderThan(let days):
+            let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    return (record.modifiedAt ?? record.createdAt ?? Date.distantPast) < cutoff
+                }
+            }
+        case .oldDownloads(let days):
+            let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    return (record.modifiedAt ?? record.createdAt ?? Date.distantPast) < cutoff
+                        && record.url.pathComponents.contains("Downloads")
+                }
+            }
+        case .oldInstallers(let days):
+            let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    let isInstaller = record.fileExtension.map(CleanerRuleEngine.installerExtensions.contains) ?? false
+                    return isInstaller && (record.modifiedAt ?? record.createdAt ?? Date.distantPast) < cutoff
+                }
+            }
+        case .downloads:
+            return { action in
+                action.targets.contains { filesByID[$0]?.url.pathComponents.contains("Downloads") ?? false }
+            }
+        case .caches:
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    return isCacheOrTemporaryPath(record.url.pathComponents)
+                        || action.reason.lowercased().contains("cache")
+                }
+            }
+        case .logs:
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    return record.fileExtension == "log"
+                        || record.url.pathComponents.contains("Logs")
+                        || record.url.pathComponents.contains("logs")
+                }
+            }
+        case .docker:
+            return { action in
+                if action.actionType == .runPackageManagerCleanup && action.targets.contains(where: { $0.contains("docker") }) {
+                    return true
+                }
+                return action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    return record.url.pathComponents.contains("Docker")
+                        || record.url.pathComponents.contains("docker")
+                        || record.fileName.lowercased().contains("docker")
+                }
+            }
+        case .nodeModules:
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    return record.url.pathComponents.contains("node_modules")
+                        || record.url.pathComponents.contains(".npm")
+                        || record.fileName.lowercased().contains("npm")
+                }
+            }
+        case .homebrew:
+            return { action in
+                action.actionType == .runPackageManagerCleanup
+                    && action.targets.contains { $0.contains("brew") || $0.contains("homebrew") }
+            }
+        case .developerArtifacts:
+            return { action in
+                action.targets.contains { target in
+                    guard let record = filesByID[target] else { return false }
+                    let artifactFolders: Set<String> = [
+                        "node_modules", "__pycache__", ".venv", "DerivedData", "target", "build", "dist"
+                    ]
+                    return record.url.pathComponents.contains { artifactFolders.contains($0) }
+                        || action.reason.lowercased().contains("developer")
+                        || action.reason.lowercased().contains("build artifact")
+                }
+            }
+        }
     }
 
     private static func isCacheOrTemporaryPath(_ components: [String]) -> Bool {

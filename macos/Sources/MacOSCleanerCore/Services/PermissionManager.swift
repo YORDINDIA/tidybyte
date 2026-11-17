@@ -18,7 +18,7 @@ public enum PermissionError: Error, LocalizedError, Sendable {
 /// Full Disk Access unlocks is the reliable check: a permission error means
 /// no access, a missing file means try the next probe.
 public enum FullDiskAccess {
-    public static func isGranted(home: URL = FileManager.default.homeDirectoryForCurrentUser) -> Bool {
+    public static func isGranted(home: URL = PathSafetyPolicy.realHomeDirectory) -> Bool {
         let probes = [
             home.appendingPathComponent("Library/Application Support/com.apple.TCC/TCC.db"),
             home.appendingPathComponent("Library/Safari/Bookmarks.plist"),
@@ -35,7 +35,7 @@ public enum FullDiskAccess {
 
     /// Other apps' containers. Without Full Disk Access, reading inside them
     /// asks the person for consent, so scans do not enter them.
-    public static func closedAppDataFolders(home: URL = FileManager.default.homeDirectoryForCurrentUser) -> Set<String> {
+    public static func closedAppDataFolders(home: URL = PathSafetyPolicy.realHomeDirectory) -> Set<String> {
         guard !isGranted(home: home) else { return [] }
         return Set(["Library/Containers", "Library/Group Containers"].map {
             home.appendingPathComponent($0, isDirectory: true).standardizedFileURL.path
@@ -76,7 +76,7 @@ public actor PermissionManager {
         self.homeDirectoryOverride = homeDirectoryOverride
     }
 
-    private var home: URL { homeDirectoryOverride ?? fileManager.homeDirectoryForCurrentUser }
+    private var home: URL { homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory }
 
     public func roots(for mode: ScanMode, selectedFolders: [URL]) throws -> [URL] {
         switch mode {

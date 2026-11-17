@@ -9,7 +9,6 @@ public actor AlertEngine {
     private var settings: AlertThresholds
     private let notifier: AlertNotifier
 
-    /// Sliding windows per app, keyed by app id.
     private var cpuWindows: [String: CPUWindow] = [:]
     private var memoryBaselines: [String: (value: Int64, at: Date)] = [:]
     private var lastRaised: [String: Date] = [:]
@@ -21,12 +20,12 @@ public actor AlertEngine {
 
     public struct AlertThresholds: Sendable {
         public var isEnabled: Bool
+        /// Sustained system-wide CPU share (0...100%, normalized across logical cores).
         public var cpuPercent: Double
         public var cpuWindowMinutes: Double
         public var memoryGrowthBytes: Int64
         public var diskBytesPerSecond: Double
         public var networkBytesPerSecond: Double
-        /// Minimum minutes between two alerts about the same app.
         public var cooldownMinutes: Double
 
         public init(
@@ -43,7 +42,6 @@ public actor AlertEngine {
         }
     }
 
-    /// Delivers a finding. Protocol-injected so tests can capture instead.
     public protocol AlertNotifier: Sendable {
         func raise(_ finding: Finding) async
     }
@@ -55,9 +53,22 @@ public actor AlertEngine {
         public var appName: String
         public var detail: String
         public var bundleID: String?
+        var stateKey: String?
+
+        public init(kind: Kind, appName: String, detail: String, bundleID: String?, stateKey: String? = nil) {
+            self.kind = kind
+            self.appName = appName
+            self.detail = detail
+            self.bundleID = bundleID
+            self.stateKey = stateKey
+        }
+
+        public static func == (lhs: Finding, rhs: Finding) -> Bool {
+            lhs.kind == rhs.kind && lhs.appName == rhs.appName
+                && lhs.detail == rhs.detail && lhs.bundleID == rhs.bundleID
+        }
     }
 
-    /// Swaps in new thresholds from Settings; windows and cooldowns persist.
     public func updateThresholds(_ thresholds: AlertThresholds) {
         settings = thresholds
     }
@@ -76,23 +87,28 @@ public actor AlertEngine {
             groups: snapshot.groups, now: snapshot.timestamp)
     }
 
-    /// Bounds the per-app state so a long session cannot grow it forever:
-    /// entries leave when their app leaves the snapshot, and baselines and
-    /// cooldowns expire after 2 and 24 hours respectively. Pure so tests can
-    /// drive it.
+    static func groupKey(for group: AppProcessGroup) -> String {
+        if let bundleID = group.bundleID, !bundleID.isEmpty {
+            return bundleID
+        }
+        if let pid = group.members.first?.pid {
+            return "\(group.name)#\(pid)"
+        }
+        return group.name
+    }
+
     static func pruneStaleState(
         cpuWindows: inout [String: CPUWindow], memoryBaselines: inout [String: (value: Int64, at: Date)],
         lastRaised: inout [String: Date], groups: [AppProcessGroup], now: Date
     ) {
-        let liveKeys = Set(groups.map { $0.bundleID ?? $0.name })
+        let liveKeys = Set(groups.map(groupKey))
         cpuWindows = cpuWindows.filter { liveKeys.contains($0.key) }
         memoryBaselines = memoryBaselines.filter {
             liveKeys.contains($0.key) && now.timeIntervalSince($0.value.at) < 7200
         }
-        // Cooldown entries carry the finding kind as a prefix, so their live
-        // key set is the cartesian product of kinds and group keys.
         let cooldownKeys = Set(groups.flatMap { group in
-            Finding.Kind.allCases.map { "\($0.rawValue)-\(group.bundleID ?? group.name)" }
+            let key = groupKey(for: group)
+            return Finding.Kind.allCases.map { "\($0.rawValue)-\(key)" }
         })
         lastRaised = lastRaised.filter {
             cooldownKeys.contains($0.key) && now.timeIntervalSince($0.value) < 86_400
@@ -105,63 +121,74 @@ public actor AlertEngine {
     }
 
     private func cooldownKey(_ finding: Finding) -> String {
-        "\(finding.kind.rawValue)-\(finding.bundleID ?? finding.appName)"
+        "\(finding.kind.rawValue)-\(finding.stateKey ?? finding.bundleID ?? finding.appName)"
     }
 
     // MARK: - Pure evaluation (testable)
 
-    /// Finds alert-worthy apps in one snapshot. Mutating the windows here
-    /// keeps the sliding state in one place.
+    private struct EvaluationContext {
+        var coreScale: Double
+        var thresholds: AlertThresholds
+        var window: TimeInterval
+        var now: Date
+    }
+
     static func findings(
         in snapshot: SystemSnapshot, thresholds: AlertThresholds,
         cpuWindows: inout [String: CPUWindow], memoryBaselines: inout [String: (value: Int64, at: Date)],
         now: Date
     ) -> [Finding] {
         var findings: [Finding] = []
-        let window = thresholds.cpuWindowMinutes * 60
+        let context = EvaluationContext(
+            coreScale: Double(max(1, snapshot.cpu.logicalCoreCount)),
+            thresholds: thresholds,
+            window: thresholds.cpuWindowMinutes * 60,
+            now: now)
         for group in snapshot.groups {
+            let key = groupKey(for: group)
             findings.append(
-                contentsOf: cpuFindings(
-                    group: group, thresholds: thresholds, window: window, cpuWindows: &cpuWindows, now: now))
+                contentsOf: cpuFindings(group: group, key: key, context: context, cpuWindows: &cpuWindows))
             findings.append(
                 contentsOf: growthFinding(
-                    group: group, thresholds: thresholds,
+                    group: group, key: key, thresholds: thresholds,
                     memoryBaselines: &memoryBaselines, now: now))
-            findings.append(contentsOf: rateFindings(group: group, thresholds: thresholds))
+            findings.append(contentsOf: rateFindings(group: group, key: key, thresholds: thresholds))
         }
         return findings
     }
 
-    /// Sustained CPU: the average across the window must exceed the bar.
     private static func cpuFindings(
-        group: AppProcessGroup, thresholds: AlertThresholds, window: TimeInterval,
-        cpuWindows: inout [String: CPUWindow], now: Date
+        group: AppProcessGroup, key: String, context: EvaluationContext,
+        cpuWindows: inout [String: CPUWindow]
     ) -> [Finding] {
-        let key = group.bundleID ?? group.name
         var state = cpuWindows[key] ?? CPUWindow()
-        state.push(cpuPercent: group.cpuPercent, at: now, window: window)
+        let normalizedCPU = group.cpuPercent / context.coreScale
+        state.push(cpuPercent: normalizedCPU, at: context.now, window: context.window)
         cpuWindows[key] = state
-        guard let average = state.average, average >= thresholds.cpuPercent,
-            state.span >= window * 0.5 else { return [] }
+        guard let average = state.average, average >= context.thresholds.cpuPercent,
+              state.span >= context.window * 0.5 else { return [] }
         cpuWindows[key]?.clear()
         return [Finding(
             kind: .cpu, appName: group.name,
             detail: String(
-                localized: "\(group.name) averaged \(Int(average))% CPU for \(Int(window / 60)) minutes.",
+                localized: "\(group.name) averaged \(Int(average))% CPU for \(Int(context.window / 60)) minutes.",
                 comment: "CPU alert detail"),
-            bundleID: group.bundleID)]
+            bundleID: group.bundleID,
+            stateKey: key)]
     }
 
-    /// Memory growth: grown steadily over an hour from a baseline.
     private static func growthFinding(
-        group: AppProcessGroup, thresholds: AlertThresholds,
+        group: AppProcessGroup, key: String, thresholds: AlertThresholds,
         memoryBaselines: inout [String: (value: Int64, at: Date)], now: Date
     ) -> [Finding] {
-        let key = group.bundleID ?? group.name
         let memory = group.memoryBytes
-        if let baseline = memoryBaselines[key] {
-            guard now.timeIntervalSince(baseline.at) >= 3600 else { return [] }
-            let growth = memory - baseline.value
+        guard let baseline = memoryBaselines[key] else {
+            memoryBaselines[key] = (value: memory, at: now)
+            return []
+        }
+        let elapsed = now.timeIntervalSince(baseline.at)
+        let growth = memory - baseline.value
+        if elapsed >= 3600 {
             memoryBaselines[key] = (value: memory, at: now)
             guard growth >= thresholds.memoryGrowthBytes else { return [] }
             return [Finding(
@@ -169,14 +196,30 @@ public actor AlertEngine {
                 detail: String(
                     localized: "\(group.name) grew by \(growth.formattedByteCount) over the last hour.",
                     comment: "Memory alert detail"),
-                bundleID: group.bundleID)]
+                bundleID: group.bundleID,
+                stateKey: key)]
         }
-        memoryBaselines[key] = (value: memory, at: now)
+        if elapsed >= 900 {
+            let minimumSlopeBytes = max(Int64(500_000_000), thresholds.memoryGrowthBytes / 2)
+            let projectedHourly = Double(growth) * (3600.0 / elapsed)
+            if growth >= minimumSlopeBytes, projectedHourly >= Double(thresholds.memoryGrowthBytes) {
+                memoryBaselines[key] = (value: memory, at: now)
+                let minutes = max(1, Int((elapsed / 60).rounded()))
+                return [Finding(
+                    kind: .memory, appName: group.name,
+                    detail: String(
+                        localized: "\(group.name) grew rapidly by \(growth.formattedByteCount) in \(minutes) minutes.",
+                        comment: "Rapid memory growth alert detail"),
+                    bundleID: group.bundleID,
+                    stateKey: key)]
+            }
+        }
         return []
     }
 
-    /// Disk and network: instantaneous hammering is worth one ping.
-    private static func rateFindings(group: AppProcessGroup, thresholds: AlertThresholds) -> [Finding] {
+    private static func rateFindings(
+        group: AppProcessGroup, key: String, thresholds: AlertThresholds
+    ) -> [Finding] {
         var findings: [Finding] = []
         if group.diskReadPerSecond + group.diskWritePerSecond >= thresholds.diskBytesPerSecond {
             findings.append(Finding(
@@ -184,7 +227,8 @@ public actor AlertEngine {
                 detail: String(
                     localized: "\(group.name) is writing to disk heavily right now.",
                     comment: "Disk alert detail"),
-                bundleID: group.bundleID))
+                bundleID: group.bundleID,
+                stateKey: key))
         }
         if group.downloadPerSecond + group.uploadPerSecond >= thresholds.networkBytesPerSecond {
             findings.append(Finding(
@@ -192,40 +236,70 @@ public actor AlertEngine {
                 detail: String(
                     localized: "\(group.name) is moving a lot of data right now.",
                     comment: "Network alert detail"),
-                bundleID: group.bundleID))
+                bundleID: group.bundleID,
+                stateKey: key))
         }
         return findings
     }
 
-    /// Rolling CPU samples for one app, bounded to the alert window.
+    /// O(1) circular ring buffer for rolling CPU samples within the alert window.
     struct CPUWindow {
-        var samples: [(at: Date, percent: Double)] = []
+        private var ring: [(at: Date, percent: Double)?] = Array(repeating: nil, count: 16)
+        private var head = 0
+        private var tail = 0
+        private(set) var count = 0
+        private var sum = 0.0
+
+        var isEmpty: Bool { count < 1 }
 
         var span: TimeInterval {
-            guard let first = samples.first, let last = samples.last else { return 0 }
+            guard count >= 2, let first = ring[head],
+                  let last = ring[(tail - 1 + ring.count) % ring.count] else { return 0 }
             return last.at.timeIntervalSince(first.at)
         }
 
         var average: Double? {
-            guard !samples.isEmpty else { return nil }
-            return samples.reduce(0.0) { $0 + $1.percent } / Double(samples.count)
+            isEmpty ? nil : sum / Double(count)
         }
 
         mutating func push(cpuPercent: Double, at date: Date, window: TimeInterval) {
-            samples.append((date, cpuPercent))
             let cutoff = date.addingTimeInterval(-window)
-            samples.removeAll { $0.at < cutoff }
+            while !isEmpty, let oldest = ring[head], oldest.at < cutoff {
+                sum -= oldest.percent
+                ring[head] = nil
+                head = (head + 1) % ring.count
+                count -= 1
+            }
+            if count == ring.count {
+                grow()
+            }
+            ring[tail] = (at: date, percent: cpuPercent)
+            tail = (tail + 1) % ring.count
+            count += 1
+            sum += cpuPercent
         }
 
         mutating func clear() {
-            samples.removeAll()
+            ring = Array(repeating: nil, count: ring.count)
+            head = 0
+            tail = 0
+            count = 0
+            sum = 0
+        }
+
+        private mutating func grow() {
+            let newCapacity = max(16, ring.count * 2)
+            var next = [(at: Date, percent: Double)?](repeating: nil, count: newCapacity)
+            for index in 0..<count {
+                next[index] = ring[(head + index) % ring.count]
+            }
+            ring = next
+            head = 0
+            tail = count
         }
     }
 }
 
-/// Posts findings through the shared NotificationScheduler, which gates on a
-/// real app bundle — UNUserNotificationCenter raises an uncatchable exception
-/// in unbundled hosts (tests, the `tidybyte monitor` CLI).
 public struct SystemAlertNotifier: AlertEngine.AlertNotifier {
     private let scheduler = NotificationScheduler()
 

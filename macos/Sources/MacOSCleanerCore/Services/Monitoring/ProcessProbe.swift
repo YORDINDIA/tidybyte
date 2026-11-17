@@ -90,11 +90,16 @@ public actor ProcessProbe {
     private static let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "ProcessProbe")
     /// pid → cumulative counters from the previous tick.
     private var previousUsage: [pid_t: ProcessUsageCounters] = [:]
-    /// pid → executable path cached across ticks. proc_pidpath is a
-    /// KERN_PROCARGS read per pid otherwise, ~500 per tick at 1 Hz.
-    private var executablePaths: [pid_t: String] = [:]
+    /// pid → executable path + start time cached across ticks. Checking
+    /// `startedAt` prevents a reused pid from inheriting its predecessor's path.
+    private var executablePaths: [pid_t: CachedExecutablePath] = [:]
     private var previousTimestamp: Date?
     private var appResolver = AppIdentityResolver()
+
+    private struct CachedExecutablePath: Sendable {
+        var path: String
+        var startedAt: Date?
+    }
 
     struct ProcessUsageCounters: Sendable {
         var cpuTimeSeconds: Double
@@ -124,11 +129,16 @@ public actor ProcessProbe {
             var sample = baseSample(from: entry, pid: pid)
             applyUsageReport(to: &sample, now: now)
             if sample.executablePath == nil {
-                // Only pids never seen before pay the proc_pidpath read.
-                if let cached = executablePaths[pid] {
-                    sample.executablePath = cached
+                // Only pids never seen before (with the same start time) pay the proc_pidpath read.
+                if let cached = executablePaths[pid],
+                   let startedAt = sample.startedAt, cached.startedAt == startedAt {
+                    sample.executablePath = cached.path
                 } else if let path = Self.executablePath(of: pid) {
-                    executablePaths[pid] = path
+                    if let startedAt = sample.startedAt {
+                        executablePaths[pid] = CachedExecutablePath(path: path, startedAt: startedAt)
+                    } else {
+                        executablePaths.removeValue(forKey: pid)
+                    }
                     sample.executablePath = path
                 }
             }
@@ -299,10 +309,13 @@ extension ProcessProbe {
     /// Absolute path of the executable, via libproc. Returns nil for processes
     /// this user cannot inspect (other users, sandboxed system services).
     static func executablePath(of pid: pid_t) -> String? {
-        var buffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
-        let length = proc_pidpath(pid, &buffer, UInt32(MAXPATHLEN))
+        var buffer = [UInt8](repeating: 0, count: Int(MAXPATHLEN))
+        let length = buffer.withUnsafeMutableBytes { raw in
+            proc_pidpath(pid, raw.baseAddress, UInt32(MAXPATHLEN))
+        }
         guard length > 0 else { return nil }
-        return String(cString: buffer)
+        let valid = buffer.prefix(min(Int(length), buffer.count)).prefix { $0 != 0 }
+        return String(bytes: valid, encoding: .utf8)
     }
 
     /// argv as the kernel recorded it at exec time, via KERN_PROCARGS2.

@@ -102,17 +102,21 @@ public enum DevEnvironmentProbe {
     /// line in chunks, so the scan touches only those processes instead of
     /// every process on the machine.
     static func workingDirectories(pids: Set<pid_t>) async -> [pid_t: String] {
-        guard !pids.isEmpty else { return [:] }
+        let lsofPath = "/usr/sbin/lsof"
+        guard !pids.isEmpty, FileManager.default.isExecutableFile(atPath: lsofPath) else { return [:] }
         let sorted = pids.sorted()
         var result: [pid_t: String] = [:]
         let chunkSize = 64
+        let lsofURL = URL(fileURLWithPath: lsofPath)
         for start in stride(from: 0, to: sorted.count, by: chunkSize) {
             let chunk = sorted[start..<min(start + chunkSize, sorted.count)]
             let pidList = chunk.map(String.init).joined(separator: ",")
-            guard let output = try? await SystemTool.run("/usr/sbin/lsof", arguments: [
-                "-a", "-p", pidList, "-d", "cwd", "-Fn", "-nP"
-            ]) else { continue }
-            for (pid, directory) in parseWorkingDirectories(output, pids: pids) {
+            // lsof exits 1 if a single PID in the chunk died mid-call while still
+            // writing valid cwd records for the surviving PIDs to stdout.
+            let run = await ProcessRunner.run(
+                lsofURL, arguments: ["-a", "-p", pidList, "-d", "cwd", "-Fn", "-nP"], timeout: 10)
+            guard !run.stdout.isEmpty else { continue }
+            for (pid, directory) in parseWorkingDirectories(run.stdout, pids: pids) {
                 result[pid] = directory
             }
         }
@@ -125,8 +129,7 @@ public enum DevEnvironmentProbe {
         var currentPID: pid_t = 0
         for rawLine in output.split(separator: "\n") {
             let line = rawLine.drop(while: { $0 == " " || $0 == "\t" })
-            guard line.count > 1 else { continue }
-            let tag = line.first!
+            guard line.count > 1, let tag = line.first else { continue }
             let value = String(line.dropFirst())
             switch tag {
             case "p":
@@ -186,22 +189,30 @@ extension DevEnvironmentProbe {
 /// empty list, never an error — plenty of Macs run none.
 public enum ContainerProbe {
     public static func containers() async -> [ContainerReading] {
+        await fetchContainers() ?? []
+    }
+
+    /// Returns `nil` when Docker failed/timed out (so callers can tell a transient
+    /// daemon timeout apart from zero running containers).
+    static func fetchContainers() async -> [ContainerReading]? {
         guard let docker = dockerBinary() else { return [] }
-        guard let listOutput = try? await SystemTool.run(docker, arguments: [
-            "ps", "--format", "{{json .}}"
-        ]) else { return [] }
-        let listed = parseContainerList(listOutput)
-        guard !listed.isEmpty,
-            let statsOutput = try? await SystemTool.run(docker, arguments: [
-                "stats", "--no-stream", "--format", "{{json .}}"
-            ]) else {
+        let dockerURL = URL(fileURLWithPath: docker)
+        let listResult = await ProcessRunner.run(dockerURL, arguments: ["ps", "--format", "{{json .}}"], timeout: 5)
+        guard listResult.exitCode == 0 else {
+            return listResult.stderr.localizedCaseInsensitiveContains("daemon") ? [] : nil
+        }
+        let listed = parseContainerList(listResult.stdout)
+        guard !listed.isEmpty else { return [] }
+        let statsResult = await ProcessRunner.run(
+            dockerURL, arguments: ["stats", "--no-stream", "--format", "{{json .}}"], timeout: 5)
+        guard statsResult.exitCode == 0 else {
             return listed.map { item in
                 ContainerReading(
                     containerID: item.id, name: item.name, image: item.image, state: item.state,
                     ports: item.ports)
             }
         }
-        let stats = parseStats(statsOutput)
+        let stats = parseStats(statsResult.stdout)
         return listed.map { item in
             guard let stat = stats[item.name] ?? stats[item.id] else {
                 return ContainerReading(
@@ -218,7 +229,12 @@ public enum ContainerProbe {
     }
 
     static func dockerBinary() -> String? {
-        let candidates = ["/usr/local/bin/docker", "/opt/homebrew/bin/docker", "/usr/bin/docker"]
+        let candidates = [
+            "/opt/homebrew/bin/docker",
+            "/usr/local/bin/docker",
+            "/usr/bin/docker",
+            "/Applications/Docker.app/Contents/Resources/bin/docker"
+        ]
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
@@ -300,17 +316,20 @@ public enum ContainerProbe {
     /// docker stats prints decimal units (1 GB = 10^9); the iB forms are
     /// binary. Anything unrecognized counts as bytes. Absurd values clamp to
     /// Int64 bounds instead of trapping the conversion.
+    private static let sizeMultipliers: [String: Double] = [
+        "tb": 1_000_000_000_000,
+        "gb": 1_000_000_000,
+        "mb": 1_000_000,
+        "kb": 1_000,
+        "tib": 1024 * 1024 * 1024 * 1024,
+        "gib": 1024 * 1024 * 1024,
+        "mib": 1024 * 1024,
+        "kib": 1024,
+        "b": 1
+    ]
+
     private static func clampedBytes(value: Double, unit: String) -> Int64 {
-        let multiplier: Double = switch unit {
-        case "gb": 1_000_000_000
-        case "mb": 1_000_000
-        case "kb": 1_000
-        case "gib": 1024 * 1024 * 1024
-        case "mib": 1024 * 1024
-        case "kib": 1024
-        case "b": 1
-        default: 1
-        }
+        let multiplier = sizeMultipliers[unit] ?? 1
         let product = value * multiplier
         guard product.isFinite else { return 0 }
         return product >= Double(Int64.max) ? Int64.max : Int64(product)

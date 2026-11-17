@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import MacOSCleanerCore
 
@@ -8,27 +9,14 @@ enum MCPError: Error, LocalizedError {
     case unknownFinding(String)
     case unknownAction(String)
     case nothingToUndo(String)
-    /// High-risk destructive actions never execute through MCP — the user
-    /// must run those in the app where the explicit-confirmation flow lives.
     case highRiskRequiresApp
-    /// Destructive actions (everything except the non-deleting APFS fold)
-    /// never execute through MCP. A client's "confirm" flag is the connecting
-    /// agent's say-so, not a human approval, so irreversible work is refused
-    /// here by code, not just by the instructions prose.
     case destructiveRequiresApp([String])
-    /// An id argument was missing or shorter than the 8-character short ids
-    /// the server emits; an empty prefix would match everything.
     case invalidIDPrefix
-    /// A present argument has the wrong JSON type or an unknown value. It is
-    /// rejected, never read as absent: a malformed filter must not widen the
-    /// action to every item.
     case invalidArgument(String)
-    /// An undo that moves an artifact to the Trash. Moving files is an app action.
     case undoRequiresApp
-    /// A short operation id matches more than one recorded operation.
     case ambiguousOperationID(String)
-    /// A short action id matches more than one pending action, or none at all.
     case ambiguousActionID(String)
+    case processNotFound(Int)
 
     var errorDescription: String? {
         switch self {
@@ -60,13 +48,12 @@ enum MCPError: Error, LocalizedError {
             "Id \(id) matches more than one recorded operation. Nothing changed."
         case .ambiguousActionID(let id):
             "Id \(id) matches more than one pending action. Nothing changed."
+        case .processNotFound(let pid):
+            "No live process found with PID \(pid)."
         }
     }
 }
 
-/// A JSON-RPC response dictionary. `@unchecked Sendable` because the payload
-/// holds only JSON-serializable values (strings, numbers, booleans, arrays,
-/// dictionaries of the same) and is never mutated after the handler builds it.
 public struct MCPResponse: @unchecked Sendable {
     public let payload: [String: Any]
     init(_ payload: [String: Any]) {
@@ -74,28 +61,22 @@ public struct MCPResponse: @unchecked Sendable {
     }
 }
 
-/// The MCP server brain: JSON-RPC request → response dictionaries. Deliberately
-/// transport-agnostic (stdio lives in main.swift) so unit tests can drive
-/// `handle(request:)` directly. An actor: the stdio loop still processes one
-/// request at a time, but isolation does not depend on that caller discipline,
-/// and every service it touches is an actor too.
+/// The MCP server brain: JSON-RPC request → response dictionaries.
 public actor MCPKit {
     static let serverName = AppIdentity.mcpServerName
     static let serverVersion = "1.0"
     static let defaultProtocolVersion = "2025-06-18"
     static let supportedProtocolVersions = ["2024-11-05", "2025-03-26", "2025-06-18"]
-    /// Short ids surfaced to agents are 8 characters; a shorter id argument is
-    /// ambiguous (an empty prefix would match every record).
     static let minIDPrefixLength = 8
 
     struct ScanState {
         let outcome: ScanOutcome
         let plan: Plan
         let filesByID: [String: FileRecord]
+        var filesByParent: [String: [FileRecord]] = [:]
     }
 
     private let store: SQLiteStore
-    /// Scans run here; the cleanup tools reach into it.
     let orchestrator: ScanOrchestrator
     private let planner = PlannerAgent()
     private let executor: ActionExecutor
@@ -113,58 +94,49 @@ public actor MCPKit {
 
     // MARK: - JSON-RPC dispatch
 
-    /// Handles one decoded JSON-RPC request. Returns nil for notifications
-    /// (requests without an id get no response, per the MCP transport rules).
-    public func handle(request: [String: Any]) async -> MCPResponse? {
-        // Notifications (no id) get no response — even malformed ones. JSON-RPC
-        // forbids replying to a notification, so the id check must come first;
-        // otherwise a method-less notification would draw an error reply.
+    public func handle(request: sending [String: Any]) async -> MCPResponse? {
         guard let id = request["id"] else { return nil }
+        guard (request["jsonrpc"] as? String) == "2.0" else {
+            return MCPResponse(Self.errorPayload(id: id, code: -32600, message: "Invalid Request: jsonrpc must be \"2.0\""))
+        }
         guard let method = request["method"] as? String else {
             return MCPResponse(Self.errorPayload(id: id, code: -32600, message: "Invalid Request"))
         }
+        return await dispatchMethod(method, id: id, request: request)
+    }
+
+    private func dispatchMethod(_ method: String, id: Any, request: [String: Any]) async -> MCPResponse? {
         switch method {
         case "initialize":
-            let params = request["params"] as? [String: Any]
-            // Respond with a version the server actually speaks when the
-            // client requests an unknown one, per the MCP negotiation rules.
-            let requested = params?["protocolVersion"] as? String
-            let version = requested.flatMap { requested in
-                Self.supportedProtocolVersions.contains(requested) ? requested : nil
-            } ?? Self.defaultProtocolVersion
-            return MCPResponse(Self.responsePayload(id: id, result: [
-                "protocolVersion": version,
-                "capabilities": ["tools": [:] as [String: Any]],
-                "serverInfo": ["name": Self.serverName, "version": Self.serverVersion],
-                "instructions": """
-                Local Mac cleanup agent. A human approves every change: always call execute without \
-                confirm first, show the plan, and only call execute with confirm: true after the user \
-                agrees. Enforced policy: execute runs ONLY clone-fold actions (apfs_clone strategy, \
-                deletes nothing). Destructive actions (trash, package-manager cleanups) are refused \
-                here and must be approved in the Tidybyte app, where files stay recoverable in Trash.
-                """
-            ]))
+            return initializeResponse(id: id, params: request["params"] as? [String: Any])
         case "ping":
             return MCPResponse(Self.responsePayload(id: id, result: [:]))
         case "tools/list":
             return MCPResponse(Self.responsePayload(
-                    id: id, result: ["tools": Self.toolDescriptions + MonitorToolRouter.toolDescriptions]))
+                id: id, result: ["tools": Self.toolDescriptions + MonitorToolRouter.toolDescriptions]))
         case "tools/call":
             return await toolsCall(id: id, request: request)
+        case "prompts/list":
+            return MCPResponse(Self.responsePayload(
+                id: id, result: ["prompts": MCPPromptCatalog.promptDescriptions]))
+        case "prompts/get":
+            return promptsGet(id: id, params: request["params"] as? [String: Any])
+        case "resources/list":
+            return MCPResponse(Self.responsePayload(
+                id: id, result: ["resources": MCPResourceCatalog.resourceDescriptions]))
+        case "resources/read":
+            return await resourcesRead(id: id, params: request["params"] as? [String: Any])
         default:
             return MCPResponse(Self.errorPayload(id: id, code: -32601, message: "Method not found: \(method)"))
         }
     }
 
-    /// tools/call: unknown tools are protocol errors, and tool failures are results.
-    private func toolsCall(id: Any, request: [String: Any]) async -> MCPResponse {
+    private func toolsCall(id: Any, request: [String: Any]) async -> MCPResponse? {
         let params = request["params"] as? [String: Any] ?? [:]
         let name = params["name"] as? String ?? ""
-        // MCP: an unknown tool is a protocol error (-32602), not a tool result.
         guard MCPCleanupTool(rawValue: name) != nil || MonitorToolRouter.handles(name: name) else {
             return MCPResponse(Self.errorPayload(id: id, code: -32602, message: "Unknown tool: \(name)."))
         }
-        // A present arguments value that is not an object is refused, never read as {}.
         if let raw = params["arguments"], !(raw is [String: Any]) {
             return MCPResponse(Self.responsePayload(id: id, result: [
                 "content": [["type": "text", "text": "Argument arguments must be an object."]],
@@ -174,11 +146,15 @@ public actor MCPKit {
         let arguments = params["arguments"] as? [String: Any] ?? [:]
         do {
             let text = try await callTool(name: name, arguments: arguments)
+            if Task.isCancelled { return nil }
             return MCPResponse(Self.responsePayload(id: id, result: [
                 "content": [["type": "text", "text": text]],
                 "isError": false
             ]))
+        } catch is CancellationError {
+            return nil
         } catch {
+            if Task.isCancelled { return nil }
             return MCPResponse(Self.responsePayload(id: id, result: [
                 "content": [["type": "text", "text": error.localizedDescription]],
                 "isError": true
@@ -189,8 +165,9 @@ public actor MCPKit {
     // MARK: - Tools
 
     private func callTool(name: String, arguments: [String: Any]) async throws -> String {
-        if let monitorResult = await MonitorToolRouter.handle(name: name) { return monitorResult }
-
+        if let monitorRequest = try MonitorToolRouter.parseRequest(name: name, arguments: arguments) {
+            return try await MonitorToolRouter.execute(monitorRequest)
+        }
         guard let tool = MCPCleanupTool(rawValue: name) else { throw MCPError.unknownTool(name) }
         switch tool {
         case .scan: return try await toolScan(arguments)
@@ -203,52 +180,6 @@ public actor MCPKit {
         }
     }
 
-    private func toolListFindings(_ arguments: [String: Any]) throws -> String {
-        let query = (try Self.stringArgument(arguments, "query") ?? "").lowercased()
-        let limit = try max(1, Self.intArgument(arguments, "limit") ?? 20)
-        guard let lastScan else { throw MCPError.noScan }
-        let matches = lastScan.outcome.findings.filter { finding in
-            query.isEmpty
-                || finding.summary.lowercased().contains(query)
-                || finding.targetFileIDs.contains {
-                    lastScan.filesByID[$0]?.displayPath.lowercased().contains(query) == true
-                }
-        }
-        guard !matches.isEmpty else { return "No findings match." }
-        var lines = ["\(matches.count) findings (showing up to \(limit)):"]
-        for finding in matches.prefix(limit) {
-            lines.append("- [\(Self.shortID(finding.id))] \(finding.summary) · \(finding.bytesReclaimable.formattedByteCount)")
-        }
-        return lines.joined(separator: "\n")
-    }
-
-    private func toolShowPlan(_ arguments: [String: Any]) throws -> String {
-        let findingID = try Self.validatedIDPrefix(Self.stringArgument(arguments, "finding_id"), allowNil: true)
-        guard let lastScan else { throw MCPError.noScan }
-        let actions = lastScan.plan.actions.filter { action in
-            guard let findingID else { return true }
-            return action.findingID?.hasPrefix(findingID) == true
-        }
-        guard !actions.isEmpty else { return "No plan actions for this query." }
-        var lines = ["\(actions.count) proposed actions:"]
-        for action in actions {
-            let targetBytes = action.targets
-                .compactMap { lastScan.filesByID[$0]?.sizeBytes }
-                .reduce(Int64(0), +)
-            let label = action.actionType == .cloneDeduplicate
-                ? "fold onto keeper (nothing deleted)"
-                : action.actionType.rawValue
-            lines.append(
-                "- [\(Self.shortID(action.id))] \(label): \(action.targets.count) files, "
-                + "\(targetBytes.formattedByteCount), risk \(action.risk.rawValue) · \(action.reason)"
-            )
-        }
-        return lines.joined(separator: "\n")
-    }
-
-    /// Live re-verification: every file in the group must still exist, still
-    /// carry the scanned identity, and still hash to the scanned SHA-256 —
-    /// a stale plan never gets executed on changed files.
     private func toolCheckFinding(_ arguments: [String: Any]) async throws -> String {
         let id = try Self.validatedIDPrefix(Self.stringArgument(arguments, "finding_id"))
         guard let lastScan else { throw MCPError.noScan }
@@ -282,8 +213,6 @@ public actor MCPKit {
             hashed: scannedHash == nil ? nil : hashed, missing: missing, changed: changed)
     }
 
-    /// The open actions to run. Each requested id must name exactly one open action.
-    /// A prefix that matches none or several is refused, so it cannot widen the batch.
     static func pendingActions(in plan: Plan, requestedIDs: [String]?) throws -> [PlannedAction] {
         let open = plan.actions.filter { $0.userDecision == .undecided && $0.executedAt == nil }
         guard let requestedIDs else { return open }
@@ -307,33 +236,18 @@ public actor MCPKit {
         let pending = try Self.pendingActions(in: lastScan.plan, requestedIDs: requestedIDs)
         guard !pending.isEmpty else { throw MCPError.unknownAction("any") }
 
-        let targetBytes = pending.reduce(Int64(0)) { total, action in
-            total + action.targets.reduce(Int64(0)) { sum, id in
-                sum + (lastScan.filesByID[id]?.sizeBytes ?? 0)
-            }
-        }
+        let targetBytes = pending.reduce(Int64(0)) { $0 + estimatedBytes(for: $1, in: lastScan) }
         let summaryText = pending.map { action -> String in
             let label = action.actionType == .cloneDeduplicate
                 ? "fold \(action.targets.count) files onto their keepers (nothing deleted)"
                 : "\(action.actionType.rawValue): \(action.targets.count) files"
-            return "- \(label) · \(action.reason)"
+            return "- [\(Self.shortID(action.id))] \(label) · \(action.reason)"
         }.joined(separator: "\n")
 
         guard confirm else {
-            // The dry run is read-only and stays available for destructive
-            // plans: it shows the plan and points at the app that must do it.
-            return """
-            Dry run. Nothing changed. Would \(pending.count) actions affecting \(targetBytes.formattedByteCount):
-            \(summaryText)
-            Ask the user, then call execute again with confirm: true.
-            """
+            return dryRunMessage(pending: pending, targetBytes: targetBytes, summaryText: summaryText)
         }
 
-        // ENFORCED policy, not prose: a client-supplied "confirm" flag is the
-        // connecting agent's say-so, never proof a human saw anything. Only
-        // the non-deleting clone fold may execute here; everything destructive
-        // (trash, package-manager cleanups, high risk of any kind) requires
-        // the app's explicit-confirmation flow.
         if pending.contains(where: { $0.risk >= .high }) {
             throw MCPError.highRiskRequiresApp
         }
@@ -350,17 +264,12 @@ public actor MCPKit {
             approved.append(approvedAction)
         }
         let summary = await executor.execute(actions: approved, filesByID: lastScan.filesByID)
-        // Stamp the in-memory plan so a second confirmed execute can never
-        // re-run the same actions (the executor's idempotency guard reads
-        // executedAt off the plan).
-        var plan = lastScan.plan
-        let stamped = Set(approved.map(\.id))
-        for index in plan.actions.indices where stamped.contains(plan.actions[index].id) {
-            plan.actions[index].executedAt = Date()
-            plan.actions[index].status = summary.failedActionIDs.contains(plan.actions[index].id)
-                ? .failed : .completed
-        }
-        self.lastScan = ScanState(outcome: lastScan.outcome, plan: plan, filesByID: lastScan.filesByID)
+        let updatedPlan = updatedPlanAfterExecution(plan: lastScan.plan, approved: approved, summary: summary)
+        self.lastScan = ScanState(
+            outcome: lastScan.outcome, plan: updatedPlan,
+            filesByID: lastScan.filesByID, filesByParent: lastScan.filesByParent)
+        try await store.savePlan(updatedPlan)
+
         var lines = [
             "Executed \(approved.count) actions: \(summary.undoRecords.count) undo records created, "
                 + "\(summary.failures.count) failures."
@@ -372,7 +281,6 @@ public actor MCPKit {
     }
 
     private func toolHistory() async throws -> String {
-        // The store returns records newest-first already.
         let records = Array(try await store.loadUndoRecords().prefix(20))
         guard !records.isEmpty else { return "No recorded operations yet." }
         var lines = ["Last \(records.count) operations (newest first):"]
@@ -387,26 +295,18 @@ public actor MCPKit {
     }
 
     private func toolUndo(_ arguments: [String: Any]) async throws -> String {
-        // Without this guard a missing id ("") prefix-matches every recorded
-        // operation and a confirmed call would bulk-restore all of them.
         let id = try Self.validatedIDPrefix(Self.stringArgument(arguments, "operation_log_id"))
         let confirm = try Self.boolArgument(arguments, "confirm") ?? false
         var records = try await store.loadUndoRecords(operationLogID: id)
         if records.isEmpty {
-            // History lists 8-character prefixes; resolve those against full ids.
             records = try await store.loadUndoRecords().filter { $0.operationLogID.hasPrefix(id) }
         }
         guard !records.isEmpty else { throw MCPError.nothingToUndo(id) }
-        // A short id that matches two operations must never restore both. Check
-        // every matching record, including ones no longer available.
         guard Set(records.map(\.operationLogID)).count == 1 else {
             throw MCPError.ambiguousOperationID(id)
         }
         let restorable = records.filter { $0.status == .available }
         guard !restorable.isEmpty else { throw MCPError.nothingToUndo(id) }
-        // Refuse the whole operation when any record is not agent-undoable, the
-        // same way execute refuses a mixed batch. Checked before the dry run so
-        // the agent is told up front that the app must do this.
         guard restorable.allSatisfy({ Self.agentMayUndo($0.inverseAction) }) else {
             throw MCPError.undoRequiresApp
         }
@@ -433,14 +333,11 @@ public actor MCPKit {
         failures.prefix(10).forEach { lines.append("! \($0)") }
         return lines.joined(separator: "\n")
     }
-
 }
 
-// Tool catalog, JSON-schema builders and JSON-RPC payload helpers live outside
-// the main class body.
-extension MCPKit {
-    // MARK: - Payload helpers
+// MARK: - Payload, verification & argument helpers
 
+extension MCPKit {
     static func responsePayload(id: Any, result: [String: Any]) -> [String: Any] {
         ["jsonrpc": "2.0", "id": id, "result": result]
     }
@@ -449,30 +346,21 @@ extension MCPKit {
         ["jsonrpc": "2.0", "id": id, "error": ["code": code, "message": message]]
     }
 
-    /// Serializes and prints one response line. Sorted keys keep the output
-    /// stable for tests. Writes through FileHandle (not `print`) because
-    /// stdio pipes are block-buffered — a buffered response would strand the
-    /// client waiting for a line that never arrives.
     public static func emit(_ payload: [String: Any]) {
-        guard let data = dataForPayload(payload) else {
-            return
-        }
+        guard let data = dataForPayload(payload) else { return }
         emitRaw(data)
     }
 
-    /// JSONSerialization raises Objective-C exceptions for invalid payloads —
-    /// NaN or infinity doubles, non-property-list values — and `try?` cannot
-    /// catch those: one non-finite monitor reading aborted the whole server
-    /// (see the crash reports). The sanitize-then-validate order lives in
-    /// Core's JSONSanitizing, shared with the monitor CLI.
     public static func dataForPayload(_ payload: [String: Any]) -> Data? {
         JSONSanitizing.data(payload, options: [.sortedKeys])
     }
 
-    /// Writes one pre-serialized response frame (Sendable across task
-    /// boundaries, which raw `[String: Any]` dictionaries are not).
+    /// Writes one pre-serialized response frame using throwing `write(contentsOf:)`
+    /// so EPIPE never triggers an uncatchable NSFileHandleOperationException.
     public static func emitRaw(_ data: Data) {
-        FileHandle.standardOutput.write(Data((String(decoding: data, as: UTF8.self) + "\n").utf8))
+        var frame = data
+        frame.append(0x0A)
+        try? FileHandle.standardOutput.write(contentsOf: frame)
     }
 
     static func strategy(from raw: String?) -> DuplicateStrategy {
@@ -483,27 +371,19 @@ extension MCPKit {
         String(id.prefix(8))
     }
 
-    /// Id arguments must be at least `minIDPrefixLength` characters: the dry
-    /// runs and history list 8-character short ids, and an empty (or very
-    /// short) prefix would silently match everything.
     static func validatedIDPrefix(_ raw: String?) throws -> String {
-        guard let id = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty else {
-            throw MCPError.invalidIDPrefix
-        }
-        if id.count < minIDPrefixLength {
+        guard let id = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !id.isEmpty, id.count >= minIDPrefixLength else {
             throw MCPError.invalidIDPrefix
         }
         return id
     }
 
-    /// Same gate for a list of id arguments: nil means "no filter".
     static func validatedIDPrefixes(_ raw: [String]?) throws -> [String]? {
         guard let raw else { return nil }
         return try raw.map { try validatedIDPrefix($0) }
     }
 
-    /// Same gate for optional id arguments: nil means "no filter", but an
-    /// empty string would be a match-everything prefix, so it is rejected.
     static func validatedIDPrefix(_ raw: String?, allowNil: Bool) throws -> String? {
         guard let raw else {
             if allowNil { return nil }
@@ -512,27 +392,45 @@ extension MCPKit {
         return try validatedIDPrefix(raw)
     }
 
-    /// Outcome of re-reading one finding member from disk.
     private enum MemberCheck {
-        /// Identity, size and modification time match, and the SHA-256 matches the scan.
         case identical
-        /// Identity, size and modification time match. The finding has no scanned hash.
         case identityOnly
         case missing
-        /// The file exists but no longer matches the scan (swapped, rewritten, or unreadable).
         case changed
     }
 
-    /// Re-reads one file through the same identity check the app runs before
-    /// it mutates anything, then hashes it when the scan recorded a hash.
+    /// Guards against symlinks and directories via `lstat` before verifying identity or hashing.
     private func checkMember(_ record: FileRecord, scannedHash: String?) async -> MemberCheck {
+        var st = Darwin.stat()
+        guard lstat(record.url.path, &st) == 0 else {
+            return errno == ENOENT ? .missing : .changed
+        }
+        let fileType = st.st_mode & S_IFMT
+        if fileType == S_IFLNK {
+            return .changed
+        }
+        if fileType == S_IFDIR || record.kind == .directory {
+            guard fileType == S_IFDIR, record.kind == .directory else { return .changed }
+            return await verifyIdentityOnly(record)
+        }
+        guard fileType == S_IFREG else { return .changed }
+        return await verifyRegularFile(record, scannedHash: scannedHash)
+    }
+
+    private func verifyIdentityOnly(_ record: FileRecord) async -> MemberCheck {
         do {
             try await auditor.verifyTargetUnchanged(record)
+            return .identityOnly
         } catch SafetyAuditError.targetVanished(_) {
             return .missing
         } catch {
             return .changed
         }
+    }
+
+    private func verifyRegularFile(_ record: FileRecord, scannedHash: String?) async -> MemberCheck {
+        let identity = await verifyIdentityOnly(record)
+        guard case .identityOnly = identity else { return identity }
         guard let scannedHash else { return .identityOnly }
         guard let hash = try? FingerprintService.fullHash(for: record.url), hash == scannedHash else {
             return .changed
@@ -540,8 +438,6 @@ extension MCPKit {
         return .identical
     }
 
-    /// The text of one check_finding run. Claims byte equality only when the scan recorded a hash.
-    /// `hashed` is nil when the finding has no scanned hash.
     static func checkReport(total: Int, verified: Int, hashed: Int?, missing: [String], changed: [String]) -> String {
         var lines = [
             hashed.map {
@@ -564,10 +460,6 @@ extension MCPKit {
         return lines.joined(separator: "\n")
     }
 
-    // MARK: - Typed arguments
-
-    /// An absent argument is nil. A present one must have the JSON type the
-    /// schema names; anything else throws, so a wrong type never reads as "no filter".
     static func stringArgument(_ arguments: [String: Any], _ key: String) throws -> String? {
         guard let raw = arguments[key] else { return nil }
         guard let value = raw as? String else { throw MCPError.invalidArgument(key) }
@@ -582,11 +474,15 @@ extension MCPKit {
 
     static func intArgument(_ arguments: [String: Any], _ key: String) throws -> Int? {
         guard let raw = arguments[key] else { return nil }
-        guard let value = raw as? Int else { throw MCPError.invalidArgument(key) }
+        guard let number = raw as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID(),
+              let value = raw as? Int,
+              Double(value) == number.doubleValue else {
+            throw MCPError.invalidArgument(key)
+        }
         return value
     }
 
-    /// Only a JSON boolean counts. `as? Bool` would also accept the number 1.
     static func boolArgument(_ arguments: [String: Any], _ key: String) throws -> Bool? {
         guard let raw = arguments[key] else { return nil }
         guard let number = raw as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() else {
@@ -595,12 +491,6 @@ extension MCPKit {
         return number.boolValue
     }
 
-    // MARK: - Undo policy
-
-    /// Undo kinds an agent may run. `moveToTrash` undo moves an alias, symlink or
-    /// archive copy to the Trash. It stays in the app because it moves a file the
-    /// cleanup created, which needs a person to confirm. Every case is listed
-    /// with no `default`, so a new ActionType cannot pass unreviewed.
     static func agentMayUndo(_ inverse: ActionType) -> Bool {
         switch inverse {
         case .restore, .move, .rename, .tag, .unfoldClone:

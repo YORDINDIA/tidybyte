@@ -5,6 +5,7 @@ import PackageDescription
 /// `APP_STORE=1 swift build -Xswiftc -DAPP_STORE --scratch-path .build/app-store-scratch` builds the sandboxed
 /// channel. Direct builds update themselves through Sparkle.
 let appStore = Context.environment["APP_STORE"] == "1"
+let channelSettings: [SwiftSetting] = appStore ? [.define("APP_STORE")] : []
 
 let package = Package(
     name: "Tidybyte",
@@ -22,9 +23,12 @@ let package = Package(
         .target(
             name: "MacOSCleanerCore",
             path: "Sources/MacOSCleanerCore",
+            resources: [
+                .process("Resources")
+            ],
             swiftSettings: [
                 .swiftLanguageMode(.v6)
-            ],
+            ] + channelSettings,
             linkerSettings: [
                 .linkedLibrary("sqlite3")
             ]
@@ -41,7 +45,7 @@ let package = Package(
                 // The monitor menu bar scenes read system-wide state, which the
                 // sandboxed App Store build cannot, so they only compile for
                 // the direct channel.
-            ] + (appStore ? [] : [.define("MONITOR_SCENES")])
+            ] + channelSettings + (appStore ? [] : [.define("MONITOR_SCENES")])
         ),
         .executableTarget(
             name: "MacOSCleaner",
@@ -50,7 +54,7 @@ let package = Package(
             path: "Sources/MacOSCleaner",
             swiftSettings: [
                 .swiftLanguageMode(.v6)
-            ]
+            ] + channelSettings
         ),
         .target(
             name: "MacOSCleanerMCPLibrary",
@@ -58,7 +62,7 @@ let package = Package(
             path: "Sources/MacOSCleanerMCPLibrary",
             swiftSettings: [
                 .swiftLanguageMode(.v6)
-            ]
+            ] + channelSettings
         ),
         .executableTarget(
             name: "MacOSCleanerMCP",
@@ -66,7 +70,7 @@ let package = Package(
             path: "Sources/MacOSCleanerMCP",
             swiftSettings: [
                 .swiftLanguageMode(.v6)
-            ]
+            ] + channelSettings
         ),
         .testTarget(
             name: "MacOSCleanerTests",
@@ -79,7 +83,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .swiftLanguageMode(.v6)
-            ]
+            ] + channelSettings
         )
     ]
 )

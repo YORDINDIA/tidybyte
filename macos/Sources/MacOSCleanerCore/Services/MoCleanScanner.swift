@@ -157,7 +157,7 @@ public actor MoCleanScanner {
                     lib.appendingPathComponent("Developer/CoreSimulator/Caches", isDirectory: true),
                     lib.appendingPathComponent("Caches/Homebrew", isDirectory: true),
                     caches.appendingPathComponent("com.anthropic.antigravity", isDirectory: true),
-                    caches.appendingPathComponent("com.microsoft.vscode", isDirectory: true),
+                    caches.appendingPathComponent("com.microsoft.VSCode", isDirectory: true),
                     caches.appendingPathComponent("VSCode", isDirectory: true)
                 ]
             case .devApplications:
@@ -178,8 +178,7 @@ public actor MoCleanScanner {
                 return [
                     caches.appendingPathComponent("com.docker.docker", isDirectory: true),
                     caches.appendingPathComponent("com.parallels", isDirectory: true),
-                    caches.appendingPathComponent("com.vmware", isDirectory: true),
-                    lib.appendingPathComponent("Containers/com.docker.docker", isDirectory: true)
+                    caches.appendingPathComponent("com.vmware", isDirectory: true)
                 ]
             case .applicationSupport:
                 return [
@@ -215,23 +214,40 @@ public actor MoCleanScanner {
 
         public var summaryPrefix: String {
             switch self {
-            case .deepSystem: "Deep system"
-            case .userEssentials: "User essentials"
-            case .finderMetadata: "Finder metadata"
-            case .macOSSystemCaches: "macOS system caches"
-            case .sandboxedAppCaches: "Sandboxed app caches"
-            case .browsers: "Browsers"
-            case .cloudStorage: "Cloud storage"
-            case .officeApps: "Office applications"
-            case .developerTools: "Developer tools"
-            case .devApplications: "Development applications"
-            case .vmTools: "Virtual machine tools"
-            case .applicationSupport: "Application Support"
-            case .uninstalledAppData: "Uninstalled app data"
-            case .appleSiliconUpdates: "Apple Silicon updates"
-            case .iosBackups: "iOS device backups"
-            case .timeMachineBackups: "Time Machine backups"
-            case .largeFiles: "Large files to review"
+            case .deepSystem:
+                String(localized: "Deep system", comment: "Mo clean section prefix")
+            case .userEssentials:
+                String(localized: "User essentials", comment: "Mo clean section prefix")
+            case .finderMetadata:
+                String(localized: "Finder metadata", comment: "Mo clean section prefix")
+            case .macOSSystemCaches:
+                String(localized: "macOS system caches", comment: "Mo clean section prefix")
+            case .sandboxedAppCaches:
+                String(localized: "Sandboxed app caches", comment: "Mo clean section prefix")
+            case .browsers:
+                String(localized: "Browsers", comment: "Mo clean section prefix")
+            case .cloudStorage:
+                String(localized: "Cloud storage", comment: "Mo clean section prefix")
+            case .officeApps:
+                String(localized: "Office applications", comment: "Mo clean section prefix")
+            case .developerTools:
+                String(localized: "Developer tools", comment: "Mo clean section prefix")
+            case .devApplications:
+                String(localized: "Development applications", comment: "Mo clean section prefix")
+            case .vmTools:
+                String(localized: "Virtual machine tools", comment: "Mo clean section prefix")
+            case .applicationSupport:
+                String(localized: "Application Support", comment: "Mo clean section prefix")
+            case .uninstalledAppData:
+                String(localized: "Uninstalled app data", comment: "Mo clean section prefix")
+            case .appleSiliconUpdates:
+                String(localized: "Apple Silicon updates", comment: "Mo clean section prefix")
+            case .iosBackups:
+                String(localized: "iOS device backups", comment: "Mo clean section prefix")
+            case .timeMachineBackups:
+                String(localized: "Time Machine backups", comment: "Mo clean section prefix")
+            case .largeFiles:
+                String(localized: "Large files to review", comment: "Mo clean section prefix")
             }
         }
     }
@@ -293,7 +309,7 @@ public actor MoCleanScanner {
     }
 
     public func scan(section: SystemCleanSection, sessionID: String) async -> ScanResult {
-        let home = homeDirectoryOverride ?? fileManager.homeDirectoryForCurrentUser
+        let home = homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory
         let candidateRoots = section.knownPaths(home: home)
         let closed = FullDiskAccess.closedAppDataFolders(home: home)
         // De-dupe nested roots: if one root is contained inside another, scanning
@@ -340,11 +356,13 @@ public actor MoCleanScanner {
         return isWholeSystem ? .medium : .low
     }
 
-    /// True when the directory is a caches CONTAINER (e.g. ~/Library/Caches,
-    /// /Library/Caches, /System/Library/Caches). Such roots must never be
-    /// proposed for cleanup themselves; only their individual entries may be.
-    private func isCachesContainer(_ url: URL) -> Bool {
-        url.lastPathComponent.lowercased() == "caches"
+    /// True when the directory is a top-level caches or logs container
+    /// (e.g. ~/Library/Caches, ~/Library/Logs, /Library/Caches, /Library/Logs).
+    /// Such roots must never be proposed for cleanup themselves; only their
+    /// direct individual entries may be.
+    private func isContainerRoot(_ url: URL) -> Bool {
+        let name = url.lastPathComponent.lowercased()
+        return name == "caches" || name == "logs"
     }
 
     static func isDockerContainerRoot(_ rootPath: String) -> Bool {
@@ -415,7 +433,7 @@ public actor MoCleanScanner {
         section: SystemCleanSection,
         sessionID: String
     ) async -> ScanResult {
-        let home = homeDirectoryOverride ?? fileManager.homeDirectoryForCurrentUser
+        let home = homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory
         let outcome = await crawler.crawl(rootURLs: roots, sessionID: sessionID)
         let files = outcome.files
         let subtreeIndex = Self.buildSubtreeByteIndex(files: files)
@@ -427,10 +445,9 @@ public actor MoCleanScanner {
         for root in roots {
             let rootPath = root.standardizedFileURL.path
 
-            // Never propose a caches ROOT directory itself: trashing the entire
-            // ~/Library/Caches or /Library/Caches container is far broader than
-            // the rebuildable caches inside it. Surface only its direct entries.
-            if isCachesContainer(root) {
+            // Never propose a Caches or Logs container directory itself; only
+            // surface its individual direct child entries.
+            if isContainerRoot(root) {
                 for child in directChildren(of: rootPath, in: files) {
                     guard isAllowed(child) else { continue }
                     let bytes = subtreeIndex[child.displayPath] ?? max(0, child.sizeBytes)
@@ -527,7 +544,7 @@ public actor MoCleanScanner {
         section: SystemCleanSection,
         sessionID: String
     ) async -> ScanResult {
-        let home = homeDirectoryOverride ?? fileManager.homeDirectoryForCurrentUser
+        let home = homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory
         let inventory: InstalledAppIndex?
         if let installedApps { inventory = await installedApps() } else { inventory = await InstalledAppIndex.live(home: home) }
         guard let inventory else {
@@ -670,21 +687,44 @@ public actor MoCleanScanner {
         section: SystemCleanSection,
         sessionID: String
     ) async -> ScanResult {
-        let listing = await ProcessRunner.run(
-            URL(fileURLWithPath: "/usr/bin/tmutil"), arguments: ["listlocalsnapshotdates", "/"], timeout: 10)
-        let dates = Self.localSnapshotDates(listing.stdout)
-        guard listing.exitCode == 0, let oldest = dates.first else {
+        guard DistributionChannel.supportsAdvanced else {
             return ScanResult(files: [], findings: [], recommendations: [])
+        }
+        let tmutilURL = URL(fileURLWithPath: "/usr/bin/tmutil")
+        async let datesResultTask = ProcessRunner.run(tmutilURL, arguments: ["listlocalsnapshotdates", "/"], timeout: 10)
+        async let namesResultTask = ProcessRunner.run(tmutilURL, arguments: ["listlocalsnapshots", "/"], timeout: 10)
+        let (datesResult, namesResult) = await (datesResultTask, namesResultTask)
+        let dates = Self.localSnapshotDates(datesResult.stdout)
+        let names = Self.localSnapshotNames(namesResult.stdout)
+        guard datesResult.exitCode == 0 || namesResult.exitCode == 0 else {
+            return ScanResult(files: [], findings: [], recommendations: [])
+        }
+        let snapshotCount = max(dates.count, names.count)
+        guard snapshotCount > 0 else {
+            return ScanResult(files: [], findings: [], recommendations: [])
+        }
+        let oldest = dates.first ?? names.first ?? ""
+        let summary = snapshotCount == 1
+            ? String(
+                localized: "1 local Time Machine snapshot, oldest \(oldest)",
+                comment: "Time Machine local snapshot finding (singular)"
+            )
+            : String(
+                localized: "\(snapshotCount) local Time Machine snapshots, oldest \(oldest)",
+                comment: "Time Machine local snapshot finding (plural)"
+            )
+        var evidence: [String: String] = [
+            "snapshots": dates.joined(separator: ", "),
+            "snapshot_names": names.joined(separator: ", "),
+            "snapshot_count": String(snapshotCount)
+        ]
+        if let purgeable = Self.rootVolumePurgeableBytes() {
+            evidence["volume_purgeable_bytes"] = String(purgeable)
         }
         let findingID = UUID().uuidString
         let finding = Finding(
             id: findingID, scanSessionID: sessionID, category: section.findingCategory, severity: .high,
-            confidence: 0.9, bytesReclaimable: 0,
-            summary: String(
-                localized: "\(dates.count) local Time Machine snapshots, oldest \(oldest)",
-                comment: "Time Machine local snapshot finding"),
-            evidence: ["snapshots": dates.joined(separator: ", ")],
-            targetFileIDs: [])
+            confidence: 0.9, bytesReclaimable: 0, summary: summary, evidence: evidence, targetFileIDs: [])
         let rec = recommendation(
             findingID: findingID, targetFileIDs: [], section: section, risk: .high, actionType: .inspectOnly, bytes: 0,
             reason: String(
@@ -700,6 +740,26 @@ public actor MoCleanScanner {
     static func localSnapshotDates(_ output: String) -> [String] {
         output.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { $0.wholeMatch(of: /\d{4}-\d{2}-\d{2}-\d{6}/) != nil }.sorted()
+    }
+
+    /// Snapshot names like `com.apple.TimeMachine.2026-10-28-101530.local` from `tmutil listlocalsnapshots`.
+    static func localSnapshotNames(_ output: String) -> [String] {
+        output.split(separator: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { $0.hasPrefix("com.apple.TimeMachine.") }
+            .sorted()
+    }
+
+    private static func rootVolumePurgeableBytes() -> Int64? {
+        let rootURL = URL(fileURLWithPath: "/", isDirectory: true)
+        guard let values = try? rootURL.resourceValues(
+            forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey]
+        ),
+              let important = values.volumeAvailableCapacityForImportantUsage,
+              let basic = values.volumeAvailableCapacity else {
+            return nil
+        }
+        return max(0, important - Int64(basic))
     }
 
     // MARK: - Xcode device support

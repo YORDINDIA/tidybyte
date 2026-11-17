@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 public enum SafetyDecision: String, Codable, Sendable {
@@ -89,7 +90,11 @@ public actor SafetyAuditor {
         self.fileManager = fileManager
     }
 
-    public func audit(action: PlannedAction, filesByID: [String: FileRecord]) throws -> SafetyAuditResult {
+    public func audit(
+        action: PlannedAction,
+        filesByID: [String: FileRecord],
+        filesByPath: [String: FileRecord]? = nil
+    ) throws -> SafetyAuditResult {
         if action.actionType == .inspectOnly {
             return SafetyAuditResult(decision: .allowed, reasons: ["Inspection-only action."], undoStatus: .notUndoable, auditedAt: Date())
         }
@@ -106,14 +111,16 @@ public actor SafetyAuditor {
         }
 
         if action.actionType == .runPackageManagerCleanup {
-            // Audit only runs for user-approved actions (the executor pre-filters on
-            // userDecision), so an explicit approval IS the required review for these
-            // provider-CLI cleanups. Returning .needsManualReview here was a dead-end:
-            // the executor converted it to a failure and the user never got a review
-            // chance. The reason still warns that cleanup is not fully undoable.
+            if action.risk >= .high && action.requiresExplicitConfirmation != true {
+                let targetURL = action.destination ?? URL(fileURLWithPath: "/usr/bin/env")
+                throw SafetyAuditError.highRiskDestructiveAction(targetURL)
+            }
             return SafetyAuditResult(
                 decision: .allowed,
-                reasons: ["Package-manager cleanup uses the provider CLI and is not fully undoable; explicit user approval serves as the required review."],
+                reasons: [
+                    "Package-manager cleanup uses the provider CLI and is not fully undoable; "
+                        + "explicit user approval serves as the required review."
+                ],
                 undoStatus: .notUndoable,
                 auditedAt: Date()
             )
@@ -154,7 +161,8 @@ public actor SafetyAuditor {
             guard let keeperURL = action.destination else {
                 throw SafetyAuditError.missingKeeper(nil)
             }
-            guard let keeper = filesByID.values.first(where: { $0.url.path == keeperURL.path }) else {
+            guard let keeper = filesByPath?[keeperURL.path]
+                    ?? filesByID.values.first(where: { $0.url.path == keeperURL.path }) else {
                 throw SafetyAuditError.missingKeeper(keeperURL)
             }
             switch checkIdentity(keeper) {
@@ -309,58 +317,38 @@ public actor SafetyAuditor {
     /// An in-place rewrite (same inode, different size/mtime) is also a mismatch:
     /// device/inode-only identity would otherwise approve a file whose bytes changed.
     private func checkIdentity(_ record: FileRecord) -> IdentityCheck {
-        // Single stat() call to avoid TOCTOU between existence check and attribute read.
-        let attributes: [FileAttributeKey: Any]
-        do {
-            attributes = try fileManager.attributesOfItem(atPath: record.url.path)
-        } catch {
-            // Distinguish "file no longer exists" (nothing to act on → safe to skip) from
-            // "file exists but we cannot stat it" (e.g. permission denied → cannot verify
-            // identity, needs manual review). Conflating the two would either skip a file
-            // that is still present (unsafe) or abort the whole action for a vanished file
-            // (overly conservative). NSFileNoSuchFileError == 4 in the Cocoa error domain.
-            let nsError = error as NSError
-            // `attributesOfItem` reports a missing file as NSFileReadNoSuchFileError (260);
-            // NSFileNoSuchFileError (4) is the other variant. Treat both as "vanished".
-            if nsError.domain == NSCocoaErrorDomain,
-               nsError.code == NSFileNoSuchFileError || nsError.code == NSFileReadNoSuchFileError {
+        // Single lstat() call to avoid TOCTOU gaps and inspect symlinks without
+        // dereferencing them: a broken symlink still stats as present so the
+        // symlink check rejects it instead of silently skipping via .vanished.
+        var st = Darwin.stat()
+        if Darwin.lstat(record.url.path, &st) != 0 {
+            let code = errno
+            if code == ENOENT || code == ENOTDIR {
                 return .vanished
             }
-            // File likely exists but is unreadable at the stat level: we cannot confirm
-            // identity, so require manual review rather than skipping or aborting.
             return .missingFields
         }
-        let currentDevice = (attributes[.systemNumber] as? NSNumber)?.uint64Value
-        let currentInode = (attributes[.systemFileNumber] as? NSNumber)?.uint64Value
+        let currentDevice = UInt64(UInt32(bitPattern: st.st_dev))
+        let currentInode = UInt64(st.st_ino)
+        let currentSize = Int64(st.st_size)
+        let currentMtime = Date(
+            timeIntervalSince1970: TimeInterval(st.st_mtimespec.tv_sec)
+                + TimeInterval(st.st_mtimespec.tv_nsec) / 1_000_000_000
+        )
         let hasDeviceID = record.identity.deviceIdentifier != nil
         let hasInodeID = record.identity.inodeIdentifier != nil
 
-        // If the record has identity fields but stat returned nil for either, we cannot verify — treat as mismatch.
-        if hasDeviceID && currentDevice == nil {
+        if let expectedDevice = record.identity.deviceIdentifier, expectedDevice != currentDevice {
             return .mismatch
         }
-        if hasInodeID && currentInode == nil {
+        if let expectedInode = record.identity.inodeIdentifier, expectedInode != currentInode {
             return .mismatch
         }
-        if hasDeviceID, let expectedDevice = record.identity.deviceIdentifier,
-           let currentDevice,
-           expectedDevice != currentDevice {
-            return .mismatch
-        }
-        if hasInodeID, let expectedInode = record.identity.inodeIdentifier,
-           let currentInode,
-           expectedInode != currentInode {
-            return .mismatch
-        }
-        // In-place rewrite detection: same inode but different bytes. Size is
-        // exact; mtime uses a 1s tolerance for filesystem timestamp granularity.
-        if let expectedSize = record.identity.sizeBytes,
-           let currentSize = (attributes[.size] as? NSNumber)?.int64Value,
-           expectedSize != currentSize {
+        // In-place rewrite detection: same inode but different bytes or mtime.
+        if let expectedSize = record.identity.sizeBytes, expectedSize != currentSize {
             return .mismatch
         }
         if let expectedMtime = record.identity.modifiedAt,
-           let currentMtime = attributes[.modificationDate] as? Date,
            abs(currentMtime.timeIntervalSince(expectedMtime)) > 1 {
             return .mismatch
         }

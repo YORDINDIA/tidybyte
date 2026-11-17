@@ -861,6 +861,27 @@ public struct ScanOutcome: Codable, Sendable {
         self.notices = notices
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case session, files, fingerprints, contentSummaries, projects, edges
+        case findings, recommendations, snapshot, packageCandidates, wasCancelled, notices
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        session = try container.decode(ScanSession.self, forKey: .session)
+        files = try container.decodeIfPresent([FileRecord].self, forKey: .files) ?? []
+        fingerprints = try container.decodeIfPresent([FileFingerprint].self, forKey: .fingerprints) ?? []
+        contentSummaries = try container.decodeIfPresent([ContentSummary].self, forKey: .contentSummaries) ?? []
+        projects = try container.decodeIfPresent([ProjectUnit].self, forKey: .projects) ?? []
+        edges = try container.decodeIfPresent([RelationshipEdge].self, forKey: .edges) ?? []
+        findings = try container.decodeIfPresent([Finding].self, forKey: .findings) ?? []
+        recommendations = try container.decodeIfPresent([Recommendation].self, forKey: .recommendations) ?? []
+        snapshot = try container.decode(StorageSnapshot.self, forKey: .snapshot)
+        packageCandidates = try container.decodeIfPresent([PackageCleanupCandidate].self, forKey: .packageCandidates) ?? []
+        wasCancelled = try container.decodeIfPresent(Bool.self, forKey: .wasCancelled) ?? false
+        notices = try container.decodeIfPresent([ScanNotice].self, forKey: .notices) ?? []
+    }
+
     /// An empty outcome for work that starts without a scan (an uninstall
     /// from the Applications list). Staged files and findings are appended.
     public static func standalone(session: ScanSession) -> ScanOutcome {
@@ -887,6 +908,9 @@ public struct ProviderSettings: Codable, Sendable {
     public var requestTimeoutSeconds: TimeInterval
     public var privacyMode: PrivacyMode
 
+    private static let defaultBaseURL = URL(string: "https://api.openai.com/v1", encodingInvalidCharacters: false)
+        ?? URL(fileURLWithPath: "/")
+
     public init(
         providerName: String = "OpenAI-compatible",
         apiBaseURL: URL = URL(string: "https://api.openai.com/v1", encodingInvalidCharacters: false) ?? URL(fileURLWithPath: "/"),
@@ -907,9 +931,43 @@ public struct ProviderSettings: Codable, Sendable {
         self.textModel = textModel
         self.visionModel = visionModel
         self.embeddingModel = embeddingModel
-        self.maxTokens = max(1, min(maxTokens, 128_000))
-        self.temperature = max(0, min(temperature, 2.0))
-        self.requestTimeoutSeconds = max(1, requestTimeoutSeconds)
+        self.maxTokens = Self.clampedTokens(maxTokens)
+        self.temperature = Self.clampedTemperature(temperature)
+        self.requestTimeoutSeconds = Self.clampedTimeout(requestTimeoutSeconds)
         self.privacyMode = privacyMode
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case providerName, apiBaseURL, organizationID, projectID
+        case textModel, visionModel, embeddingModel
+        case maxTokens, temperature, requestTimeoutSeconds, privacyMode
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        providerName = try container.decodeIfPresent(String.self, forKey: .providerName) ?? "OpenAI-compatible"
+        apiBaseURL = try container.decodeIfPresent(URL.self, forKey: .apiBaseURL) ?? Self.defaultBaseURL
+        organizationID = try container.decodeIfPresent(String.self, forKey: .organizationID)
+        projectID = try container.decodeIfPresent(String.self, forKey: .projectID)
+        textModel = try container.decodeIfPresent(String.self, forKey: .textModel) ?? "gpt-4.1-mini"
+        visionModel = try container.decodeIfPresent(String.self, forKey: .visionModel)
+        embeddingModel = try container.decodeIfPresent(String.self, forKey: .embeddingModel)
+        maxTokens = Self.clampedTokens(try container.decodeIfPresent(Int.self, forKey: .maxTokens) ?? 900)
+        temperature = Self.clampedTemperature(try container.decodeIfPresent(Double.self, forKey: .temperature) ?? 0.1)
+        requestTimeoutSeconds = Self.clampedTimeout(
+            try container.decodeIfPresent(TimeInterval.self, forKey: .requestTimeoutSeconds) ?? 30)
+        privacyMode = try container.decodeIfPresent(PrivacyMode.self, forKey: .privacyMode) ?? .localOnly
+    }
+
+    private static func clampedTokens(_ value: Int) -> Int {
+        max(1, min(value, 128_000))
+    }
+
+    private static func clampedTemperature(_ value: Double) -> Double {
+        value.isFinite ? max(0, min(value, 2.0)) : 0.1
+    }
+
+    private static func clampedTimeout(_ value: TimeInterval) -> TimeInterval {
+        value.isFinite ? max(1, value) : 30
     }
 }

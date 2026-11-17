@@ -1,0 +1,930 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "CFBundleDisplayName. Kept as the brand name in every language.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidybyte"
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "comment": "NSPhotoLibraryUsageDescription — macOS permission prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review local photos and videos. Confirmed Photos changes can sync to iCloud and are recoverable in Recently Deleted."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थानीय फ़ोटो और वीडियो देखें। पुष्टि किए गए फ़ोटो बदलाव iCloud में सिंक हो सकते हैं और हाल ही में हटाए गए से पुनर्प्राप्त किए जा सकते हैं।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্থানীয় ছবি এবং ভিডিও পর্যালোচনা করুন। নিশ্চিত করা Photos-এর পরিবর্তন iCloud-এ সিঙ্ক হতে পারে এবং সম্প্রতি মোছা থেকে পুনরুদ্ধার করা যায়।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உள்ளூர் புகைப்படங்கள் மற்றும் வீடியோக்களை மதிப்பாய்வு செய்யுங்கள். உறுதிப்படுத்திய Photos மாற்றங்கள் iCloud உடன் ஒத்திசைக்கப்படலாம் மற்றும் சமீபத்தில் நீக்கியவையில் மீட்டெடுக்கப்படலாம்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "స్థానిక ఫోటోలు మరియు వీడియోలను సమీక్షించండి. నిర్ధారించిన Photos మార్పులు iCloud తో సింక్ కాగలవు మరియు ఇటీవల తొలగించినవిలో పునరుద్ధరించవచ్చు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थानिक फोटो आणि व्हिडिओ तपासा. पुष्टी केलेले Photos बदल iCloud शी सिंक होऊ शकतात आणि अलीकडे हटवलेले मधून परत मिळवता येतात."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સ્થાનિક ફોટા અને વિડિયોની સમીક્ષા કરો. પુષ્ટિ કરેલા Photos ફેરફારો iCloud પર સિંક થઈ શકે છે અને તાજેતરમાં કાઢી નાખેલામાં પુનઃપ્રાપ્ત કરી શકાય છે."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸ್ಥಳೀಯ ಫೋಟೋಗಳು ಮತ್ತು ವೀಡಿಯೊಗಳನ್ನು ಪರಿಶೀಲಿಸಿ. ದೃಢೀಕರಿಸಿದ Photos ಬದಲಾವಣೆಗಳು iCloud ಗೆ ಸಿಂಕ್ ಆಗಬಹುದು ಮತ್ತು ಇತ್ತೀಚೆಗೆ ಅಳಿಸಿದವುಗಳಲ್ಲಿ ಮರಳಿ ಪಡೆಯಬಹುದು."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "പ്രാദേശിക ഫോട്ടോകളും വീഡിയോകളും അവലോകനം ചെയ്യുക. സ്ഥിരീകരിച്ച Photos മാറ്റങ്ങൾ iCloud-ലേക്ക് സിങ്ക് ചെയ്യപ്പെടാം കൂടാതെ അടുത്തിടെ ഇല്ലാതാക്കിയവയിൽ നിന്ന് വീണ്ടെടുക്കാം."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਥਾਨਕ ਫ਼ੋਟੋਆਂ ਅਤੇ ਵੀਡੀਓਆਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ। ਪੁਸ਼ਟੀ ਕੀਤੇ Photos ਬਦਲਾਅ iCloud ਨਾਲ ਸਿੰਕ ਹੋ ਸਕਦੇ ਹਨ ਅਤੇ ਹਾਲ ਹੀ ਵਿੱਚ ਮਿਟਾਏ ਵਿੱਚੋਂ ਮੁੜ ਪ੍ਰਾਪਤ ਕੀਤੇ ਜਾ ਸਕਦੇ ਹਨ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisa fotos y vídeos locales. Los cambios confirmados en Fotos pueden sincronizarse con iCloud y recuperarse en Recientemente eliminados."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passez en revue vos photos et vidéos locales. Les modifications confirmées dans Photos peuvent être synchronisées avec iCloud et sont récupérables dans Récemment supprimés."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe lokale Fotos und Videos. Bestätigte Änderungen in Fotos können mit iCloud synchronisiert werden und sind in Zuletzt gelöscht wiederherstellbar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revise fotos e vídeos locais. As alterações confirmadas no Fotos podem ser sincronizadas com o iCloud e recuperadas em Excluídos recentemente."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esamina foto e video locali. Le modifiche confermate in Foto possono sincronizzarsi con iCloud e sono recuperabili in Eliminati di recente."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルの写真とビデオを確認します。確定した「写真」の変更は iCloud に同期される場合があり、「最近削除した項目」から復元できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 사진과 동영상을 검토합니다. 확인된 사진 변경 사항은 iCloud에 동기화될 수 있으며 최근 삭제된 항목에서 복구할 수 있습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查本地照片和视频。确认的“照片”更改可能会同步到 iCloud，并可在“最近删除”中恢复。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Просматривайте локальные фото и видео. Подтвержденные изменения в «Фото» могут синхронизироваться с iCloud и восстанавливаются из альбома «Недавно удаленные»."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "راجع الصور ومقاطع الفيديو المحلية. يمكن أن تتزامن تغييرات الصور المؤكدة مع iCloud ويمكن استردادها من المحذوفة مؤخرًا."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בחנו תמונות וסרטונים מקומיים. שינויים שאושרו בתמונות עשויים להסתנכרן עם iCloud וניתנים לשחזור באלבום נמחקו לאחרונה."
+          }
+        }
+      }
+    },
+    "NSDesktopFolderUsageDescription": {
+      "comment": "NSDesktopFolderUsageDescription — macOS permission prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find large, old, and duplicate files on your Desktop. Nothing changes until you approve it."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपने डेस्कटॉप पर बड़ी, पुरानी और डुप्लिकेट फ़ाइलें खोजें। जब तक आप अनुमति न दें, कुछ भी नहीं बदलता।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ডেস্কটপে বড়, পুরনো এবং ডুপ্লিকেট ফাইল খুঁজুন। আপনি অনুমোদন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உங்கள் டெஸ்க்டாப்பில் பெரிய, பழைய மற்றும் நகல் கோப்புகளைக் கண்டறியுங்கள். நீங்கள் அனுமதிக்கும் வரை எதுவும் மாறாது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మీ డెస్క్‌టాప్‌లో పెద్ద, పాత మరియు నకిలీ ఫైళ్లను కనుగొనండి. మీరు ఆమోదించే వరకు ఏదీ మారదు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तुमच्या डेस्कटॉपवर मोठ्या, जुन्या आणि डुप्लिकेट फाइल्स शोधा. तुम्ही मंजुरी देईपर्यंत काहीही बदलत नाही."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "તમારા ડેસ્કટૉપ પર મોટી, જૂની અને ડુપ્લિકેટ ફાઇલો શોધો. તમે મંજૂરી ન આપો ત્યાં સુધી કંઈ બદલાતું નથી."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನಿಮ್ಮ ಡೆಸ್ಕ್‌ಟಾಪ್‌ನಲ್ಲಿ ದೊಡ್ಡ, ಹಳೆಯ ಮತ್ತು ನಕಲಿ ಫೈಲ್‌ಗಳನ್ನು ಹುಡುಕಿ. ನೀವು ಅನುಮೋದಿಸುವವರೆಗೆ ಏನೂ ಬದಲಾಗುವುದಿಲ್ಲ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "നിങ്ങളുടെ ഡെസ്ക്‌ടോപ്പിലെ വലിയതും പഴയതും ഡ്യൂപ്ലിക്കേറ്റുമായ ഫയലുകൾ കണ്ടെത്തുക. നിങ്ങൾ അംഗീകരിക്കാതെ ഒന്നും മാറില്ല."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਆਪਣੇ ਡੈਸਕਟਾਪ ਉੱਤੇ ਵੱਡੀਆਂ, ਪੁਰਾਣੀਆਂ ਅਤੇ ਡੁਪਲੀਕੇਟ ਫ਼ਾਈਲਾਂ ਲੱਭੋ। ਤੁਹਾਡੀ ਮਨਜ਼ੂਰੀ ਤੋਂ ਬਿਨਾਂ ਕੁਝ ਨਹੀਂ ਬਦਲਦਾ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encuentra archivos grandes, antiguos y duplicados en tu Escritorio. Nada cambia hasta que lo apruebes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherchez les fichiers volumineux, anciens et en double sur votre Bureau. Rien ne change sans votre approbation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finde große, alte und doppelte Dateien auf deinem Schreibtisch. Nichts wird geändert, bevor du es bestätigst."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontre arquivos grandes, antigos e duplicados na sua Mesa. Nada muda até você aprovar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trova file grandi, vecchi e duplicati sulla Scrivania. Nulla cambia finché non lo approvi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デスクトップ上の大きいファイル、古いファイル、重複ファイルを見つけます。承認するまで何も変更されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "데스크탑에서 크고 오래되었거나 중복된 파일을 찾습니다. 사용자가 승인할 때까지 아무것도 변경되지 않습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在桌面上查找大型、旧版和重复文件。在您批准之前不会更改任何内容。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Находите крупные, старые и дубликаты файлов на Рабочем столе. Ничего не изменится без вашего подтверждения."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اعثر على الملفات الكبيرة والقديمة والمكررة على سطح المكتب. لا يتغير شيء حتى توافق عليه."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מצאו קבצים גדולים, ישנים וכפולים בשולחן העבודה. דבר אינו משתנה עד שתאשרו."
+          }
+        }
+      }
+    },
+    "NSDocumentsFolderUsageDescription": {
+      "comment": "NSDocumentsFolderUsageDescription — macOS permission prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find large, old, and duplicate files in Documents. Nothing changes until you approve it."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दस्तावेज़ में बड़ी, पुरानी और डुप्लिकेट फ़ाइलें खोजें। जब तक आप अनुमति न दें, कुछ भी नहीं बदलता।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডকুমেন্টসে বড়, পুরনো এবং ডুপ্লিকেট ফাইল খুঁজুন। আপনি অনুমোদন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஆவணங்களில் பெரிய, பழைய மற்றும் நகல் கோப்புகளைக் கண்டறியுங்கள். நீங்கள் அனுமதிக்கும் வரை எதுவும் மாறாது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "డాక్యుమెంట్స్‌లో పెద్ద, పాత మరియు నకిలీ ఫైళ్లను కనుగొనండి. మీరు ఆమోదించే వరకు ఏదీ మారదు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दस्तऐवजांमध्ये मोठ्या, जुन्या आणि डुप्लिकेट फाइल्स शोधा. तुम्ही मंजुरी देईपर्यंत काहीही बदलत नाही."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "દસ્તાવેજોમાં મોટી, જૂની અને ડુપ્લિકેટ ફાઇલો શોધો. તમે મંજૂરી ન આપો ત્યાં સુધી કંઈ બદલાતું નથી."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ದಾಖಲೆಗಳಲ್ಲಿ ದೊಡ್ಡ, ಹಳೆಯ ಮತ್ತು ನಕಲಿ ಫೈಲ್‌ಗಳನ್ನು ಹುಡುಕಿ. ನೀವು ಅನುಮೋದಿಸುವವರೆಗೆ ಏನೂ ಬದಲಾಗುವುದಿಲ್ಲ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഡോക്യുമെന്റുകളിലെ വലിയതും പഴയതും ഡ്യൂപ്ലിക്കേറ്റുമായ ഫയലുകൾ കണ്ടെത്തുക. നിങ്ങൾ അംഗീകരിക്കാതെ ഒന്നും മാറില്ല."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਦਸਤਾਵੇਜ਼ਾਂ ਵਿੱਚ ਵੱਡੀਆਂ, ਪੁਰਾਣੀਆਂ ਅਤੇ ਡੁਪਲੀਕੇਟ ਫ਼ਾਈਲਾਂ ਲੱਭੋ। ਤੁਹਾਡੀ ਮਨਜ਼ੂਰੀ ਤੋਂ ਬਿਨਾਂ ਕੁਝ ਨਹੀਂ ਬਦਲਦਾ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encuentra archivos grandes, antiguos y duplicados en Documentos. Nada cambia hasta que lo apruebes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherchez les fichiers volumineux, anciens et en double dans Documents. Rien ne change sans votre approbation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finde große, alte und doppelte Dateien in Dokumente. Nichts wird geändert, bevor du es bestätigst."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontre arquivos grandes, antigos e duplicados em Documentos. Nada muda até você aprovar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trova file grandi, vecchi e duplicati in Documenti. Nulla cambia finché non lo approvi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「書類」内の大きいファイル、古いファイル、重複ファイルを見つけます。承認するまで何も変更されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "문서 폴더에서 크고 오래되었거나 중복된 파일을 찾습니다. 사용자가 승인할 때까지 아무것도 변경되지 않습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“文稿”中查找大型、旧版和重复文件。在您批准之前不会更改任何内容。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Находите крупные, старые и дубликаты файлов в «Документах». Ничего не изменится без вашего подтверждения."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اعثر على الملفات الكبيرة والقديمة والمكررة في المستندات. لا يتغير شيء حتى توافق عليه."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מצאו קבצים גדולים, ישנים וכפולים במסמכים. דבר אינו משתנה עד שתאשרו."
+          }
+        }
+      }
+    },
+    "NSDownloadsFolderUsageDescription": {
+      "comment": "NSDownloadsFolderUsageDescription — macOS permission prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find old installers, large files, and duplicates in Downloads. Nothing changes until you approve it."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डाउनलोड में पुराने इंस्टॉलर, बड़ी फ़ाइलें और डुप्लिकेट खोजें। जब तक आप अनुमति न दें, कुछ भी नहीं बदलता।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডাউনলোডসে পুরনো ইনস্টলার, বড় ফাইল এবং ডুপ্লিকেট খুঁজুন। আপনি অনুমোদন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "பதிவிறக்கங்களில் பழைய நிறுவிகள், பெரிய கோப்புகள் மற்றும் நகல்களைக் கண்டறியுங்கள். நீங்கள் அனுமதிக்கும் வரை எதுவும் மாறாது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "డౌన్‌లోడ్స్‌లో పాత ఇన్‌స్టాలర్లు, పెద్ద ఫైళ్లు మరియు నకిలీలను కనుగొనండి. మీరు ఆమోదించే వరకు ఏదీ మారదు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डाउनलोड्समध्ये जुने इंस्टॉलर, मोठ्या फाइल्स आणि डुप्लिकेट शोधा. तुम्ही मंजुरी देईपर्यंत काहीही बदलत नाही."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ડાઉનલોડ્સમાં જૂના ઇન્સ્ટૉલર, મોટી ફાઇલો અને ડુપ્લિકેટ શોધો. તમે મંજૂરી ન આપો ત્યાં સુધી કંઈ બદલાતું નથી."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಡೌನ್‌ಲೋಡ್‌ಗಳಲ್ಲಿ ಹಳೆಯ ಇನ್‌ಸ್ಟಾಲರ್‌ಗಳು, ದೊಡ್ಡ ಫೈಲ್‌ಗಳು ಮತ್ತು ನಕಲಿಗಳನ್ನು ಹುಡುಕಿ. ನೀವು ಅನುಮೋದಿಸುವವರೆಗೆ ಏನೂ ಬದಲಾಗುವುದಿಲ್ಲ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഡൗൺലോഡുകളിൽ പഴയ ഇൻസ്റ്റാളറുകൾ, വലിയ ഫയലുകൾ, ഡ്യൂപ്ലിക്കേറ്റുകൾ എന്നിവ കണ്ടെത്തുക. നിങ്ങൾ അംഗീകരിക്കാതെ ഒന്നും മാറില്ല."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਡਾਊਨਲੋਡਸ ਵਿੱਚ ਪੁਰਾਣੇ ਇੰਸਟਾਲਰ, ਵੱਡੀਆਂ ਫ਼ਾਈਲਾਂ ਅਤੇ ਡੁਪਲੀਕੇਟ ਲੱਭੋ। ਤੁਹਾਡੀ ਮਨਜ਼ੂਰੀ ਤੋਂ ਬਿਨਾਂ ਕੁਝ ਨਹੀਂ ਬਦਲਦਾ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encuentra instaladores antiguos, archivos grandes y duplicados en Descargas. Nada cambia hasta que lo apruebes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherchez les anciens programmes d'installation, fichiers volumineux et doublons dans Téléchargements. Rien ne change sans votre approbation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finde alte Installationsdateien, große Dateien und Duplikate in Downloads. Nichts wird geändert, bevor du es bestätigst."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontre instaladores antigos, arquivos grandes e duplicatas em Transferências. Nada muda até você aprovar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trova vecchi programmi di installazione, file grandi e duplicati in Download. Nulla cambia finché non lo approvi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「ダウンロード」内の古いインストーラ、大きいファイル、重複ファイルを見つけます。承認するまで何も変更されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드 폴더에서 오래된 설치 파일, 큰 파일 및 중복 항목을 찾습니다. 사용자가 승인할 때까지 아무것도 변경되지 않습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“下载”中查找旧安装程序、大型文件和重复项。在您批准之前不会更改任何内容。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Находите старые установщики, крупные файлы и дубликаты в «Загрузках». Ничего не изменится без вашего подтверждения."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اعثر على برامج التثبيت القديمة والملفات الكبيرة والمكررات في التنزيلات. لا يتغير شيء حتى توافق عليه."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מצאו קובצי התקנה ישנים, קבצים גדולים וכפילויות בהורדות. דבר אינו משתנה עד שתאשרו."
+          }
+        }
+      }
+    },
+    "NSRemovableVolumesUsageDescription": {
+      "comment": "NSRemovableVolumesUsageDescription — macOS permission prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan external drives that you choose. Nothing changes until you approve it."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपने चुने हुए बाहरी ड्राइव स्कैन करें। जब तक आप अनुमति न दें, कुछ भी नहीं बदलता।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার বেছে নেওয়া বাহ্যিক ড্রাইভগুলো স্ক্যান করুন। আপনি অনুমোদন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "நீங்கள் தேர்ந்தெடுக்கும் வெளிப்புற இயக்கிகளை ஸ்கேன் செய்யுங்கள். நீங்கள் அனுமதிக்கும் வரை எதுவும் மாறாது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మీరు ఎంచుకున్న బాహ్య డ్రైవ్‌లను స్కాన్ చేయండి. మీరు ఆమోదించే వరకు ఏదీ మారదు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तुम्ही निवडलेले बाह्य ड्राइव्ह स्कॅन करा. तुम्ही मंजुरी देईपर्यंत काहीही बदलत नाही."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "તમે પસંદ કરેલી બાહ્ય ડ્રાઇવ્સ સ્કૅન કરો. તમે મંજૂરી ન આપો ત્યાં સુધી કંઈ બદલાતું નથી."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನೀವು ಆಯ್ಕೆ ಮಾಡುವ ಬಾಹ್ಯ ಡ್ರೈವ್‌ಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ. ನೀವು ಅನುಮೋದಿಸುವವರೆಗೆ ಏನೂ ಬದಲಾಗುವುದಿಲ್ಲ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "നിങ്ങൾ തിരഞ്ഞെടുക്കുന്ന ബാഹ്യ ഡ്രൈവുകൾ സ്കാൻ ചെയ്യുക. നിങ്ങൾ അംഗീകരിക്കാതെ ഒന്നും മാറില്ല."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਤੁਹਾਡੇ ਵੱਲੋਂ ਚੁਣੀਆਂ ਬਾਹਰੀ ਡਰਾਈਵਾਂ ਸਕੈਨ ਕਰੋ। ਤੁਹਾਡੀ ਮਨਜ਼ੂਰੀ ਤੋਂ ਬਿਨਾਂ ਕੁਝ ਨਹੀਂ ਬਦਲਦਾ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analiza las unidades externas que elijas. Nada cambia hasta que lo apruebes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysez les disques externes que vous choisissez. Rien ne change sans votre approbation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanne externe Laufwerke, die du auswählst. Nichts wird geändert, bevor du es bestätigst."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analise as unidades externas que você escolher. Nada muda até você aprovar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scansiona le unità esterne che scegli. Nulla cambia finché non lo approvi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択した外部ドライブをスキャンします。承認するまで何も変更されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 외장 드라이브를 스캔합니다. 사용자가 승인할 때까지 아무것도 변경되지 않습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描您选择的外置磁盘。在您批准之前不会更改任何内容。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканируйте выбранные внешние диски. Ничего не изменится без вашего подтверждения."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افحص محركات الأقراص الخارجية التي تختارها. لا يتغير شيء حتى توافق عليه."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סרקו כוננים חיצוניים שתבחרו. דבר אינו משתנה עד שתאשרו."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "comment": "NSPhotoLibraryAddUsageDescription — macOS permission prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create verified replacement photos and videos before removing originals."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मूल फ़ाइलें हटाने से पहले सत्यापित प्रतिस्थापन फ़ोटो और वीडियो बनाएँ।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মূল ফাইলগুলো সরানোর আগে যাচাইকৃত প্রতিস্থাপন ছবি এবং ভিডিও তৈরি করুন।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "அசல்களை அகற்றுவதற்கு முன் சரிபார்க்கப்பட்ட மாற்றுப் புகைப்படங்களையும் வீடியோக்களையும் உருவாக்குங்கள்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "అసలు ఫైళ్లను తొలగించే ముందు ధృవీకరించిన ప్రత్యామ్నాయ ఫోటోలు మరియు వీడియోలను సృష్టించండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मूळ फाइल्स काढून टाकण्यापूर्वी पडताळलेले पर्यायी फोटो आणि व्हिडिओ तयार करा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "મૂળ ફાઇલો દૂર કરતાં પહેલાં ચકાસાયેલા વૈકલ્પિક ફોટા અને વિડિયો બનાવો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಮೂಲಗಳನ್ನು ತೆಗೆದುಹಾಕುವ ಮೊದಲು ಪರಿಶೀಲಿಸಿದ ಪರ್ಯಾಯ ಫೋಟೋಗಳು ಮತ್ತು ವೀಡಿಯೊಗಳನ್ನು ರಚಿಸಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "യഥാർത്ഥ ഫയലുകൾ നീക്കം ചെയ്യുന്നതിന് മുമ്പ് പരിശോധിച്ച പകരമുള്ള ഫോട്ടോകളും വീഡിയോകളും സൃഷ്ടിക്കുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਮੂਲ ਫ਼ਾਈਲਾਂ ਹਟਾਉਣ ਤੋਂ ਪਹਿਲਾਂ ਤਸਦੀਕਸ਼ੁਦਾ ਬਦਲਵੀਆਂ ਫ਼ੋਟੋਆਂ ਅਤੇ ਵੀਡੀਓ ਬਣਾਓ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea fotos y vídeos de reemplazo verificados antes de eliminar los originales."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créez des photos et vidéos de remplacement vérifiées avant de supprimer les originaux."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstelle geprüfte Ersatzfotos und -videos, bevor Originale entfernt werden."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crie fotos e vídeos substitutos verificados antes de remover os originais."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea foto e video sostitutivi verificati prima di rimuovere gli originali."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元のファイルを削除する前に、検証済みの置き換え用写真とビデオを作成します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "원본을 제거하기 전에 검증된 대체 사진과 동영상을 생성합니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在移除原件之前创建经过验证的替换照片和视频。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создавайте проверенные заменяющие фото и видео перед удалением оригиналов."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أنشئ صورًا ومقاطع فيديو بديلة تم التحقق منها قبل إزالة الأصل."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "צרו תמונות וסרטונים חלופיים מאומתים לפני הסרת המקור."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

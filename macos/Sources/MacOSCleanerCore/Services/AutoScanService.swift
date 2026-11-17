@@ -1,4 +1,5 @@
 import CoreGraphics
+import Darwin
 import Foundation
 import IOKit.ps
 import os
@@ -81,6 +82,11 @@ public enum AutoScanEnvironment {
               let sources = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as? [CFTypeRef] else {
             return nil
         }
+        // Battery-less desktop Macs (Mac mini, Mac Studio, iMac, Mac Pro) return
+        // zero power sources and run exclusively on AC power.
+        if sources.isEmpty {
+            return (true, nil)
+        }
         var onACPower = false
         var batteryPercent: Int?
         for source in sources {
@@ -123,7 +129,7 @@ public enum LaunchAgentInstaller {
             return true
         }
         let binary = executablePath ?? Self.executablePath
-        let homeApplications = NSString(string: "~/Applications").expandingTildeInPath + "/"
+        let homeApplications = PathSafetyPolicy.realHomeDirectory.appendingPathComponent("Applications").path + "/"
         let applications: Set<String> = ["/Applications/", homeApplications]
         return applications.contains { binary.hasPrefix($0) }
     }
@@ -217,12 +223,17 @@ public enum AutoScanRunner {
     ) async -> Int32 {
         do {
             let summary = try await pass()
+            guard !summary.skipped else {
+                logger.info("Auto-scan skipped because another maintenance pass holds the lock.")
+                return 0
+            }
             defaults.set(Date(), forKey: lastRunKey)
-            await NotificationScheduler().scheduleScanCompletedNotification(
-                reclaimedBytes: summary.freedBytes
-            )
+            if summary.foldCount > 0 {
+                await NotificationScheduler().scheduleScanCompletedNotification(
+                    reclaimedBytes: summary.freedBytes
+                )
+            }
             logger.info("Auto-scan finished: \(summary.foldCount) folds, \(summary.failureCount) failures")
-            // Per-action failures are recorded in the summary, not thrown, so the exit code reads them here.
             return summary.failureCount > 0 ? 1 : 0
         } catch {
             logger.error("Auto-scan failed: \(error.localizedDescription, privacy: .public)")
@@ -256,6 +267,7 @@ public enum AutoScanRunner {
         let foldCount: Int
         let failureCount: Int
         let freedBytes: Int64
+        var skipped: Bool = false
     }
 
     /// The unattended safety filter, as its own function so the invariant is
@@ -268,25 +280,51 @@ public enum AutoScanRunner {
         }
     }
 
-    /// One unattended pass: scan, then approve and execute ONLY clone-fold
-    /// actions. They never delete, move or rename anything, and every fold is
-    /// undoable afterwards — trashing always needs a human in the app.
-    private static func runMaintenancePass() async throws -> MaintenanceSummary {
-        let store: SQLiteStore
-        do {
-            store = try SQLiteStore()
-        } catch {
-            // Same bootstrap rule as the app: a temporary database beats
-            // refusing to run.
-            let temporary = FileManager.default.temporaryDirectory
-                .appendingPathComponent("tidybyte-autoscan-\(UUID().uuidString).sqlite")
-            store = try SQLiteStore(databaseURL: temporary)
+    private static func acquireRunLock() -> Int32? {
+        guard let supportBase = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return nil
         }
+        let appDir = supportBase.appendingPathComponent(AppIdentity.supportFolderName, isDirectory: true)
+        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        let lockPath = appDir.appendingPathComponent("autoscan.lock", isDirectory: false).path
+        let fd = Darwin.open(lockPath, O_CREAT | O_RDWR | O_CLOEXEC, 0o600)
+        guard fd >= 0 else { return nil }
+        var lock = Darwin.flock()
+        lock.l_type = Int16(F_WRLCK)
+        lock.l_whence = Int16(SEEK_SET)
+        lock.l_start = 0
+        lock.l_len = 0
+        if Darwin.fcntl(fd, F_SETLK, &lock) != 0 {
+            let err = errno
+            _ = Darwin.close(fd)
+            return (err == EACCES || err == EAGAIN) ? -1 : nil
+        }
+        return fd
+    }
+
+    /// One unattended pass: lock -> fail-closed SQLite -> scan -> approve ONLY
+    /// clone-fold actions in bounded batches.
+    private static func runMaintenancePass() async throws -> MaintenanceSummary {
+        let lockFD = acquireRunLock()
+        if lockFD == -1 {
+            return MaintenanceSummary(foldCount: 0, failureCount: 0, freedBytes: 0, skipped: true)
+        }
+        defer {
+            if let fd = lockFD, fd >= 0 {
+                var unlock = Darwin.flock()
+                unlock.l_type = Int16(F_UNLCK)
+                unlock.l_whence = Int16(SEEK_SET)
+                _ = Darwin.fcntl(fd, F_SETLK, &unlock)
+                _ = Darwin.close(fd)
+            }
+        }
+        // Fail closed if primary storage cannot open: unattended runs must never
+        // discard UndoRecords in an ephemeral /tmp database.
+        let store = try SQLiteStore()
         let memory = MemoryEngine(store: store)
         let orchestrator = ScanOrchestrator(store: store, memory: memory)
         let executor = ActionExecutor(store: store)
 
-        // The user's chosen folders, mirroring the app's saved settings.
         let folderPaths = UserDefaults.standard.stringArray(forKey: AutoScanSettingsKey.selectedFolderPaths.rawValue) ?? []
         let folders = folderPaths.map { URL(fileURLWithPath: $0) }
 
@@ -308,14 +346,24 @@ public enum AutoScanRunner {
             foldActions[index].userDecision = .approved
             foldActions[index].status = .approved
         }
-        let summary = await executor.execute(actions: foldActions, filesByID: filesByID)
-        let freedBytes = summary.logs.reduce(Int64(0)) { total, log in
-            total + (Int64(log.afterState["freed_bytes"] ?? "") ?? 0)
+        var totalFolds = 0
+        var totalFailures = 0
+        var totalFreed: Int64 = 0
+        let batchSize = ExecutionLimits.maxActionsPerBatch
+        for start in stride(from: 0, to: foldActions.count, by: batchSize) {
+            let end = min(start + batchSize, foldActions.count)
+            let batch = Array(foldActions[start..<end])
+            let summary = await executor.execute(actions: batch, filesByID: filesByID)
+            totalFolds += summary.undoRecords.count
+            totalFailures += summary.failures.count
+            totalFreed += summary.logs.reduce(Int64(0)) { total, log in
+                total + (Int64(log.afterState["freed_bytes"] ?? "") ?? 0)
+            }
         }
         return MaintenanceSummary(
-            foldCount: summary.undoRecords.count,
-            failureCount: summary.failures.count,
-            freedBytes: freedBytes
+            foldCount: totalFolds,
+            failureCount: totalFailures,
+            freedBytes: totalFreed
         )
     }
 }
