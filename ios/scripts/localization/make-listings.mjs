@@ -67,12 +67,11 @@ function blockAfter(heading) {
 }
 
 const english = {
-  name: 'TidyByte',
-  // Option I in docs/APP_STORE_LISTING.md §1, the one marked "In use" and the
-  // one docs/appstore/listings.json ships. Option H was the earlier working
-  // default and must not be reintroduced here: regenerating would then publish
-  // stale ASO copy.
-  subtitle: 'Clean photos, free up storage',
+  // The name and subtitle that docs/appstore/listings.json ships (§1 of
+  // docs/APP_STORE_LISTING.md). Keep these equal to the shipped values, or a
+  // regenerate followed by publish:details renames the storefront listing.
+  name: 'TidyByte: Photo Cleaner',
+  subtitle: 'Swipe to free up storage',
   promotionalText: blockAfter('## 2. Promotional Text'),
   description: blockAfter('## 3. Description'),
   // Read from §4, like the other three doc-backed fields: that section is where
@@ -176,7 +175,7 @@ const out = {
     'App Store Connect localizations for TidyByte. One entry per storefront language. The limits below are App Store Connect hard limits: a value over the limit is rejected at submission, so check-listings.mjs validates every field. The en entry is the source of truth; every other entry is a translation of it. name is the brand and stays TidyByte in every language.',
   _limits: LIMITS,
   _pendingDecision:
-    'The subtitle decision is CLOSED: option I, "Clean photos, free up storage" (29 chars), ships in all 21 locales. It replaced the earlier working default, option H "Photo cleaner, free space", because it is verb-forward and names the storage outcome rather than just space. The 20 localized values were rewritten for I (see scripts/localization/translations/_subtitle-change.mjs) and are machine-drafted: they carry each language previous phrasing forward with the verb-forward shift, but have not had a native review pass. The keywords field is tuned against the subtitle: Apple indexes name, subtitle and keywords together, so a word already in the subtitle must not repeat in keywords. Five keyword fields were re-derived when the subtitle changed - en, bn, de, ar, he. If the subtitle changes again, change every subtitle here and re-derive the keyword fields. Separately, en.keywords was changed on 2026-10-26 to drop \'gallery\' for \'ai\' and \'cleaner\' (see docs/APP_STORE_LISTING.md section 4); the 20 translated keyword fields were left as they were, so this is the only field that differs from its translation source.',
+    'Name and subtitle: TidyByte: Photo Cleaner / Swipe to free up storage, the same name in all 21 storefronts. Translations are machine-drafted and need a native review. Keywords are an ASO hypothesis without App Store search-term data (see docs/APP_STORE_LISTING.md section 4).',
   en,
   ...listings,
   ...Object.fromEntries(unexpected.map((key) => [key, existing[key]])),
