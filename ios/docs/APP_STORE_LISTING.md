@@ -1,8 +1,7 @@
 # App Store Connect Listing — TidyByte
 
-> **HISTORICAL (2026-08):** 1.1.1 (build 8) had shipped and 1.1.3 (build 10)
-> was in review; 1.1.2 never shipped. A fresh App Store Connect check on
-> 2026-11-01 shows 1.1.3 is **READY_FOR_SALE** with no editable version.
+> **Status (2026-11-17):** 1.1.3 (build 10) is live. 1.2.0 (build 11) is the
+> next release; its copy is below and in `docs/appstore/listings.json`.
 > The site's `/changelog` is the canonical version history.
 
 Paste-ready copy for App Store Connect. Char-count annotations are inline. Anything marked **TODO** needs a human decision before submission.
@@ -55,24 +54,24 @@ characters, so the App Store keyword field is where that term belongs.
 ## 2. Promotional Text (max 170 chars)
 
 ```
-Free up storage with a swipe. Find duplicates and blurry shots, and compress videos. Cleanup runs on your device. No ads or TidyByte account.
+Free up gigabytes in minutes. Swipe to delete, find duplicate and blurry photos, and compress big videos. Free, no ads, no account. Your photos stay on your phone.
 ```
-Length: **141 chars** ✅ (Promotional text can be updated without a new version.)
+Length: **163 chars** ✅ (Promotional text can be updated without a new version.)
 
 ---
 
 ## 3. Description
 
 ```
-TidyByte is the fastest, most private way to clean up your iPhone photo library — and it's completely free.
+Free up gigabytes of iPhone storage in minutes. TidyByte finds duplicate photos, blurry shots, old screenshots and huge videos, and you clear them with a swipe.
 
-TidyByte runs on iPhone, iPad, and iPhone Duo — and stays out of your way while it cleans.
+Completely free: no ads, no subscription, no account. Your photos stay on your device. Works on iPhone, iPad and iPhone Duo.
 
-Tired of "Storage Almost Full"? TidyByte turns photo cleanup into something you'll actually finish. Swipe left to delete, swipe right to keep — review your whole library one photo at a time, just like a dating app, and reclaim gigabytes in minutes.
+"Storage Almost Full" again? Swipe left to delete, swipe right to keep. Review your whole library one photo at a time, like a dating app, and finally finish the cleanup.
 
 Beyond swiping, TidyByte packs a full toolkit of smart cleanup tools that surface exactly what's wasting your space: exact and visual duplicates, near-identical similar shots, blurry or poorly-lit photos, screenshots, screen recordings, chat media saved by messaging apps, burst sequences, and your largest files. Convert Live Photos to stills and compress videos and photos to save even more — without deleting your memories.
 
-Your iPhone photo library stays on your device. TidyByte analyzes and cleans photos on-device with Apple's Vision and Photos frameworks, including local AI search that finds photos from a plain-language description. There is no TidyByte backend or account, no ads, and no tracking. If you choose to connect Google Photos, you sign in with Google, and TidyByte reads only the items you select directly from Google. Your iPhone photo library is never uploaded to TidyByte.
+Your iPhone photo library stays on your device. TidyByte analyzes and cleans photos on-device with Apple's Vision and Photos frameworks, including local AI search that finds photos from a plain-language description. There is no TidyByte backend or account, no ads, and no tracking. Your iPhone photo library is never uploaded to TidyByte.
 
 TidyByte is free, with no in-app purchases and no paywalls. Every feature is available to everyone.
 
@@ -108,8 +107,23 @@ Apple indexes the app name, subtitle and keyword field together, so words alread
 
 **Approved candidate: `TidyByte: Photo Cleaner` / `Swipe to free up storage`.**
 The name and subtitle already index "tidybyte", "photo", "cleaner", "swipe",
-"free", "up", and "storage", so the field targets other intents. This is the
-current candidate in `docs/appstore/listings.json` (93 chars ✅):
+"free", "up", and "storage", so the field targets other intents. 1.2.0 field
+in `docs/appstore/listings.json` (99 chars ✅):
+
+```
+duplicate,remover,compress,video,screenshot,blurry,delete,space,phone,image,junk,similar,gallery,ai
+```
+
+**1.2.0 change (hypothesis, no search-term data).** Apple combines single
+words across the name, subtitle and keyword field, so single words cover more
+searches than fixed phrases. "image compressor" and "compress video" become
+`compress`, `image` and `video`, which also combine with "photo"
+("compress photo", "photo video cleaner"). `remover`, `delete`, `space` and
+`phone` are added for "duplicate photo remover", "delete photos", "free up
+space" and "phone cleaner". `declutter` is dropped. The 20 localized fields are
+unchanged in 1.2.0.
+
+The 1.1.x field, for comparison (93 chars):
 
 ```
 duplicate,image compressor,compress video,screenshot,blurry,declutter,junk,similar,ai,gallery
@@ -235,7 +249,7 @@ In **App Store Connect → your app → App Privacy**:
 2. This produces a **"Data Not Collected"** privacy label with no data-type details required.
 
 **Rationale (truthful and verifiable):**
-- TidyByte has **no backend**. It makes no network connections unless the user connects the optional Google Photos source. Only then does it connect, and only to Google APIs, with the user's own sign-in. Nothing goes to the developer, and nothing from the iPhone library leaves the device.
+- TidyByte has **no backend**. Nothing goes to the developer, and nothing from the iPhone library leaves the device. The optional Google Photos source is hidden in builds without a Google OAuth client ID, which includes 1.2.0.
 - All photo analysis (Vision feature prints, blur/exposure detection, SHA-256 hashing) and all cleanup run **100% on-device**.
 - There is **no account/login, no analytics SDK, no ad SDK, and no tracking**.
 - This is reflected in `Tidybyte/Resources/PrivacyInfo.xcprivacy`: `NSPrivacyTracking = false`, empty `NSPrivacyTrackingDomains`, and an **empty `NSPrivacyCollectedDataTypes` array**. (The file declares only required-reason API usage: DiskSpace, UserDefaults, and FileTimestamp — these are API-usage declarations, not data collection.)
@@ -244,7 +258,7 @@ In **App Store Connect → your app → App Privacy**:
 
 ## 9. Export Compliance
 
-- The app uses **no encryption** beyond what is exempt (standard OS/HTTPS usage). HTTPS is used only if the user connects Google Photos.
+- The app uses **no encryption** beyond what is exempt (standard OS/HTTPS usage).
 - `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption` is set to **`NO`** in `project.yml`, so the value is baked into the build's Info.plist. App Store Connect should **not** show a "Missing Compliance" prompt.
 - If a compliance question does appear, answer: **"No"** (the app does not use non-exempt encryption). No CCATS / self-classification report is needed.
 
@@ -260,8 +274,8 @@ TidyByte cleans up the device photo library. To review it properly:
 - Use a PHYSICAL iPhone with REAL photos and videos in the library. The iOS Simulator has a small fake photo library and will not exercise most tools meaningfully.
 - On first launch, the app requests Photo Library access — please grant FULL access (read & write). Without it, the Swipe screen and Cleanup tools have nothing to operate on.
 - Optionally, the app requests Notifications permission only if "Cleanup Reminders" is enabled in Settings; it is not required to review the app.
-- No TidyByte account or login is needed for the core app. Google Photos is optional and requires Google sign-in.
-- The app is free with no in-app purchases. All processing is on-device. The app goes online only if the user connects Google Photos. That optional source (Cleanup tab → Google Photos) signs in with Google and reads only the items the user picks. Add a test Google account (on the OAuth test-user list) to the review notes before submitting.
+- No TidyByte account or login is needed.
+- The app is free with no in-app purchases. All processing is on-device. 1.2.0 has no Google Photos UI (no OAuth client ID is set), so the review notes need no test Google account. When a client ID is added, the Cleanup tab shows an "iPhone / Google Photos" switch, and the review notes then need a test Google account from the OAuth test-user list.
 - Write actions (deleting photos, saving compressed videos/converted Live Photos) go through the standard iOS PhotoKit confirmation prompts.
 ```
 
@@ -287,7 +301,14 @@ Both are fixed sizes — the 1179-vs-1206 slack the iPhone row allows does not a
 
 ---
 
-## 12. What's New (v1.1.3 release notes)
+## 12. What's New (v1.2.0 release notes)
+
+```
+Swipe cards now show the whole photo, so wide shots are no longer cropped. Video and photo compression is more reliable, and when an item cannot be compressed, the full reason now shows under it. Deletes are safer: if you cancel the iOS delete prompt, nothing is counted as freed. Cleanup screens now fit large text sizes without cutting off words. Plus many small fixes and better translations. Everything still runs on your device: no account, no ads, no subscription.
+```
+Length: 470 chars. Translated into all 21 storefront locales by `scripts/localization/translations/_notes-1.2.0.mjs`.
+
+### v1.1.3 release notes, for the record
 
 ```
 Faster on large libraries: the first swipe card now appears in about a second, photos load while the app scans, and Storage and Cleanup open much sooner. If your photos did not load, or albums looked empty, TidyByte now tells you why. When iOS shares no photos with the app, or a permission is stuck, you get the exact steps to fix it, with buttons for Settings, choosing photos, and trying again. The Recently Deleted notice no longer hides under the tab bar. Everything still runs on your device: no account, no ads, no subscription.
@@ -325,6 +346,7 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 
 | Version | Build | Release notes source |
 |---|---|---|
+| 1.2.0 | 11 | §12 above. Delete-prompt fixes (#24), whole-photo swipe cards, compression, accessibility-layout and data-safety fixes (#27). Google Photos stays hidden (no OAuth client ID). |
 | 1.1.3 | 10 | §12 above. The photo-access recovery (#11), the large-library speed fixes (#6-#8), the Storage first-load fix (#9) and the Recently Deleted notice fix (#10). |
 | 1.1.2 | 9 | Never shipped. Withdrawn from review and renamed to 1.1.3; build 9 is unused. |
 | 1.1.1 | 8 | §12 (for the record). The iPhone Duo work and the review fixes, neither of which build 7 carried. |

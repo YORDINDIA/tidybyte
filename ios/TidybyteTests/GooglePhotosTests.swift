@@ -21,6 +21,18 @@ final class GooglePhotosTests: XCTestCase {
                        "com.googleusercontent.apps.123-abc")
     }
 
+    /// The Google Photos switch is shown only for a real client ID, so an
+    /// unconfigured build (empty or placeholder ID) has no Google UI.
+    func testClientIDValidationGatesTheFeature() {
+        XCTAssertEqual(GoogleAuthService.validClientID(nil), "")
+        XCTAssertEqual(GoogleAuthService.validClientID(""), "")
+        XCTAssertEqual(GoogleAuthService.validClientID("$(GOOGLE_IOS_CLIENT_ID)"), "")
+        XCTAssertEqual(GoogleAuthService.validClientID(".apps.googleusercontent.com"), "")
+        XCTAssertEqual(GoogleAuthService.validClientID("123-abc.example.com"), "")
+        XCTAssertEqual(GoogleAuthService.validClientID(" 123-abc.apps.googleusercontent.com "),
+                       "123-abc.apps.googleusercontent.com")
+    }
+
     func testMediaItemsPageDecodes() throws {
         let json = """
         {"mediaItems":[

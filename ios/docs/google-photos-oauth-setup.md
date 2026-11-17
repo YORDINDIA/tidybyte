@@ -120,9 +120,7 @@ How the build uses the client ID:
 
 You do not need a URL type in Info.plist for the redirect. `ASWebAuthenticationSession` catches the callback scheme itself.
 
-When `GOOGLE_IOS_CLIENT_ID` is empty:
-- **Debug builds:** the switch is shown, and Google mode says "Not Set Up".
-- **Release builds:** the switch is hidden, and the app looks the same as before.
+When `GOOGLE_IOS_CLIENT_ID` is empty or is not a `*.apps.googleusercontent.com` ID, the switch is hidden in Debug and Release builds, and the app shows no Google Photos UI. Set the ID to show it (see `GoogleAuthService.validClientID`).
 
 ## 7. Google verification (needed before public release)
 

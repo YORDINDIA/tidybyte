@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 /**
+ * SUPERSEDED, do not run. The shipped subtitle is `Swipe to free up storage`
+ * (docs/appstore/listings.json). Running this would revert all 21 subtitles to
+ * option I. Kept as a record of the earlier change; it exits without writing.
+ *
  * Subtitle change: `Photo cleaner, free space` -> `Clean photos, free up storage`.
  *
  * The English subtitle is the one open product decision in
@@ -36,6 +40,9 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const LISTINGS = join(ROOT, 'docs', 'appstore', 'listings.json');
 const LIMIT = 30;
+
+console.error('_subtitle-change.mjs is superseded; the shipped subtitle is in docs/appstore/listings.json.');
+process.exit(1);
 
 /** New subtitle per language. `null` means "keep the existing value". */
 const SUBTITLES = {
