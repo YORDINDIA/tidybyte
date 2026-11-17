@@ -5,6 +5,7 @@ struct SidebarView: View {
     @Bindable var model: AppViewModel
 
     var body: some View {
+        let _ = model.languageStore.activeOverride
         let pending = model.pendingBytesByDestination
         List(
             selection: Binding<AppDestination?>(

@@ -6,6 +6,7 @@ import SwiftUI
 /// quit and reopen Tidybyte.
 struct OnboardingView: View {
     static let stepKey = "onboardingStep"
+    static let explicitCompletionKey = "onboardingCompletedExplicitly"
     static let doneStep = 4
 
     @Bindable var model: AppViewModel
@@ -16,12 +17,13 @@ struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         VStack(spacing: Spacing.elementSection) {
             switch step {
-            case 0: welcome
-            case 1: fullDiskAccess
-            case 2: photos
-            default: ready
+            case 0: welcome(override: override)
+            case 1: fullDiskAccess(override: override)
+            case 2: photos(override: override)
+            default: ready(override: override)
             }
         }
         .padding(Spacing.sectionGap + 8)
@@ -32,84 +34,79 @@ struct OnboardingView: View {
 
     // MARK: Steps
 
-    private var welcome: some View {
+    private func welcome(override: AppLanguage?) -> some View {
         VStack(spacing: Spacing.elementNormal) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable().frame(width: 96, height: 96)
                 .accessibilityHidden(true)
-            Text(String(localized: "Welcome to Tidybyte")).font(.largeTitle.bold())
+            Text(L10n.string("Welcome to Tidybyte", language: override)).font(.largeTitle.bold())
             VStack(alignment: .leading, spacing: Spacing.elementNormal) {
-                point("magnifyingglass", String(localized: "Finds caches, leftovers, duplicates, and large files."))
-                point("hand.raised", String(localized: "Nothing changes until you approve it."))
-                point("arrow.uturn.backward", String(localized: "Files go to the Trash, and History can restore them."))
+                point("magnifyingglass", L10n.string("Finds caches, leftovers, duplicates, and large files.", language: override))
+                point("hand.raised", L10n.string("Nothing changes until you approve it.", language: override))
+                point("arrow.uturn.backward", L10n.string("Files go to the Trash, and History can restore them.", language: override))
             }
             .padding(.vertical, Spacing.elementTight)
-            // The App Store build is sandboxed; Full Disk Access does not apply.
-            Button(String(localized: "Continue")) { step = DistributionChannel.supportsAdvanced ? 1 : 2 }
-                .buttonStyle(.borderedProminent).controlSize(.large)
-                .keyboardShortcut(.defaultAction)
+            Button(L10n.string("Continue", language: override)) {
+                step = DistributionChannel.supportsAdvanced ? 1 : 2
+            }
+            .buttonStyle(.borderedProminent).controlSize(.large)
+            .keyboardShortcut(.defaultAction)
         }
     }
 
-    private var fullDiskAccess: some View {
+    private func fullDiskAccess(override: AppLanguage?) -> some View {
         VStack(spacing: Spacing.elementNormal) {
             Image(systemName: hasFullDiskAccess ? "checkmark.shield.fill" : "lock.shield")
                 .font(.system(.largeTitle))
                 .foregroundStyle(hasFullDiskAccess ? AnyShapeStyle(SemanticScale.success) : AnyShapeStyle(.tint))
                 .accessibilityHidden(true)
-            Text(String(localized: "Allow Full Disk Access")).font(.title.bold())
-            Text(
-                String(
-                    localized: """
-                        macOS hides Mail, Safari, and other apps' data until you allow it. \
-                        Turn on Tidybyte in Privacy & Security › Full Disk Access. You can also \
-                        drag the icon below into that list.
-                        """)
-            )
-            .multilineTextAlignment(.center)
-            .foregroundStyle(.secondary)
+            Text(L10n.string("Allow Full Disk Access", language: override)).font(.title.bold())
+            // Full localization key exceeds 140 chars in Localizable.xcstrings.
+            // swiftlint:disable:next line_length
+            Text(L10n.string("macOS hides Mail, Safari, and other apps' data until you allow it. Turn on Tidybyte in Privacy & Security › Full Disk Access. You can also drag the icon below into that list.", language: override))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable().frame(width: 56, height: 56)
                 .onDrag { NSItemProvider(object: Bundle.main.bundleURL as NSURL) }
-                .help(String(localized: "Drag into the Full Disk Access list"))
-                .accessibilityLabel(String(localized: "Tidybyte app icon"))
+                .help(L10n.string("Drag into the Full Disk Access list", language: override))
+                .accessibilityLabel(L10n.string("Tidybyte app icon", language: override))
             HStack {
-                Button(String(localized: "Skip for Now")) { step = 2 }
-                Button(String(localized: "Open Privacy & Security")) { PermissionLinks.openFullDiskAccess() }
-                    .buttonStyle(.borderedProminent)
-                    .keyboardShortcut(.defaultAction)
+                Button(L10n.string("Skip for Now", language: override)) { step = 2 }
+                Button(L10n.string("Open Privacy & Security", language: override)) {
+                    PermissionLinks.openFullDiskAccess()
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
             }
             .controlSize(.large)
-            Text(String(localized: "Tidybyte continues on its own once access is on."))
+            Text(L10n.string("Tidybyte continues on its own once access is on.", language: override))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
 
-    private var photos: some View {
-        VStack(spacing: Spacing.elementNormal) {
+    private func photos(override: AppLanguage?) -> some View {
+        let photosPrompt = L10n.string(
+            // swiftlint:disable:next line_length
+            "Tidybyte can find similar shots, blurry photos, and large videos in Photos. Anything you remove goes to Recently Deleted in Photos.",
+            language: override
+        )
+        return VStack(spacing: Spacing.elementNormal) {
             Image(systemName: "photo.on.rectangle").font(.system(.largeTitle)).foregroundStyle(.tint)
                 .accessibilityHidden(true)
-            Text(String(localized: "Include your Photos library?")).font(.title.bold())
-            Text(
-                String(
-                    localized: """
-                        Tidybyte can find similar shots, blurry photos, and large videos in Photos. \
-                        Anything you remove goes to Recently Deleted in Photos.
-                        """)
-            )
-            .multilineTextAlignment(.center)
-            .foregroundStyle(.secondary)
+            Text(L10n.string("Include your Photos library?", language: override)).font(.title.bold())
+            Text(photosPrompt)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
             HStack {
-                Button(String(localized: "Not Now")) {
+                Button(L10n.string("Not Now", language: override)) {
                     model.cleanup.scope.includesPhotos = false
                     step = 3
                 }
-                Button(String(localized: "Allow Photos Access")) {
-                    // A second press while the system prompt is open must not start another request.
+                Button(L10n.string("Allow Photos Access", language: override)) {
                     guard !isAuthorizingPhotos else { return }
                     isAuthorizingPhotos = true
                     Task {
-                        // Include Photos only when access was granted; a denial must not block the folder scan.
                         let granted = (try? await PhotoLibraryService().authorize()) != nil
                         model.cleanup.scope.includesPhotos = granted
                         isAuthorizingPhotos = false
@@ -124,22 +121,24 @@ struct OnboardingView: View {
         }
     }
 
-    private var ready: some View {
+    private func ready(override: AppLanguage?) -> some View {
         VStack(spacing: Spacing.elementNormal) {
-            Image(systemName: "checkmark.circle.fill").font(.system(.largeTitle)).foregroundStyle(SemanticScale.success)
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(.largeTitle))
+                .foregroundStyle(SemanticScale.success)
                 .accessibilityHidden(true)
-            Text(String(localized: "You're all set")).font(.title.bold())
-            Toggle(String(localized: "Show free space in the menu bar"), isOn: $showsMenuBarExtra)
+            Text(L10n.string("You're all set", language: override)).font(.title.bold())
+            Toggle(L10n.string("Show free space in the menu bar", language: override), isOn: $showsMenuBarExtra)
                 .toggleStyle(.switch)
-            Button(String(localized: "Scan My Mac")) {
+            Button(L10n.string("Scan My Mac", language: override)) {
+                model.completeOnboardingExplicitly()
                 step = Self.doneStep
                 model.scanAll()
             }
             .buttonStyle(.borderedProminent).controlSize(.large)
             .keyboardShortcut(.defaultAction)
-            // The escape hatch: finishing onboarding never requires scanning,
-            // so quitting mid-onboarding is never the only way out (O-01).
-            Button(String(localized: "I'll scan later")) {
+            Button(L10n.string("I'll scan later", language: override)) {
+                model.completeOnboardingExplicitly()
                 step = Self.doneStep
             }
             .buttonStyle(.bordered)
@@ -154,7 +153,6 @@ struct OnboardingView: View {
         }
     }
 
-    /// Checks every second while the Full Disk Access step shows.
     private func waitForFullDiskAccess() async {
         guard step == 1 else { return }
         while !Task.isCancelled {

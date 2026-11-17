@@ -1,8 +1,7 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// The quit confirmation sheet the safety rules require before any signal.
-/// Cancel only dismisses; the explicit Quit and Force Quit buttons perform.
+/// The quit confirmation sheet required before any process signal.
 struct QuitConfirmView: View {
     let sample: ProcessSample
     var showsForceQuit = false
@@ -26,7 +25,6 @@ struct QuitConfirmView: View {
             HStack {
                 Spacer()
                 Button(String(localized: "Cancel", comment: "Dialog cancel")) {
-                    // Dismissal only — nothing is signalled.
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
@@ -49,16 +47,33 @@ struct QuitConfirmView: View {
     }
 }
 
-/// The inspector: identity, signature, parentage, command line, resources,
-/// open files, and ports for the selected app's main process. Quitting always
-/// goes through a confirmation dialog — the model never signals unasked.
+/// Process inspector: identity, signature, parentage, command line, resources,
+/// open files, listening ports, and outbound network connections.
 struct ProcessInspectorView: View {
+    private struct PendingQuitTarget: Equatable {
+        let pid: pid_t
+        let startedAt: Date
+        let processName: String
+        let isForce: Bool
+    }
+
     let inspection: ProcessInspection
-    /// Per-app CPU history behind the "Last 24 hours" sparkline.
     var history: [MetricsHistoryStore.SeriesPoint] = []
     let onQuit: (pid_t, Bool) -> Void
-    @State private var confirmQuit = false
-    @State private var confirmForce = false
+
+    @State private var pendingQuit: PendingQuitTarget?
+    @State private var showsConnections = true
+    @State private var showsOpenFiles = true
+
+    init(
+        inspection: ProcessInspection,
+        history: [MetricsHistoryStore.SeriesPoint] = [],
+        onQuit: @escaping (pid_t, Bool) -> Void
+    ) {
+        self.inspection = inspection
+        self.history = history
+        self.onQuit = onQuit
+    }
 
     var body: some View {
         ScrollView {
@@ -69,48 +84,85 @@ struct ProcessInspectorView: View {
                 signatureSection
                 resourcesSection
                 commandLineSection
-                filesSection
+                connectionsSection
                 portsSection
+                filesSection
             }
             .padding(Spacing.elementNormal)
         }
+        .onChange(of: inspection.pid) { cancelStaleQuitIfProcessChanged() }
+        .onChange(of: inspection.startedAt) { cancelStaleQuitIfProcessChanged() }
         .confirmationDialog(
-            String(
-                localized: "Quit \(processName)?", comment: "Quit dialog title"
-            ),
-            isPresented: $confirmQuit,
+            String(localized: "Quit \(pendingQuit?.processName ?? processName)?", comment: "Quit dialog title"),
+            isPresented: quitConfirmationPresented(force: false),
             titleVisibility: .visible
         ) {
             Button(String(localized: "Quit", comment: "Confirm quit"), role: .destructive) {
-                onQuit(inspection.pid, false)
+                executeConfirmedQuit(expectingForce: false)
             }
-            Button(String(localized: "Cancel", comment: "Dialog cancel"), role: .cancel) {}
+            Button(String(localized: "Cancel", comment: "Dialog cancel"), role: .cancel) {
+                pendingQuit = nil
+            }
         } message: {
             Text(String(localized: "The app is asked to quit normally. Unsaved work could be lost.", comment: "Quit warning"))
         }
         .confirmationDialog(
-            String(
-                localized: "Force quit \(processName)?", comment: "Force quit dialog title"
-            ),
-            isPresented: $confirmForce,
+            String(localized: "Force quit \(pendingQuit?.processName ?? processName)?", comment: "Force quit dialog title"),
+            isPresented: quitConfirmationPresented(force: true),
             titleVisibility: .visible
         ) {
             Button(String(localized: "Force Quit", comment: "Confirm force quit"), role: .destructive) {
-                onQuit(inspection.pid, true)
+                executeConfirmedQuit(expectingForce: true)
             }
-            Button(String(localized: "Cancel", comment: "Dialog cancel"), role: .cancel) {}
+            Button(String(localized: "Cancel", comment: "Dialog cancel"), role: .cancel) {
+                pendingQuit = nil
+            }
         } message: {
             Text(String(localized: "The process is killed immediately. Unsaved work is lost.", comment: "Force quit warning"))
         }
     }
 
-    /// The process's file name for dialogs, falling back to the pid.
+    private func quitConfirmationPresented(force: Bool) -> Binding<Bool> {
+        Binding(
+            get: { pendingQuit?.isForce == force },
+            set: { isShown in
+                if !isShown { pendingQuit = nil }
+            })
+    }
+
+    private func beginQuit(force: Bool) {
+        guard let startedAt = inspection.startedAt else { return }
+        pendingQuit = PendingQuitTarget(
+            pid: inspection.pid,
+            startedAt: startedAt,
+            processName: processName,
+            isForce: force)
+    }
+
+    private func cancelStaleQuitIfProcessChanged() {
+        guard let target = pendingQuit else { return }
+        if inspection.pid != target.pid || inspection.startedAt != target.startedAt {
+            pendingQuit = nil
+        }
+    }
+
+    private func executeConfirmedQuit(expectingForce: Bool) {
+        guard let target = pendingQuit,
+              target.isForce == expectingForce,
+              inspection.pid == target.pid,
+              inspection.startedAt == target.startedAt else {
+            pendingQuit = nil
+            return
+        }
+        pendingQuit = nil
+        onQuit(target.pid, target.isForce)
+    }
+
     private var processName: String {
         inspection.commandLine.first.map { URL(fileURLWithPath: $0).lastPathComponent }
             ?? String(localized: "pid \(inspection.pid)", comment: "Process identifier fallback")
     }
 
-    /// The selected app's recent CPU, when the history store has points for it.
     @ViewBuilder
     private var historySection: some View {
         if history.count > 1 {
@@ -122,7 +174,6 @@ struct ProcessInspectorView: View {
                     tint: MonitorTab.cpu.tint)
                     .frame(height: 44)
             }
-            // .contain keeps the sparkline's elements; the value carries the numbers.
             .accessibilityElement(children: .contain)
             .accessibilityLabel(String(localized: "CPU over the last 24 hours", comment: "History chart label"))
             .accessibilityValue(HistoryChartView.summary(history, unit: .cpu))
@@ -137,11 +188,11 @@ struct ProcessInspectorView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button(String(localized: "Quit", comment: "Inspector action")) {
-                    confirmQuit = true
+                    beginQuit(force: false)
                 }
                 .disabled(inspection.startedAt == nil)
                 Button(String(localized: "Force Quit", comment: "Inspector action"), role: .destructive) {
-                    confirmForce = true
+                    beginQuit(force: true)
                 }
                 .disabled(inspection.startedAt == nil)
             }
@@ -153,13 +204,15 @@ struct ProcessInspectorView: View {
         }
     }
 
-    /// Shown when the start time is unknown. Without it the pid cannot be checked
-    /// before a signal, so quitting is disabled rather than failing silently.
     static let unknownStartMessage = String(
         localized: "The start time of this process is unavailable, so it cannot be quit safely.",
         comment: "Quit disabled: unknown process start time")
+}
 
-    private var identitySection: some View {
+// MARK: - Inspector Sections
+
+private extension ProcessInspectorView {
+    var identitySection: some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             let parent = inspection.parentName.map {
                 String(localized: "\($0) (pid \(inspection.parentPID))", comment: "Parent process with identifier")
@@ -184,7 +237,7 @@ struct ProcessInspectorView: View {
     }
 
     @ViewBuilder
-    private var signatureSection: some View {
+    var signatureSection: some View {
         if let signature = inspection.signature {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
                 HStack {
@@ -221,7 +274,7 @@ struct ProcessInspectorView: View {
         }
     }
 
-    private var resourcesSection: some View {
+    var resourcesSection: some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             row(
                 String(localized: "CPU time", comment: "Inspector row"),
@@ -234,7 +287,7 @@ struct ProcessInspectorView: View {
     }
 
     @ViewBuilder
-    private var commandLineSection: some View {
+    var commandLineSection: some View {
         if !inspection.commandLine.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
                 Text(String(localized: "Command line", comment: "Inspector section"))
@@ -249,28 +302,73 @@ struct ProcessInspectorView: View {
             }
         }
     }
+}
 
-    private var filesSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.elementTight) {
-            Text(String(localized: "Open files", comment: "Inspector section"))
-                .font(.callout.weight(.medium))
-            if inspection.openFiles.isEmpty {
-                Text(String(localized: "None visible to this user.", comment: "No open files"))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            } else {
-                ForEach(inspection.openFiles.prefix(30)) { file in
-                    Text("\(file.kind) · \(file.path)")
-                        .font(.caption2.monospaced())
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .help(file.path)
+private extension ProcessInspectorView {
+    var connectionsSection: some View {
+        DisclosureGroup(isExpanded: $showsConnections) {
+            VStack(alignment: .leading, spacing: 4) {
+                if inspection.outboundConnections.isEmpty {
+                    Text(String(localized: "No active outbound connections.", comment: "No outbound connections"))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                } else {
+                    ForEach(inspection.outboundConnections.prefix(50)) { connection in
+                        connectionRow(connection)
+                    }
+                    if inspection.outboundConnections.count > 50 {
+                        Text(String(
+                            localized: "Showing 50 of \(inspection.outboundConnections.count) connections.",
+                            comment: "Outbound connection truncation notice"))
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .padding(.top, 4)
+        } label: {
+            HStack {
+                Text(String(localized: "Network connections", comment: "Inspector section"))
+                    .font(.callout.weight(.medium))
+                Spacer()
+                if !inspection.outboundConnections.isEmpty {
+                    Text("\(inspection.outboundConnections.count)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
                 }
             }
         }
     }
 
-    private var portsSection: some View {
+    func connectionRow(_ connection: ProcessInspection.OutboundConnection) -> some View {
+        HStack(spacing: 6) {
+            Text(connection.kind)
+                .font(.caption2.monospaced().weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(connection.remoteAddress)
+                .font(.caption.monospacedDigit())
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .textSelection(.enabled)
+            Spacer(minLength: 4)
+            if let state = connection.state, !state.isEmpty {
+                Text(state)
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(connectionStateColor(state))
+            }
+        }
+        .help("\(connection.localAddress) → \(connection.remoteAddress)")
+    }
+
+    func connectionStateColor(_ state: String) -> Color {
+        switch state.uppercased() {
+        case "ESTABLISHED": return SemanticScale.success
+        case "CLOSE_WAIT", "TIME_WAIT", "FIN_WAIT_1", "FIN_WAIT_2": return SemanticScale.warning
+        default: return .secondary
+        }
+    }
+
+    var portsSection: some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             Text(String(localized: "Listening ports", comment: "Inspector section"))
                 .font(.callout.weight(.medium))
@@ -280,19 +378,50 @@ struct ProcessInspectorView: View {
                     .foregroundStyle(.tertiary)
             } else {
                 ForEach(inspection.listeningPorts) { port in
-                    // MON-03: ports are identifiers — no locale digit
-                    // grouping ("*:5,000" is unreadable against lsof output).
                     Text("\(port.kind) \(port.address):\(port.port.formatted(.number.grouping(.never)))")
                         .font(.caption.monospacedDigit())
+                        .textSelection(.enabled)
                 }
             }
         }
     }
 
-    private func row(_ label: String, _ value: String) -> some View {
+    var filesSection: some View {
+        DisclosureGroup(isExpanded: $showsOpenFiles) {
+            VStack(alignment: .leading, spacing: 4) {
+                if inspection.openFiles.isEmpty {
+                    Text(String(localized: "None visible to this user.", comment: "No open files"))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                } else {
+                    ForEach(inspection.openFiles.prefix(30)) { file in
+                        Text("\(file.kind) · \(file.path)")
+                            .font(.caption2.monospaced())
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .help(file.path)
+                    }
+                }
+            }
+            .padding(.top, 4)
+        } label: {
+            HStack {
+                Text(String(localized: "Open files", comment: "Inspector section"))
+                    .font(.callout.weight(.medium))
+                Spacer()
+                if !inspection.openFiles.isEmpty {
+                    Text("\(inspection.openFiles.count)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    func row(_ label: String, _ value: String) -> some View {
         LabeledContent {
             Text(value)
-                .font(.callout)
+                .font(.callout.monospacedDigit())
                 .textSelection(.enabled)
                 .lineLimit(1)
                 .truncationMode(.middle)

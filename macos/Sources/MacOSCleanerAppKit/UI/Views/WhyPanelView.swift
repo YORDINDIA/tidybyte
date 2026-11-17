@@ -5,16 +5,17 @@ struct WhyPanelView: View {
     @Bindable var model: AppViewModel
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         if let action = model.selectedAction {
             Form {
-                Section(String(localized: "Action")) {
+                Section(L10n.string("Action", language: override)) {
                     Text(action.actionType.displayName).font(.headline)
                     RiskBadge(risk: action.risk)
                     Text(action.reason).textSelection(.enabled)
-                    LabeledContent(String(localized: "Confidence"), value: "\(Int(action.confidence * 100))%")
-                    Text(operationDescription(for: action)).font(.callout)
+                    LabeledContent(L10n.string("Confidence", language: override), value: "\(Int(action.confidence * 100))%")
+                    Text(operationDescription(for: action, override: override)).font(.callout)
                 }
-                Section(String(localized: "Affected files")) {
+                Section(L10n.string("Affected files", language: override)) {
                     ForEach(model.selectedActionFiles) { file in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(file.fileName).font(.headline)
@@ -24,34 +25,42 @@ struct WhyPanelView: View {
                                 Label(
                                     file.riskFlags.map(\.displayName).joined(separator: ", "),
                                     systemImage: "exclamationmark.triangle"
-                                ).font(.caption)
+                                )
+                                .font(.caption)
                             }
-                            Button(String(localized: "Show in Finder")) {
-                                NSWorkspace.shared.activateFileViewerSelecting([file.url])
+                            HStack(spacing: Spacing.elementTight) {
+                                Button(L10n.string("Quick Look", language: override)) {
+                                    QuickLookCoordinator.shared.preview(file.url)
+                                }
+                                Button(L10n.string("Show in Finder", language: override)) {
+                                    NSWorkspace.shared.activateFileViewerSelecting([file.url])
+                                }
                             }
                         }
                     }
                 }
                 if action.actionType == .runPackageManagerCleanup {
-                    Section(String(localized: "Command preview")) {
+                    Section(L10n.string("Command preview", language: override)) {
                         ForEach(
-                            (model.outcome?.packageCandidates ?? []).filter { action.targets.contains($0.id) }, id: \.id
+                            (model.outcome?.packageCandidates ?? []).filter { action.targets.contains($0.id) },
+                            id: \.id
                         ) { candidate in
                             Text(([candidate.commandPath.path] + candidate.arguments).joined(separator: " "))
-                                .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                                .font(.system(.caption, design: .monospaced))
+                                .textSelection(.enabled)
                             Text(candidate.dryRunOutput).font(.caption).textSelection(.enabled)
                         }
                     }
                 }
-                Section(String(localized: "Recovery")) {
-                    Text(recoveryText(for: action)).font(.callout)
+                Section(L10n.string("Recovery", language: override)) {
+                    Text(recoveryText(for: action, override: override)).font(.callout)
                 }
-                Section(String(localized: "Saved rules")) {
-                    Button(String(localized: "Approve and Save Always Rule")) {
+                Section(L10n.string("Saved rules", language: override)) {
+                    Button(L10n.string("Approve and Save Always Rule", language: override)) {
                         Task { await model.alwaysDoThis(action) }
                     }
                     .disabled(action.risk == .forbidden || !action.actionType.isExecutable)
-                    Button(String(localized: "Reject and Save Never Rule")) {
+                    Button(L10n.string("Reject and Save Never Rule", language: override)) {
                         Task { await model.neverDoThisHere(action) }
                     }
                 }
@@ -60,66 +69,66 @@ struct WhyPanelView: View {
             .formStyle(.grouped)
         } else {
             ContentUnavailableView(
-                String(localized: "Select an action"), systemImage: "checklist",
-                description: Text(String(localized: "Its reason, affected files, and recovery details appear here.")))
+                L10n.string("Select an action", language: override),
+                systemImage: "checklist",
+                description: Text(L10n.string(
+                    "Its reason, affected files, and recovery details appear here.",
+                    language: override
+                ))
+            )
         }
     }
 
-    private func recoveryText(for action: PlannedAction) -> String {
-        if action.risk == .forbidden { return String(localized: "Blocked actions cannot run.") }
+    private func recoveryText(for action: PlannedAction, override: AppLanguage?) -> String {
+        if action.risk == .forbidden {
+            return L10n.string("Blocked actions cannot run.", language: override)
+        }
         if !action.actionType.isExecutable {
-            return String(localized: "This action is for review only. Tidybyte cannot execute it.")
+            return L10n.string("This action is for review only. Tidybyte cannot execute it.", language: override)
         }
         if action.actionType == .runPackageManagerCleanup {
-            return String(localized: "Package-manager cleanup cannot be undone. Review the command before approval.")
+            return L10n.string(
+                "Package-manager cleanup cannot be undone. Review the command before approval.",
+                language: override
+            )
         }
-        return String(
-            localized:
-                "Restore options appear in History. Recovery needs the saved record and available files."
+        return L10n.string(
+            "Restore options appear in History. Recovery needs the saved record and available files.",
+            language: override
         )
     }
 
-    private func operationDescription(for action: PlannedAction) -> String {
+    private func operationDescription(for action: PlannedAction, override: AppLanguage?) -> String {
         let fileCount = action.targets.count
-        let filePart =
-            fileCount == 1
-            ? String(localized: "1 file")
-            : String(localized: "\(fileCount) files")
+        let filePart = fileCount == 1
+            ? L10n.string("1 file", language: override)
+            : L10n.format("%lld files", language: override, fileCount)
         switch action.actionType {
         case .moveToTrash:
-            return String(
-                localized: "Move \(filePart) to Trash", comment: "Operation description for moveToTrash action")
+            return L10n.format("Move %@ to Trash", language: override, filePart)
         case .move:
-            return String(
-                localized: "Move \(filePart) to \(action.destination?.path ?? String(localized: "destination"))",
-                comment: "Operation description for move action")
+            let dest = action.destination?.path ?? L10n.string("destination", language: override)
+            return L10n.format("Move %@ to %@", language: override, filePart, dest)
         case .archive:
-            return String(
-                localized: "Create ZIP archive of \(filePart), then trash originals",
-                comment: "Operation description for archive action")
+            return L10n.format("Create ZIP archive of %@, then trash originals", language: override, filePart)
         case .tag:
-            return String(localized: "Apply Finder tag to \(filePart)", comment: "Operation description for tag action")
+            return L10n.format("Apply Finder tag to %@", language: override, filePart)
         case .createAlias:
-            return String(
-                localized: "Create Finder alias for \(filePart)",
-                comment: "Operation description for createAlias action")
+            return L10n.format("Create Finder alias for %@", language: override, filePart)
         case .createSymlink:
-            return String(
-                localized: "Create symbolic link for \(filePart)",
-                comment: "Operation description for createSymlink action")
+            return L10n.format("Create symbolic link for %@", language: override, filePart)
         case .runPackageManagerCleanup:
-            return String(
-                localized: "Run package manager cleanup command",
-                comment: "Operation description for runPackageManagerCleanup action")
+            return L10n.string("Run package manager cleanup command", language: override)
         case .rename:
-            return String(localized: "Rename \(filePart)", comment: "Operation description for rename action")
+            return L10n.format("Rename %@", language: override, filePart)
         case .cloneDeduplicate:
-            return String(
-                localized: "Fold \(filePart) onto their keepers as APFS clones (nothing is deleted)",
-                comment: "Operation description for cloneDeduplicate action")
+            return L10n.format(
+                "Fold %@ onto their keepers as APFS clones (nothing is deleted)",
+                language: override,
+                filePart
+            )
         default:
-            return String(localized: "\(action.actionType.displayName): \(filePart)")
+            return "\(action.actionType.displayName): \(filePart)"
         }
     }
-
 }

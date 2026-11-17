@@ -344,9 +344,14 @@ public actor PackageManagerScanner {
         return devices.values.reduce(0) { $0 + $1.count }
     }
 
-    static func dockerReclaimableBytes(
-        _ output: String
-    ) -> (images: Int64, containers: Int64, volumes: Int64, buildCache: Int64) {
+    struct DockerReclaimableBreakdown {
+        let images: Int64
+        let containers: Int64
+        let volumes: Int64
+        let buildCache: Int64
+    }
+
+    static func dockerReclaimableBytes(_ output: String) -> DockerReclaimableBreakdown {
         var images: Int64 = 0
         var containers: Int64 = 0
         var volumes: Int64 = 0
@@ -365,7 +370,7 @@ public actor PackageManagerScanner {
                 buildCache = parsed
             }
         }
-        return (images, containers, volumes, buildCache)
+        return DockerReclaimableBreakdown(images: images, containers: containers, volumes: volumes, buildCache: buildCache)
     }
 
     static func pipCacheBytes(_ output: String) -> Int64? {

@@ -2,8 +2,6 @@ import MacOSCleanerCore
 import SwiftUI
 
 /// Apps › Login Items: launch agents and daemons that start with the Mac.
-/// Your own agents can be removed through Leftovers; system-wide items are
-/// managed in System Settings, where macOS asks for an administrator.
 struct LoginItemsView: View {
     @Bindable var model: AppViewModel
     @State private var items: [LaunchItem] = []
@@ -12,11 +10,9 @@ struct LoginItemsView: View {
     @State private var pendingRemoval: LaunchItem?
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         Group {
             if isLoading {
-                // Enumeration runs synchronously after first render; without
-                // this gate every visit flashed "No login items" first. The
-                // skeleton mirrors the table's rows (Phase 3).
                 VStack(spacing: 0) {
                     ForEach(0..<6, id: \.self) { _ in
                         HStack(spacing: Spacing.elementNormal) {
@@ -30,37 +26,33 @@ struct LoginItemsView: View {
                 }
                 .padding(.horizontal, Spacing.screenEdge)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .accessibilityLabel(Text(String(localized: "Listing login items…", comment: "Login items loading")))
+                .accessibilityLabel(Text(L10n.string("Listing login items…", language: override)))
             } else if items.isEmpty {
                 ContentUnavailableView(
-                    String(localized: "No login items"), systemImage: "power",
-                    description: Text(String(localized: "No third-party agents or daemons start with this Mac.")))
+                    L10n.string("No login items", language: override),
+                    systemImage: "power",
+                    description: Text(L10n.string(
+                        "No third-party agents or daemons start with this Mac.",
+                        language: override
+                    ))
+                )
             } else {
-                table
-            }
-        }
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") {
-                        NSWorkspace.shared.open(url)
-                    }
-                } label: {
-                    Label(String(localized: "Login Items Settings"), systemImage: "gearshape")
-                }
-                .help(String(localized: "Open System Settings › General › Login Items"))
+                table(override: override)
             }
         }
         .task {
-            items = LaunchItems.list()
+            let loaded = await Task.detached(priority: .utility) {
+                LaunchItems.list()
+            }.value
+            items = loaded
             isLoading = false
         }
         .confirmationDialog(
-            String(localized: "Add \(pendingRemoval?.label ?? "") to Leftovers?"),
+            L10n.format("Add %@ to Leftovers?", language: override, pendingRemoval?.label ?? ""),
             isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }),
             titleVisibility: .visible
         ) {
-            Button(String(localized: "Add to Leftovers")) {
+            Button(L10n.string("Add to Leftovers", language: override)) {
                 guard let item = pendingRemoval else { return }
                 Task {
                     if await model.stageRemoval(of: item), let id = model.selectedActionID {
@@ -69,13 +61,13 @@ struct LoginItemsView: View {
                 }
             }
         } message: {
-            Text(String(localized: "Nothing changes until you approve it in Leftovers and confirm."))
+            Text(L10n.string("Nothing changes until you approve it in Leftovers and confirm.", language: override))
         }
     }
 
-    private var table: some View {
+    private func table(override: AppLanguage?) -> some View {
         Table(items, selection: $selection) {
-            TableColumn(String(localized: "Name")) { item in
+            TableColumn(L10n.string("Name", language: override)) { item in
                 Label {
                     Text(item.appBundle?.deletingPathExtension().lastPathComponent ?? item.label)
                 } icon: {
@@ -87,35 +79,35 @@ struct LoginItemsView: View {
                 }
                 .help(item.label)
             }
-            TableColumn(String(localized: "Kind")) { item in Text(item.domain.displayName) }
+            TableColumn(L10n.string("Kind", language: override)) { item in Text(item.domain.displayName) }
                 .width(min: 110, ideal: 130)
-            TableColumn(String(localized: "Status")) { item in status(item) }
+            TableColumn(L10n.string("Status", language: override)) { item in status(item, override: override) }
                 .width(min: 100, ideal: 130)
-            TableColumn(String(localized: "Program")) { item in
+            TableColumn(L10n.string("Program", language: override)) { item in
                 Text(item.program ?? "—").font(.caption).foregroundStyle(.secondary)
                     .lineLimit(1).truncationMode(.middle)
             }
         }
         .contextMenu(forSelectionType: LaunchItem.ID.self) { ids in
             if let item = items.first(where: { ids.contains($0.id) }) {
-                Button(String(localized: "Show in Finder")) {
+                Button(L10n.string("Show in Finder", language: override)) {
                     NSWorkspace.shared.activateFileViewerSelecting([item.url])
                 }
-                Button(String(localized: "Remove…")) { pendingRemoval = item }
+                Button(L10n.string("Remove…", language: override)) { pendingRemoval = item }
                     .disabled(!item.canRemove)
             }
         }
     }
 
     @ViewBuilder
-    private func status(_ item: LaunchItem) -> some View {
+    private func status(_ item: LaunchItem, override: AppLanguage?) -> some View {
         if item.isProgramMissing {
-            Label(String(localized: "Program missing"), systemImage: "exclamationmark.triangle.fill")
+            Label(L10n.string("Program missing", language: override), systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(SemanticScale.warning)
         } else if let enabled = item.isEnabled {
-            Text(enabled ? String(localized: "Allowed") : String(localized: "Turned off"))
+            Text(enabled ? L10n.string("Allowed", language: override) : L10n.string("Turned off", language: override))
         } else {
-            Text(String(localized: "Not listed")).foregroundStyle(.secondary)
+            Text(L10n.string("Not listed", language: override)).foregroundStyle(.secondary)
         }
     }
 }

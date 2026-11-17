@@ -351,12 +351,12 @@ public actor UndoManagerService {
         throw UndoManagerServiceError.restoreDestinationExists(restoreURL)
     }
 
-    private nonisolated static func itemExistsOnDisk(at url: URL) -> Bool {
+    nonisolated private static func itemExistsOnDisk(at url: URL) -> Bool {
         var st = Darwin.stat()
         return Darwin.lstat(url.path, &st) == 0
     }
 
-    private nonisolated static func isDirectoryOnDisk(at url: URL) -> Bool {
+    nonisolated private static func isDirectoryOnDisk(at url: URL) -> Bool {
         var st = Darwin.stat()
         guard Darwin.lstat(url.path, &st) == 0 else { return false }
         return (st.st_mode & S_IFMT) == S_IFDIR
@@ -437,7 +437,7 @@ public actor UndoManagerService {
         }
     }
 
-    private nonisolated static func decodeTags(_ value: String) -> [String] {
+    nonisolated private static func decodeTags(_ value: String) -> [String] {
         guard !value.isEmpty else {
             return []
         }

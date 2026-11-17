@@ -1,19 +1,10 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// The monitoring menu bar surface: one extra per enabled metric plus the
-/// combined panel. Metric extras are window-style, so their dropdown can show
-/// the apps behind the number.
+/// The monitoring menu bar surface: the combined panel plus one extra per
+/// enabled metric. Disabling the master switch hides all six menu bar extras.
 struct MonitorMenuBarExtras: Scene {
     let model: MonitorModel
-    // Per-metric switches live in their own keys. Their @AppStorage bindings
-    // are never handed to MenuBarExtra(isInserted:) raw: SwiftUI's menu bar
-    // controller round-trips an insertion binding on every update pass (status
-    // item KVO writes the same value back through the binding), and a raw
-    // @AppStorage binding turns each round-trip into a UserDefaults write,
-    // which invalidates the scene graph and re-queues the update — a 100% CPU
-    // loop. The guarded bindings below (and the panel's) write only on a real
-    // change, starving that cycle while keeping Settings toggles live.
     @AppStorage(MonitoringKeys.menuBarCPU.key) private var cpuEnabled = MonitoringKeys.menuBarCPU.defaultEnabled
     @AppStorage(MonitoringKeys.menuBarMemory.key) private var memoryEnabled = MonitoringKeys.menuBarMemory.defaultEnabled
     @AppStorage(MonitoringKeys.menuBarNetwork.key) private var networkEnabled = MonitoringKeys.menuBarNetwork.defaultEnabled
@@ -22,7 +13,6 @@ struct MonitorMenuBarExtras: Scene {
     @AppStorage(MonitoringKeys.menuBarPanelEnabled) private var panelEnabled = MonitoringDefaults.menuBarPanelEnabled
 
     var body: some Scene {
-        // The combined panel is the home base: tiles, busiest apps, actions.
         MenuBarExtra(
             String(localized: "Tidybyte Monitor", comment: "Menu bar panel name"),
             systemImage: "waveform.path.ecg",
@@ -32,9 +22,6 @@ struct MonitorMenuBarExtras: Scene {
         }
         .menuBarExtraStyle(.window)
 
-        // One item per enabled metric. Each extra is always declared and
-        // shown only while its metric is enabled — Scene builders want
-        // concrete scenes, and this keeps toggling live.
         metricExtra(.cpu)
         metricExtra(.memory)
         metricExtra(.network)
@@ -51,12 +38,16 @@ struct MonitorMenuBarExtras: Scene {
         .menuBarExtraStyle(.window)
     }
 
-    /// The storage-backed insertion binding for one metric extra, guarded so
-    /// the update-pass round-trip never reaches UserDefaults.
+    /// Change-guarded insertion binding gated by `panelEnabled`. Never writes
+    /// back when `panelEnabled` is off so toggling the master switch preserves
+    /// per-metric choices and avoids SwiftUI's KVO round-trip CPU loop.
     private func insertionBinding(_ metric: UsageMetric) -> Binding<Bool> {
         Binding(
-            get: { isEnabled(metric) },
-            set: { if isEnabled(metric) != $0 { setEnabled($0, metric) } })
+            get: { panelEnabled && isEnabled(metric) },
+            set: { newValue in
+                guard panelEnabled else { return }
+                if isEnabled(metric) != newValue { setEnabled(newValue, metric) }
+            })
     }
 
     private func isEnabled(_ metric: UsageMetric) -> Bool {
@@ -79,8 +70,6 @@ struct MonitorMenuBarExtras: Scene {
         }
     }
 
-    /// Master switch for the combined panel; single-key get/set, guarded like
-    /// the metric bindings above.
     private var panelInserted: Binding<Bool> {
         Binding(
             get: { panelEnabled },
@@ -89,7 +78,26 @@ struct MonitorMenuBarExtras: Scene {
 }
 
 extension MonitorModel {
-    /// The menu bar label for one metric, e.g. "CPU 21%" or "20.3 GB".
+    /// Opens the main window on the Monitor destination and activates the app.
+    @MainActor
+    func activateAndOpenMonitor(
+        tab: MonitorTab? = nil,
+        selecting group: AppProcessGroup? = nil,
+        openWindow: OpenWindowAction
+    ) {
+        openMonitor(tab: tab, selecting: group)
+        openWindow(id: "main")
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.windows.first(where: \.canBecomeKey)?.makeKeyAndOrderFront(nil)
+        let targetTab = tab ?? selectedTab
+        if Bundle.main.bundleURL.pathExtension == "app",
+           let url = URL(string: "\(AppIdentity.urlScheme)://monitor/\(targetTab.rawValue)") {
+            let configuration = NSWorkspace.OpenConfiguration()
+            configuration.activates = true
+            NSWorkspace.shared.open([url], withApplicationAt: Bundle.main.bundleURL, configuration: configuration)
+        }
+    }
+
     func menuBarLabel(_ metric: UsageMetric) -> String {
         guard let snapshot else { return metric.monitorTitle }
         switch metric {
@@ -98,11 +106,8 @@ extension MonitorModel {
         case .memory:
             return MetricFormatting.byteCount(snapshot.memory.usedBytes)
         case .network:
-            // Through MetricFormatting so the byte-units setting applies.
             return MetricFormatting.rate(snapshot.network.downloadBytesPerSecond)
         case .disk:
-            // Read+write sum, matching the panel tile, the export card, and
-            // the MCP/CLI output.
             return MetricFormatting.rate(snapshot.disk.readBytesPerSecond + snapshot.disk.writeBytesPerSecond)
         case .energy:
             let total = snapshot.groups.prefix(3).reduce(0.0) { $0 + $1.energyIndex }
@@ -112,8 +117,6 @@ extension MonitorModel {
 }
 
 extension UsageMetric {
-    /// Human title for the monitor's menu bar surfaces and Settings — one
-    /// source instead of two copies.
     var monitorTitle: String {
         switch self {
         case .cpu: String(localized: "CPU")
@@ -140,11 +143,19 @@ struct MetricDropdownView: View {
                 groups: model.snapshot?.busiest(metric: metric) ?? [],
                 metric: metric,
                 onSelect: { group in
-                    openWindow(id: "main")
-                    model.selectedTab = .overview
-                    model.select(group: group)
-                    NSApp.activate()
+                    model.activateAndOpenMonitor(
+                        tab: MonitorTab.tab(for: metric),
+                        selecting: group,
+                        openWindow: openWindow)
                 })
+            Button {
+                model.activateAndOpenMonitor(tab: MonitorTab.tab(for: metric), openWindow: openWindow)
+            } label: {
+                Label(String(localized: "Open Monitor", comment: "Dropdown open monitor button"), systemImage: "macwindow")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
         }
         .padding(Spacing.elementNormal)
         .frame(width: 300)
@@ -162,7 +173,7 @@ struct MetricDropdownView: View {
     }
 }
 
-/// The combined panel: overview tiles, busiest list, and the actions row.
+/// The combined panel: overview tiles, busiest list, developer chips, and actions.
 struct MonitorPanelView: View {
     let model: MonitorModel
     @Environment(\.openWindow) private var openWindow
@@ -171,61 +182,15 @@ struct MonitorPanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.elementNormal) {
             if let snapshot = model.snapshot {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: Spacing.elementTight)], spacing: Spacing.elementTight) {
-                    MetricTileView(
-                        title: String(localized: "CPU"), icon: "cpu",
-                        value: String(format: "%.0f", snapshot.cpu.usagePercent), unit: "%",
-                        context: nil, tint: MonitorTab.cpu.tint,
-                        points: compact(model.livePoints(metric: .cpu)), scale: 100.0)
-                    MetricTileView(
-                        title: String(localized: "Memory"), icon: "memorychip",
-                        value: MetricFormatting.byteCount(snapshot.memory.usedBytes), unit: nil,
-                        context: nil, tint: MonitorTab.memory.tint,
-                        points: compact(model.livePoints(metric: .memory)),
-                        scale: Double(max(1, snapshot.memory.totalBytes)))
-                    MetricTileView(
-                        title: String(localized: "Network"), icon: "network",
-                        value: MetricFormatting.rate(snapshot.network.downloadBytesPerSecond), unit: nil,
-                        context: nil, tint: MonitorTab.network.tint,
-                        points: compact(model.livePoints(metric: .network)))
-                    MetricTileView(
-                        title: String(localized: "Disk"), icon: "internaldrive",
-                        value: MetricFormatting.rate(snapshot.disk.readBytesPerSecond + snapshot.disk.writeBytesPerSecond), unit: nil,
-                        context: nil, tint: MonitorTab.disk.tint,
-                        points: compact(model.livePoints(metric: .disk)))
-                }
+                tileGrid(snapshot)
                 BusiestListView(
                     title: String(localized: "Busiest right now", comment: "Panel busiest heading"),
                     groups: snapshot.busiest(metric: .cpu, limit: 5),
                     metric: .cpu,
                     onSelect: { group in
-                        openWindow(id: "main")
-                        model.select(group: group)
-                        NSApp.activate()
+                        model.activateAndOpenMonitor(tab: .overview, selecting: group, openWindow: openWindow)
                     })
-                if !snapshot.devServers.isEmpty || !snapshot.agents.isEmpty || !snapshot.containers.isEmpty {
-                    HStack(spacing: Spacing.elementTight) {
-                        if !snapshot.devServers.isEmpty {
-                            chip(
-                                icon: "curlybraces.square", text: String(snapshot.devServers.count),
-                                tint: MonitorTab.projects.tint,
-                                label: String(localized: "\(snapshot.devServers.count) dev servers", comment: "Panel chip a11y label"))
-                        }
-                        if !snapshot.agents.isEmpty {
-                            chip(
-                                icon: "sparkles", text: String(snapshot.agents.count),
-                                tint: MonitorTab.agents.tint,
-                                label: String(localized: "\(snapshot.agents.count) coding agents", comment: "Panel chip a11y label"))
-                        }
-                        if !snapshot.containers.isEmpty {
-                            chip(
-                                icon: "shippingbox", text: String(snapshot.containers.count),
-                                tint: MonitorTab.containers.tint,
-                                label: String(localized: "\(snapshot.containers.count) containers", comment: "Panel chip a11y label"))
-                        }
-                        Spacer()
-                    }
-                }
+                developerChips(snapshot)
             } else {
                 ProgressView(String(localized: "Reading the system…", comment: "Monitor first tick"))
                     .padding(.vertical, 20)
@@ -237,25 +202,101 @@ struct MonitorPanelView: View {
         .frame(width: 300)
     }
 
+    private func tileGrid(_ snapshot: SystemSnapshot) -> some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 132), spacing: Spacing.elementTight)],
+            spacing: Spacing.elementTight
+        ) {
+            metricButton(tab: .cpu) {
+                MetricTileView(
+                    title: String(localized: "CPU"), icon: "cpu",
+                    value: String(format: "%.0f", snapshot.cpu.usagePercent), unit: "%",
+                    context: nil, tint: MonitorTab.cpu.tint,
+                    points: compact(model.livePoints(metric: .cpu)), scale: 100.0)
+            }
+            metricButton(tab: .memory) {
+                MetricTileView(
+                    title: String(localized: "Memory"), icon: "memorychip",
+                    value: MetricFormatting.byteCount(snapshot.memory.usedBytes), unit: nil,
+                    context: nil, tint: MonitorTab.memory.tint,
+                    points: compact(model.livePoints(metric: .memory)),
+                    scale: Double(max(1, snapshot.memory.totalBytes)))
+            }
+            metricButton(tab: .network) {
+                MetricTileView(
+                    title: String(localized: "Network"), icon: "network",
+                    value: MetricFormatting.rate(snapshot.network.downloadBytesPerSecond), unit: nil,
+                    context: nil, tint: MonitorTab.network.tint,
+                    points: compact(model.livePoints(metric: .network)))
+            }
+            metricButton(tab: .disk) {
+                MetricTileView(
+                    title: String(localized: "Disk"), icon: "internaldrive",
+                    value: MetricFormatting.rate(snapshot.disk.readBytesPerSecond + snapshot.disk.writeBytesPerSecond), unit: nil,
+                    context: nil, tint: MonitorTab.disk.tint,
+                    points: compact(model.livePoints(metric: .disk)))
+            }
+        }
+    }
+
+    private func metricButton<Content: View>(tab: MonitorTab, @ViewBuilder content: () -> Content) -> some View {
+        Button {
+            model.activateAndOpenMonitor(tab: tab, openWindow: openWindow)
+        } label: {
+            content()
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func developerChips(_ snapshot: SystemSnapshot) -> some View {
+        if !snapshot.devServers.isEmpty || !snapshot.agents.isEmpty || !snapshot.containers.isEmpty {
+            HStack(spacing: Spacing.elementTight) {
+                if !snapshot.devServers.isEmpty {
+                    chip(
+                        icon: "curlybraces.square", text: String(snapshot.devServers.count),
+                        tint: MonitorTab.projects.tint,
+                        label: devServerCountLabel(snapshot.devServers.count),
+                        tab: .projects)
+                }
+                if !snapshot.agents.isEmpty {
+                    chip(
+                        icon: "sparkles", text: String(snapshot.agents.count),
+                        tint: MonitorTab.agents.tint,
+                        label: agentCountLabel(snapshot.agents.count),
+                        tab: .agents)
+                }
+                if !snapshot.containers.isEmpty {
+                    chip(
+                        icon: "shippingbox", text: String(snapshot.containers.count),
+                        tint: MonitorTab.containers.tint,
+                        label: containerCountLabel(snapshot.containers.count),
+                        tab: .containers)
+                }
+                Spacer()
+            }
+        }
+    }
+
     private var actions: some View {
         HStack {
             Button {
-                openWindow(id: "main")
-                NSApp.activate()
+                model.activateAndOpenMonitor(tab: .overview, openWindow: openWindow)
             } label: {
-                Label(String(localized: "Open", comment: "Panel action: open the main window"), systemImage: "macwindow")
+                Label(String(localized: "Open Monitor", comment: "Panel action: open the monitor"), systemImage: "macwindow")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
             Button {
                 openSettings()
+                NSApp.activate(ignoringOtherApps: true)
             } label: {
                 Label(String(localized: "Settings…"), systemImage: "gearshape")
             }
             .controlSize(.small)
             Button(role: .destructive) {
-                NSApplication.shared.terminate(nil)
+                AppDelegate.shared?.requestQuit()
             } label: {
                 Label(String(localized: "Quit", comment: "Panel action"), systemImage: "power")
             }
@@ -263,24 +304,40 @@ struct MonitorPanelView: View {
         }
     }
 
-    private func chip(icon: String, text: String, tint: Color, label: String) -> some View {
-        Label(text, systemImage: icon)
-            .font(.caption.monospacedDigit())
-            .foregroundStyle(tint)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(Capsule().fill(tint.opacity(0.12)))
-            // VoiceOver hears what the chip means, not a bare number.
-            .accessibilityLabel(Text(label))
+    private func chip(icon: String, text: String, tint: Color, label: String, tab: MonitorTab) -> some View {
+        Button {
+            model.activateAndOpenMonitor(tab: tab, openWindow: openWindow)
+        } label: {
+            Label(text, systemImage: icon)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(tint)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(tint.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(label))
     }
 
-    /// Panels sample every few points to keep the sparkline readable at
-    /// dropdown width.
+    private func devServerCountLabel(_ count: Int) -> String {
+        count == 1
+            ? String(localized: "1 dev server", comment: "Panel chip a11y label, singular")
+            : String(localized: "\(count) dev servers", comment: "Panel chip a11y label")
+    }
+
+    private func agentCountLabel(_ count: Int) -> String {
+        count == 1
+            ? String(localized: "1 coding agent", comment: "Panel chip a11y label, singular")
+            : String(localized: "\(count) coding agents", comment: "Panel chip a11y label")
+    }
+
+    private func containerCountLabel(_ count: Int) -> String {
+        count == 1
+            ? String(localized: "1 container", comment: "Panel chip a11y label, singular")
+            : String(localized: "\(count) containers", comment: "Panel chip a11y label")
+    }
+
     private func compact(_ points: [(Date, Double)]) -> [(Date, Double)] {
-        guard points.count > 40 else { return points }
-        let stride = points.count / 40
-        return points.enumerated().compactMap { index, point in
-            index % stride == 0 ? point : nil
-        }
+        ChartDownsampler.downsampleTuples(points, targetCount: 40)
     }
 }

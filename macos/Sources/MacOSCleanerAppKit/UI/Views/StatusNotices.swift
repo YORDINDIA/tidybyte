@@ -2,8 +2,7 @@ import MacOSCleanerCore
 import SwiftUI
 
 /// Errors and permission notices, plus the live progress strip for scans,
-/// executions, and media work. One top-of-window strip: what needs attention,
-/// and what is currently running.
+/// executions, and media work.
 struct StatusNotices: View {
     @Bindable var model: AppViewModel
 
@@ -19,22 +18,23 @@ struct StatusNotices: View {
     }
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         if hasNotice || hasProgress {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                progressStrip
+                progressStrip(override: override)
                 if let error = model.errorMessage {
                     notice(error, symbol: "exclamationmark.triangle.fill", tint: SemanticScale.error) {
-                        Button(String(localized: "Dismiss")) { model.dismissError() }
+                        Button(L10n.string("Dismiss", language: override)) { model.dismissError() }
                     }
                 }
                 if let error = model.cleanup.error {
                     notice(error, symbol: "exclamationmark.triangle.fill", tint: SemanticScale.error) {
-                        // PL-04: the Photos denial pairs with the Settings
-                        // deep link (requestAuthorization never re-prompts).
                         if model.cleanup.photosAccessDenied {
-                            Button(String(localized: "Open Photos Settings")) { PermissionLinks.openPhotos() }
+                            Button(L10n.string("Open Photos Settings", language: override)) {
+                                PermissionLinks.openPhotos()
+                            }
                         }
-                        Button(String(localized: "Dismiss")) {
+                        Button(L10n.string("Dismiss", language: override)) {
                             model.cleanup.error = nil
                             model.cleanup.photosAccessDenied = false
                         }
@@ -42,31 +42,39 @@ struct StatusNotices: View {
                 }
                 if let error = model.monitor.lastError {
                     notice(error, symbol: "waveform.path.ecg", tint: SemanticScale.warning) {
-                        Button(String(localized: "Dismiss")) { model.monitor.dismissError() }
+                        Button(L10n.string("Dismiss", language: override)) { model.monitor.dismissError() }
                     }
                 }
                 if let hint = model.fullDiskAccessHint {
                     notice(hint, symbol: "lock.shield", tint: SemanticScale.warning) {
-                        Button(String(localized: "Open Privacy Settings")) { PermissionLinks.openFullDiskAccess() }
-                        Button(String(localized: "Dismiss")) { model.dismissFullDiskAccessHint() }
+                        Button(L10n.string("Open Privacy Settings", language: override)) {
+                            PermissionLinks.openFullDiskAccess()
+                        }
+                        Button(L10n.string("Dismiss", language: override)) { model.dismissFullDiskAccessHint() }
                     }
                 }
-                // Scan diagnostics: locations the scan could not read, sections
-                // it had to skip. An empty review must be distinguishable from
-                // a scan that could not see everything.
                 ForEach(model.activeScanNotices) { scanNotice in
-                    notice(scanNotice.message, symbol: "eye.trianglebadge.exclamationmark", tint: SemanticScale.warning) {
-                        Button(String(localized: "Dismiss")) { model.dismissScanNotice(scanNotice.id) }
+                    notice(
+                        scanNotice.message,
+                        symbol: "eye.trianglebadge.exclamationmark",
+                        tint: SemanticScale.warning
+                    ) {
+                        Button(L10n.string("Dismiss", language: override)) {
+                            model.dismissScanNotice(scanNotice.id)
+                        }
                     }
                 }
-                if let notice = model.cleanup.notice {
-                    self.notice(notice, symbol: "info.circle", tint: .secondary) {
-                        Button(String(localized: "Dismiss")) { model.cleanup.notice = nil }
+                if let noticeText = model.cleanup.notice {
+                    self.notice(noticeText, symbol: "info.circle", tint: .secondary) {
+                        Button(L10n.string("Dismiss", language: override)) { model.cleanup.notice = nil }
                     }
                 }
                 if model.isUsingTempDatabase {
                     Label(
-                        String(localized: "Temporary storage is in use. History will not persist after this session."),
+                        L10n.string(
+                            "Temporary storage is in use. History will not persist after this session.",
+                            language: override
+                        ),
                         systemImage: "externaldrive.badge.exclamationmark"
                     )
                     .foregroundStyle(SemanticScale.warning)
@@ -81,24 +89,30 @@ struct StatusNotices: View {
         }
     }
 
-    // MARK: Progress
+    @ViewBuilder
+    private func progressStrip(override: AppLanguage?) -> some View {
+        scanProgress(override: override)
+        executionProgressView(override: override)
+        cleanupProgress
+    }
 
-    @ViewBuilder private var progressStrip: some View {
+    @ViewBuilder
+    private func scanProgress(override: AppLanguage?) -> some View {
         if model.isScanning {
-            // Determinate per pipeline step (crawl ticks are throttled in the
-            // model, so the bar moves in steps, not per file).
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
                 HStack {
-                    Label(String(localized: "Scanning"), systemImage: "magnifyingglass")
+                    Label(L10n.string("Scanning", language: override), systemImage: "magnifyingglass")
                     Spacer()
                     if model.scanTotalSteps > 0 {
-                        Text("\(model.scanCurrentStep)/\(model.scanTotalSteps)").monospacedDigit()
+                        Text("\(model.scanCurrentStep)/\(model.scanTotalSteps)")
+                            .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
                 }
                 ProgressView(
                     value: Double(max(0, model.scanCurrentStep)),
-                    total: Double(max(1, model.scanTotalSteps)))
+                    total: Double(max(1, model.scanTotalSteps))
+                )
                 if !model.scanPhaseText.isEmpty {
                     Text(model.scanPhaseText)
                         .font(.caption)
@@ -108,34 +122,48 @@ struct StatusNotices: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func executionProgressView(override: AppLanguage?) -> some View {
         if model.isExecuting {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
                 HStack {
-                    Label(String(localized: "Applying changes"), systemImage: "checkmark.circle")
+                    Label(L10n.string("Applying changes", language: override), systemImage: "checkmark.circle")
                     Spacer()
-                    Text("\(model.executionCompletedActions)/\(model.executionTotalActions)").monospacedDigit()
+                    Text("\(model.executionCompletedActions)/\(model.executionTotalActions)")
+                        .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
-                // executionProgress is completed/total with a max(1, total)
-                // denominator, so it stays inside 0...1.
                 ProgressView(value: model.executionProgress)
             }
         }
+    }
+
+    @ViewBuilder
+    private var cleanupProgress: some View {
         if model.cleanup.isBusy, model.cleanup.progress.total > 0 {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
                 HStack {
                     Label(model.cleanup.progress.phase, systemImage: "photo.on.rectangle")
                     Spacer()
-                    Text("\(model.cleanup.progress.completed)/\(model.cleanup.progress.total)").monospacedDigit()
+                    Text("\(model.cleanup.progress.completed)/\(model.cleanup.progress.total)")
+                        .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
-                ProgressView(value: Double(model.cleanup.progress.completed), total: Double(model.cleanup.progress.total))
+                ProgressView(
+                    value: Double(model.cleanup.progress.completed),
+                    total: Double(model.cleanup.progress.total)
+                )
             }
         }
     }
 
     private func notice<Actions: View>(
-        _ text: String, symbol: String, tint: Color, @ViewBuilder actions: () -> Actions
+        _ text: String,
+        symbol: String,
+        tint: Color,
+        @ViewBuilder actions: () -> Actions
     ) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.elementNormal) {
             Label {

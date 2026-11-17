@@ -2,7 +2,6 @@ import AppKit
 import Foundation
 import MacOSCleanerCore
 import Observation
-import UserNotifications
 
 @MainActor @Observable
 final class CleanupModel {
@@ -17,6 +16,7 @@ final class CleanupModel {
             if scope != oldValue {
                 result?.isFresh = false
                 selection = []
+                explicitlySelectedIDs = []
             }
         }
     }
@@ -28,10 +28,9 @@ final class CleanupModel {
             scheduleSettingsSave()
         }
     }
-    /// Set while the stored settings are read or cleared, so loading does not write them back.
     var suppressSettingsSave = false
-    /// The latest pending settings save. Clear All Data cancels and awaits it before the store is wiped.
     var settingsSaveTask: Task<Void, Never>?
+    var settingsSaveEpoch = 0
     var result: AnalysisResult?
     var session: ReviewSession?
     var reviewed: [String: ReviewChoice] = [:]
@@ -41,37 +40,42 @@ final class CleanupModel {
     var progress = CleanupProgress("", completed: 0, total: 0)
     var isBusy = false
     var isSaving = false
-    /// Test seam: how many times scan() was entered (PSA-01/S-04 coverage).
     private(set) var scanRequestCount = 0
     var error: String?
-    /// PL-04: set when the failure is the typed Photos-denial, so the notice
-    /// can offer the Settings grant link.
     var photosAccessDenied = false
+    var photoAuthorizationState: PhotoAuthorizationState = PhotoLibraryService.currentAuthorizationState()
     var notice: String?
     var showsScope = false
     var selectedTool: CleanupTool?
     var selection = Set<String>()
+    var explicitlySelectedIDs = Set<String>()
+    var downloadingItemIDs: [String: Double] = [:]
+    var measuredCompressionSizes: [String: Int64] = [:]
+    var isMeasuringSizes = false
     var selectedItem: ReviewItem?
     var sessionResults: [ActivityEvent] = []
     var completedSession: ReviewSession?
     var filter: ReviewFilter = .unreviewed
     var filterDate = Date()
     var filterFolder: URL?
-    private var task: Task<Void, Never>?
+    var task: Task<Void, Never>?
     private var loaded = false
-    /// Phase 3: false until the first `load()` finished reading stored state.
     private(set) var hasLoaded = false
-    // Internal, not private: Clear All Data stops these grants in
-    // CleanupModel+Clear.swift.
     var monitoredGrants: [URL] = []
-    // Freshness state is wired in CleanupModel+Freshness.swift, so these are
-    // internal rather than file-private.
     var freshness: CleanupFreshnessMonitor?
     var freshnessEpoch = 0
     var rescanEpoch = 0
-    /// Test seam: the detached monitor build has landed (PSA-01 coverage).
+    var selfMutationDepth = 0
+    var suppressFreshnessUntil: Date = .distantPast
     var hasFreshnessMonitor: Bool { freshness != nil }
-    var changeGeneration = 0  // bumped by the freshness monitor (CleanupModel+Freshness.swift)
+    var changeGeneration = 0
+
+    var hasInterruptedOperations: Bool {
+        activity.contains {
+            $0.state == .prepared || $0.state == .outputReady || $0.state == .interrupted
+                || ($0.restoreStartedAt != nil && !$0.restored)
+        }
+    }
 
     init(store: SQLiteStore) {
         self.store = store
@@ -88,6 +92,7 @@ final class CleanupModel {
         guard !loaded else { return }
         loaded = true
         defer { hasLoaded = true }
+        refreshPhotoAuthorizationState()
         do {
             scope = try await store.loadCleanupState(ReviewScope.self, key: "scope") ?? scope
             if let stored = try await store.loadCleanupState(CleanupSettings.self, key: "settings") {
@@ -101,20 +106,8 @@ final class CleanupModel {
             reviewed = try await store.loadCleanupState([String: ReviewChoice].self, key: "review:" + scope.id) ?? [:]
             filter = settings.defaultFilter
             try await reloadHistory()
-            if var draft = session {
-                sessionResults = draft.pendingChanges.compactMap { decision in
-                    activity.first { $0.id == draft.id + "|" + decision.item.id }
-                }
-                if !sessionResults.isEmpty, draft.applicationStartedAt == nil {
-                    draft.applicationStartedAt = sessionResults.map(\.date).min()
-                    try await store.saveCleanupState(Optional(draft), key: "draft")
-                    session = draft
-                }
-            }
-            if activity.contains(where: {
-                $0.state == .prepared || $0.state == .outputReady || $0.state == .interrupted
-                    || ($0.restoreStartedAt != nil && !$0.restored)
-            }) {
+            try await reconcileSessionDraftOnLoad()
+            if hasInterruptedOperations {
                 error = String(
                     localized: """
                         An earlier operation stopped. Check Activity before retrying. No changes \
@@ -126,6 +119,22 @@ final class CleanupModel {
             loaded = false
             self.error = error.localizedDescription
         }
+    }
+
+    private func reconcileSessionDraftOnLoad() async throws {
+        guard var draft = session else { return }
+        sessionResults = draft.pendingChanges.compactMap { decision in
+            activity.first { $0.id == draft.id + "|" + decision.item.id }
+        }
+        if !sessionResults.isEmpty, draft.applicationStartedAt == nil {
+            draft.applicationStartedAt = sessionResults.map(\.date).min()
+            try await store.saveCleanupState(Optional(draft), key: "draft")
+            session = draft
+        }
+    }
+
+    func refreshPhotoAuthorizationState() {
+        photoAuthorizationState = PhotoLibraryService.currentAuthorizationState()
     }
 
     func grant(_ urls: [URL]) async {
@@ -149,7 +158,6 @@ final class CleanupModel {
 
     func scan() {
         scanRequestCount += 1
-        // O-03: a request while a scan runs coalesces (no mid-flow scope sheet).
         guard !isBusy else {
             notice = String(localized: "A media scan is already running.", comment: "Duplicate scan request while busy")
             return
@@ -162,57 +170,79 @@ final class CleanupModel {
         error = nil
         notice = nil
         result?.isFresh = false
-        let scope = scope, settings = settings
+        let currentScope = scope
+        let currentSettings = settings
         startMonitoring()
         let generation = changeGeneration
-        task = Task {
-            var grants: [URL] = []
-            defer {
-                for grant in grants { grant.stopAccessingSecurityScopedResource() }
-                isBusy = false
-                task = nil
+        task = Task { await performScan(scope: currentScope, settings: currentSettings, generation: generation) }
+    }
+
+    private func performScan(scope: ReviewScope, settings: CleanupSettings, generation: Int) async {
+        var grants: [URL] = []
+        defer {
+            for grant in grants { grant.stopAccessingSecurityScopedResource() }
+            isBusy = false
+            task = nil
+            refreshPhotoAuthorizationState()
+        }
+        do {
+            for root in scope.roots { grants.append(try await access.acquire(root)) }
+            for grant in monitoredGrants { grant.stopAccessingSecurityScopedResource() }
+            monitoredGrants = []
+            for root in scope.roots { monitoredGrants.append(try await access.acquire(root)) }
+            try await store.saveCleanupState(scope, key: "scope")
+            let report: @Sendable (CleanupProgress) async -> Void = { [self] value in
+                await MainActor.run { self.progress = value }
             }
-            do {
-                for root in scope.roots { grants.append(try await access.acquire(root)) }
-                for grant in monitoredGrants { grant.stopAccessingSecurityScopedResource() }
-                monitoredGrants = []
-                for root in scope.roots { monitoredGrants.append(try await access.acquire(root)) }
-                try await store.saveCleanupState(scope, key: "scope")
-                let report: @Sendable (CleanupProgress) async -> Void = { [self] value in await MainActor.run { self.progress = value } }
-                var items = try await inventory.scan(scope, progress: report)
-                if scope.includesPhotos { items += try await photos.scan(progress: report) }
-                var analyzed = try await analysis.analyze(items, scopeID: scope.id, settings: settings, progress: report)
-                try Task.checkCancellation()
-                analyzed.isFresh = generation == changeGeneration && self.scope.id == scope.id
-                    && self.settings.analysisVersion == settings.analysisVersion
-                try await store.saveCleanupState(analyzed, key: "inventory")
-                result = analyzed
-                reviewed =
-                    try await store.loadCleanupState([String: ReviewChoice].self, key: "review:" + scope.id) ?? [:]
-                let date = Calendar.current.startOfDay(for: Date())
-                let snapshot = CleanupSnapshot(
-                    id: scope.id + "|\(date.timeIntervalSince1970)", scopeID: scope.id,
-                    date: date, bytes: items.reduce(0) { $0 + $1.bytes }, count: items.count)
-                if analyzed.isFresh { try await store.saveCleanupSnapshot(snapshot) }
-                try await reloadHistory()
-                startMonitoring()
-                await refreshReminder()
-            } catch is CancellationError { result?.isFresh = false } catch { surfaceError(error) }
+            var items = try await inventory.scan(scope, progress: report)
+            if scope.includesPhotos { items += try await photos.scan(progress: report) }
+            var analyzed = try await analysis.analyze(items, scopeID: scope.id, settings: settings, progress: report)
+            try Task.checkCancellation()
+            analyzed.isFresh = generation == changeGeneration && self.scope.id == scope.id
+                && self.settings.analysisVersion == settings.analysisVersion
+            try await store.saveCleanupState(analyzed, key: "inventory")
+            result = analyzed
+            measuredCompressionSizes = [:]
+            reviewed =
+                try await store.loadCleanupState([String: ReviewChoice].self, key: "review:" + scope.id) ?? [:]
+            let date = Calendar.current.startOfDay(for: Date())
+            let snapshot = CleanupSnapshot(
+                id: scope.id + "|\(date.timeIntervalSince1970)", scopeID: scope.id,
+                date: date, bytes: items.reduce(0) { $0 + $1.bytes }, count: items.count)
+            if analyzed.isFresh { try await store.saveCleanupSnapshot(snapshot) }
+            try await reloadHistory()
+            startMonitoring()
+            await refreshReminder()
+        } catch is CancellationError {
+            result?.isFresh = false
+        } catch {
+            surfaceError(error)
         }
     }
 
-    /// A denied reminder permission must not turn a scan or a settings change into a failure,
-    /// so the reminder error becomes a notice.
     func refreshReminder() async {
         do { try await updateReminder() } catch { notice = error.localizedDescription }
     }
 
     func cancel() { task?.cancel() }
+
     func items(for tool: CleanupTool) -> [ReviewItem] {
         guard let result else { return [] }
         return MediaAnalysisService.candidates(tool, in: result)
     }
 
+    func reloadHistory() async throws {
+        activity = try await store.cleanupActivity()
+        snapshots = try await store.cleanupSnapshots(scopeID: scope.id)
+    }
+
+    private func surfaceError(_ error: Error) {
+        photosAccessDenied = false
+        if case CleanupError.photosAccessDenied = error {
+            photosAccessDenied = true
+        }
+        self.error = error.localizedDescription
+    }
 }
 
 extension CleanupModel {
@@ -258,7 +288,8 @@ extension CleanupModel {
         guard !isSaving, !isBusy, var draft = session, draft.applicationStartedAt == nil,
             let item = draft.current
         else { return false }
-        guard choice == .keep || choice == .skip || item.canChange else { return false }
+        let allowed = choice == .keep || choice == .skip || (choice == .trash ? item.canDelete : item.canEditLocally)
+        guard allowed else { return false }
         if choice == .trash {
             let removing = Set(draft.decisions.filter { $0.choice == .trash }.map(\.item.id)).union([item.id])
             if draft.protectedGroups?.contains(where: { $0.memberIDs.allSatisfy(removing.contains) }) == true {
@@ -332,12 +363,12 @@ extension CleanupModel {
             session = nil
         }
     }
+}
 
+extension CleanupModel {
     func trashSelection(_ batch: CleanupBatch) {
-        guard !batch.tool.isCompression, validate(batch) else { return }
-        let decisions = batch.items.map {
-            ReviewDecision(item: $0, choice: .trash)
-        }
+        guard !batch.tool.isCompression, batch.tool != .livePhotos, validate(batch) else { return }
+        let decisions = batch.items.map { ReviewDecision(item: $0, choice: .trash) }
         execute(decisions, tool: batch.tool, batchID: batch.id.uuidString) {}
     }
 
@@ -350,6 +381,7 @@ extension CleanupModel {
             return
         }
         isBusy = true
+        beginSelfMutation()
         error = nil
         notice = nil
         sessionResults = []
@@ -357,6 +389,7 @@ extension CleanupModel {
             defer {
                 isBusy = false
                 task = nil
+                endSelfMutation()
             }
             do {
                 for (index, decision) in decisions.enumerated() {
@@ -371,13 +404,16 @@ extension CleanupModel {
                 if sessionResults.allSatisfy({ $0.state == .complete }) {
                     let trashed = sessionResults.filter { $0.action == "trash" }
                     if !trashed.isEmpty {
-                        notice = String(
-                            localized: """
-                                \(trashed.count) items · \(trashed.reduce(0) { $0 + $1.bytes }.formattedByteCount) \
-                                removed. Files are in Trash; Photos assets are in Recently Deleted. \
-                                Empty them in Finder or Photos to return space.
-                                """
-                        )
+                        let bytes = trashed.reduce(Int64(0)) { $0 + $1.bytes }.formattedByteCount
+                        notice = trashed.count == 1
+                            ? String(localized: """
+                                1 item · \(bytes) removed. Files are in Trash; Photos assets are in \
+                                Recently Deleted. Empty them in Finder or Photos to return space.
+                                """)
+                            : String(localized: """
+                                \(trashed.count) items · \(bytes) removed. Files are in Trash; Photos \
+                                assets are in Recently Deleted. Empty them in Finder or Photos to return space.
+                                """)
                     }
                     try await completion()
                 } else {
@@ -387,75 +423,25 @@ extension CleanupModel {
                 error = String(
                     localized: "Cancelled. Completed changes remain in Activity; remaining items were not changed.")
             } catch { self.error = error.localizedDescription }
-            await mutationFinished()
-        }
-    }
-
-    func compressSelection(_ batch: CleanupBatch) {
-        guard !isBusy, batch.tool.isCompression, validate(batch) else { return }
-        let selected = batch.items
-        let settings = batch.settings
-        progress = CleanupProgress(String(localized: "Compressing media"), completed: 0, total: selected.count)
-        jobs = selected.map {
-            CompressionJob(item: $0, estimatedBytes: MediaCompressionService.estimate($0, settings: settings))
-        }
-        isBusy = true
-        notice = nil
-        error = nil
-        task = Task {
-            defer {
-                isBusy = false
-                task = nil
-            }
-            await withTaskGroup(of: (Int, ActivityEvent).self) { group in
-                var next = 0
-                func add(_ index: Int) {
-                    let item = selected[index]
-                    group.addTask { [executor] in
-                        let event = await executor.compress(item, settings: settings) { [self] fraction in
-                            await MainActor.run { self.jobs[index].progress = fraction }
-                        }
-                        return (index, event)
-                    }
-                }
-                while next < min(2, selected.count) {
-                    add(next)
-                    next += 1
-                }
-                while let (index, event) = await group.next() {
-                    jobs[index].event = event
-                    progress.completed += 1
-                    if next < selected.count, !Task.isCancelled {
-                        add(next)
-                        next += 1
-                    }
-                }
-            }
-            let successful = jobs.filter { $0.event?.state == .complete }.count
-            let unprocessed = jobs.filter { $0.event == nil }.count
-            let failed = jobs.count - successful - unprocessed
-            if failed > 0 || unprocessed > 0 {
-                error = String(
-                    localized:
-                        "\(successful) successful · \(failed) failed · \(unprocessed) unprocessed. Check Activity.")
-            }
-            await mutationFinished()
+            await applyMutationOutcomes(sessionResults, tool: tool, deleteOriginals: true, settings: nil)
         }
     }
 
     func keepResource(_ item: ReviewItem, index: Int) {
         guard !isBusy, result?.isFresh == true, result?.scopeID == scope.id else { return }
         isBusy = true
+        beginSelfMutation()
         notice = nil
         error = nil
         task = Task {
             defer {
                 isBusy = false
                 task = nil
+                endSelfMutation()
             }
             let event = await executor.keepPhotoResource(item, index: index)
             if let error = event.error { self.error = error }
-            await mutationFinished()
+            await applyMutationOutcomes([event], tool: .formatPairs, deleteOriginals: true, settings: nil)
         }
     }
 
@@ -465,10 +451,31 @@ extension CleanupModel {
             return
         }
         isBusy = true
-        defer { isBusy = false }
+        beginSelfMutation()
+        defer {
+            isBusy = false
+            endSelfMutation()
+        }
         do {
             try await executor.restore(event)
-            await mutationFinished()
+            result?.isFresh = false
+            selection = []
+            explicitlySelectedIDs = []
+            await finishMutationHousekeeping()
+        } catch { self.error = error.localizedDescription }
+    }
+
+    func dismissInterruptedOperations() async {
+        guard !isBusy, !isSaving else { return }
+        do {
+            let dismissed = try await executor.dismissInterruptedOperations()
+            try await reloadHistory()
+            if !hasInterruptedOperations { error = nil }
+            if dismissed > 0 {
+                notice = dismissed == 1
+                    ? String(localized: "Dismissed 1 interrupted operation.")
+                    : String(localized: "Dismissed \(dismissed) interrupted operations.")
+            }
         } catch { self.error = error.localizedDescription }
     }
 
@@ -490,52 +497,5 @@ extension CleanupModel {
         }
         if let url = item.url { return url }
         return try await photos.previewURL(for: item)
-    }
-
-    private func mutationFinished() async {
-        result?.isFresh = false
-        selection = []
-        do { try await reloadHistory() } catch { self.error = error.localizedDescription }
-    }
-
-    private func reloadHistory() async throws {
-        activity = try await store.cleanupActivity()
-        snapshots = try await store.cleanupSnapshots(scopeID: scope.id)
-    }
-
-    /// Records the failure message plus the typed Photos-denial flag (PL-04).
-    private func surfaceError(_ error: Error) {
-        photosAccessDenied = false
-        if case CleanupError.photosAccessDenied = error {
-            photosAccessDenied = true
-        }
-        self.error = error.localizedDescription
-    }
-
-    // Internal, not private: Clear All Data refreshes it in CleanupModel+Clear.swift.
-    func updateReminder() async throws {
-        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: ["cleanup-weekly"])
-        guard settings.reminderEnabled, let result else { return }
-        guard try await center.requestAuthorization(options: [.alert, .sound]) else {
-            throw CleanupError.message(String(localized: "Notifications are disabled in System Settings."))
-        }
-        let items = MediaAnalysisService.candidates(.screenshots, in: result)
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "Weekly cleanup")
-        content.body = String(
-            localized: """
-                Last scan \(result.completedAt.formatted(date: .abbreviated, time: .omitted)): \
-                \(items.count) screenshots (\(items.reduce(0) { $0 + $1.bytes }.formattedByteCount)) \
-                to review.
-                """
-        )
-        content.userInfo = ["route": "cleanup"]
-        let trigger = UNCalendarNotificationTrigger(
-            dateMatching: DateComponents(
-                hour: 9, minute: 0,
-                weekday: settings.reminderWeekday), repeats: true)
-        try await center.add(UNNotificationRequest(identifier: "cleanup-weekly", content: content, trigger: trigger))
     }
 }

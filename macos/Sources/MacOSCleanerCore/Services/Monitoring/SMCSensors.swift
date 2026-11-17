@@ -461,7 +461,6 @@ extension SMCSensors {
         ("TG0P", "GPU proximity"), ("TGDD", "GPU"), ("TPCD", "Platform controller hub"),
         ("TP01", "Heat pipe 1"), ("TP02", "Heat pipe 2"), ("Th0H", "Heatsink system"),
         ("Th1H", "Heatsink 1"), ("Th2H", "Heatsink 2"), ("TA0P", "Ambient"),
-        ("TA1P", "Ambient 2"), ("TM0P", "Memory proximity"), ("TM0S", "Memory module"),
-        ("VLDF", "Power supply"), ("VP0R", "Power rail 12V")
+        ("TA1P", "Ambient 2"), ("TM0P", "Memory proximity"), ("TM0S", "Memory module")
     ]
 }

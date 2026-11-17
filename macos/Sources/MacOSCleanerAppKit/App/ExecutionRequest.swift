@@ -9,16 +9,34 @@ struct ExecutionRequest: Identifiable {
     let planSignature: Data
     let fileCount: Int
     let estimatedBytes: Int64
+    let estimatedCloneBytes: Int64
+    let estimatedOtherFileBytes: Int64
+    let batchCappedBytes: Int64
     let unresolvedTargetCount: Int
     /// Approved actions per sidebar row, for display only. The action list above
     /// is the execution contract.
     let areaCounts: [(area: AppDestination, count: Int)]
+    let resolvedFileNamesByID: [String: String]
+    let resolvedFileBytesByID: [String: Int64]
 
     var actionIDs: Set<String> { Set(actions.map(\.id)) }
     var isTrashOnly: Bool { actions.allSatisfy { $0.actionType == .moveToTrash } }
     var hasPackageCommands: Bool { actions.contains { $0.actionType == .runPackageManagerCleanup } }
+    var trashActions: [PlannedAction] { actions.filter { $0.actionType == .moveToTrash } }
+    var cloneActions: [PlannedAction] { actions.filter { $0.actionType == .cloneDeduplicate } }
+    var otherFileActions: [PlannedAction] {
+        actions.filter {
+            $0.actionType != .moveToTrash
+                && $0.actionType != .cloneDeduplicate
+                && $0.actionType != .runPackageManagerCleanup
+        }
+    }
+    var packageActions: [PlannedAction] { actions.filter { $0.actionType == .runPackageManagerCleanup } }
+    var exceedsBatchActionCap: Bool { actions.count > ExecutionLimits.maxActionsPerBatch }
+    var exceedsBatchByteCap: Bool { batchCappedBytes > ExecutionLimits.maxBytesPerBatch }
+
     var confirmTitle: String {
-        isTrashOnly ? String(localized: "Move to Trash") : String(localized: "Apply Changes")
+        isTrashOnly ? L10n.string("Move to Trash") : L10n.string("Apply Changes")
     }
     var operationTypes: [ActionType] {
         ActionType.allCases.filter { type in actions.contains { $0.actionType == type } }
@@ -33,22 +51,50 @@ struct ExecutionRequest: Identifiable {
         planSignature = signature
         let fileActions = actions.filter { $0.actionType != .runPackageManagerCleanup }
         let targetIDs = Set(fileActions.flatMap(\.targets))
+        let allFiles = Array(model.filesByID.values)
         fileCount = Set(targetIDs.compactMap { model.filesByID[$0]?.url.standardizedFileURL.path }).count
         unresolvedTargetCount = targetIDs.filter { model.filesByID[$0] == nil }.count
-        estimatedBytes = Self.estimatedTrashBytes(actions: actions, files: Array(model.filesByID.values))
+        estimatedBytes = Self.estimatedTrashBytes(actions: actions, files: allFiles)
+        estimatedCloneBytes = Self.estimatedBytes(
+            for: actions.filter { $0.actionType == .cloneDeduplicate }, files: allFiles)
+        estimatedOtherFileBytes = Self.estimatedBytes(
+            for: actions.filter {
+                $0.actionType != .moveToTrash
+                    && $0.actionType != .cloneDeduplicate
+                    && $0.actionType != .runPackageManagerCleanup
+            },
+            files: allFiles)
+        batchCappedBytes = Self.estimatedBytes(
+            for: actions.filter { [.moveToTrash, .move, .rename, .archive].contains($0.actionType) },
+            files: allFiles)
         let ids = Set(actions.map(\.id))
         areaCounts = AppDestination.allCases.compactMap { area in
             let count = model.actions(in: area).filter { ids.contains($0.id) }.count
             return count > 0 ? (area, count) : nil
         }
+        var names: [String: String] = [:]
+        var sizes: [String: Int64] = [:]
+        let subtree = model.subtreeTotals
+        for id in targetIDs {
+            if let record = model.filesByID[id] {
+                names[id] = record.displayPath
+                sizes[id] = ExploreSubtreeIndex.subtreeBytes(for: record, totals: subtree)
+            }
+        }
+        resolvedFileNamesByID = names
+        resolvedFileBytesByID = sizes
     }
 
     /// Directory aggregates and descendants can both be selected. Count each path once.
     static func estimatedTrashBytes(actions: [PlannedAction], files: [FileRecord]) -> Int64 {
+        estimatedBytes(for: actions.filter { $0.actionType == .moveToTrash }, files: files)
+    }
+
+    static func estimatedBytes(for actions: [PlannedAction], files: [FileRecord]) -> Int64 {
         let byPath = Dictionary(
             files.map { ($0.url.standardizedFileURL.path, $0) },
             uniquingKeysWith: { first, second in first.sizeBytes >= second.sizeBytes ? first : second })
-        let targetIDs = Set(actions.filter { $0.actionType == .moveToTrash }.flatMap(\.targets))
+        let targetIDs = Set(actions.flatMap(\.targets))
         let targetPaths = Set(files.filter { targetIDs.contains($0.id) }.map { $0.url.standardizedFileURL.path })
         let targets = targetPaths.compactMap { byPath[$0] }
             .sorted { $0.url.path.count < $1.url.path.count }

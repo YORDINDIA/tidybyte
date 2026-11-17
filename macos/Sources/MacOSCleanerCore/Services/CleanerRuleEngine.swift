@@ -638,45 +638,62 @@ public actor CleanerRuleEngine {
         return (finding, recommendation)
     }
 
-    private var dedicatedCacheDescriptors: [(path: String, isInspectOnly: Bool, category: FindingCategory, title: String, reason: String)] {
+    private struct DedicatedCacheDescriptor {
+        let path: String
+        let isInspectOnly: Bool
+        let category: FindingCategory
+        let title: String
+        let reason: String
+    }
+
+    private struct CachePairSpec {
+        let category: FindingCategory
+        let actionType: ActionType
+        let risk: RiskLevel
+        let policyTraceID: String
+        let summary: String
+        let reason: String
+    }
+
+    private var dedicatedCacheDescriptors: [DedicatedCacheDescriptor] {
         let home = homeDirectory.standardizedFileURL.path
         return [
-            (
-                home + "/.cache/huggingface", true, .cache,
-                String(localized: "Hugging Face model cache.", comment: "Finding summary for Hugging Face cache"),
-                String(
+            DedicatedCacheDescriptor(
+                path: home + "/.cache/huggingface", isInspectOnly: true, category: .cache,
+                title: String(localized: "Hugging Face model cache.", comment: "Finding summary for Hugging Face cache"),
+                reason: String(
                     localized: "Downloaded AI model weights can be large and slow to re-download. Inspect before deleting.",
                     comment: "Inspect reason for Hugging Face cache"
                 )
             ),
-            (
-                home + "/.ollama/models", true, .cache,
-                String(localized: "Ollama local AI models.", comment: "Finding summary for Ollama models"),
-                String(
+            DedicatedCacheDescriptor(
+                path: home + "/.ollama/models", isInspectOnly: true, category: .cache,
+                title: String(localized: "Ollama local AI models.", comment: "Finding summary for Ollama models"),
+                reason: String(
                     localized: "Local LLM weights are large and slow to re-download. Inspect with `ollama rm` before removing.",
                     comment: "Inspect reason for Ollama models"
                 )
             ),
-            (
-                home + "/.cargo/registry/cache", false, .cache,
-                String(localized: "Cargo package archive cache.", comment: "Finding summary for Cargo cache"),
-                String(
+            DedicatedCacheDescriptor(
+                path: home + "/.cargo/registry/cache", isInspectOnly: false, category: .cache,
+                title: String(localized: "Cargo package archive cache.", comment: "Finding summary for Cargo cache"),
+                reason: String(
                     localized: "Downloaded Rust crate archives are rebuildable on next build. Review before moving to Trash.",
                     comment: "Reason for Cargo cache"
                 )
             ),
-            (
-                home + "/.cache/uv", false, .cache,
-                String(localized: "uv Python package cache.", comment: "Finding summary for uv cache"),
-                String(
+            DedicatedCacheDescriptor(
+                path: home + "/.cache/uv", isInspectOnly: false, category: .cache,
+                title: String(localized: "uv Python package cache.", comment: "Finding summary for uv cache"),
+                reason: String(
                     localized: "uv package cache files can be re-downloaded when needed. Review before moving to Trash.",
                     comment: "Reason for uv cache"
                 )
             ),
-            (
-                home + "/.bun/install/cache", false, .cache,
-                String(localized: "Bun package cache.", comment: "Finding summary for Bun cache"),
-                String(
+            DedicatedCacheDescriptor(
+                path: home + "/.bun/install/cache", isInspectOnly: false, category: .cache,
+                title: String(localized: "Bun package cache.", comment: "Finding summary for Bun cache"),
+                reason: String(
                     localized: "Bun install cache files are rebuildable. Review before moving to Trash.",
                     comment: "Reason for Bun cache"
                 )
@@ -706,12 +723,15 @@ public actor CleanerRuleEngine {
 
         if record.fileName.lowercased() == "modulecache.noindex" {
             return makeCachePair(
-                record: record, sessionID: sessionID, size: size, category: .developerArtifact,
-                actionType: .moveToTrash, risk: .low, policyTraceID: "dev_cache_rule",
-                summary: String(localized: "Xcode Clang module cache (ModuleCache.noindex).", comment: "Finding summary for ModuleCache"),
-                reason: String(
-                    localized: "Xcode rebuilds ModuleCache.noindex automatically on the next build.",
-                    comment: "Reason for ModuleCache cleanup"
+                record: record, sessionID: sessionID, size: size,
+                spec: CachePairSpec(
+                    category: .developerArtifact, actionType: .moveToTrash, risk: .low,
+                    policyTraceID: "dev_cache_rule",
+                    summary: String(localized: "Xcode Clang module cache (ModuleCache.noindex).", comment: "Finding summary for ModuleCache"),
+                    reason: String(
+                        localized: "Xcode rebuilds ModuleCache.noindex automatically on the next build.",
+                        comment: "Reason for ModuleCache cleanup"
+                    )
                 )
             )
         }
@@ -719,12 +739,15 @@ public actor CleanerRuleEngine {
             return nil
         }
         return makeCachePair(
-            record: record, sessionID: sessionID, size: size, category: descriptor.category,
-            actionType: descriptor.isInspectOnly ? .inspectOnly : .moveToTrash,
-            risk: descriptor.isInspectOnly ? .medium : .low,
-            policyTraceID: descriptor.isInspectOnly ? "local_ai_dev_cache_rule" : "dev_cache_rule",
-            summary: descriptor.title,
-            reason: descriptor.reason
+            record: record, sessionID: sessionID, size: size,
+            spec: CachePairSpec(
+                category: descriptor.category,
+                actionType: descriptor.isInspectOnly ? .inspectOnly : .moveToTrash,
+                risk: descriptor.isInspectOnly ? .medium : .low,
+                policyTraceID: descriptor.isInspectOnly ? "local_ai_dev_cache_rule" : "dev_cache_rule",
+                summary: descriptor.title,
+                reason: descriptor.reason
+            )
         )
     }
 
@@ -740,15 +763,18 @@ public actor CleanerRuleEngine {
             let size = directorySizes[record.displayPath] ?? record.sizeBytes
             guard size > 1_048_576 else { return nil }
             return makeCachePair(
-                record: record, sessionID: sessionID, size: size, category: .developerArtifact,
-                actionType: .inspectOnly, risk: .medium, policyTraceID: "local_ai_dev_cache_rule",
-                summary: String(localized: "Xcode SwiftUI Previews cache.", comment: "Finding summary for Xcode Previews cache"),
-                reason: String(
-                    localized: """
-                        Xcode Previews caches simulator state and takes significant space. Prune safely with \
-                        `xcrun simctl --set previews`.
-                        """,
-                    comment: "Inspect reason for Xcode Previews cache"
+                record: record, sessionID: sessionID, size: size,
+                spec: CachePairSpec(
+                    category: .developerArtifact, actionType: .inspectOnly, risk: .medium,
+                    policyTraceID: "local_ai_dev_cache_rule",
+                    summary: String(localized: "Xcode SwiftUI Previews cache.", comment: "Finding summary for Xcode Previews cache"),
+                    reason: String(
+                        localized: """
+                            Xcode Previews caches simulator state and takes significant space. Prune safely with \
+                            `xcrun simctl --set previews`.
+                            """,
+                        comment: "Inspect reason for Xcode Previews cache"
+                    )
                 )
             )
         }
@@ -758,37 +784,32 @@ public actor CleanerRuleEngine {
         record: FileRecord,
         sessionID: String,
         size: Int64,
-        category: FindingCategory,
-        actionType: ActionType,
-        risk: RiskLevel,
-        policyTraceID: String,
-        summary: String,
-        reason: String
+        spec: CachePairSpec
     ) -> (finding: Finding, recommendation: Recommendation) {
         let findingID = UUID().uuidString
         let finding = Finding(
             id: findingID,
             scanSessionID: sessionID,
-            category: category,
-            severity: risk,
+            category: spec.category,
+            severity: spec.risk,
             confidence: 0.9,
             bytesReclaimable: size,
-            summary: summary,
+            summary: spec.summary,
             evidence: ["path": record.displayPath, "bytes": String(size)],
             targetFileIDs: [record.id]
         )
         let recommendation = Recommendation(
             id: UUID().uuidString,
             findingID: findingID,
-            actionType: actionType,
+            actionType: spec.actionType,
             targetFileIDs: [record.id],
             confidence: 0.9,
-            risk: risk,
-            reason: reason,
+            risk: spec.risk,
+            reason: spec.reason,
             expectedBytesReclaimed: size,
             requiresConfirmation: true,
             llmTraceID: nil,
-            policyTraceID: policyTraceID
+            policyTraceID: spec.policyTraceID
         )
         return (finding, recommendation)
     }
@@ -911,7 +932,7 @@ public actor CleanerRuleEngine {
         "スクリーンショット", "截屏", "屏幕截图", "스크린샷", "снимок экрана "
     ]
 
-    private nonisolated static func hasScreenCaptureXattr(at url: URL) -> Bool {
+    nonisolated private static func hasScreenCaptureXattr(at url: URL) -> Bool {
         let key = "com.apple.metadata:kMDItemIsScreenCapture"
         let size = Darwin.getxattr(url.path, key, nil, 0, 0, XATTR_NOFOLLOW)
         guard size > 0, size <= 1024 else { return false }

@@ -14,37 +14,40 @@ enum AppDestination: String, CaseIterable, Identifiable {
 
     /// Rows backed by the shared review list (ActionStackView).
     var isReview: Bool { [.systemJunk, .developer, .largeFiles, .leftovers].contains(self) }
+
     /// App Store History shows Photos & Media activity only, which has no search.
     /// The Monitor owns its own search field, so the shared one stands down
     /// there (attaching a second would bind it to the wrong model).
     var supportsSearch: Bool {
         isReview || [.duplicates, .applications, .explorer].contains(self)
-            || (self == .history && DistributionChannel.supportsAdvanced)
+            || ((self == .history || self == .changes) && DistributionChannel.supportsAdvanced)
     }
-    /// The Monitor also owns its inspector (process details); the shared
-    /// inspector column never opens for it.
-    var supportsInspector: Bool { supportsSearch && self != .monitor }
-    /// Surfaces whose search lives inside their own view. ⌘F must focus it
+
+    /// Unified ContentView inspector supports searchable rows AND Monitor.
+    var supportsInspector: Bool { supportsSearch || self == .monitor }
+
+    /// Surfaces whose search lives inside their own view. ⌘F focuses it
     /// there instead of jumping away to Space Explorer.
     var usesEmbeddedSearch: Bool { self == .monitor }
+
     /// The monitor reads system-wide state, which the sandboxed build cannot.
     var isAvailable: Bool { self != .monitor || DistributionChannel.supportsAdvanced }
 
     var title: String {
         switch self {
-        case .overview: String(localized: "Overview")
-        case .monitor: String(localized: "Monitor")
-        case .systemJunk: String(localized: "System Junk")
-        case .developer: String(localized: "Developer")
-        case .largeFiles: String(localized: "Large & Old Files")
-        case .duplicates: String(localized: "Duplicates")
-        case .media: String(localized: "Photos & Media")
-        case .applications: String(localized: "Applications")
-        case .leftovers: String(localized: "Leftovers")
-        case .loginItems: String(localized: "Login Items")
-        case .explorer: String(localized: "Space Explorer")
-        case .changes: String(localized: "Changes")
-        case .history: String(localized: "History")
+        case .overview: L10n.string("Overview")
+        case .monitor: L10n.string("Monitor")
+        case .systemJunk: L10n.string("System Junk")
+        case .developer: L10n.string("Developer")
+        case .largeFiles: L10n.string("Large & Old Files")
+        case .duplicates: L10n.string("Duplicates")
+        case .media: L10n.string("Photos & Media")
+        case .applications: L10n.string("Applications")
+        case .leftovers: L10n.string("Leftovers")
+        case .loginItems: L10n.string("Login Items")
+        case .explorer: L10n.string("Space Explorer")
+        case .changes: L10n.string("Changes")
+        case .history: L10n.string("History")
         }
     }
 
@@ -73,14 +76,14 @@ enum AppDestination: String, CaseIterable, Identifiable {
     /// so it shows only the folder-scoped rows.
     static var sections: [(title: String?, rows: [AppDestination])] {
         guard DistributionChannel.supportsAdvanced else {
-            return [(nil, [.overview]), (String(localized: "Clean"), [.media]), (nil, [.history])]
+            return [(nil, [.overview]), (L10n.string("Clean"), [.media]), (nil, [.history])]
         }
         return [
             (nil, [.overview]),
-            (String(localized: "Monitor"), [.monitor]),
-            (String(localized: "Clean"), [.systemJunk, .developer, .largeFiles, .duplicates, .media]),
-            (String(localized: "Apps"), [.applications, .leftovers, .loginItems]),
-            (String(localized: "Insights"), [.explorer, .changes, .history])
+            (L10n.string("Monitor"), [.monitor]),
+            (L10n.string("Clean"), [.systemJunk, .developer, .largeFiles, .duplicates, .media]),
+            (L10n.string("Apps"), [.applications, .leftovers, .loginItems]),
+            (L10n.string("Insights"), [.explorer, .changes, .history])
         ]
     }
 
@@ -112,8 +115,24 @@ struct CleanerCommands: Commands {
 
     private var isBusy: Bool { model.isScanning || model.isExecuting || model.cleanup.isBusy }
     private var canReviewSelection: Bool {
-        model.selectedVisibleReviewAction?.executedAt == nil && model.selectedVisibleReviewAction != nil
+        if model.destination == .duplicates {
+            return !model.selectedDuplicatePendingActions.isEmpty
+                && !model.isScanning && !model.isExecuting && !model.isPlanning
+        }
+        return model.selectedVisibleReviewAction?.executedAt == nil
+            && model.selectedVisibleReviewAction != nil
             && !model.isScanning && !model.isExecuting && !model.isPlanning
+    }
+
+    private var canApproveSelection: Bool {
+        guard canReviewSelection else { return false }
+        if model.destination == .duplicates {
+            return model.selectedDuplicatePendingActions.contains {
+                $0.risk != .forbidden && $0.actionType.isExecutable
+            }
+        }
+        return model.selectedVisibleReviewAction?.risk != .forbidden
+            && model.selectedVisibleReviewAction.map { $0.actionType.isExecutable } == true
     }
 
     /// ⌘1–⌘9 go to the rows people use most.
@@ -122,14 +141,20 @@ struct CleanerCommands: Commands {
     ]
 
     var body: some Commands {
+        let override = model.languageStore.activeOverride
         CommandGroup(replacing: .newItem) {
-            Button(String(localized: "Scan")) {
+            Button(L10n.string("Scan", language: override)) {
                 openWindow(id: "main")
                 model.scanAll()
             }
             .keyboardShortcut("r", modifiers: .command)
             .disabled(isBusy)
-            Button(String(localized: "Scan Options…")) {
+            Button(L10n.string("Stop", language: override)) {
+                model.stopActiveWork()
+            }
+            .keyboardShortcut(".", modifiers: .command)
+            .disabled(!isBusy)
+            Button(L10n.string("Scan Options…", language: override)) {
                 openWindow(id: "main")
                 if model.destination == .media || !DistributionChannel.supportsAdvanced {
                     model.cleanup.showsScope = true
@@ -140,20 +165,22 @@ struct CleanerCommands: Commands {
             .keyboardShortcut("n", modifiers: .command)
             .disabled(isBusy)
             Divider()
-            Button(String(localized: "Export Report…")) { Task { await model.generateReport() } }
-                .disabled(model.outcome == nil || isBusy)
+            Button(L10n.string("Export Report…", language: override)) {
+                Task { await model.generateReport() }
+            }
+            .disabled(model.outcome == nil || isBusy)
         }
         CommandGroup(after: .textEditing) {
-            Button(String(localized: "Find")) {
+            Button(L10n.string("Find", language: override)) {
                 if !model.destination.supportsSearch, !model.destination.usesEmbeddedSearch,
-                    DistributionChannel.supportsAdvanced {
+                   DistributionChannel.supportsAdvanced {
                     model.destination = .explorer
                 }
                 model.searchFocusRequest += 1
             }
             .keyboardShortcut("f", modifiers: .command)
         }
-        CommandMenu(String(localized: "Go")) {
+        CommandMenu(L10n.string("Go", language: override)) {
             ForEach(AppDestination.sections.flatMap(\.rows)) { row in
                 if let index = Self.shortcutRows.firstIndex(of: row) {
                     Button(row.title) { model.destination = row }
@@ -164,20 +191,18 @@ struct CleanerCommands: Commands {
             }
         }
         if DistributionChannel.supportsAdvanced {
-            CommandMenu(String(localized: "Review")) {
-                Button(String(localized: "Ask Tidybyte…")) { model.showsPlanner = true }
+            CommandMenu(L10n.string("Review", language: override)) {
+                Button(L10n.string("Ask Tidybyte…", language: override)) { model.showsPlanner = true }
                     .keyboardShortcut("k", modifiers: .command)
                     .disabled(model.plan == nil || isBusy)
                 Divider()
-                Button(String(localized: "Approve Selected Action")) {
-                    if let action = model.selectedVisibleReviewAction { model.approve(action) }
+                Button(L10n.string("Approve Selected Action", language: override)) {
+                    model.approveSelectedCommandTarget()
                 }
                 .keyboardShortcut("a", modifiers: [.command, .shift])
-                .disabled(
-                    !canReviewSelection || model.selectedVisibleReviewAction?.risk == .forbidden
-                        || model.selectedVisibleReviewAction.map { !$0.actionType.isExecutable } == true)
-                Button(String(localized: "Reject Selected Action")) {
-                    if let action = model.selectedVisibleReviewAction { model.reject(action) }
+                .disabled(!canApproveSelection)
+                Button(L10n.string("Reject Selected Action", language: override)) {
+                    model.rejectSelectedCommandTarget()
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
                 .disabled(!canReviewSelection)
@@ -185,7 +210,7 @@ struct CleanerCommands: Commands {
         }
         if let checkForUpdates = MacOSCleanerApp.checkForUpdates {
             CommandGroup(after: .appInfo) {
-                Button(String(localized: "Check for Updates…"), action: checkForUpdates)
+                Button(L10n.string("Check for Updates…", language: override), action: checkForUpdates)
             }
         }
         SidebarCommands()

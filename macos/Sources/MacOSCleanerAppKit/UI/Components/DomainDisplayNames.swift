@@ -4,20 +4,20 @@ import MacOSCleanerCore
 extension ActionType {
     var displayName: String {
         switch self {
-        case .moveToTrash: String(localized: "Move to Trash")
-        case .restore: String(localized: "Restore")
-        case .move: String(localized: "Move")
-        case .rename: String(localized: "Rename")
-        case .tag: String(localized: "Tag")
-        case .offloadLocalCopy: String(localized: "Offload Local Copy")
-        case .createAlias: String(localized: "Create Alias")
-        case .createSymlink: String(localized: "Create Symlink")
-        case .archive: String(localized: "Archive")
-        case .runProviderCleanup: String(localized: "Run Provider Cleanup")
-        case .runPackageManagerCleanup: String(localized: "Run Package Cleanup")
-        case .inspectOnly: String(localized: "Inspect Only")
-        case .cloneDeduplicate: String(localized: "Fold into APFS Clone")
-        case .unfoldClone: String(localized: "Unfold Clone")
+        case .moveToTrash: L10n.string("Move to Trash")
+        case .restore: L10n.string("Restore")
+        case .move: L10n.string("Move")
+        case .rename: L10n.string("Rename")
+        case .tag: L10n.string("Tag")
+        case .offloadLocalCopy: L10n.string("Offload Local Copy")
+        case .createAlias: L10n.string("Create Alias")
+        case .createSymlink: L10n.string("Create Symlink")
+        case .archive: L10n.string("Archive")
+        case .runProviderCleanup: L10n.string("Run Provider Cleanup")
+        case .runPackageManagerCleanup: L10n.string("Run Package Cleanup")
+        case .inspectOnly: L10n.string("Inspect Only")
+        case .cloneDeduplicate: L10n.string("Fold into APFS Clone")
+        case .unfoldClone: L10n.string("Unfold Clone")
         }
     }
 }
@@ -28,13 +28,13 @@ extension ActionType {
 extension PlannedActionStatus {
     var displayName: String {
         switch self {
-        case .proposed: String(localized: "Proposed")
-        case .approved: String(localized: "Approved")
-        case .rejected: String(localized: "Rejected")
-        case .executing: String(localized: "Executing")
-        case .completed: String(localized: "Completed")
-        case .failed: String(localized: "Failed")
-        case .skipped: String(localized: "Skipped")
+        case .proposed: L10n.string("Proposed")
+        case .approved: L10n.string("Approved")
+        case .rejected: L10n.string("Rejected")
+        case .executing: L10n.string("Executing")
+        case .completed: L10n.string("Completed")
+        case .failed: L10n.string("Failed")
+        case .skipped: L10n.string("Skipped")
         }
     }
 }
@@ -42,10 +42,10 @@ extension PlannedActionStatus {
 extension RiskLevel {
     var displayName: String {
         switch self {
-        case .low: String(localized: "Low")
-        case .medium: String(localized: "Medium")
-        case .high: String(localized: "High")
-        case .forbidden: String(localized: "Forbidden")
+        case .low: L10n.string("Low")
+        case .medium: L10n.string("Medium")
+        case .high: L10n.string("High")
+        case .forbidden: L10n.string("Forbidden")
         }
     }
 }
@@ -53,14 +53,14 @@ extension RiskLevel {
 extension UndoStatus {
     var displayName: String {
         switch self {
-        case .pending: String(localized: "In Progress")
-        case .available: String(localized: "Available")
-        case .restored: String(localized: "Restored")
-        case .expired: String(localized: "Expired")
-        case .notUndoable: String(localized: "Not Undoable")
-        case .partiallyUndoable: String(localized: "Partially Undoable")
-        case .reinstallable: String(localized: "Reinstallable")
-        case .failed: String(localized: "Failed")
+        case .pending: L10n.string("In Progress")
+        case .available: L10n.string("Available")
+        case .restored: L10n.string("Restored")
+        case .expired: L10n.string("Expired")
+        case .notUndoable: L10n.string("Not Undoable")
+        case .partiallyUndoable: L10n.string("Partially Undoable")
+        case .reinstallable: L10n.string("Reinstallable")
+        case .failed: L10n.string("Failed")
         }
     }
 }
@@ -68,26 +68,26 @@ extension UndoStatus {
 extension ScanMode {
     var displayName: String {
         switch self {
-        case .selectedFolders: String(localized: "Selected Folders")
-        case .homeFolder: String(localized: "Home Folder")
-        case .developerCleanup: String(localized: "Developer Cleanup")
-        case .deepSystem: String(localized: "Deep System")
-        case .userEssentials: String(localized: "User Essentials")
-        case .finderMetadata: String(localized: "Finder Metadata")
-        case .macOSSystemCaches: String(localized: "macOS System Caches")
-        case .sandboxedAppCaches: String(localized: "Sandboxed App Caches")
-        case .browsers: String(localized: "Browsers")
-        case .cloudStorage: String(localized: "Cloud Storage")
-        case .officeApps: String(localized: "Office Applications")
-        case .developerTools: String(localized: "Developer Tools")
-        case .devApplications: String(localized: "Development Applications")
-        case .vmTools: String(localized: "Virtual Machine Tools")
-        case .applicationSupport: String(localized: "Application Support")
-        case .uninstalledAppData: String(localized: "Uninstalled App Data")
-        case .appleSiliconUpdates: String(localized: "Apple Silicon Updates")
-        case .iosBackups: String(localized: "iOS Device Backups")
-        case .timeMachineBackups: String(localized: "Time Machine Backups")
-        case .largeFiles: String(localized: "Large Files")
+        case .selectedFolders: L10n.string("Selected Folders")
+        case .homeFolder: L10n.string("Home Folder")
+        case .developerCleanup: L10n.string("Developer Cleanup")
+        case .deepSystem: L10n.string("Deep System")
+        case .userEssentials: L10n.string("User Essentials")
+        case .finderMetadata: L10n.string("Finder Metadata")
+        case .macOSSystemCaches: L10n.string("macOS System Caches")
+        case .sandboxedAppCaches: L10n.string("Sandboxed App Caches")
+        case .browsers: L10n.string("Browsers")
+        case .cloudStorage: L10n.string("Cloud Storage")
+        case .officeApps: L10n.string("Office Applications")
+        case .developerTools: L10n.string("Developer Tools")
+        case .devApplications: L10n.string("Development Applications")
+        case .vmTools: L10n.string("Virtual Machine Tools")
+        case .applicationSupport: L10n.string("Application Support")
+        case .uninstalledAppData: L10n.string("Uninstalled App Data")
+        case .appleSiliconUpdates: L10n.string("Apple Silicon Updates")
+        case .iosBackups: L10n.string("iOS Device Backups")
+        case .timeMachineBackups: L10n.string("Time Machine Backups")
+        case .largeFiles: L10n.string("Large Files")
         }
     }
 }
@@ -95,16 +95,16 @@ extension ScanMode {
 extension RiskFlag {
     var displayName: String {
         switch self {
-        case .sipProtectedSystemPath: String(localized: "SIP-protected system path")
-        case .protectedDirectory: String(localized: "Protected directory")
-        case .protectedFile: String(localized: "Protected file")
-        case .secretOrCertificate: String(localized: "Secret or certificate")
-        case .projectManifest: String(localized: "Project manifest")
-        case .sourceOrConfig: String(localized: "Source or config")
-        case .cloudSyncedLocalPath: String(localized: "Cloud-synced path")
-        case .codingAgentMemoryOrConfig: String(localized: "Coding agent memory or config")
-        case .insideTrash: String(localized: "Already in Trash")
-        case .reviewOnly: String(localized: "Review only")
+        case .sipProtectedSystemPath: L10n.string("SIP-protected system path")
+        case .protectedDirectory: L10n.string("Protected directory")
+        case .protectedFile: L10n.string("Protected file")
+        case .secretOrCertificate: L10n.string("Secret or certificate")
+        case .projectManifest: L10n.string("Project manifest")
+        case .sourceOrConfig: L10n.string("Source or config")
+        case .cloudSyncedLocalPath: L10n.string("Cloud-synced path")
+        case .codingAgentMemoryOrConfig: L10n.string("Coding agent memory or config")
+        case .insideTrash: L10n.string("Already in Trash")
+        case .reviewOnly: L10n.string("Review only")
         }
     }
 }
@@ -112,11 +112,11 @@ extension RiskFlag {
 extension FileKind {
     var displayName: String {
         switch self {
-        case .regularFile: String(localized: "File")
-        case .directory: String(localized: "Folder")
-        case .symlink: String(localized: "Symbolic Link")
-        case .package: String(localized: "Package")
-        case .other: String(localized: "Other")
+        case .regularFile: L10n.string("File")
+        case .directory: L10n.string("Folder")
+        case .symlink: L10n.string("Symbolic Link")
+        case .package: L10n.string("Package")
+        case .other: L10n.string("Other")
         }
     }
 }

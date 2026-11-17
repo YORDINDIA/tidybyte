@@ -1,9 +1,7 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// One monitor screen. The list mirrors the competitor's tab set so people
-/// coming from that tool find every same surface; names and layout are
-/// Tidybyte's own.
+/// One monitor screen.
 enum MonitorTab: String, CaseIterable, Identifiable {
     case overview, cpu, memory, disk, network, gpu, neural, battery, sound, bluetooth, projects, agents, containers
 
@@ -45,9 +43,6 @@ enum MonitorTab: String, CaseIterable, Identifiable {
         }
     }
 
-    /// The accent color used across the tab's tiles and charts; categorical
-    /// data color, per the design rules. Switches to the colorblind-safe
-    /// variant when that setting is on.
     var tint: Color {
         UserDefaults.standard.bool(forKey: MonitoringKeys.colorblindPalette) ? accessibleTint : baseTint
     }
@@ -70,7 +65,6 @@ enum MonitorTab: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Colorblind-safe variants of the same hues.
     var accessibleTint: Color {
         switch self {
         case .overview: .accentColor
@@ -82,14 +76,24 @@ enum MonitorTab: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Tabs the user hid in Settings, decoded from the hiddenTabs comma
-    /// list. Overview can never hide.
+    /// contrasting secondary tint for split Read/Write and Download/Upload charts.
+    var secondarySeriesTint: Color {
+        let colorblind = UserDefaults.standard.bool(forKey: MonitoringKeys.colorblindPalette)
+        switch self {
+        case .disk:
+            return .blue
+        case .network:
+            return colorblind ? .orange : .purple
+        default:
+            return .secondary
+        }
+    }
+
     static var hiddenTabs: Set<MonitorTab> {
         let raw = UserDefaults.standard.string(forKey: MonitoringKeys.hiddenTabs) ?? ""
         return Set(raw.split(separator: ",").compactMap { MonitorTab(rawValue: String($0)) })
     }
 
-    /// The rail's tabs: everything not hidden, Overview always kept.
     static var visibleTabs: [MonitorTab] {
         let hidden = hiddenTabs
         var tabs = allCases.filter { !hidden.contains($0) }
@@ -98,29 +102,37 @@ enum MonitorTab: String, CaseIterable, Identifiable {
     }
 
     var isHidden: Bool { Self.hiddenTabs.contains(self) }
+
+    static func tab(for metric: UsageMetric) -> MonitorTab {
+        switch metric {
+        case .cpu: .cpu
+        case .memory: .memory
+        case .disk: .disk
+        case .network: .network
+        case .energy: .overview
+        }
+    }
 }
 
 /// Main-actor facade over the monitoring engine. Owns the sampling task and
-/// publishes the latest snapshot to every surface: window tabs, menu bar
-/// items, and the history charts.
+/// publishes the latest snapshot to window tabs, menu bar items, and history charts.
 @MainActor
 @Observable
 final class MonitorModel {
-    /// Internal setter: tests inject a snapshot so the views can be rendered.
+    static let openMonitorNotification = Notification.Name("\(AppIdentity.bundleIdentifier).openMonitor")
+
     var snapshot: SystemSnapshot?
     private(set) var isRunning = false
-    /// Internal setter: tests set this to render the history-failure banner.
     var lastError: String?
 
     var selectedTab: MonitorTab = .overview
     var groupingMode: AppProcessCatalog.GroupingMode = .byApp
     var searchText = ""
+    var searchFocusRequest = 0
     var selectedGroupID: String?
     var selectedProcessPID: pid_t?
     var inspection: ProcessInspection?
     var historyRange: HistoryRange = .hour
-    /// Per-app CPU series behind the inspector's "Last 24 hours" chart,
-    /// fetched when a group is selected.
     private(set) var selectedAppHistory: [MetricsHistoryStore.SeriesPoint] = []
 
     let settings: MonitoringSettings
@@ -128,12 +140,10 @@ final class MonitorModel {
     private var history: MetricsHistoryStore?
     private var alertEngine: AlertEngine?
     private var samplingTask: Task<Void, Never>?
-    /// Surface attachment the running loop sampled under. A change restarts the loop.
-    private var loopAttached = false
+    private var drainingTask: Task<Void, Never>?
+    private var isWindowVisible = false
     private var defaultsObserver: NSObjectProtocol?
 
-    /// The recent in-memory tick series, for live charts without hitting
-    /// SQLite on every frame.
     private(set) var liveSeries: [LivePoint] = []
 
     struct LivePoint: Identifiable, Equatable {
@@ -141,113 +151,103 @@ final class MonitorModel {
         var timestamp: Date
         var cpu: Double
         var memory: Double
-        var network: Double
-        var disk: Double
+        var networkDown: Double
+        var networkUp: Double
+        var diskRead: Double
+        var diskWrite: Double
+
+        var network: Double { networkDown + networkUp }
+        var disk: Double { diskRead + diskWrite }
     }
 
     init(settings: MonitoringSettings = .init()) {
         self.settings = settings
     }
 
-    /// Acknowledges the history-store failure banner in StatusNotices.
     func dismissError() {
         lastError = nil
     }
 
-    /// Boots the engine once; safe to call repeatedly.
+    /// Boots the engine once; safe to call repeatedly. Polling runs only while
+    /// a surface (Monitor window or menu bar extra) is active.
     func start() {
-        guard !isRunning else { return }
+        guard !isRunning else {
+            syncSamplingLoop()
+            return
+        }
         isRunning = true
         do {
             history = try MetricsHistoryStore()
         } catch {
-            // History is optional: monitoring runs fine without persistence.
             lastError = error.localizedDescription
         }
         alertEngine = AlertEngine(settings: freshThresholds(), notifier: SystemAlertNotifier())
-        let engine = MonitoringEngine(history: history, alertEngine: alertEngine)
-        self.engine = engine
-        samplingTask = Task { [weak self] in
-            await self?.runLoop(engine: engine)
-        }
+        engine = MonitoringEngine(history: history, alertEngine: alertEngine)
         observeSettings()
+        syncSamplingLoop()
     }
 
-    /// Any defaults change can attach or detach a surface (menu bar item, panel).
-    /// Restart the loop only when attachment actually flips.
     private func observeSettings() {
         guard defaultsObserver == nil else { return }
         defaultsObserver = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in self?.attachmentMayHaveChanged() }
+            Task { @MainActor in self?.syncSamplingLoop() }
         }
     }
 
     func stop() {
         samplingTask?.cancel()
         samplingTask = nil
+        drainingTask?.cancel()
+        drainingTask = nil
+        if let observer = defaultsObserver {
+            NotificationCenter.default.removeObserver(observer)
+            defaultsObserver = nil
+        }
         isRunning = false
         if let engine {
-            // Best-effort: this task usually cannot finish before the app
-            // exits (applicationWillTerminate), but it still runs for ordinary
-            // stops. Never block the main thread waiting for it.
             Task { await engine.shutdown() }
         }
         engine = nil
     }
 
-    /// Marks whether the window's Monitor surface is showing. The menu bar
-    /// side is read from settings every tick instead.
     func setWindowVisible(_ visible: Bool) {
         isWindowVisible = visible
-        attachmentMayHaveChanged()
+        syncSamplingLoop()
     }
 
-    /// Restarts the loop when a surface attaches or detaches, so the new cadence
-    /// applies now and not after the current 30 s heartbeat sleep.
-    private func attachmentMayHaveChanged() {
-        guard isRunning, isConsumerAttached() != loopAttached else { return }
-        restartSampling()
+    /// True when either the Monitor window tab is showing or the master menu
+    /// bar switch is enabled. Disabling the master toggle with the window
+    /// closed pauses background polling completely.
+    private func isConsumerAttached() -> Bool {
+        isWindowVisible || settings.isMenuBarPanelEnabled
     }
 
-    /// The old loop finishes its current sample before the new one starts, so two
-    /// samples never overlap.
-    private func restartSampling() {
-        guard let engine, let previous = samplingTask else { return }
-        previous.cancel()
-        samplingTask = Task { [weak self] in
-            await previous.value
-            await self?.runLoop(engine: engine)
+    private func syncSamplingLoop() {
+        guard isRunning, let engine else { return }
+        if isConsumerAttached() {
+            guard samplingTask == nil else { return }
+            let previous = drainingTask
+            drainingTask = nil
+            samplingTask = Task { [weak self] in
+                await previous?.value
+                guard !Task.isCancelled else { return }
+                await self?.runLoop(engine: engine)
+            }
+        } else if let active = samplingTask {
+            active.cancel()
+            drainingTask = active
+            samplingTask = nil
         }
     }
 
-    private var isWindowVisible = false
-
-    /// True when any surface shows monitor data: the Monitor tab, the menu
-    /// bar panel, or any per-metric extra.
-    private func isConsumerAttached() -> Bool {
-        isWindowVisible || settings.isMenuBarPanelEnabled || settings.hasEnabledMenuBarMetric
-    }
-
-    /// Seconds between ticks when no surface is attached. History records at
-    /// most every 15 s and slow probes rotate per tick, so a 30 s heartbeat
-    /// keeps history, alerts and retention alive at near-zero cost.
-    private static let heartbeatSeconds: Double = 30
-
     private func runLoop(engine: MonitoringEngine) async {
-        while !Task.isCancelled {
-            // Full cadence with a consumer attached. The keys are re-read
-            // every iteration so Settings toggles apply from the next tick —
-            // no observers, and no extra @AppStorage on the App struct (that
-            // spins a 100% CPU update loop — see MacOSCleanerApp).
-            let attached = isConsumerAttached()
-            loopAttached = attached
-            let interval = attached ? max(1, settings.intervalSeconds) : Self.heartbeatSeconds
+        while !Task.isCancelled, isConsumerAttached() {
+            let interval = max(1, settings.intervalSeconds)
             let snapshot = await engine.sample(interval: interval)
+            guard !Task.isCancelled else { break }
             apply(snapshot: snapshot)
-            // Thresholds and retention are read fresh every tick so changes
-            // in Settings apply without restarting the engine.
             if let alertEngine {
                 await alertEngine.updateThresholds(freshThresholds())
             }
@@ -256,7 +256,6 @@ final class MonitorModel {
         }
     }
 
-    /// Current alert thresholds, re-read from settings on every tick.
     private func freshThresholds() -> AlertEngine.AlertThresholds {
         AlertEngine.AlertThresholds(
             isEnabled: settings.isAlertsEnabled,
@@ -273,60 +272,117 @@ final class MonitorModel {
             timestamp: snapshot.timestamp,
             cpu: snapshot.cpu.usagePercent,
             memory: Double(snapshot.memory.usedBytes),
-            network: snapshot.network.downloadBytesPerSecond + snapshot.network.uploadBytesPerSecond,
-            disk: snapshot.disk.readBytesPerSecond + snapshot.disk.writeBytesPerSecond)
+            networkDown: snapshot.network.downloadBytesPerSecond,
+            networkUp: snapshot.network.uploadBytesPerSecond,
+            diskRead: snapshot.disk.readBytesPerSecond,
+            diskWrite: snapshot.disk.writeBytesPerSecond)
         liveSeries.append(point)
         if liveSeries.count > 180 {
             liveSeries.removeFirst(liveSeries.count - 180)
         }
-        // A tick can retire the selected group (process exited, regrouping);
-        // keeping it selected would leave the inspector on stale data.
-        if let selectedGroupID, !snapshot.groups.contains(where: { $0.id == selectedGroupID }) {
+        reconcileSelection(against: snapshot)
+    }
+
+    private func reconcileSelection(against snapshot: SystemSnapshot) {
+        guard let selectedGroupID else { return }
+        guard let group = snapshot.groups.first(where: { $0.id == selectedGroupID }) else {
             clearSelection()
+            return
+        }
+        guard let pid = selectedProcessPID else { return }
+        guard let live = snapshot.processes.first(where: { $0.pid == pid }) else {
+            select(group: group)
+            return
+        }
+        if let current = inspection {
+            if current.startedAt != live.startedAt {
+                select(group: group)
+            } else {
+                inspection?.cpuTimeSeconds = live.cpuTimeSeconds
+                inspection?.residentBytes = live.residentBytes
+                inspection?.footprintBytes = live.physFootprintBytes
+                inspection?.diskReadBytes = live.diskReadBytes
+                inspection?.diskWrittenBytes = live.diskWrittenBytes
+                inspection?.children = snapshot.processes.filter { $0.parentPID == pid }
+            }
         }
     }
 
-    /// Re-groups the latest snapshot when the user changes grouping.
     func setGroupingMode(_ mode: AppProcessCatalog.GroupingMode) {
         groupingMode = mode
         guard var snapshot, let engine else { return }
         snapshot.groups = []
-        selectedGroupID = nil
-        selectedProcessPID = nil
-        inspection = nil
-        selectedAppHistory = []
+        clearSelection()
         self.snapshot = snapshot
         Task {
-            // The engine groups every tick with its own mode; without this the
-            // next sample would silently revert the picker to By App.
             await engine.setGroupingMode(mode)
             let regrouped = await engine.regroup(snapshot: snapshot, mode: mode)
             if let regrouped { self.snapshot = regrouped }
         }
     }
 
-    /// Queries the history store for one metric's series.
-    func series(metric: UsageMetric) async -> [MetricsHistoryStore.SeriesPoint] {
-        guard let history else { return [] }
-        let range = historyRange
-        return await history.series(metric: metric, from: range.start, to: .now)
+    func openTab(_ tab: MonitorTab) {
+        selectedTab = MonitorTab.visibleTabs.contains(tab) ? tab : .overview
     }
 
-    /// Live points of one metric, from the in-memory ring.
+    func openMonitor(tab: MonitorTab? = nil, selecting group: AppProcessGroup? = nil) {
+        if let tab { openTab(tab) }
+        if let group { select(group: group) }
+        NotificationCenter.default.post(name: Self.openMonitorNotification, object: selectedTab.rawValue)
+    }
+
+    func focusSearch() {
+        searchFocusRequest += 1
+    }
+
+    func series(metric: UsageMetric) async -> [MetricsHistoryStore.SeriesPoint] {
+        await series(metricKey: metric.rawValue)
+    }
+
+    func series(metricKey: String) async -> [MetricsHistoryStore.SeriesPoint] {
+        guard let history else { return [] }
+        return await history.series(metricKey: metricKey, from: historyRange.start, to: .now)
+    }
+
     func livePoints(metric: UsageMetric) -> [(Date, Double)] {
-        // The live ring has no energy samples yet; an empty series beats
-        // silently showing CPU data under the Energy tab.
         guard metric != .energy else { return [] }
-        return liveSeries.map { point -> (Date, Double) in
-            switch metric {
-            case .cpu: (point.timestamp, point.cpu)
-            case .memory: (point.timestamp, point.memory)
-            case .network: (point.timestamp, point.network)
-            case .disk: (point.timestamp, point.disk)
-            // Unreachable (guarded above): the live ring has no energy samples.
-            case .energy: (point.timestamp, 0)
+        return livePoints(metricKey: metric.rawValue)
+    }
+
+    func livePoints(metricKey: String) -> [(Date, Double)] {
+        liveSeries.compactMap { point -> (Date, Double)? in
+            switch metricKey {
+            case "cpu": return (point.timestamp, point.cpu)
+            case "memory": return (point.timestamp, point.memory)
+            case "disk": return (point.timestamp, point.disk)
+            case "disk_read": return (point.timestamp, point.diskRead)
+            case "disk_write": return (point.timestamp, point.diskWrite)
+            case "network": return (point.timestamp, point.network)
+            case "network_down": return (point.timestamp, point.networkDown)
+            case "network_up": return (point.timestamp, point.networkUp)
+            default: return nil
             }
         }
+    }
+
+    /// Combines stored SQLite history with recent in-memory live ticks so
+    /// charts stay live as samples arrive, downsampled to <= 180 points.
+    func chartPoints(metricKey: String, stored: [MetricsHistoryStore.SeriesPoint]) -> [MetricsHistoryStore.SeriesPoint] {
+        let live = livePoints(metricKey: metricKey).map {
+            MetricsHistoryStore.SeriesPoint(timestamp: $0.0, average: $0.1, peak: nil)
+        }
+        guard !stored.isEmpty else {
+            return ChartDownsampler.downsample(live, targetCount: 180)
+        }
+        let cutoff = stored.last?.timestamp ?? .distantPast
+        let tail = live.filter { $0.timestamp > cutoff }
+        var combined = stored
+        if historyRange == .hour || historyRange == .day {
+            combined.append(contentsOf: tail)
+        } else if let latest = tail.last {
+            combined.append(latest)
+        }
+        return ChartDownsampler.downsample(combined, targetCount: 180)
     }
 
     func select(group: AppProcessGroup) {
@@ -334,20 +390,17 @@ final class MonitorModel {
         selectedProcessPID = group.members.max { $0.cpuPercent < $1.cpuPercent }?.pid
         selectedAppHistory = []
         guard let sample = snapshot?.processes.first(where: { $0.pid == selectedProcessPID }) ?? group.members.first,
-            let all = snapshot?.processes else {
+              let all = snapshot?.processes else {
             inspection = nil
             return
         }
         let appName = group.name
+        let expectedPID = sample.pid
         Task {
-            // The inspector and the history query are independent; run them
-            // together. A second click can select another group while this
-            // Task is in flight — drop the stale result instead of painting
-            // it over the newer selection.
             async let inspection = ProcessInspector.inspect(sample, all: all)
             async let history = appHistory(appName: appName)
             let (newInspection, newHistory) = await (inspection, history)
-            guard selectedGroupID == group.id else { return }
+            guard self.selectedGroupID == group.id, self.selectedProcessPID == expectedPID else { return }
             self.inspection = newInspection
             self.selectedAppHistory = newHistory
         }
@@ -360,17 +413,12 @@ final class MonitorModel {
         selectedAppHistory = []
     }
 
-    /// One app's CPU series for the inspector's "Last 24 hours" chart. The
-    /// history store stays private to the model; callers get points only.
     func appHistory(appName: String) async -> [MetricsHistoryStore.SeriesPoint] {
         guard let history else { return [] }
         let start = Calendar.current.date(byAdding: .hour, value: -24, to: .now) ?? .now
         return await history.appSeries(metric: .cpu, appName: appName, from: start, to: .now)
     }
 
-    /// Quit with confirmation handled by the caller (sheet); the model only
-    /// performs the signal after the user confirmed. `confirmedStart` is the
-    /// start time shown in that confirmation.
     func quit(pid: pid_t, confirmedStart: Date?, force: Bool) {
         if force {
             ProcessActions.forceQuit(pid: pid, confirmedStart: confirmedStart)
@@ -380,8 +428,6 @@ final class MonitorModel {
         clearSelection()
     }
 
-    /// Renders the current tab into a PNG for export; returns the data or
-    /// nil when rendering is unavailable (headless/test hosts).
     @MainActor
     func exportImage(of view: some View) async -> Data? {
         guard !ProcessInfo.processInfo.environment.keys.contains("XCTestConfigurationFilePath") else { return nil }
@@ -389,8 +435,8 @@ final class MonitorModel {
         renderer.scale = 2
         guard let image = renderer.nsImage else { return nil }
         guard let tiff = image.tiffRepresentation,
-            let representation = NSBitmapImageRep(data: tiff),
-            let png = representation.representation(using: .png, properties: [:]) else { return nil }
+              let representation = NSBitmapImageRep(data: tiff),
+              let png = representation.representation(using: .png, properties: [:]) else { return nil }
         return png
     }
 }
@@ -402,11 +448,21 @@ public enum HistoryRange: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .hour: String(localized: "Hour")
-        case .day: String(localized: "Day")
-        case .week: String(localized: "Week")
-        case .month: String(localized: "Month")
-        case .year: String(localized: "Year")
+        case .hour: String(localized: "1h", comment: "History range picker: 1 hour")
+        case .day: String(localized: "24h", comment: "History range picker: 24 hours")
+        case .week: String(localized: "7d", comment: "History range picker: 7 days")
+        case .month: String(localized: "30d", comment: "History range picker: 30 days")
+        case .year: String(localized: "1y", comment: "History range picker: 1 year")
+        }
+    }
+
+    var headingTitle: String {
+        switch self {
+        case .hour: String(localized: "Last hour", comment: "History chart heading: 1 hour")
+        case .day: String(localized: "Last 24 hours", comment: "History chart heading: 24 hours")
+        case .week: String(localized: "Last 7 days", comment: "History chart heading: 7 days")
+        case .month: String(localized: "Last 30 days", comment: "History chart heading: 30 days")
+        case .year: String(localized: "Last year", comment: "History chart heading: 1 year")
         }
     }
 

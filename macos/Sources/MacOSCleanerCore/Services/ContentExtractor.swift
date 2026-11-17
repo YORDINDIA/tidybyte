@@ -63,7 +63,7 @@ public actor ContentExtractor {
     }
 
     private func summarizeOne(_ file: FileRecord, privacyMode: PrivacyMode) async -> ContentSummary? {
-        guard (file.kind == .regularFile || file.kind == .package), !file.isCloudPlaceholder else {
+        guard file.kind == .regularFile || file.kind == .package, !file.isCloudPlaceholder else {
             return nil
         }
         let detected = await detectLocalContent(file: file, privacyMode: privacyMode)

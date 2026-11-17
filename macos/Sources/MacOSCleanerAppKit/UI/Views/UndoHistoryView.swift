@@ -20,77 +20,33 @@ struct UndoHistoryView: View {
     }
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         List(selection: $model.selectedHistoryID) {
             if let summary = model.executionSummary {
-                Section(String(localized: "Latest changes")) {
-                    LabeledContent(String(localized: "Completed operations"), value: String(summary.logs.count))
-                    LabeledContent(String(localized: "Failed actions"), value: String(summary.failedActionIDs.count))
-                    LabeledContent(
-                        String(localized: "Skipped or cancelled actions"),
-                        value: model.lastExecutionActionIDs
-                            .subtracting(summary.logs.map(\.plannedActionID))
-                            .subtracting(summary.failedActionIDs).count.formatted())
-                    LabeledContent(
-                        String(localized: "Pending approved actions"),
-                        value: String(model.pendingExecutableActions().count))
-                    ForEach(Array(summary.failures.enumerated()), id: \.offset) { _, failure in
-                        Label(failure, systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(SemanticScale.error).textSelection(.enabled)
-                    }
-                }
-            }
-            if let summary = model.executionSummary {
-                Section(String(localized: "Completed operations")) {
-                    ForEach(
-                        summary.logs.filter { log in
-                            model.searchText.isEmpty
-                                || log.operationType.displayName.localizedCaseInsensitiveContains(model.searchText)
-                                || log.beforeState.values.contains {
-                                    $0.localizedCaseInsensitiveContains(model.searchText)
-                                }
-                        }
-                    ) { log in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label(log.operationType.displayName, systemImage: "checkmark.circle")
-                            Text(log.beforeState["path"] ?? log.beforeState["command"] ?? log.result)
-                                .font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                        }.tag(log.id)
-                    }
-                }
-                Section(String(localized: "Failed or skipped actions")) {
-                    ForEach(
-                        (model.plan?.actions ?? []).filter {
-                            model.lastExecutionActionIDs.contains($0.id)
-                                && ($0.status != .completed || summary.failedActionIDs.contains($0.id))
-                                && model.actionMatchesSearch($0)
-                        }
-                    ) { action in
-                        Label(
-                            action.reason,
-                            systemImage: action.status == .failed ? "exclamationmark.triangle" : "pause.circle"
-                        )
-                        .tag(action.id)
-                    }
-                }
+                latestExecutionSection(summary, override: override)
             }
             if !previousActions.isEmpty {
-                Section(String(localized: "Previous actions")) {
+                Section(L10n.string("Previous actions", language: override)) {
                     ForEach(previousActions) { action in
                         VStack(alignment: .leading, spacing: 4) {
                             Label(
                                 action.actionType.displayName,
-                                systemImage: action.status == .failed ? "exclamationmark.triangle" : "checkmark.circle")
+                                systemImage: action.status == .failed ? "exclamationmark.triangle" : "checkmark.circle"
+                            )
                             Text(action.reason).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                             HStack {
                                 Text(action.status.displayName)
                                 if let date = action.executedAt { Text(date, format: .dateTime) }
-                            }.font(.caption).foregroundStyle(.secondary)
-                        }.tag(action.id)
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                        .tag(action.id)
                     }
                 }
             }
             if !records.isEmpty {
-                Section(String(localized: "Restore records")) {
+                Section(L10n.string("Restore records", language: override)) {
                     ForEach(records) { record in
                         HStack(spacing: Spacing.elementNormal) {
                             Image(systemName: record.status == .available ? "arrow.uturn.backward" : "checkmark.circle")
@@ -98,16 +54,20 @@ struct UndoHistoryView: View {
                                 Text(record.inverseAction.displayName).font(.headline)
                                 Text(
                                     record.restoreURL?.path ?? record.trashURL?.path
-                                        ?? String(localized: "No file path recorded")
+                                        ?? L10n.string("No file path recorded", language: override)
                                 )
-                                .font(.caption).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .truncationMode(.middle)
                             }
                             Spacer()
                             Text(record.status.displayName).font(.caption).foregroundStyle(.secondary)
-                            Button(String(localized: "Restore")) { restoreRequest = record }
+                            Button(L10n.string("Restore", language: override)) { restoreRequest = record }
                                 .disabled(record.status != .available || model.isScanning || model.isExecuting)
                         }
-                        .padding(.vertical, Spacing.elementTight).tag(record.id)
+                        .padding(.vertical, Spacing.elementTight)
+                        .tag(record.id)
                     }
                 }
             }
@@ -117,23 +77,25 @@ struct UndoHistoryView: View {
         .overlay {
             if records.isEmpty && previousActions.isEmpty && model.executionSummary == nil {
                 if model.isLoadingUndoHistory {
-                    // Startup load in flight — never claim "No history yet"
-                    // before the database has been read.
-                    ProgressView(String(localized: "Loading history…", comment: "Undo history loading"))
+                    ProgressView(L10n.string("Loading history…", language: override))
                 } else if !model.searchText.isEmpty {
                     ContentUnavailableView.search(text: model.searchText)
                 } else {
                     ContentUnavailableView(
-                        String(localized: "No history yet"), systemImage: "clock.arrow.circlepath",
-                        description: Text(
-                            String(localized: "Completed changes and available restore actions appear here.")))
+                        L10n.string("No history yet", language: override),
+                        systemImage: "clock.arrow.circlepath",
+                        description: Text(L10n.string(
+                            "Completed changes and available restore actions appear here.",
+                            language: override
+                        ))
+                    )
                 }
             }
         }
         .sheet(item: $restoreRequest) { record in
-            // MB-10: the same shared prompt the menu-bar undo presents.
             RegretReasonSheet(
                 subject: record.restoreURL?.path ?? record.trashURL?.path ?? record.inverseAction.displayName,
+                override: override,
                 onCancel: { restoreRequest = nil },
                 restore: { reason in
                     restoreRequest = nil
@@ -143,7 +105,62 @@ struct UndoHistoryView: View {
                     }
                     model.selectedRegretReason = reason.rawValue
                     Task { await model.restoreWithReason(record) }
-                })
+                }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func latestExecutionSection(_ summary: ExecutionSummary, override: AppLanguage?) -> some View {
+        Section(L10n.string("Latest changes", language: override)) {
+            LabeledContent(L10n.string("Completed operations", language: override), value: String(summary.logs.count))
+            LabeledContent(L10n.string("Failed actions", language: override), value: String(summary.failedActionIDs.count))
+            LabeledContent(
+                L10n.string("Skipped or cancelled actions", language: override),
+                value: model.lastExecutionActionIDs
+                    .subtracting(summary.logs.map(\.plannedActionID))
+                    .subtracting(summary.failedActionIDs).count.formatted()
+            )
+            LabeledContent(
+                L10n.string("Pending approved actions", language: override),
+                value: String(model.pendingExecutableActions().count)
+            )
+            ForEach(Array(summary.failures.enumerated()), id: \.offset) { _, failure in
+                Label(failure, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(SemanticScale.error)
+                    .textSelection(.enabled)
+            }
+        }
+        Section(L10n.string("Completed operations", language: override)) {
+            ForEach(
+                summary.logs.filter { log in
+                    model.searchText.isEmpty
+                        || log.operationType.displayName.localizedCaseInsensitiveContains(model.searchText)
+                        || log.beforeState.values.contains { $0.localizedCaseInsensitiveContains(model.searchText) }
+                }
+            ) { log in
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(log.operationType.displayName, systemImage: "checkmark.circle")
+                    Text(log.beforeState["path"] ?? log.beforeState["command"] ?? log.result)
+                        .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                }
+                .tag(log.id)
+            }
+        }
+        Section(L10n.string("Failed or skipped actions", language: override)) {
+            ForEach(
+                (model.plan?.actions ?? []).filter {
+                    model.lastExecutionActionIDs.contains($0.id)
+                        && ($0.status != .completed || summary.failedActionIDs.contains($0.id))
+                        && model.actionMatchesSearch($0)
+                }
+            ) { action in
+                Label(
+                    action.reason,
+                    systemImage: action.status == .failed ? "exclamationmark.triangle" : "pause.circle"
+                )
+                .tag(action.id)
+            }
         }
     }
 }
@@ -158,48 +175,52 @@ struct HistoryDetailsView: View {
     }
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         Form {
             if let record {
-                Section(String(localized: "Restore record")) {
-                    LabeledContent(String(localized: "Operation"), value: record.inverseAction.displayName)
-                    LabeledContent(String(localized: "Status"), value: record.status.displayName)
+                Section(L10n.string("Restore record", language: override)) {
+                    LabeledContent(L10n.string("Operation", language: override), value: record.inverseAction.displayName)
+                    LabeledContent(L10n.string("Status", language: override), value: record.status.displayName)
                     if let path = record.restoreURL?.path { Text(path).textSelection(.enabled) }
                     if let expiry = record.validUntil {
-                        LabeledContent(String(localized: "Valid until"), value: expiry.formatted())
+                        LabeledContent(L10n.string("Valid until", language: override), value: expiry.formatted())
                     }
-                    Text(
-                        String(
-                            localized:
-                                "Use Restore in the history list. Recovery depends on the files remaining available.")
-                    )
-                    .font(.caption).foregroundStyle(.secondary)
+                    Text(L10n.string(
+                        "Use Restore in the history list. Recovery depends on the files remaining available.",
+                        language: override
+                    ))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
             }
             if let log {
-                Section(String(localized: "Operation")) {
+                Section(L10n.string("Operation", language: override)) {
                     Text(log.operationType.displayName).font(.headline)
                     Text(log.timestamp, format: .dateTime)
                     if let error = log.error { Text(error).foregroundStyle(SemanticScale.error) }
                 }
-                Section(String(localized: "Before")) { stateValues(log.beforeState) }
-                Section(String(localized: "After")) { stateValues(log.afterState) }
+                Section(L10n.string("Before", language: override)) { stateValues(log.beforeState) }
+                Section(L10n.string("After", language: override)) { stateValues(log.afterState) }
                 if log.operationType == .runPackageManagerCleanup {
-                    Text(String(localized: "This command has no restore action."))
+                    Text(L10n.string("This command has no restore action.", language: override))
                 }
             } else if let action = selectedAction {
-                Section(String(localized: "Action")) {
+                Section(L10n.string("Action", language: override)) {
                     Text(action.reason).textSelection(.enabled)
                     Text(action.status.displayName)
                     RiskBadge(risk: action.risk)
                     if action.actionType == .runPackageManagerCleanup {
-                        Text(String(localized: "This command has no restore action."))
+                        Text(L10n.string("This command has no restore action.", language: override))
                     }
                     if action.status == .failed {
-                        Text(String(localized: "See the latest execution errors in History for failure details."))
+                        Text(L10n.string(
+                            "See the latest execution errors in History for failure details.",
+                            language: override
+                        ))
                     }
                 }
             } else if record == nil {
-                Text(String(localized: "Select a history item to see its details."))
+                Text(L10n.string("Select a history item to see its details.", language: override))
                     .foregroundStyle(.secondary)
             }
         }
@@ -208,8 +229,6 @@ struct HistoryDetailsView: View {
             storedLog = nil
             guard let record else { return }
             let loaded = await model.historyOperation(id: record.operationLogID)
-            // .task(id:) cancels the previous load, but this await does not
-            // observe cancellation: drop a stale result instead of showing it.
             if !Task.isCancelled { storedLog = loaded }
         }
     }

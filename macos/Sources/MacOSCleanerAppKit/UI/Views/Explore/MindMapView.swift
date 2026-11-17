@@ -1,9 +1,8 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// Radial mind map: the scan root sits at the center and top-level groups
+/// Radial mind map: scan root sits at the center and top-level groups
 /// fan out as branches with size labels and connector lines.
-/// Renders entirely from already-scanned `FileRecord` values.
 struct MindMapView: View {
     @Bindable var model: AppViewModel
     var files: [FileRecord]
@@ -11,24 +10,13 @@ struct MindMapView: View {
     var maxDepth: Int
     var nameFilter: String
 
-    @State private var memo = ExploreTreeMemo()
     @State private var selectedID: String?
     private let branchLimit = 10
 
-    private var filtered: [FileRecord] {
-        ExploreTreeBuilder.filteredFiles(files, nameFilter: nameFilter)
+    private var override: AppLanguage? {
+        model.languageStore.activeOverride
     }
 
-    private var groups: [ExploreGroup] {
-        let roots = memo.groups(files: files, grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
-        return Array(roots.sorted { $0.bytes > $1.bytes }.prefix(branchLimit))
-    }
-
-    private var totalBytes: Int64 {
-        groups.reduce(Int64(0)) { $0 + max(0, $1.bytes) }
-    }
-
-    /// Node centers in unit space; index 0 is the center root.
     private func nodePositions(count: Int) -> [CGPoint] {
         guard count > 0 else {
             return []
@@ -46,9 +34,19 @@ struct MindMapView: View {
     }
 
     var body: some View {
-        VStack(spacing: Spacing.elementNormal) {
+        let filtered = model.exploreFilteredFiles(in: files, nameFilter: nameFilter)
+        let roots = model.exploreGroups(
+            in: files,
+            grouping: grouping,
+            maxDepth: maxDepth,
+            nameFilter: nameFilter
+        )
+        let groups = Array(roots.sorted { $0.bytes > $1.bytes }.prefix(branchLimit))
+        let totalBytes = groups.reduce(Int64(0)) { $0 + max(0, $1.bytes) }
+
+        return VStack(spacing: Spacing.elementNormal) {
             if groups.isEmpty {
-                ExploreEmptyState()
+                ExploreEmptyState(language: override)
             } else {
                 GeometryReader { proxy in
                     let width = proxy.size.width
@@ -58,18 +56,19 @@ struct MindMapView: View {
                     ZStack {
                         ConnectorLinesView(
                             center: center,
-                            targets: groups.enumerated().map { index, _ in
+                            targets: groups.indices.map { index in
                                 CGPoint(x: positions[index].x * width, y: positions[index].y * height)
                             },
                             groups: groups
                         )
                         .frame(width: width, height: height)
-                        rootNode(at: center)
+                        rootNode(totalBytes: totalBytes, at: center)
                         ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
                             if index < positions.count {
                                 branchNode(
                                     group,
-                                    at: CGPoint(x: positions[index].x * width, y: positions[index].y * height)
+                                    at: CGPoint(x: positions[index].x * width, y: positions[index].y * height),
+                                    filtered: filtered
                                 )
                             }
                         }
@@ -78,116 +77,175 @@ struct MindMapView: View {
                 }
                 .frame(height: 300)
                 if let selected = groups.first(where: { $0.id == selectedID }) {
-                    selectedFooter(for: selected)
+                    selectedFooter(for: selected, filtered: filtered)
                 }
             }
+        }
+        .focusable()
+        .focusEffectDisabled()
+        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow, .escape, .space]) { press in
+            handleKeyPress(press, groups: groups, filtered: filtered)
         }
         .onChange(of: ExploreFilesToken(files)) { _, _ in
             selectedID = nil
         }
+        .onChange(of: grouping) { _, _ in
+            selectedID = nil
+        }
     }
 
-    private func rootNode(at center: CGPoint) -> some View {
+    private func rootNode(totalBytes: Int64, at center: CGPoint) -> some View {
         VStack(spacing: 2) {
             Image(systemName: "internaldrive")
                 .foregroundStyle(Primary.primary)
             Text(totalBytes.formattedByteCount)
                 .appFont(.labelMedium)
+                .monospacedDigit()
                 .foregroundStyle(Color.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
-        .padding(10)
-        .background(
-            Color(nsColor: .textBackgroundColor),
-            in: Circle()
-        )
-        .overlay(Circle().stroke(Color(nsColor: .separatorColor), lineWidth: 0.5))
+        .padding(12)
+        .background(Color(nsColor: .textBackgroundColor), in: Circle())
+        .overlay(Circle().strokeBorder(SemanticScale.subtleBorder, lineWidth: 1))
         .position(center)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Scan total: \(totalBytes.formattedByteCount)"))
+        .accessibilityLabel(L10n.format("Scan total: %@", language: override, totalBytes.formattedByteCount))
     }
 
-    private func branchNode(_ group: ExploreGroup, at point: CGPoint) -> some View {
+    private func branchNode(_ group: ExploreGroup, at point: CGPoint, filtered: [FileRecord]) -> some View {
         let palette = ExploreChartPalette.palette(for: group)
         let isSelected = selectedID == group.id
         return Button {
             let next = isSelected ? nil : group.id
             selectedID = next
-            if next != nil, let record = ExploreTreeBuilder.largestMember(of: group, in: filtered) {
-                model.selectExploreRecord(id: record.id)
-            } else if next == nil {
-                model.selectExploreRecord(id: nil)
-            }
+            syncSelection(group: next == nil ? nil : group, filtered: filtered)
         } label: {
-            VStack(spacing: 2) {
-                Text(group.name)
-                    .appFont(.labelMedium)
-                    .foregroundStyle(Color.primary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                Text(group.bytes.formattedByteCount)
-                    .appFont(.caption)
-                    .monospacedDigit()
-                    .foregroundStyle(Color.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                if group.fileCount > 0 {
-                    Text(ExploreCopy.fileCount(group.fileCount))
-                        .appFont(.caption)
-                        .foregroundStyle(Color.secondary)
-                }
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: 150)
-            // An opaque base under the tint: the translucent tint alone let connector lines show through
-            // the label. The later .background modifier draws underneath, so the tint is applied first.
-            .background(palette.soft, in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
-            .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
-            .overlay {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous).strokeBorder(.tint, lineWidth: 2)
-                }
-            }
+            branchNodeLabel(group, palette: palette, isSelected: isSelected)
         }
         .buttonStyle(.plain)
         .position(point)
-        .help(String(localized: "\(group.name), \(group.bytes.formattedByteCount)"))
+        .help(L10n.format("%@, %@", language: override, group.name, group.bytes.formattedByteCount))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(String(
-            localized: "\(group.name), \(group.bytes.formattedByteCount), \(ExploreCopy.fileCount(group.fileCount))")))
-        .accessibilityHint(String(localized: "Shows group details"))
+        .accessibilityLabel(Text(L10n.format(
+            "%@, %@, %@",
+            language: override,
+            group.name,
+            group.bytes.formattedByteCount,
+            ExploreCopy.fileCount(group.fileCount, language: override)
+        )))
+        .accessibilityHint(L10n.string("Shows group details", language: override))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    private func selectedFooter(for group: ExploreGroup) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.elementTight) {
-            HStack {
+    private func branchNodeLabel(_ group: ExploreGroup, palette: CategoricalPalette, isSelected: Bool) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous)
+        return VStack(spacing: 2) {
             Text(group.name)
-                .appFont(.caption)
-                .foregroundStyle(Color.secondary)
+                .appFont(.labelMedium)
+                .foregroundStyle(Color.primary)
                 .lineLimit(1)
-                .truncationMode(.middle)
-            Spacer()
-            Text(String(localized: "\(group.bytes.formattedByteCount) · \(ExploreCopy.fileCount(group.fileCount))"))
+                .truncationMode(.tail)
+            Text(group.bytes.formattedByteCount)
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)
-            Button(String(localized: "Clear", comment: "Explore clear selection")) {
-                selectedID = nil
-                model.selectExploreRecord(id: nil)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            if group.fileCount > 0 {
+                Text(ExploreCopy.fileCount(group.fileCount, language: override))
+                    .appFont(.caption)
+                    .foregroundStyle(Color.secondary)
             }
-            .buttonStyle(.plain)
-            .appFont(.caption)
-            .foregroundStyle(Color.secondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: 150)
+        .background(palette.soft, in: shape)
+        .background(Color(nsColor: .windowBackgroundColor), in: shape)
+        .overlay {
+            shape.strokeBorder(
+                isSelected ? Color.accentColor : palette.border,
+                lineWidth: isSelected ? 2 : 1
+            )
+        }
+    }
+
+    private func selectedFooter(for group: ExploreGroup, filtered: [FileRecord]) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.elementTight) {
+            HStack {
+                Text(group.name)
+                    .appFont(.caption)
+                    .foregroundStyle(Color.primary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer()
+                Text(L10n.format(
+                    "%@ · %@",
+                    language: override,
+                    group.bytes.formattedByteCount,
+                    ExploreCopy.fileCount(group.fileCount, language: override)
+                ))
+                .appFont(.caption)
+                .monospacedDigit()
+                .foregroundStyle(Color.secondary)
+                Button(L10n.string("Clear", language: override)) {
+                    selectedID = nil
+                    model.selectExploreRecord(id: nil)
+                }
+                .buttonStyle(.plain)
+                .appFont(.caption)
+                .foregroundStyle(Color.secondary)
             }
             ExploreGroupActionsView(model: model, group: group, files: filtered)
         }
-        .padding(.horizontal, Spacing.cardPadding)
-        .padding(.vertical, Spacing.elementTight)
+        .padding(Spacing.cardPadding)
+        .softCardSurface(cornerRadius: Radius.cardCompact)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(String(localized: "Selected: \(group.name), \(group.bytes.formattedByteCount)"))
+        .accessibilityLabel(L10n.format("Selected: %@, %@", language: override, group.name, group.bytes.formattedByteCount))
+    }
+
+    private func syncSelection(group: ExploreGroup?, filtered: [FileRecord]) {
+        guard let group, let record = ExploreTreeBuilder.largestMember(of: group, in: filtered) else {
+            model.selectExploreRecord(id: nil)
+            return
+        }
+        model.selectExploreRecord(id: record.id)
+    }
+
+    private func handleKeyPress(_ press: KeyPress, groups: [ExploreGroup], filtered: [FileRecord]) -> KeyPress.Result {
+        guard !groups.isEmpty else { return .ignored }
+        switch press.key {
+        case .leftArrow, .upArrow:
+            moveSelection(by: -1, groups: groups, filtered: filtered)
+            return .handled
+        case .rightArrow, .downArrow:
+            moveSelection(by: 1, groups: groups, filtered: filtered)
+            return .handled
+        case .escape:
+            guard selectedID != nil else { return .ignored }
+            selectedID = nil
+            model.selectExploreRecord(id: nil)
+            return .handled
+        case .space:
+            guard let group = groups.first(where: { $0.id == selectedID }),
+                  let url = ExploreTreeBuilder.largestMember(of: group, in: filtered)?.url else {
+                return .ignored
+            }
+            QuickLookCoordinator.shared.togglePreview([url])
+            return .handled
+        default:
+            return .ignored
+        }
+    }
+
+    private func moveSelection(by delta: Int, groups: [ExploreGroup], filtered: [FileRecord]) {
+        let index = groups.firstIndex(where: { $0.id == selectedID })
+        let targetIndex = index.map { max(0, min(groups.count - 1, $0 + delta)) }
+            ?? (delta > 0 ? 0 : groups.count - 1)
+        let target = groups[targetIndex]
+        selectedID = target.id
+        syncSelection(group: target, filtered: filtered)
     }
 }
 
@@ -202,8 +260,8 @@ private struct ConnectorLinesView: View {
                 let group = index < groups.count ? groups[index] : nil
                 ConnectorLineShape(center: center, target: target)
                     .stroke(
-                        ExploreChartPalette.palette(for: group).mid.opacity(0.85),
-                        lineWidth: 0.5
+                        ExploreChartPalette.palette(for: group).mid.opacity(0.65),
+                        lineWidth: 1.5
                     )
             }
         }

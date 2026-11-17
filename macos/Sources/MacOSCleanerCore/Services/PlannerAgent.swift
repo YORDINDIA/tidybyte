@@ -306,9 +306,7 @@ public actor PlannerAgent {
         case .pythonCaches:
             String(localized: "Python caches and environments", comment: "Natural language summary fragment for Python cache filter")
         case .largerThan(let bytes):
-            bytes >= 1_000_000_000
-                ? String(localized: "large files (1GB+)", comment: "Natural language summary fragment for large files filter")
-                : String(localized: "large items (100MB+)", comment: "Natural language summary fragment for broad large item filter")
+            largeItemFragment(bytes: bytes)
         case .duplicates:
             String(localized: "duplicate files", comment: "Natural language summary fragment for duplicate files filter")
         case .olderThan(let days):
@@ -332,6 +330,13 @@ public actor PlannerAgent {
         case .developerArtifacts:
             String(localized: "developer artifacts", comment: "Natural language summary fragment for developer artifacts filter")
         }
+    }
+
+    private static func largeItemFragment(bytes: Int64) -> String {
+        if bytes >= 1_000_000_000 {
+            return String(localized: "large files (1GB+)", comment: "Natural language summary fragment for large files filter")
+        }
+        return String(localized: "large items (100MB+)", comment: "Natural language summary fragment for broad large item filter")
     }
 
     private static func scopePredicate(

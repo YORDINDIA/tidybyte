@@ -22,72 +22,73 @@ extension ExploreTreeBuilder {
     static func buildFolderTree(
         files: [FileRecord],
         maxDepth: Int,
-        maxChildren: Int
+        maxChildren: Int,
+        language: AppLanguage? = nil
     ) -> [ExploreGroup] {
         guard !files.isEmpty else {
             return []
         }
-        let componentLists = files.map { $0.url.pathComponents }
+        let componentLists = files.map { $0.url.standardizedFileURL.pathComponents }
         let commonLength = commonPrefixLength(of: componentLists)
         let commonPath = joinComponents(componentLists.first?.prefix(commonLength) ?? [])
-        let rootName: String = {
-            let last = URL(fileURLWithPath: commonPath).lastPathComponent
-            return last.isEmpty ? commonPath : last
-        }()
-        let root = FolderTrieNode(name: rootName, path: commonPath)
+        let rootName = URL(fileURLWithPath: commonPath).lastPathComponent
+        let root = FolderTrieNode(name: rootName.isEmpty ? commonPath : rootName, path: commonPath)
+
         for file in files {
-            let components = file.url.pathComponents
-            let relative = Array(components.dropFirst(commonLength))
-            // The last component is the file itself; intermediate components
-            // are folders. A summarized folder is a folder all the way down, and
-            // stands for every item inside. Anything deeper than maxDepth rolls up.
-            let items = file.rolledUpItemCount
-            let folders = Array((items == nil ? relative.dropLast() : relative[...]).prefix(maxDepth))
-            let count = itemCount(of: file)
-            root.bytes += max(0, file.sizeBytes)
-            root.fileCount += count
-            var node = root
-            var pathSoFar = commonPath
-            for folder in folders {
-                // A root-level common path is "/", so plain concatenation would make "//folder".
-                pathSoFar = pathSoFar.hasSuffix("/") ? pathSoFar + folder : pathSoFar + "/" + folder
-                if node.children[folder] == nil {
-                    node.children[folder] = FolderTrieNode(name: folder, path: pathSoFar)
-                }
-                guard let next = node.children[folder] else {
-                    break
-                }
-                next.bytes += max(0, file.sizeBytes)
-                next.fileCount += count
-                node = next
-            }
+            insertFile(file, into: root, commonPath: commonPath, commonLength: commonLength, maxDepth: maxDepth)
         }
-        // Depth-1 children of the common root are the top-level groups.
+
         let top = root.children.values.sorted { $0.bytes > $1.bytes }
         guard !top.isEmpty else {
-            // Every item sits directly in the common folder, so that folder is the one group.
             return [convertNode(root, paletteIndex: 0)]
         }
-        // Loose files directly in the common folder have no child node. Roll them into "Other".
         let loose = (
             bytes: root.bytes - top.reduce(Int64(0)) { $0 + $1.bytes },
             count: root.fileCount - top.reduce(0) { $0 + $1.fileCount }
         )
-        return cappedGroups(from: top, loose: loose, maxChildren: maxChildren, paletteBase: 0)
+        return cappedGroups(from: top, loose: loose, maxChildren: maxChildren, language: language)
+    }
+
+    private static func insertFile(
+        _ file: FileRecord,
+        into root: FolderTrieNode,
+        commonPath: String,
+        commonLength: Int,
+        maxDepth: Int
+    ) {
+        let components = file.url.standardizedFileURL.pathComponents
+        let relative = Array(components.dropFirst(commonLength))
+        let folders = Array((file.rolledUpItemCount == nil ? relative.dropLast() : relative[...]).prefix(maxDepth))
+        let count = itemCount(of: file)
+        let size = max(0, file.sizeBytes)
+        root.bytes += size
+        root.fileCount += count
+        var node = root
+        var pathSoFar = commonPath
+        for folder in folders {
+            let nextRaw = pathSoFar == "/" ? "/" + folder : pathSoFar + "/" + folder
+            pathSoFar = ExploreSubtreeIndex.normalizedPath(nextRaw)
+            if node.children[folder] == nil {
+                node.children[folder] = FolderTrieNode(name: folder, path: pathSoFar)
+            }
+            guard let next = node.children[folder] else { break }
+            next.bytes += size
+            next.fileCount += count
+            node = next
+        }
     }
 
     private static func cappedGroups(
         from nodes: [FolderTrieNode],
         loose: (bytes: Int64, count: Int),
         maxChildren: Int,
-        paletteBase: Int
+        language: AppLanguage?
     ) -> [ExploreGroup] {
         let kept = Array(nodes.prefix(max(1, maxChildren)))
         var groups = kept.enumerated().map { index, node in
-            convertNode(node, paletteIndex: paletteBase + index)
+            convertNode(node, paletteIndex: index)
         }
         let remainder = nodes.dropFirst(kept.count)
-        // Zero-byte loose files still count, so they need an "Other" row too.
         // `loose.count` is an Int field of a tuple, not a collection.
         // swiftlint:disable:next empty_count
         if !remainder.isEmpty || loose.bytes > 0 || loose.count > 0 {
@@ -95,11 +96,11 @@ extension ExploreTreeBuilder {
             let count = remainder.reduce(loose.count) { $0 + $1.fileCount }
             groups.append(ExploreGroup(
                 id: "__other__",
-                name: String(localized: "Other", comment: "Explore rollup group for small entries"),
+                name: L10n.string("Other", language: language),
                 bytes: bytes,
                 fileCount: count,
                 detail: nil,
-                paletteIndex: paletteBase + kept.count,
+                paletteIndex: kept.count,
                 children: []
             ))
         }
@@ -108,12 +109,13 @@ extension ExploreTreeBuilder {
 
     private static func convertNode(_ node: FolderTrieNode, paletteIndex: Int) -> ExploreGroup {
         let kids = node.children.values.sorted { $0.bytes > $1.bytes }
+        let normalizedID = node.path.isEmpty ? node.name : ExploreSubtreeIndex.normalizedPath(node.path)
         return ExploreGroup(
-            id: node.path.isEmpty ? node.name : node.path,
+            id: normalizedID,
             name: node.name,
             bytes: node.bytes,
             fileCount: node.fileCount,
-            detail: node.path,
+            detail: normalizedID,
             paletteIndex: paletteIndex,
             usesFolderPastel: true,
             children: kids.map { convertNode($0, paletteIndex: paletteIndex) }
@@ -135,8 +137,6 @@ extension ExploreTreeBuilder {
         return length
     }
 
-    /// Rebuilds a path from `pathComponents`. The leading "/" component is
-    /// dropped first, so the result never starts with "//".
     private static func joinComponents(_ components: ArraySlice<String>) -> String {
         let parts = components.filter { $0 != "/" }
         guard !parts.isEmpty else {

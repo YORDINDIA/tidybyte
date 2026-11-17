@@ -317,9 +317,15 @@ public actor ActionExecutor {
         )
     }
 
+    private struct FinalizedTrashTrail {
+        let log: OperationLog
+        let undo: UndoRecord
+        let persistFailed: Bool
+    }
+
     private func finalizeTrashTrail(
         log: OperationLog, undo: UndoRecord, trashURL: URL?
-    ) async -> (log: OperationLog, undo: UndoRecord, persistFailed: Bool) {
+    ) async -> FinalizedTrashTrail {
         var finalizedLog = log
         finalizedLog.result = "moved_to_trash"
         finalizedLog.afterState = ["trash_path": trashURL?.path ?? ""]
@@ -330,7 +336,7 @@ public actor ActionExecutor {
         finalizedUndo.trashURL = trashURL
         finalizedUndo.status = .available
         let persistFailed = await persistFinalizedTrail(log: finalizedLog, undoRecords: [finalizedUndo])
-        return (finalizedLog, finalizedUndo, persistFailed)
+        return FinalizedTrashTrail(log: finalizedLog, undo: finalizedUndo, persistFailed: persistFailed)
     }
 
     private func cloneDeduplicate(
@@ -564,7 +570,7 @@ public actor ActionExecutor {
         )
     }
 
-    private nonisolated static func encodeTags(_ tags: [String]) -> String {
+    nonisolated private static func encodeTags(_ tags: [String]) -> String {
         guard let data = try? JSONEncoder().encode(tags),
               let json = String(data: data, encoding: .utf8) else {
             return tags.joined(separator: ",")
@@ -819,7 +825,7 @@ public actor ActionExecutor {
         return nil
     }
 
-    private nonisolated static func createZipArchiveWithCoordinator(
+    nonisolated private static func createZipArchiveWithCoordinator(
         of sourceURL: URL,
         to archiveURL: URL,
         fileManager: FileManager
@@ -891,7 +897,7 @@ public actor ActionExecutor {
         return names.first { posixSet.contains($0.lowercased()) }
     }
 
-    private nonisolated static func runningExecutableNames() -> Set<String> {
+    nonisolated private static func runningExecutableNames() -> Set<String> {
         var names: Set<String> = []
         let count = proc_listallpids(nil, 0)
         guard count > 0 else { return names }
@@ -906,7 +912,7 @@ public actor ActionExecutor {
             let len = proc_pidpath(pid, &pathBuffer, UInt32(pathBuffer.count))
             if len > 0 {
                 let utf8 = pathBuffer.prefix(Int(len)).map { UInt8(bitPattern: $0) }
-                let path = String(decoding: utf8, as: UTF8.self)
+                let path = String(bytes: utf8, encoding: .utf8) ?? ""
                 let executable = URL(fileURLWithPath: path).lastPathComponent
                 if !executable.isEmpty {
                     names.insert(executable)

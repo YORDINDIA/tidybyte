@@ -346,6 +346,18 @@ public enum AutoScanRunner {
             foldActions[index].userDecision = .approved
             foldActions[index].status = .approved
         }
+        return await executeMaintenanceBatches(
+            foldActions: foldActions,
+            filesByID: filesByID,
+            executor: executor
+        )
+    }
+
+    private static func executeMaintenanceBatches(
+        foldActions: [PlannedAction],
+        filesByID: [String: FileRecord],
+        executor: ActionExecutor
+    ) async -> MaintenanceSummary {
         var totalFolds = 0
         var totalFailures = 0
         var totalFreed: Int64 = 0
