@@ -451,8 +451,8 @@
           }
         } catch (err) {
           // Synthetic/Playwright or already-ended pointers throw NotFoundError; log unexpected ones.
-          if (err && err.name !== 'NotFoundError' && typeof console !== 'undefined' && console.debug) {
-            console.debug('Swipe deck pointer capture skipped:', err);
+          if (err && err.name !== 'NotFoundError' && typeof console !== 'undefined' && console.warn) {
+            console.warn('Swipe deck pointer capture failed:', err);
           }
         }
       }
