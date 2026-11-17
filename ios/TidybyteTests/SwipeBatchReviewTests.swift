@@ -108,5 +108,110 @@ final class SwipeBatchReviewTests: XCTestCase {
 
         XCTAssertEqual(vm.checkedIds(in: group), ["b"])
     }
+
+    func testApplyDeletionReviewEmptyAndUnknownAreNoOps() throws {
+        let vm = try makeViewModel()
+        vm.swipeLeft() // asset-0: 1 MB
+        vm.swipeLeft() // asset-1: 2 MB
+
+        vm.applyDeletionReview(keeping: [])
+        XCTAssertEqual(vm.pendingDeletionIds, ["asset-0", "asset-1"])
+        XCTAssertEqual(vm.pendingDeletionBytes, 3_000_000)
+        XCTAssertEqual(vm.sessionStats.deletedCount, 2)
+        XCTAssertEqual(vm.sessionStats.deletedBytes, 3_000_000)
+
+        vm.applyDeletionReview(keeping: ["unknown-id"])
+        XCTAssertEqual(vm.pendingDeletionIds, ["asset-0", "asset-1"])
+        XCTAssertEqual(vm.sessionStats.deletedCount, 2)
+        XCTAssertGreaterThanOrEqual(vm.sessionStats.deletedBytes, 0)
+    }
+
+    func testFetchPendingDeletionAssetsFallsBackToFetchDetails() async throws {
+        let vm = try makeViewModel(assetCount: 2)
+        let fetchedRequests = LockedValue<[[String]]>([])
+        let fallbackAsset = makeAsset(id: "evicted-1", fileSize: 5_000_000)
+        vm.loadDetails = { ids in
+            fetchedRequests.withValue { $0.append(ids) }
+            return Dictionary(uniqueKeysWithValues: ids.map { ($0, fallbackAsset) })
+        }
+        vm.pendingDeletionIds = ["evicted-1"]
+
+        let resolved = await vm.fetchPendingDeletionAssets()
+        XCTAssertEqual(resolved.map(\.id), ["evicted-1"])
+        XCTAssertEqual(resolved.first?.fileSize, 5_000_000)
+        XCTAssertEqual(fetchedRequests.withValue { $0 }, [["evicted-1"]])
+
+        // Second call uses the populated cache without re-fetching.
+        _ = await vm.fetchPendingDeletionAssets()
+        XCTAssertEqual(fetchedRequests.withValue { $0.count }, 1)
+    }
+
+    func testSimilarDeleteGroupDeletesOnlyTargetAndPreservesOtherGroups() async {
+        CleanupLedger.shared.detach()
+        defer { CleanupLedger.shared.detach() }
+
+        let g1 = SimilarGroup(
+            id: "g1",
+            assets: [makeAsset(id: "a", fileSize: 1_000), makeAsset(id: "b", fileSize: 2_000)],
+            bestAssetId: "a"
+        )
+        let g2 = SimilarGroup(
+            id: "g2",
+            assets: [makeAsset(id: "c", fileSize: 3_000), makeAsset(id: "d", fileSize: 4_000)],
+            bestAssetId: "c"
+        )
+        let vm = SimilarPhotosViewModel()
+        vm.groups = [g1, g2]
+        vm.selectedForDeletion = ["b", "d"]
+        vm.performDelete = { ids in
+            PhotoDeletionOutcome(deletedIds: Set(ids), alreadyAbsentIds: [])
+        }
+
+        await vm.delete(group: g1)
+
+        XCTAssertEqual(vm.deletedCount, 1)
+        XCTAssertEqual(vm.groups.map(\.id), ["g2"])
+        XCTAssertEqual(vm.selectedForDeletion, ["d"])
+        XCTAssertNil(vm.errorMessage)
+    }
+
+    func testSimilarDeleteGroupPreservesSelectionOnDeclineAndPartialDelete() async {
+        CleanupLedger.shared.detach()
+        defer { CleanupLedger.shared.detach() }
+
+        let g1 = SimilarGroup(
+            id: "g1",
+            assets: [
+                makeAsset(id: "a", fileSize: 1_000),
+                makeAsset(id: "b", fileSize: 2_000),
+                makeAsset(id: "e", fileSize: 2_500)
+            ],
+            bestAssetId: "a"
+        )
+        let g2 = SimilarGroup(
+            id: "g2",
+            assets: [makeAsset(id: "c", fileSize: 3_000), makeAsset(id: "d", fileSize: 4_000)],
+            bestAssetId: "c"
+        )
+        let vm = SimilarPhotosViewModel()
+        vm.groups = [g1, g2]
+        vm.selectedForDeletion = ["b", "e", "d"]
+        vm.performDelete = { _ in
+            throw PhotoServiceError.userDeclined(alreadyAbsentIds: [])
+        }
+
+        await vm.delete(group: g1)
+        XCTAssertEqual(vm.deletedCount, 0)
+        XCTAssertEqual(vm.groups.count, 2)
+        XCTAssertEqual(vm.selectedForDeletion, ["b", "e", "d"])
+
+        vm.performDelete = { _ in
+            throw PhotoServiceError.partialDeletion(succeededIds: ["b"], failedCount: 1)
+        }
+        await vm.delete(group: g1)
+        XCTAssertEqual(vm.deletedCount, 1)
+        XCTAssertEqual(vm.groups.first?.assets.map(\.id), ["a", "e"])
+        XCTAssertEqual(vm.selectedForDeletion, ["e", "d"])
+    }
 }
 

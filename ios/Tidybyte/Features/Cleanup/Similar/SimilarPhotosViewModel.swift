@@ -85,6 +85,9 @@ final class SimilarPhotosViewModel {
     private let visionService = VisionAnalysisService()
     /// C1/C2: owns the cancellable scan task + generation token.
     private let scanRunner = ScanRunner()
+    @ObservationIgnored var performDelete: @MainActor ([String]) async throws -> PhotoDeletionOutcome = {
+        try await PhotoLibraryService.shared.deleteAssets(identifiers: $0)
+    }
 
     var totalDuplicateCount: Int {
         groups.reduce(0) { $0 + $1.assets.count - 1 }
@@ -371,10 +374,18 @@ final class SimilarPhotosViewModel {
     }
 
     func deleteSelected() async {
+        await performDeletion(of: selectedForDeletion)
+    }
+
+    func delete(group: SimilarGroup) async {
+        await performDeletion(of: checkedIds(in: group))
+    }
+
+    private func performDeletion(of requestedIds: Set<String>) async {
         // Reset first: an early return must not leave the last run's count
         // for the view to celebrate.
         deletedCount = 0
-        guard !selectedForDeletion.isEmpty, !isDeleting else { return }
+        guard !requestedIds.isEmpty, !isDeleting else { return }
         errorMessage = nil
         isDeleting = true
         defer { isDeleting = false }
@@ -384,9 +395,10 @@ final class SimilarPhotosViewModel {
             for asset in group.assets { result[asset.id] = asset.fileSize }
         }
         let outcome = await CleanupDeletion.delete(
-            requestedIds: selectedForDeletion,
+            requestedIds: requestedIds,
             kind: .similar,
             sizeById: sizeById,
+            performDelete: performDelete,
             apply: { applyDeletion(of: $0) },
             recordDeleted: { self.deletedCount = $0 }
         )
@@ -457,21 +469,6 @@ final class SimilarPhotosViewModel {
     func checkedIds(in group: SimilarGroup) -> Set<String> {
         let nonBest = Set(group.assets.map(\.id).filter { $0 != group.bestAssetId })
         return nonBest.intersection(selectedForDeletion)
-    }
-
-    func delete(group: SimilarGroup) async {
-        deletedCount = 0
-        let ids = checkedIds(in: group)
-        guard !ids.isEmpty, !isDeleting else { return }
-        let previousSelection = selectedForDeletion
-        selectedForDeletion = ids
-        await deleteSelected()
-        let survivors = Set(groups.flatMap { $0.assets.map(\.id) })
-        if ids.isSubset(of: survivors) {
-            selectedForDeletion = previousSelection
-        } else {
-            selectedForDeletion.formUnion(previousSelection.intersection(survivors))
-        }
     }
 
     func setBest(assetId: String, in groupId: String) {

@@ -355,8 +355,14 @@ struct SettingsView: View {
                 Text("Photo Compression")
             } footer: {
                 let presetDesc = PhotoCompressionPreset.presets.first(where: { $0.id == photoCompressionPreset })?.description ?? ""
-                let toggleNote = L10n.string("Off: keep both versions.")
-                Text(verbatim: presetDesc.isEmpty ? toggleNote : "\(presetDesc) \(toggleNote)")
+                if deletePhotoOriginals {
+                    if !presetDesc.isEmpty {
+                        Text(verbatim: presetDesc)
+                    }
+                } else {
+                    let toggleNote = L10n.string("Off: keep both versions.")
+                    Text(verbatim: presetDesc.isEmpty ? toggleNote : "\(presetDesc) \(toggleNote)")
+                }
             }
 
             // MARK: - Notifications
@@ -532,7 +538,10 @@ struct SettingsView: View {
         .fullScreenCover(isPresented: $showOnboardingGuide) {
             OnboardingView(
                 onFinish: { showOnboardingGuide = false },
-                onRequestAccess: { await permissionHandler.requestPermission() }
+                onRequestAccess: {
+                    await permissionHandler.requestPermission()
+                    refreshPhotoPermissionStatus()
+                }
             )
         }
         .onChange(of: scenePhase) { _, newPhase in

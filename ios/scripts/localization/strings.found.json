@@ -925,6 +925,10 @@
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
     },
     {
+      "key": "Deleted %lld",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
+    },
+    {
       "key": "Deleted %lld of %lld items. %lld couldn't be deleted. Try again.",
       "file": "Tidybyte/Services/PhotoLibraryService.swift"
     },
@@ -1516,6 +1520,10 @@
       "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
     },
     {
+      "key": "No activity",
+      "file": "Tidybyte/Features/Activity/ActivityView.swift"
+    },
+    {
       "key": "No Albums Yet",
       "file": "Tidybyte/Shared/Utilities/PhotoAccessRecovery.swift"
     },
@@ -1824,6 +1832,10 @@
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
     },
     {
+      "key": "Preview video, %@",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+    },
+    {
       "key": "Previous",
       "file": "Tidybyte/Shared/Components/GroupComparisonView.swift"
     },
@@ -2000,10 +2012,6 @@
     {
       "key": "Review recorded videos",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
-    },
-    {
-      "key": "Review similar photo group",
-      "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
     },
     {
       "key": "Review whether you still need this screen recording.",
@@ -2741,5 +2749,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 676
+  "total": 678
 }

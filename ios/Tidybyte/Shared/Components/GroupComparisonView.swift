@@ -132,6 +132,7 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
     /// row re-render on a language change. `Formatters` resolves against
     /// `Locale.current` on its own, which never changes.
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(spacing: 0) {
@@ -153,56 +154,28 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
 
             // Bottom actions
             ActionBarView {
-                let current = group.assets[safe: currentPage]
-                let isBest = current?.id == group.bestAssetId
-
-                HStack(spacing: Spacing.sm) {
-                    if group.assets.count > 1 {
-                        Button {
-                            withAnimation { currentPage = max(0, currentPage - 1) }
-                        } label: {
-                            Image(systemName: "chevron.backward")
-                                .font(.subheadline.weight(.semibold))
-                                .frame(minWidth: 32, minHeight: 36)
+                if let current = group.assets[safe: currentPage] {
+                    let isBest = current.id == group.bestAssetId
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            pagerControls(isBest: isBest)
+                            comparisonActionControls(for: current, isBest: isBest)
                         }
-                        .disabled(currentPage == 0)
-                        .accessibilityLabel("Previous")
-                    }
-
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text("\(currentPage + 1) of \(group.assets.count)")
-                            .font(.caption.bold().monospacedDigit())
-                        if let status = descriptor.statusText(group, isBest) {
-                            Text(status)
-                                .font(.caption)
-                                .foregroundStyle(descriptor.statusColor(group, isBest))
-                        }
-                    }
-
-                    if group.assets.count > 1 {
-                        Button {
-                            withAnimation { currentPage = min(group.assets.count - 1, currentPage + 1) }
-                        } label: {
-                            Image(systemName: "chevron.forward")
-                                .font(.subheadline.weight(.semibold))
-                                .frame(minWidth: 32, minHeight: 36)
-                        }
-                        .disabled(currentPage >= group.assets.count - 1)
-                        .accessibilityLabel("Next")
-                    }
-                }
-
-                Spacer()
-
-                if let current {
-                    if isBest {
-                        statusPill(icon: "star.fill", text: descriptor.bestPillText(group), color: Color.successFill, padding: 0)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
-                        // Side by side when they fit; stacked at large text sizes
-                        // or on narrow phones instead of truncating.
                         ViewThatFits(in: .horizontal) {
-                            HStack(spacing: Spacing.sm) { compareButtons(current) }
-                            VStack(alignment: .trailing, spacing: Spacing.sm) { compareButtons(current) }
+                            HStack(spacing: Spacing.sm) {
+                                pagerControls(isBest: isBest)
+                                Spacer(minLength: Spacing.sm)
+                                comparisonActionControls(for: current, isBest: isBest)
+                            }
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                pagerControls(isBest: isBest)
+                                HStack {
+                                    Spacer()
+                                    comparisonActionControls(for: current, isBest: isBest)
+                                }
+                            }
                         }
                     }
                 }
@@ -313,6 +286,59 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
             .glassCard()
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.md)
+        }
+    }
+
+    @ViewBuilder
+    private func pagerControls(isBest: Bool) -> some View {
+        HStack(spacing: Spacing.sm) {
+            if group.assets.count > 1 {
+                Button {
+                    withAnimation { currentPage = max(0, currentPage - 1) }
+                } label: {
+                    Image(systemName: "chevron.backward")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(minWidth: 32, minHeight: 36)
+                }
+                .disabled(currentPage == 0)
+                .accessibilityLabel("Previous")
+            }
+
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text("\(currentPage + 1) of \(group.assets.count)")
+                    .font(.caption.bold().monospacedDigit())
+                if let status = descriptor.statusText(group, isBest) {
+                    Text(status)
+                        .font(.caption)
+                        .foregroundStyle(descriptor.statusColor(group, isBest))
+                }
+            }
+
+            if group.assets.count > 1 {
+                Button {
+                    withAnimation { currentPage = min(group.assets.count - 1, currentPage + 1) }
+                } label: {
+                    Image(systemName: "chevron.forward")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(minWidth: 32, minHeight: 36)
+                }
+                .disabled(currentPage >= group.assets.count - 1)
+                .accessibilityLabel("Next")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func comparisonActionControls(for current: AssetSummary, isBest: Bool) -> some View {
+        if isBest {
+            statusPill(icon: "star.fill", text: descriptor.bestPillText(group), color: Color.successFill, padding: 0)
+        } else {
+            // Side by side when they fit; stacked at large text sizes
+            // or on narrow phones instead of truncating.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Spacing.sm) { compareButtons(current) }
+                VStack(alignment: .trailing, spacing: Spacing.sm) { compareButtons(current) }
+            }
         }
     }
 

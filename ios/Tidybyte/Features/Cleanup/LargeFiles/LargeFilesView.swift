@@ -37,7 +37,10 @@ struct LargeFilesView: View {
                         }
                         Slider(value: $thresholdMB, in: 5...500, step: 5)
 
-                        HStack(spacing: Spacing.sm) {
+                        let controlsLayout = dynamicTypeSize.isAccessibilitySize
+                            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.sm))
+                            : AnyLayout(HStackLayout(spacing: Spacing.sm))
+                        controlsLayout {
                             Picker("Filter", selection: $viewModel.mediaFilter) {
                                 ForEach(MediaFilter.allCases, id: \.self) { filter in
                                     // Keys, not rendered `String`s, so both control

@@ -21,7 +21,7 @@ struct SelectableMediaGridCell<MenuContent: View>: View {
         asset: AssetSummary,
         photoService: PhotoLibraryService = .shared,
         isSelected: Bool,
-        itemName: String = "photo",
+        itemName: String? = nil,
         previewAccessibilityLabel: LocalizedStringKey? = nil,
         showsSelectionToggle: Bool = true,
         showsFavoriteMark: Bool = true,
@@ -36,8 +36,12 @@ struct SelectableMediaGridCell<MenuContent: View>: View {
         self.asset = asset
         self.photoService = photoService
         self.isSelected = isSelected
-        self.itemName = itemName
-        self.previewAccessibilityLabel = previewAccessibilityLabel ?? "Preview photo, \(asset.displaySize)"
+        self.itemName = itemName ?? (asset.mediaType == .video ? L10n.string("Video") : L10n.string("Photo"))
+        self.previewAccessibilityLabel = previewAccessibilityLabel ?? (
+            asset.mediaType == .video
+                ? "Preview video, \(asset.displaySize)"
+                : "Preview photo, \(asset.displaySize)"
+        )
         self.showsSelectionToggle = showsSelectionToggle
         self.showsFavoriteMark = showsFavoriteMark
         self.bottomBadgeText = bottomBadgeText

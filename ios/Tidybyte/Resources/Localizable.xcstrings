@@ -30280,7 +30280,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sequenza"
+            "value": "Raffica"
           }
         },
         "ja": {
@@ -47061,6 +47061,136 @@
         }
       }
     },
+    "Deleted %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted %lld"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld हटाए गए"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মুছে ফেলা হয়েছে"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld நீக்கப்பட்டது"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld తొలగించబడింది"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld हटवले"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld કાઢી નાખ્યા"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ಅಳಿಸಲಾಗಿದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ഇല്ലാതാക്കി"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ਮਿਟਾਏ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld eliminados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld supprimés"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld gelöscht"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld apagados"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld eliminati"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld件を削除しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld개 삭제됨"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除 %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалено %lld"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم حذف %lld"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נמחקו %lld"
+          }
+        }
+      }
+    },
     "Deleted %lld of %lld items. %lld couldn't be deleted. Try again.": {
       "localizations": {
         "en": {
@@ -49956,7 +50086,7 @@
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "सत्र संपवते आणि हटवायचे आयटम दाखवते"
+            "value": "सत्र संपवते आणि प्रलंबित हटवण्याचे आयटम पुनरावलोकन करते"
           }
         },
         "gu": {
@@ -50046,7 +50176,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מסיים את הסבב ומציג פריטים שממתינים למחיקה"
+            "value": "מסיים את ההפעלה ומציג פריטים שממתינים למחיקה"
           }
         }
       }
@@ -50370,7 +50500,7 @@
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਬਾਹਰ"
+            "value": "ਬਾਹਰ ਨਿਕਲੋ"
           }
         },
         "es": {
@@ -56432,7 +56562,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Google가 같은 페이지를 두 번 반환해 목록이 불완전합니다."
+            "value": "Google이 같은 페이지를 두 번 반환해 목록이 불완전합니다."
           }
         },
         "zh-Hans": {
@@ -59428,7 +59558,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保留实况照片"
+            "value": "保留 Live Photo"
           }
         },
         "ru": {
@@ -85728,7 +85858,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "播放或暂停实况照片动态效果"
+            "value": "播放或暂停 Live Photo 动态效果"
           }
         },
         "ru": {
@@ -86898,7 +87028,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "预览截图，%@"
+            "value": "预览截屏，%@"
           }
         },
         "ru": {
@@ -86917,6 +87047,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "תצוגה מקדימה של צילום מסך, %@"
+          }
+        }
+      }
+    },
+    "Preview video, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview video, %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वीडियो का प्रीव्यू, %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিডিওর প্রিভিউ, %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வீடியோ முன்னோட்டம், %@"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "వీడియో ప్రివ్యూ, %@"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "व्हिडिओचे पूर्वावलोकन, %@"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "વિડિયોનું પૂર્વાવલોકન, %@"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ವೀಡಿಯೊ ಮುನ್ನೋಟ, %@"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "വീഡിയോ പ്രിവ്യൂ, %@"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਵੀਡੀਓ ਦੀ ਝਲਕ, %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa del vídeo, %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperçu de la vidéo, %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau des Videos, %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualizar vídeo, %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anteprima video, %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビデオをプレビュー、%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동영상 미리보기, %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览视频，%@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Просмотр видео, %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معاينة الفيديو، %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תצוגה מקדימה של סרטון, %@"
           }
         }
       }
@@ -86962,7 +87222,7 @@
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "પાછળ"
+            "value": "અગાઉનું"
           }
         },
         "kn": {
@@ -91336,7 +91596,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "המשך סבב"
+            "value": "המשך הפעלה"
           }
         }
       }
@@ -91418,13 +91678,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kehrt zur Wischen-Startseite zurück"
+            "value": "Kehrt zur Wisch-Startseite zurück"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Volta para a tela inicial de avaliação"
+            "value": "Volta para a tela inicial de deslizes"
           }
         },
         "it": {
@@ -92428,7 +92688,7 @@
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಗುರುತಿಸಿದ ಅಂಶಗಳನ್ನು ಪರಿಶೀಲಿಸಿ"
+            "value": "ಗುರುತಿಸಿದ ಐಟಂಗಳನ್ನು ಪರಿಶೀಲಿಸಿ"
           }
         },
         "ml": {
@@ -92440,7 +92700,7 @@
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਚੁਣੀਆਂ ਆਈਟਮਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ"
+            "value": "ਨਿਸ਼ਾਨਬੱਧ ਆਈਟਮਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ"
           }
         },
         "es": {
@@ -92470,7 +92730,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rivedi elementi selezionati"
+            "value": "Rivedi elementi contrassegnati"
           }
         },
         "ja": {
@@ -93547,136 +93807,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "סקור סרטונים מוקלטים"
-          }
-        }
-      }
-    },
-    "Review similar photo group": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Review similar photo group"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "मिलती-जुलती फ़ोटो के समूह की समीक्षा करें"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "একইরকম ফটোর গ্রুপ পর্যালোচনা করুন"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ஒத்த புகைப்படக் குழுவை மதிப்பாய்வு செய்"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "సమానమైన ఫోటో సమూహాన్ని సమీక్షించండి"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "समान फोटो गटाचे पुनरावलोकन करा"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "સમાન ફોટો જૂથની સમીક્ષા કરો"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಸಮಾನ ಫೋಟೋ ಗುಂಪನ್ನು ಪರಿಶೀಲಿಸಿ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "സമാന ഫോട്ടോ ഗ്രൂപ്പ് പരിശോധിക്കുക"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸਮਾਨ ਫ਼ੋਟੋ ਗਰੁੱਪ ਦੀ ਸਮੀਖਿਆ ਕਰੋ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revisar grupo de fotos similares"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Examiner le groupe de photos similaires"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gruppe ähnlicher Fotos prüfen"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revisar grupo de fotos semelhantes"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esamina gruppo di foto simili"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類似した写真のグループを確認"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "비슷한 사진 그룹 검토"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看相似照片组"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Просмотреть группу похожих фото"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مراجعة مجموعة الصور المشابهة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סקור קבוצת תמונות דומות"
           }
         }
       }
@@ -95176,7 +95306,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escanea en Limpieza para estimar el espacio recuperable en Google Fotos."
+            "value": "Analiza en Limpieza para estimar el espacio recuperable en Google Photos."
           }
         },
         "fr": {
@@ -95188,49 +95318,49 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanne in „Bereinigung“, um den freigebbaren Google-Fotos-Speicher zu schätzen."
+            "value": "Scanne in „Bereinigung“, um den freigebbaren Google Photos-Speicher zu schätzen."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escaneie em Limpeza para estimar o espaço recuperável no Google Fotos."
+            "value": "Escaneie em Limpeza para estimar o espaço recuperável no Google Photos."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scansiona in Pulizia per stimare lo spazio recuperabile su Google Foto."
+            "value": "Scansiona in Pulizia per stimare lo spazio recuperabile su Google Photos."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クリーンアップでスキャンしてGoogleフォトの解放可能容量を確認します。"
+            "value": "クリーンアップでスキャンして Google Photos の解放可能容量を確認します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "정리 탭에서 스캔하여 확보 가능한 Google 포토 저장 공간을 확인하세요."
+            "value": "정리 탭에서 스캔하여 확보 가능한 Google Photos 저장 공간을 확인하세요."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在“清理”中扫描即可估算可释放的 Google 相册空间。"
+            "value": "在“清理”中扫描即可估算可释放的 Google Photos 空间。"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Выполните сканирование в разделе «Очистка», чтобы оценить доступный для освобождения объем Google Фото."
+            "value": "Выполните сканирование в разделе «Очистка», чтобы оценить доступный для освобождения объем Google Photos."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "افحص في التنظيف لتقدير المساحة القابلة للاسترداد في صور Google."
+            "value": "افحص في التنظيف لتقدير المساحة القابلة للاسترداد في Google Photos."
           }
         },
         "he": {
@@ -95708,7 +95838,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Durchsucht Mediathek"
+            "value": "Durchsucht die Mediathek"
           }
         },
         "pt-BR": {
@@ -105948,7 +106078,7 @@
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಪ್ರಾರಂಭದಿಂದ ನೋಡಿ — ಬಿಟ್ಟುಬಿಟ್ಟ ಅಂಶಗಳು ಸೇರಿವೆ"
+            "value": "ಪ್ರಾರಂಭದಿಂದ ನೋಡಿ — ಬಿಟ್ಟುಬಿಟ್ಟ ಐಟಂಗಳು ಸೇರಿವೆ"
           }
         },
         "ml": {
@@ -108064,7 +108194,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guia de avaliação"
+            "value": "Guia de deslizes"
           }
         },
         "it": {
@@ -110316,7 +110446,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הפריימים שנבחרו מהרצף ימחקו. התמונות הטובות שבחרת נשמרות."
+            "value": "הפריימים שנבחרו מהרצף יימחקו. התמונות הטובות שבחרת נשמרות."
           }
         }
       }
@@ -110688,7 +110818,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所选截图将从照片中删除。"
+            "value": "所选截屏将从照片中删除。"
           }
         },
         "ru": {
@@ -113288,7 +113418,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此截图将从照片中删除。"
+            "value": "此截屏将从照片中删除。"
           }
         },
         "ru": {
@@ -116358,7 +116488,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "সামনের অংশ ছেড়ে যাওয়ায় TidyByte Live Photo রূপান্তর বন্ধ করেছে। রূপান্তরের সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
+            "value": "অ্যাপটি ফোরগ্রাউন্ড ছেড়ে যাওয়ায় TidyByte Live Photo রূপান্তর বন্ধ করেছে। রূপান্তরের সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
           }
         },
         "ta": {
@@ -116466,7 +116596,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "TidyByte הפסיקה את המרת Live Photo כי האפליקציה יצאה מהחזית. השאירו את TidyByte פתוחה בזמן ההמרה, ואז נסו שוב."
+            "value": "TidyByte עצר את המרת Live Photo כי האפליקציה יצאה מהמסך הפעיל. השאר את TidyByte פתוח בזמן ההמרה, ואז נסה שוב."
           }
         }
       }

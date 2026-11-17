@@ -31,13 +31,14 @@ actor ImageCache {
     /// Cache key for a thumbnail. List thumbnails (200 px or less) and large
     /// views (the Compare screen asks for 600 px) use different keys, so a
     /// cached list thumbnail is never upscaled into a large view.
-    nonisolated static func key(for assetId: String, size: CGSize) -> String {
-        max(size.width, size.height) <= 200 ? assetId : "\(assetId)#large"
+    nonisolated static func key(for assetId: String, size: CGSize, fit: Bool = false) -> String {
+        let base = max(size.width, size.height) <= 200 ? assetId : "\(assetId)#large"
+        return fit ? "\(base)#fit" : base
     }
 
     /// Drops every size and quality variant of one asset.
     func removeAllVariants(of assetId: String) {
-        for key in [assetId, "\(assetId)#large"] {
+        for key in [assetId, "\(assetId)#large", "\(assetId)#fit", "\(assetId)#large#fit"] {
             cache.removeObject(forKey: key as NSString)
             cache.removeObject(forKey: "\(key)#degraded" as NSString)
         }

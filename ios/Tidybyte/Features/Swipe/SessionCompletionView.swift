@@ -477,7 +477,6 @@ private struct BatchDeletionReviewSheet: View {
                                 asset: asset,
                                 photoService: viewModel.photoService,
                                 isSelected: markedForDeletion.contains(asset.id),
-                                itemName: "photo",
                                 bottomBadgeText: asset.mediaType == .video ? "\(asset.formattedDuration) · \(asset.displaySize)" : asset.displaySize,
                                 selectionColor: Color.destructiveFill,
                                 isSelectionDisabled: viewModel.isDeletingBatch,

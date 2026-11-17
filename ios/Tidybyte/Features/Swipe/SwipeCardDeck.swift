@@ -354,6 +354,9 @@ struct SwipeCardDeck: View {
                             if asset.mediaType == .video {
                                 Button("Play Video") { playRequest += 1 }
                             } else {
+                                if asset.isLivePhoto {
+                                    Button("Live Photo") { playRequest += 1 }
+                                }
                                 Button(isTopCardZoomed ? "Zoom Out" : "Zoom In") {
                                     zoomToggleRequest += 1
                                 }

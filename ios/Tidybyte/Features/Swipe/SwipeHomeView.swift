@@ -49,7 +49,11 @@ struct SwipeHomeView: View {
         }
         .onAppear {
             consumePendingFilter()
-            Task { await refreshHomeCounts() }
+        }
+        .onChange(of: selectedRoute) { oldRoute, newRoute in
+            if oldRoute != nil, newRoute == nil {
+                Task { await refreshHomeCounts() }
+            }
         }
         .task(id: libraryMonitor.generation) {
             await refreshHomeCounts()
@@ -305,8 +309,16 @@ struct SwipeHomeView: View {
     }
 
     private func refreshHomeCounts() async {
-        swipedRecordCount = (try? modelContext.fetchCount(FetchDescriptor<SwipeRecord>())) ?? 0
-        libraryTotalCount = await photoService.totalAssetCount()
+        let total = await photoService.totalAssetCount()
+        libraryTotalCount = total
+        let records = (try? modelContext.fetch(FetchDescriptor<SwipeRecord>())) ?? []
+        if records.isEmpty {
+            swipedRecordCount = 0
+        } else {
+            let ids = records.map(\.assetLocalIdentifier)
+            let liveCount = await photoService.existingIds(ids).count
+            swipedRecordCount = min(total, liveCount)
+        }
     }
 
     private func startSwipeSession(with filter: SwipeFilter) {

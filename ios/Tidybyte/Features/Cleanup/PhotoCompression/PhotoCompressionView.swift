@@ -13,7 +13,13 @@ struct PhotoCompressionView: View {
     private let photoService = PhotoLibraryService.shared
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            if !viewModel.isLoading {
+                LimitedLibraryBanner()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.sm)
+            }
+
             if viewModel.isLoading {
                 loadingView
             } else if viewModel.photos.isEmpty, viewModel.filterHidesPhotos {
@@ -181,10 +187,6 @@ struct PhotoCompressionView: View {
 
     private var contentView: some View {
         VStack(spacing: 0) {
-            LimitedLibraryBanner()
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.sm)
-
             filterRow
             List {
                 ForEach(Array(viewModel.sortedPhotos.enumerated()), id: \.element.id) { index, photo in

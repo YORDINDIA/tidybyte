@@ -143,7 +143,7 @@ struct LivePhotoPreviewView: View {
                         )
                     } else {
                         AsyncThumbnailView(
-                            assetId: item.id,
+                            assetId: item.replacementId ?? item.id,
                             photoService: photoService,
                             targetSize: CGSize(width: 1200, height: 1200),
                             contentMode: .fit

@@ -17,6 +17,7 @@ struct LivePhotoPlayerView: UIViewRepresentable {
     var targetSize: CGSize = CGSize(width: 1200, height: 1200)
     var autoPlay: Bool = true
     var isActive: Bool = true
+    var backgroundColor: UIColor = .black
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -25,7 +26,7 @@ struct LivePhotoPlayerView: UIViewRepresentable {
     func makeUIView(context: Context) -> PHLivePhotoView {
         let view = PHLivePhotoView()
         view.contentMode = .scaleAspectFit
-        view.backgroundColor = .black
+        view.backgroundColor = backgroundColor
         return view
     }
 
@@ -54,7 +55,7 @@ struct LivePhotoPlayerView: UIViewRepresentable {
                 guard !Task.isCancelled else { return }
                 guard coordinator.loadedAssetId == assetId else { return }
                 view.livePhoto = livePhoto
-                if let livePhoto {
+                if livePhoto != nil {
                     coordinator.loadedAssetId = assetId
                     if shouldAutoPlay, !coordinator.hasAutoPlayed {
                         coordinator.hasAutoPlayed = true

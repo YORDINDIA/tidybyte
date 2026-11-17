@@ -241,6 +241,7 @@ struct SimilarPhotosView: View {
                                         } label: {
                                             Label("Delete \(checked)", systemImage: "trash")
                                         }
+                                        .disabled(viewModel.isDeleting)
                                     }
                                 }
                                 .fadeSlideIn(delay: Double(index) * 0.03)
@@ -327,7 +328,6 @@ struct SimilarPhotosView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Review similar photo group")
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Spacing.sm) {
@@ -387,6 +387,7 @@ struct SimilarPhotosView: View {
                                         DeleteToggle(isMarked: viewModel.selectedForDeletion.contains(asset.id)) {
                                             viewModel.toggleSelection(asset.id)
                                         }
+                                        .disabled(viewModel.isDeleting)
                                         .offset(x: Spacing.xs, y: -Spacing.xs)
                                     }
                                 }

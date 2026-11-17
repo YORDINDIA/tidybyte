@@ -129,7 +129,13 @@ struct MediaCleanerView: View {
                 pendingDeletion = []
                 Task { _ = await viewModel.delete(ids: ids) }
             }
-        } message: { Text(CleanupDeletion.confirmMessage(L10n.string("The selected items will be deleted from Photos."))) }
+        } message: {
+            Text(CleanupDeletion.confirmMessage(
+                pendingDeletion.count == 1
+                    ? L10n.string("This item will be deleted from Photos.")
+                    : L10n.string("The selected items will be deleted from Photos.")
+            ))
+        }
         .fullScreenCover(item: $previewAsset) { asset in
             MediaPreviewView(assets: viewModel.filteredAssets,
                 startIndex: viewModel.filteredAssets.firstIndex { $0.id == asset.id } ?? 0,
@@ -198,6 +204,7 @@ struct MediaCleanerView: View {
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+            .disabled(viewModel.isDeleting)
         }
     }
 }

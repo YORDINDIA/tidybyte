@@ -124,17 +124,17 @@ struct AlbumPickerSheet: View {
                     .pullToRefresh {
                         await loadAlbums()
                     }
-                    .safeAreaInset(edge: .bottom) {
-                        ActionBarView {
-                            Button {
-                                onSkip()
-                                dismiss()
-                            } label: {
-                                SecondaryActionLabel(title: "Keep Without Album")
-                            }
-                            .disabled(isAddingToAlbum || isCreatingAlbum)
-                        }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                ActionBarView {
+                    Button {
+                        onSkip()
+                        dismiss()
+                    } label: {
+                        SecondaryActionLabel(title: "Keep Without Album")
                     }
+                    .disabled(isAddingToAlbum || isCreatingAlbum)
                 }
             }
             .localizedNavigationTitle("Add to Album")

@@ -119,7 +119,9 @@ struct GooglePhotosHomeView: View {
             GooglePhotosReviewSheet(viewModel: viewModel)
         }
         .fullScreenCover(item: $previewItem) { item in
-            CloudMediaPreviewSheet(item: item, image: viewModel.thumbnail(item.id))
+            CloudMediaPreviewSheet(item: item, thumbnail: viewModel.thumbnail(item.id)) {
+                await viewModel.loadPreviewImage(for: item)
+            }
         }
         .task { await viewModel.loadQuota() }
     }
@@ -194,11 +196,16 @@ struct GooglePhotosHomeView: View {
     @ViewBuilder
     private var storageInsightsSection: some View {
         if let result = viewModel.result {
+            let insights = viewModel.visibleInsights
             VStack(alignment: .leading, spacing: Spacing.md) {
-                if result.recoverableBytes > 0 {
-                    Text("Up to \(result.recoverableBytes.formattedFileSize) can be freed in the items you picked")
+                if insights.recoverableBytes > 0 {
+                    Text("Up to \(insights.recoverableBytes.formattedFileSize) can be freed in the items you picked")
                         .font(.headline)
                         .foregroundStyle(Color.successText)
+                } else if insights.findingCount > 0 {
+                    Text(L10n.format("%lld item", fallback: "%lld items", insights.findingCount))
+                        .font(.headline)
+                        .foregroundStyle(.primary)
                 } else {
                     Text("Nothing to clean in the \(result.items.count) items you picked.")
                         .font(.subheadline)
@@ -206,11 +213,11 @@ struct GooglePhotosHomeView: View {
                 }
 
                 VStack(spacing: Spacing.sm) {
-                    MetadataRow(label: "Duplicates", value: "\(result.duplicateGroups.count)")
-                    MetadataRow(label: "Similar", value: "\(result.similarGroups.count)")
-                    MetadataRow(label: "Blurry", value: "\(result.blurry.count)")
-                    MetadataRow(label: "Screenshots & Recordings", value: "\(result.screenshots.count)")
-                    MetadataRow(label: "Large Videos", value: "\(result.largeVideos.count)")
+                    MetadataRow(label: "Duplicates", value: "\(viewModel.visibleDuplicateGroups.count)")
+                    MetadataRow(label: "Similar", value: "\(viewModel.visibleSimilarGroups.count)")
+                    MetadataRow(label: "Blurry", value: "\(viewModel.visibleBlurryIds.count)")
+                    MetadataRow(label: "Screenshots & Recordings", value: "\(viewModel.visibleScreenshotIds.count)")
+                    MetadataRow(label: "Large Videos", value: "\(viewModel.visibleLargeVideoIds.count)")
                 }
 
                 Button {
@@ -343,6 +350,12 @@ struct GooglePhotosHomeView: View {
                 .onTapGesture {
                     if let item { previewItem = item } else { viewModel.toggle(id) }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(tilePreviewAccessibilityLabel(for: item))
+                .accessibilityAction(.default) {
+                    if let item { previewItem = item } else { viewModel.toggle(id) }
+                }
 
             Button {
                 HapticHelper.selection()
@@ -385,19 +398,29 @@ struct GooglePhotosHomeView: View {
             }
         }
     }
+    private func tilePreviewAccessibilityLabel(for item: CloudMediaItem?) -> String {
+        if let size = item?.fileSize?.formattedFileSize {
+            return item?.kind == .video
+                ? L10n.format("Preview video, %@", size)
+                : L10n.format("Preview photo, %@", size)
+        }
+        return L10n.string("Preview")
+    }
 }
 
 private struct CloudMediaPreviewSheet: View {
     let item: CloudMediaItem
-    let image: UIImage?
+    let thumbnail: UIImage?
+    let loadFullImage: @MainActor () async -> UIImage?
     @Environment(\.dismiss) private var dismiss
+    @State private var fullImage: UIImage?
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
-                if let image {
-                    Image(uiImage: image)
+                if let displayImage = fullImage ?? thumbnail {
+                    Image(uiImage: displayImage)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                 } else {
@@ -405,6 +428,10 @@ private struct CloudMediaPreviewSheet: View {
                         .scaledGlyph(56)
                         .foregroundStyle(.secondary)
                 }
+            }
+            .task(id: item.id) {
+                fullImage = nil
+                fullImage = await loadFullImage()
             }
             .localizedNavigationTitle("Preview")
             .navigationBarTitleDisplayMode(.inline)

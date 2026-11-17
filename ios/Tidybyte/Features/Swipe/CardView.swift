@@ -159,17 +159,19 @@ struct CardView: View {
                 // slow image can't swallow the gesture; zoom/pan stay on the
                 // loaded image's own graph below.
                 if let image {
-                    if asset.isLivePhoto && isTopCard && playLivePhoto {
-                        LivePhotoPlayerView(
-                            assetId: asset.id,
-                            photoService: photoService,
-                            autoPlay: true,
-                            isActive: true
-                        )
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .gesture(unifiedDrag(frame: geometry.size))
-                    } else {
+                    ZStack {
                         zoomableImage(image, frame: geometry.size)
+                        if asset.isLivePhoto && isTopCard && playLivePhoto {
+                            LivePhotoPlayerView(
+                                assetId: asset.id,
+                                photoService: photoService,
+                                autoPlay: true,
+                                isActive: true,
+                                backgroundColor: .clear
+                            )
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .allowsHitTesting(false)
+                        }
                     }
                 } else if loadFailed {
                     loadFailedView
@@ -322,7 +324,12 @@ struct CardView: View {
             }
             .onChange(of: playRequest) { _, newValue in
                 guard newValue > 0, !loadFailed else { return }
-                startPlayback()
+                if asset.isLivePhoto {
+                    HapticHelper.selection()
+                    playLivePhoto.toggle()
+                } else {
+                    startPlayback()
+                }
             }
             .onChange(of: zoomToggleRequest) { _, _ in
                 guard zoomToggleRequest > 0 else { return }

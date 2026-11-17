@@ -62,6 +62,15 @@ struct CompressionHistoryView: View {
         }
     }
 
+    private var availableFilters: [HistoryFilter] {
+        var filters: [HistoryFilter] = [.all]
+        let types = Set(records.map(\.mediaType))
+        if types.contains("photo") { filters.append(.photo) }
+        if types.contains(where: { $0 != "photo" && $0 != "livePhoto" }) { filters.append(.video) }
+        if types.contains("livePhoto") { filters.append(.livePhoto) }
+        return filters
+    }
+
     private var filteredRecords: [CompressionRecord] {
         switch mediaFilter {
         case .all: records
@@ -95,10 +104,10 @@ struct CompressionHistoryView: View {
                         .listRowBackground(Color.clear)
                     }
 
-                    if Set(records.map(\.mediaType)).count > 1 {
+                    if availableFilters.count > 2 {
                         Section {
                             Picker("Filter", selection: $mediaFilter) {
-                                ForEach(HistoryFilter.allCases, id: \.self) { filter in
+                                ForEach(availableFilters, id: \.self) { filter in
                                     Text(filter.title).tag(filter)
                                 }
                             }

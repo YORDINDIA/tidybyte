@@ -1,3 +1,4 @@
+import Photos
 import SwiftUI
 
 struct AsyncThumbnailView: View {
@@ -41,7 +42,9 @@ struct AsyncThumbnailView: View {
             // soft placeholder no longer blocks a sharp re-fetch for the whole
             // session (residual SHARED-05).
             var showingDegraded = false
-            let sharpKey = ImageCache.key(for: assetId, size: targetSize)
+            let useFit = contentMode == .fit
+            let phMode: PHImageContentMode = useFit ? .aspectFit : .aspectFill
+            let sharpKey = ImageCache.key(for: assetId, size: targetSize, fit: useFit)
             if let cached = await ImageCache.shared.image(for: sharpKey) {
                 guard !Task.isCancelled else { return }
                 image = cached
@@ -68,7 +71,11 @@ struct AsyncThumbnailView: View {
             let maxAttempts = 3
             for _ in 1...maxAttempts {
                 let stamp = await ImageCache.shared.stamp(for: assetId)
-                let (loaded, isDegraded) = await photoService.loadThumbnailWithQuality(for: assetId, size: targetSize)
+                let (loaded, isDegraded) = await photoService.loadThumbnailWithQuality(
+                    for: assetId,
+                    size: targetSize,
+                    contentMode: phMode
+                )
                 guard !Task.isCancelled else { return }
                 guard let loaded else { break }
                 if isDegraded {

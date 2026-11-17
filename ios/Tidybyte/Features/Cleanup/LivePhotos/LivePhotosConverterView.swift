@@ -214,7 +214,13 @@ struct LivePhotosConverterView: View {
             tint: CleanupTool.livePhotos.color,
             headline: Text("\(viewModel.items.count) Live Photos"),
             subtitle: Text("Total: \(viewModel.totalSize.formattedFileSize) · est. savings ~\(viewModel.estimatedSavings.formattedFileSize)")
-        )
+        ) {
+            if viewModel.deletedCount > 0 {
+                Text("Deleted \(viewModel.deletedCount)")
+                    .font(.caption.bold())
+                    .foregroundStyle(Color.destructiveText)
+            }
+        }
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.sm)
     }

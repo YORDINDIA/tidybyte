@@ -20,7 +20,13 @@ struct ScreenshotCleanerView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            if !viewModel.isLoading {
+                LimitedLibraryBanner()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.sm)
+            }
+
             if viewModel.isLoading {
                 // D-01: the fetch runs inside a cancellable task, so this is the
                 // one loading state that keeps a Cancel.
@@ -47,10 +53,6 @@ struct ScreenshotCleanerView: View {
                 }
             } else {
                 VStack(spacing: 0) {
-                    LimitedLibraryBanner()
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.sm)
-
                     // Header. Stacks at accessibility sizes, as the media
                     // tools do, so the count, button and sort menu do not share
                     // one row.

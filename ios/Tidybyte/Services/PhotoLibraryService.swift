@@ -417,14 +417,22 @@ actor PhotoLibraryService {
         await requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, deliveryMode: .highQualityFormat)
     }
 
-    func loadThumbnail(for assetId: String, size: CGSize = CGSize(width: 200, height: 200)) async -> UIImage? {
-        await loadThumbnailWithQuality(for: assetId, size: size).image
+    func loadThumbnail(
+        for assetId: String,
+        size: CGSize = CGSize(width: 200, height: 200),
+        contentMode: PHImageContentMode = .aspectFill
+    ) async -> UIImage? {
+        await loadThumbnailWithQuality(for: assetId, size: size, contentMode: contentMode).image
     }
 
     /// `PHAsset` overload so scan loops can resolve a whole batch with one
     /// `phAssetsById` fetch instead of one identifier lookup per image.
-    func loadThumbnail(for asset: PHAsset, size: CGSize = CGSize(width: 200, height: 200)) async -> UIImage? {
-        await loadThumbnailWithQuality(for: asset, size: size).image
+    func loadThumbnail(
+        for asset: PHAsset,
+        size: CGSize = CGSize(width: 200, height: 200),
+        contentMode: PHImageContentMode = .aspectFill
+    ) async -> UIImage? {
+        await loadThumbnailWithQuality(for: asset, size: size, contentMode: contentMode).image
     }
 
     /// E4 (residual SHARED-05): reports whether the returned thumbnail is the
@@ -432,22 +440,30 @@ actor PhotoLibraryService {
     /// caching results key degraded images separately so a sharp version
     /// fetched later (after iCloud download) replaces the soft one instead of
     /// being blocked by it for the whole session.
-    func loadThumbnailWithQuality(for assetId: String, size: CGSize = CGSize(width: 200, height: 200)) async -> (image: UIImage?, isDegraded: Bool) {
+    func loadThumbnailWithQuality(
+        for assetId: String,
+        size: CGSize = CGSize(width: 200, height: 200),
+        contentMode: PHImageContentMode = .aspectFill
+    ) async -> (image: UIImage?, isDegraded: Bool) {
         guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject else {
             return (nil, false)
         }
-        return await loadThumbnailWithQuality(for: asset, size: size)
+        return await loadThumbnailWithQuality(for: asset, size: size, contentMode: contentMode)
     }
 
-    func loadThumbnailWithQuality(for asset: PHAsset, size: CGSize = CGSize(width: 200, height: 200)) async -> (image: UIImage?, isDegraded: Bool) {
+    func loadThumbnailWithQuality(
+        for asset: PHAsset,
+        size: CGSize = CGSize(width: 200, height: 200),
+        contentMode: PHImageContentMode = .aspectFill
+    ) async -> (image: UIImage?, isDegraded: Bool) {
         await requestImageWithQuality(
             for: asset,
             targetSize: size,
-            contentMode: .aspectFill,
+            contentMode: contentMode,
             deliveryMode: .fastFormat,
-            // Preserve the original loadThumbnail behavior exactly (.none):
-            // .fast can crop when aspect-filling.
-            resizeMode: .none,
+            // Preserve the original loadThumbnail behavior (.none) except for
+            // fit thumbnails, where exact avoids returning a square crop.
+            resizeMode: contentMode == .aspectFit ? .fast : .none,
             allowsNetworkAccess: true
         )
     }

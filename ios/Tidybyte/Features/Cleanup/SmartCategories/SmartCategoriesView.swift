@@ -253,6 +253,10 @@ struct SmartCategoriesView: View {
 
     private var resultsView: some View {
         VStack(spacing: 0) {
+            LimitedLibraryBanner()
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.sm)
+
             if viewModel.categorizedPhotos.isEmpty {
                 Spacer()
                 EmptyStateView(
@@ -262,13 +266,11 @@ struct SmartCategoriesView: View {
                     iconColor: .pink,
                     actionTitle: "Scan Again"
                 ) {
+                    draftSearchText = ""
                     viewModel.startScan()
                 }
                 Spacer()
             } else {
-                LimitedLibraryBanner()
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.top, Spacing.sm)
 
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     HStack(spacing: Spacing.sm) {

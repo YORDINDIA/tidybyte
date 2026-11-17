@@ -183,14 +183,17 @@ struct ActivityView: View {
                 .chartXSelection(value: $selectedDay)
                 // A Chart is one opaque accessibility element by default, so a
                 // VoiceOver user hears "chart" and nothing else. Summarize the
-                // data instead.
+                // data and let swipe up/down step through active days.
                 .accessibilityElement()
                 .accessibilityLabel("Space cleaned up per day over the last 30 days")
-                .accessibilityValue(
-                    viewModel.summary.daily.isEmpty
-                    ? "No activity"
-                    : "\(bytesLabel(viewModel.summary.last30DaysFreedBytes)) cleaned up in the last 30 days"
-                )
+                .accessibilityValue(chartAccessibilityValue)
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment: stepSelectedDay(by: 1)
+                    case .decrement: stepSelectedDay(by: -1)
+                    @unknown default: break
+                    }
+                }
 
                 Text("\(bytesLabel(viewModel.summary.last30DaysFreedBytes)) cleaned up in the last 30 days")
                     .font(.caption)
@@ -203,6 +206,28 @@ struct ActivityView: View {
                         .foregroundStyle(Color.successText)
                 }
             }
+        }
+    }
+
+    private var chartAccessibilityValue: String {
+        let buckets = viewModel.summary.daily
+        guard !buckets.isEmpty else { return L10n.string("No activity") }
+        if let selectedDay,
+           let match = buckets.first(where: { Calendar.current.isDate($0.day, inSameDayAs: selectedDay) }) {
+            return "\(Formatters.mediumDate(match.day)) · \(bytesLabel(match.bytes))"
+        }
+        return L10n.format("%@ cleaned up in the last 30 days", bytesLabel(viewModel.summary.last30DaysFreedBytes))
+    }
+
+    private func stepSelectedDay(by delta: Int) {
+        let buckets = viewModel.summary.daily
+        guard !buckets.isEmpty else { return }
+        if let selectedDay,
+           let index = buckets.firstIndex(where: { Calendar.current.isDate($0.day, inSameDayAs: selectedDay) }) {
+            let next = min(buckets.count - 1, max(0, index + delta))
+            self.selectedDay = buckets[next].day
+        } else {
+            self.selectedDay = delta > 0 ? buckets.first?.day : buckets.last?.day
         }
     }
 
