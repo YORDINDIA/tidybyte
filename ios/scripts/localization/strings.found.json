@@ -166,7 +166,8 @@
     },
     {
       "key": "%lld items · %@",
-      "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
+      "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift",
+      "fallback": "%lld items · %@"
     },
     {
       "key": "%lld items with unknown size are not listed",
@@ -202,8 +203,12 @@
       "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesViewModel.swift"
     },
     {
+      "key": "%lld of %lld reviewed",
+      "file": "Tidybyte/Features/Swipe/SwipeHomeView.swift"
+    },
+    {
       "key": "%lld percent",
-      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
+      "file": "Tidybyte/Shared/Components/SelectableMediaGridCell.swift"
     },
     {
       "key": "%lld photo could not be scored from a local image.",
@@ -264,7 +269,8 @@
     },
     {
       "key": "%lld selected · %@",
-      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
+      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift",
+      "fallback": "%lld selected · %@"
     },
     {
       "key": "%lld total · %lld removable · %@",
@@ -435,10 +441,6 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
-      "key": "Back",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
-    },
-    {
       "key": "Bad image URL.",
       "file": "Tidybyte/Services/Google/GooglePhotosAPI.swift"
     },
@@ -472,7 +474,7 @@
     },
     {
       "key": "Blur Detection Sensitivity",
-      "file": "Tidybyte/Features/Settings/SettingsView.swift"
+      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
     },
     {
       "key": "Blurry (%lld)",
@@ -493,6 +495,10 @@
     {
       "key": "Build",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
+      "key": "Burst",
+      "file": "Tidybyte/Features/Swipe/CardView.swift"
     },
     {
       "key": "Burst Photos",
@@ -533,10 +539,6 @@
     {
       "key": "Cancelled.",
       "file": "Tidybyte/Services/PhotoCompressionService.swift"
-    },
-    {
-      "key": "Category",
-      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
     },
     {
       "key": "Chat albums",
@@ -857,6 +859,11 @@
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
     },
     {
+      "key": "Delete %lld",
+      "fallback": "Delete %lld",
+      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
+    },
+    {
       "key": "Delete %lld item",
       "fallback": "Delete %lld items",
       "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
@@ -868,10 +875,6 @@
     {
       "key": "Delete 1 Item",
       "file": "Tidybyte/Features/Cleanup/CleanupDeletion.swift"
-    },
-    {
-      "key": "Delete file",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
     },
     {
       "key": "Delete is off until the photo loads.",
@@ -922,10 +925,6 @@
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
     },
     {
-      "key": "Deleted %lld",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
-    },
-    {
       "key": "Deleted %lld of %lld items. %lld couldn't be deleted. Try again.",
       "file": "Tidybyte/Services/PhotoLibraryService.swift"
     },
@@ -944,6 +943,10 @@
     {
       "key": "Denied",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
+      "key": "Deselect All",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Detected by file name heuristics — may include some camera photos",
@@ -982,18 +985,6 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
-      "key": "End",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
-    },
-    {
-      "key": "End session",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
-    },
-    {
-      "key": "Ends the session and reviews your changes",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
-    },
-    {
       "key": "est. ~%@",
       "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
@@ -1008,6 +999,10 @@
     {
       "key": "Exact",
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderViewModel.swift"
+    },
+    {
+      "key": "Exit",
+      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
       "key": "Export failed: %@",
@@ -1139,10 +1134,6 @@
       "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
-      "key": "Google Photos",
-      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
-    },
-    {
       "key": "Google Photos is not set up in this build.",
       "file": "Tidybyte/Services/Google/GoogleAuthService.swift"
     },
@@ -1198,6 +1189,10 @@
     {
       "key": "In iCloud.",
       "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
+    },
+    {
+      "key": "In Settings, tap Photos and choose Full Access.",
+      "file": "Tidybyte/Shared/Components/PhotoPermissionView.swift"
     },
     {
       "key": "In Settings, turn TidyByte's Photos access off, then on again, and choose Full Access.",
@@ -1256,7 +1251,7 @@
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
     },
     {
-      "key": "Keep Live Photo and close",
+      "key": "Keep Live Photo",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
     },
     {
@@ -1266,10 +1261,6 @@
     {
       "key": "Keep this photo instead",
       "file": "Tidybyte/Shared/Components/GroupThumbnailControls.swift"
-    },
-    {
-      "key": "Keep Without Album",
-      "file": "Tidybyte/Features/Swipe/AlbumPickerSheet.swift"
     },
     {
       "key": "Keep: %@",
@@ -1340,7 +1331,7 @@
       "file": "Tidybyte/Services/NotificationService.swift"
     },
     {
-      "key": "Leaves this photo unchanged and shows the next one",
+      "key": "Leaves this photo unchanged and won't show it in Not Swiped Yet unless reset",
       "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
     },
     {
@@ -1395,6 +1386,10 @@
     {
       "key": "Limited Photo Access",
       "file": "Tidybyte/Shared/Components/LimitedLibraryBanner.swift"
+    },
+    {
+      "key": "Live Photo",
+      "file": "Tidybyte/Features/Swipe/CardView.swift"
     },
     {
       "key": "Live Photo not found.",
@@ -1513,6 +1508,10 @@
       "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
+      "key": "Next",
+      "file": "Tidybyte/Shared/Components/GroupComparisonView.swift"
+    },
+    {
       "key": "No accessible user albums.",
       "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
     },
@@ -1626,7 +1625,7 @@
     },
     {
       "key": "Off: keep both versions.",
-      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
       "key": "OK",
@@ -1805,6 +1804,10 @@
       "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
     },
     {
+      "key": "Plays or pauses Live Photo motion",
+      "file": "Tidybyte/Features/Swipe/CardView.swift"
+    },
+    {
       "key": "Preparing %@/%@…",
       "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
     },
@@ -1813,20 +1816,16 @@
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
     },
     {
-      "key": "Preview %@, %@",
-      "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
-    },
-    {
       "key": "Preview burst frame",
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
       "key": "Preview photo, %@",
-      "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
+      "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
     },
     {
-      "key": "Preview screenshot, %@",
-      "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
+      "key": "Previous",
+      "file": "Tidybyte/Shared/Components/GroupComparisonView.swift"
     },
     {
       "key": "ProRAW, ProRes, and RAW+JPEG totals are unavailable from the Photos subtype metadata used here.",
@@ -1886,7 +1885,7 @@
     },
     {
       "key": "Refresh",
-      "file": "Tidybyte/Features/Cleanup/LargeFiles/LargeFilesView.swift"
+      "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
     {
       "key": "Reminder Day",
@@ -1951,10 +1950,6 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
-      "key": "Returns to the swipe home; reviews pending deletions first if any",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
-    },
-    {
       "key": "Reverts your last swipe",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
@@ -1981,6 +1976,10 @@
     {
       "key": "Review Group",
       "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
+    },
+    {
+      "key": "Review Marked Items",
+      "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
     },
     {
       "key": "Review media in chat albums",
@@ -2042,6 +2041,10 @@
     {
       "key": "Saving copy %lld of %lld",
       "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
+    },
+    {
+      "key": "Scan in Cleanup to estimate recoverable Google Photos storage.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Scan Type",
@@ -2136,10 +2139,6 @@
       "file": "Tidybyte/Features/Cleanup/Similar/SimilarPhotosView.swift"
     },
     {
-      "key": "Sign in with Google",
-      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
-    },
-    {
       "key": "Sign in, pick the photos and videos to check, and TidyByte finds duplicates, blurry shots, screenshots, and large videos. TidyByte connects to Google only after you sign in here, and reads only the items you pick. Nothing goes to a TidyByte server.",
       "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
@@ -2232,10 +2231,6 @@
       "file": "Tidybyte/Features/Swipe/SwipeHomeView.swift"
     },
     {
-      "key": "Start Another Session",
-      "file": "Tidybyte/Features/Swipe/SessionCompletionView.swift"
-    },
-    {
       "key": "Start here",
       "file": "Tidybyte/Features/Cleanup/CleanupHomeView.swift"
     },
@@ -2282,6 +2277,10 @@
     {
       "key": "Swipe",
       "file": "Tidybyte/App/RootView.swift"
+    },
+    {
+      "key": "Swipe Guide",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
       "key": "Swipe history cleared",
@@ -2566,15 +2565,15 @@
     },
     {
       "key": "Try Again",
-      "file": "Tidybyte/Features/Swipe/CardView.swift"
-    },
-    {
-      "key": "Try Another Filter",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Try Loading Again",
       "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
+    },
+    {
+      "key": "Unable to load quota.",
+      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
     },
     {
       "key": "Undo",
@@ -2742,5 +2741,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 677
+  "total": 676
 }

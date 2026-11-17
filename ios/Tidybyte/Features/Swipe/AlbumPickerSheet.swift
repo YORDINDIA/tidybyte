@@ -3,6 +3,7 @@ import UIKit
 
 struct AlbumPickerSheet: View {
     let photoService: PhotoLibraryService
+    var assetId: String? = nil
     /// Returns nil on success, or a user-facing error message. Failures are
     /// surfaced HERE, inside the sheet — the session view's error alert sits
     /// behind this presentation and would never be seen (B4).
@@ -12,6 +13,8 @@ struct AlbumPickerSheet: View {
     @State private var albumState = AlbumSheetState()
     @State private var showNewAlbumField = false
     @State private var newAlbumName = ""
+    @State private var searchText = ""
+    @State private var memberAlbumIds: Set<String> = []
     @State private var isCreatingAlbum = false
     @State private var errorMessage: String?
     /// True while an album add is in flight: album selection stays disabled so
@@ -21,6 +24,12 @@ struct AlbumPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     private var recentAlbumIds: [String] {
         AppPreferences.recentAlbumIds()
+    }
+
+    private var filteredAlbums: [AlbumInfo] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return albumState.albums }
+        return albumState.albums.filter { $0.title.localizedCaseInsensitiveContains(query) }
     }
 
     var recentAlbums: [AlbumInfo] {
@@ -65,7 +74,7 @@ struct AlbumPickerSheet: View {
                             }
 
                             // Recent Albums
-                            if !recentAlbums.isEmpty {
+                            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !recentAlbums.isEmpty {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("Recent")
                                         .font(.headline)
@@ -88,18 +97,43 @@ struct AlbumPickerSheet: View {
                                     .font(.headline)
                                     .padding(.horizontal)
 
-                                LazyVGrid(columns: ResponsiveGrid.photo(spacing: Spacing.md), spacing: Spacing.md) {
-                                    ForEach(albumState.albums) { album in
-                                        albumGridItem(album)
+                                if filteredAlbums.isEmpty {
+                                    EmptyStateView(
+                                        icon: "rectangle.stack",
+                                        title: "No Albums",
+                                        message: albumState.albums.isEmpty
+                                            ? "No albums with photos were found."
+                                            : "Try a different search term.",
+                                        iconColor: .secondary
+                                    )
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, Spacing.xl)
+                                } else {
+                                    LazyVGrid(columns: ResponsiveGrid.photo(spacing: Spacing.md), spacing: Spacing.md) {
+                                        ForEach(filteredAlbums) { album in
+                                            albumGridItem(album)
+                                        }
                                     }
+                                    .padding(.horizontal)
                                 }
-                                .padding(.horizontal)
                             }
                         }
                         .padding(.vertical)
                     }
+                    .searchable(text: $searchText, prompt: "Search")
                     .pullToRefresh {
                         await loadAlbums()
+                    }
+                    .safeAreaInset(edge: .bottom) {
+                        ActionBarView {
+                            Button {
+                                onSkip()
+                                dismiss()
+                            } label: {
+                                SecondaryActionLabel(title: "Keep Without Album")
+                            }
+                            .disabled(isAddingToAlbum || isCreatingAlbum)
+                        }
                     }
                 }
             }
@@ -113,13 +147,6 @@ struct AlbumPickerSheet: View {
                         dismiss()
                     }
                     // A running add would still file the photo after Cancel.
-                    .disabled(isAddingToAlbum || isCreatingAlbum)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Keep Without Album") {
-                        onSkip()
-                        dismiss()
-                    }
                     .disabled(isAddingToAlbum || isCreatingAlbum)
                 }
             }
@@ -185,15 +212,27 @@ struct AlbumPickerSheet: View {
         Button {
             selectAlbum(album)
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 AsyncAlbumThumbnail(assetId: album.thumbnailAssetId, photoService: photoService)
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(alignment: .topTrailing) {
+                        if memberAlbumIds.contains(album.id) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.white, Color.successFill)
+                                .padding(4)
+                        }
+                    }
 
                 Text(album.title)
                     .font(.caption)
                     .lineLimit(1)
                     .foregroundStyle(.primary)
+
+                Text("\(album.count)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
             .frame(width: 112)
             .contentShape(Rectangle())
@@ -215,6 +254,14 @@ struct AlbumPickerSheet: View {
                     }
                     .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(alignment: .topTrailing) {
+                        if memberAlbumIds.contains(album.id) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.white, Color.successFill)
+                                .padding(4)
+                        }
+                    }
 
                 VStack(spacing: 2) {
                     Text(album.title)
@@ -234,6 +281,9 @@ struct AlbumPickerSheet: View {
 
     private func loadAlbums() async {
         await albumState.load { await AlbumSheetLoader.load(photoService: photoService, editableOnly: true) }
+        if let assetId {
+            memberAlbumIds = Set(await photoService.userAlbumIdentifiers(containing: assetId))
+        }
     }
 
     private func selectAlbum(_ album: AlbumInfo) {

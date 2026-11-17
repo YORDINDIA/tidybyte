@@ -10,6 +10,8 @@ struct ActivityView: View {
     @State private var viewModel = ActivityViewModel()
     @Environment(\.modelContext) private var modelContext
     @Environment(LibraryChangeMonitor.self) private var libraryMonitor
+    @Environment(AppNavigation.self) private var appNavigation
+    @State private var selectedDay: Date?
     /// Read by the formatted values below: the environment is what makes this
     /// row re-render on a language change. `Formatters` resolves against
     /// `Locale.current` on its own, which never changes.
@@ -25,8 +27,11 @@ struct ActivityView: View {
                     icon: "chart.line.uptrend.xyaxis",
                     title: "No Savings Yet",
                     message: "Space you free up with any cleanup tool shows up here.",
-                    iconColor: .green
-                )
+                    iconColor: .green,
+                    actionTitle: "Go to Cleanup Tools"
+                ) {
+                    appNavigation.showCleanup()
+                }
                 .padding(.top, Spacing.xxxl)
             } else {
                 VStack(spacing: Spacing.xl) {
@@ -175,6 +180,7 @@ struct ActivityView: View {
                     }
                 }
                 .frame(height: 140)
+                .chartXSelection(value: $selectedDay)
                 // A Chart is one opaque accessibility element by default, so a
                 // VoiceOver user hears "chart" and nothing else. Summarize the
                 // data instead.
@@ -189,6 +195,13 @@ struct ActivityView: View {
                 Text("\(bytesLabel(viewModel.summary.last30DaysFreedBytes)) cleaned up in the last 30 days")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                if let selectedDay,
+                   let match = viewModel.summary.daily.first(where: { Calendar.current.isDate($0.day, inSameDayAs: selectedDay) }) {
+                    Text(verbatim: "\(Formatters.mediumDate(match.day)) · \(bytesLabel(match.bytes))")
+                        .font(.caption.bold())
+                        .foregroundStyle(Color.successText)
+                }
             }
         }
     }

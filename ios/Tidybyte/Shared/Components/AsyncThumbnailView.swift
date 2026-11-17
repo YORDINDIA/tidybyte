@@ -4,6 +4,7 @@ struct AsyncThumbnailView: View {
     let assetId: String
     let photoService: PhotoLibraryService
     var targetSize: CGSize = CGSize(width: 200, height: 200)
+    var contentMode: ContentMode = .fill
 
     @State private var image: UIImage?
     @State private var hasLoaded = false
@@ -15,7 +16,7 @@ struct AsyncThumbnailView: View {
             if let image {
                 Image(uiImage: image)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .aspectRatio(contentMode: contentMode)
                     .transition(.opacity.animation(.easeIn(duration: 0.2)))
             } else if hasLoaded {
                 Rectangle()

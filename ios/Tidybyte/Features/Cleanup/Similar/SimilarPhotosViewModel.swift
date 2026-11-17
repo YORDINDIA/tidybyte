@@ -454,6 +454,26 @@ final class SimilarPhotosViewModel {
         selectedForDeletion = state.ids
     }
 
+    func checkedIds(in group: SimilarGroup) -> Set<String> {
+        let nonBest = Set(group.assets.map(\.id).filter { $0 != group.bestAssetId })
+        return nonBest.intersection(selectedForDeletion)
+    }
+
+    func delete(group: SimilarGroup) async {
+        deletedCount = 0
+        let ids = checkedIds(in: group)
+        guard !ids.isEmpty, !isDeleting else { return }
+        let previousSelection = selectedForDeletion
+        selectedForDeletion = ids
+        await deleteSelected()
+        let survivors = Set(groups.flatMap { $0.assets.map(\.id) })
+        if ids.isSubset(of: survivors) {
+            selectedForDeletion = previousSelection
+        } else {
+            selectedForDeletion.formUnion(previousSelection.intersection(survivors))
+        }
+    }
+
     func setBest(assetId: String, in groupId: String) {
         guard let index = groups.firstIndex(where: { $0.id == groupId }) else { return }
         let oldBest = groups[index].bestAssetId

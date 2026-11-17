@@ -30,8 +30,8 @@ struct VideoCompressionView: View {
         .localizedNavigationTitle("Video Compression")
         .happyPathCelebration(isPresented: $isCelebrating, statLine: celebrationStatLine)
         .toolbar {
-            if !viewModel.isLoading && !viewModel.videos.isEmpty {
-                ToolbarItem(placement: .topBarLeading) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if !viewModel.isLoading && !viewModel.videos.isEmpty {
                     SelectAllToolbarButton(
                         allSelected: viewModel.allSelected,
                         selectAll: { viewModel.selectAll() },
@@ -39,15 +39,12 @@ struct VideoCompressionView: View {
                     )
                     .disabled(viewModel.isCompressing)
                 }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: Spacing.md) {
-                    NavigationLink {
-                        CompressionHistoryView()
-                    } label: {
-                        Label("Compression History", systemImage: "clock.arrow.circlepath")
-                    }
+                NavigationLink {
+                    CompressionHistoryView()
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
                 }
+                .accessibilityLabel("Compression History")
             }
         }
         .alert("Compress Videos", isPresented: $showCompressConfirm) {
@@ -170,7 +167,21 @@ struct VideoCompressionView: View {
     // MARK: - Content View
 
     private var contentView: some View {
-        VStack(spacing: 0) {
+        let totalBytes = viewModel.videos.reduce(Int64(0)) { $0 + $1.asset.fileSize }
+        return VStack(spacing: 0) {
+            LimitedLibraryBanner()
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.sm)
+
+            HStack {
+                Text("\(viewModel.videos.count) items · \(totalBytes.formattedFileSize)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.xs)
+
             List {
                 ForEach(Array(viewModel.sortedVideos.enumerated()), id: \.element.id) { index, video in
                     videoRow(video)
@@ -212,6 +223,11 @@ struct VideoCompressionView: View {
                 AsyncThumbnailView(assetId: video.id, photoService: photoService)
                     .frame(width: 60, height: 60)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                    .overlay(alignment: .topLeading) {
+                        if video.asset.isFavorite {
+                            FavoriteMark().padding(Spacing.xs)
+                        }
+                    }
                     .overlay(alignment: .bottomLeading) {
                         Text(video.asset.formattedDuration)
                             .font(.caption2.bold())
@@ -267,8 +283,11 @@ struct VideoCompressionView: View {
             }
             Menu {
                 ForEach(CompressionPreset.presets) { preset in
-                    Button(preset.label) {
+                    Button {
                         viewModel.setPreset(preset, for: video.id)
+                    } label: {
+                        Text(preset.label)
+                        Text(preset.description)
                     }
                 }
             } label: {
@@ -345,7 +364,12 @@ struct VideoCompressionView: View {
                 if !viewModel.isCompressing {
                     Menu {
                         ForEach(CompressionPreset.presets) { preset in
-                            Button(preset.label) { viewModel.setPresetForSelected(preset) }
+                            Button {
+                                viewModel.setPresetForSelected(preset)
+                            } label: {
+                                Text(preset.label)
+                                Text(preset.description)
+                            }
                         }
                     } label: {
                         // `preset.label` is a technical name ("1080p HD"), so it
@@ -358,6 +382,13 @@ struct VideoCompressionView: View {
                             .frame(minHeight: 32)
                     }
                     .accessibilityLabel("Quality for selected items")
+
+                    if let description = viewModel.selectedPreset?.description {
+                        Text(description)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                 }
             }
 
@@ -393,7 +424,7 @@ struct VideoCompressionView: View {
                         .font(.headline)
                         .padding(.horizontal, Spacing.xxl)
                         .padding(.vertical, Spacing.sm)
-                        .background(.blue)
+                        .background(Color.actionFill)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
                 }

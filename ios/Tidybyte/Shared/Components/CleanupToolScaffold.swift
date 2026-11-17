@@ -79,13 +79,7 @@ struct ToolIdleView<Options: View>: View {
                 options()
 
                 Button(action: primaryAction) {
-                    Text(primaryTitle)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(Spacing.lg)
-                        .background(Color.actionFill)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                    PrimaryActionLabel(title: primaryTitle)
                 }
                 .scaleOnPress()
                 .accessibilityHint(primaryHint ?? "")

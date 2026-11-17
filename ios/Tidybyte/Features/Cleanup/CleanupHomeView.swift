@@ -53,6 +53,7 @@ struct CleanupHomeView: View {
                 }
             }
             .padding(Spacing.lg)
+            .readableWidth(920)
         }
         .localizedNavigationTitle("Cleanup")
         .pullToRefresh {
@@ -132,7 +133,7 @@ struct CleanupHomeView: View {
     }
 
     private func cleanupToolCard(_ tool: CleanupToolInfo, isStartHere: Bool) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 // Bare glyph in the tool's color: no tile behind it.
                 // Fixed box: SF Symbols differ in height, and a taller glyph
@@ -148,32 +149,27 @@ struct CleanupHomeView: View {
                 badgeView(for: tool)
             }
 
-            // Pushes the text block to the bottom, so cards stretched to the
-            // row height keep their chevrons on one line.
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(LocalizedStringKey(tool.name))
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.primary)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
+                    .minimumScaleFactor(0.8)
+
+                Text(tool.description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
+                    .minimumScaleFactor(0.8)
+            }
+
             Spacer(minLength: 0)
 
-            HStack(alignment: .bottom, spacing: Spacing.sm) {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(LocalizedStringKey(tool.name))
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.primary)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
-                        .minimumScaleFactor(0.8)
-
-                    Text(tool.description)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
-                        .minimumScaleFactor(0.8)
-
-                    // Always laid out, shown on one card only, so that card is
-                    // not taller than its neighbour.
+            HStack(alignment: .center, spacing: Spacing.sm) {
+                if isStartHere {
                     Label("Start here", systemImage: "arrow.right.circle.fill")
                         .font(.caption2.bold())
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.top, 2)
-                        .opacity(isStartHere ? 1 : 0)
-                        .accessibilityHidden(!isStartHere)
+                        .foregroundStyle(Color.actionText)
                 }
 
                 Spacer(minLength: 0)
@@ -183,7 +179,6 @@ struct CleanupHomeView: View {
                 Image(systemName: "chevron.forward")
                     .font(.caption.bold())
                     .foregroundStyle(.tertiary)
-                    .padding(.bottom, 2)
                     .accessibilityHidden(true)
             }
         }
@@ -191,6 +186,7 @@ struct CleanupHomeView: View {
         // edges even when one title wraps.
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .glassCard()
+        .opacity(tool.count == 0 ? 0.72 : 1.0)
         // One element per card: VoiceOver otherwise reads the icon, the count
         // badge, the title, the description, and "Start here" as five separate
         // stops with the badge number stripped of its meaning.

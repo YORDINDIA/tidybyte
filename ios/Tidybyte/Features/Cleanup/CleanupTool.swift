@@ -130,7 +130,7 @@ enum CleanupTool: String, CaseIterable, Identifiable, Hashable, Sendable {
         switch self {
         case .duplicates: .red
         case .similar: .orange
-        case .screenshots: .yellow
+        case .screenshots: .screenshotTint
         case .screenRecordings: .indigo
         case .chatMedia: .green
         case .blurry: .purple

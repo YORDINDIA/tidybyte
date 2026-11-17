@@ -93,6 +93,13 @@ extension Color {
             ? UIColor(red: 0.682, green: 0.682, blue: 0.698, alpha: 1)   // #AEAEB2
             : UIColor(red: 0.353, green: 0.353, blue: 0.380, alpha: 1)   // #5A5A61
     })
+
+    /// Accessible warm gold/amber for Screenshots iconography and badges in light & dark mode.
+    static let screenshotTint = Color(UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor.systemYellow
+            : UIColor(red: 0.710, green: 0.475, blue: 0.000, alpha: 1)   // #B57900
+    })
 }
 
 

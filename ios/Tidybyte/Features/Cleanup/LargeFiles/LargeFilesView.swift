@@ -23,6 +23,8 @@ struct LargeFilesView: View {
                 VStack(spacing: 0) {
                     // Controls
                     VStack(spacing: Spacing.sm) {
+                        LimitedLibraryBanner()
+
                         HStack {
                             // Binary display, consistent with each row's
                             // `formattedFileSize` (LF-05).
@@ -35,21 +37,23 @@ struct LargeFilesView: View {
                         }
                         Slider(value: $thresholdMB, in: 5...500, step: 5)
 
-                        Picker("Filter", selection: $viewModel.mediaFilter) {
-                            ForEach(MediaFilter.allCases, id: \.self) { filter in
-                                // Keys, not rendered `String`s, so both control
-                                // labels follow a language switch. See `RootView`.
-                                Text(LocalizedStringKey(filter.displayName)).tag(filter)
+                        HStack(spacing: Spacing.sm) {
+                            Picker("Filter", selection: $viewModel.mediaFilter) {
+                                ForEach(MediaFilter.allCases, id: \.self) { filter in
+                                    // Keys, not rendered `String`s, so both control
+                                    // labels follow a language switch. See `RootView`.
+                                    Text(LocalizedStringKey(filter.displayName)).tag(filter)
+                                }
                             }
-                        }
-                        .pickerStyle(.segmented)
+                            .pickerStyle(.segmented)
 
-                        Picker("Sort", selection: $viewModel.sortOrder) {
-                            ForEach(MediaSortOrder.allCases, id: \.self) { order in
-                                Text(LocalizedStringKey(order.displayName)).tag(order)
+                            Picker("Sort", selection: $viewModel.sortOrder) {
+                                ForEach(MediaSortOrder.allCases, id: \.self) { order in
+                                    Text(LocalizedStringKey(order.displayName)).tag(order)
+                                }
                             }
+                            .pickerStyle(.menu)
                         }
-                        .pickerStyle(.menu)
                     }
                     .padding(Spacing.lg)
                     .readableWidth()
@@ -64,9 +68,15 @@ struct LargeFilesView: View {
                                     isSelected: viewModel.selectedIds.contains(asset.id),
                                     photoService: photoService,
                                     onToggle: { viewModel.toggleSelection(asset.id) },
-                                    onPreview: { previewStart = asset },
-                                    onDelete: { rowToDelete = asset }
+                                    onPreview: { previewStart = asset }
                                 )
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        rowToDelete = asset
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                             if viewModel.zeroSizeCount > 0 {
                                 Text("\(viewModel.zeroSizeCount) items with unknown size are not listed")
@@ -79,7 +89,7 @@ struct LargeFilesView: View {
                         .pullToRefresh { await viewModel.refresh() }
                     }
 
-                    if !viewModel.selectedIds.isEmpty {
+                    if viewModel.selectedVisibleCount > 0 || viewModel.isPreparingShare {
                         CleanupActionBar {
                             if viewModel.isPreparingShare {
                                 ProgressView()
@@ -126,7 +136,7 @@ struct LargeFilesView: View {
         .happyPathCelebration(isPresented: $isCelebrating, statLine: celebrationStatLine)
         .toolbar {
             if !viewModel.filteredAssets.isEmpty {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
                     SelectAllToolbarButton(
                         allSelected: viewModel.areAllVisibleSelected,
                         selectAll: { viewModel.selectAll() },
@@ -176,6 +186,9 @@ struct LargeFilesView: View {
             }
         }
         .toast($toast)
+        .onChange(of: viewModel.errorMessage) { _, newValue in
+            if newValue != nil { toast = nil }
+        }
         // A load/refresh that had to clear picks below the size slider says so,
         // instead of the selection just disappearing.
         .onChange(of: viewModel.droppedSelectionNotice) { _, notice in
@@ -290,7 +303,6 @@ struct LargeFileRow: View {
     let photoService: PhotoLibraryService
     let onToggle: () -> Void
     let onPreview: () -> Void
-    let onDelete: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -305,6 +317,11 @@ struct LargeFileRow: View {
                 AsyncThumbnailView(assetId: asset.id, photoService: photoService)
                     .frame(width: 60, height: 60)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                    .overlay(alignment: .bottomLeading) {
+                        if asset.isFavorite {
+                            FavoriteMark().padding(Spacing.xs)
+                        }
+                    }
 
                 if isAX {
                     Spacer()
@@ -313,16 +330,6 @@ struct LargeFileRow: View {
                     Spacer()
                     sizeLabel
                 }
-
-                Button(role: .destructive, action: onDelete) {
-                    Image(systemName: "trash")
-                        .font(.body)
-                        .foregroundStyle(.red)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Delete file")
             }
 
             if isAX {

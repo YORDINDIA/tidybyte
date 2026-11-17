@@ -30,6 +30,7 @@ final class GooglePhotosViewModel {
 
     private(set) var isSignedIn = GoogleAuthService.shared.isSignedIn
     private(set) var quota: GoogleStorageQuota?
+    private(set) var isLoadingQuota = false
     private(set) var phase: Phase = .idle
     private(set) var result: CloudScanResult?
     var selectedIds: Set<String> = []
@@ -72,7 +73,9 @@ final class GooglePhotosViewModel {
     }
 
     func loadQuota() async {
-        guard isSignedIn else { return }
+        guard isSignedIn, !isLoadingQuota else { return }
+        isLoadingQuota = true
+        defer { isLoadingQuota = false }
         // A reply for an account that has since signed out must not write into
         // the session that replaced it.
         let generation = sessionGeneration
@@ -84,6 +87,10 @@ final class GooglePhotosViewModel {
             guard generation == sessionGeneration else { return }
             handle(error)
         }
+    }
+
+    func deselectAll() {
+        selectedIds.removeAll()
     }
 
     /// Opens the Google Photos Picker, waits for the user to finish, then scans.

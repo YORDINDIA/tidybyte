@@ -54,6 +54,7 @@ struct SmartCategoriesView: View {
     @State private var previewPhoto: CategorizedPhoto?
     @State private var pendingSwipeReview = false
     @State private var cellToDelete: CategorizedPhoto?
+    @State private var draftSearchText = ""
 
     private let photoService = PhotoLibraryService.shared
 
@@ -116,16 +117,14 @@ struct SmartCategoriesView: View {
         }
         .toolbar {
             if viewModel.scanState == .completed {
-                if !viewModel.filteredPhotos.isEmpty {
-                    ToolbarItem(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    if !viewModel.filteredPhotos.isEmpty {
                         SelectAllToolbarButton(
                             allSelected: viewModel.allVisibleSelected,
                             selectAll: { viewModel.selectAll() },
                             deselectAll: { viewModel.deselectAll() }
                         )
                     }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         if !viewModel.filteredPhotos.isEmpty {
                             Button {
@@ -138,6 +137,7 @@ struct SmartCategoriesView: View {
                         }
                         Button {
                             HapticHelper.impact(.light)
+                            draftSearchText = ""
                             viewModel.cancelSearch()
                             viewModel.scanState = .idle
                         } label: {
@@ -266,16 +266,29 @@ struct SmartCategoriesView: View {
                 }
                 Spacer()
             } else {
+                LimitedLibraryBanner()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.sm)
+
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    TextField("Search scanned photos", text: $viewModel.searchText)
-                        .textFieldStyle(.roundedBorder)
-                        .submitLabel(.search)
-                        .onSubmit { viewModel.submitSearch() }
-                    HStack {
-                        Button("Search") { viewModel.submitSearch() }
-                            .disabled(!viewModel.isSearchActive || viewModel.isSearching)
-                        if viewModel.isSearchActive {
-                            Button("Clear") { viewModel.searchText = "" }
+                    HStack(spacing: Spacing.sm) {
+                        TextField("Search scanned photos", text: $draftSearchText)
+                            .textFieldStyle(.roundedBorder)
+                            .submitLabel(.search)
+                            .onSubmit {
+                                viewModel.searchText = draftSearchText
+                                viewModel.submitSearch()
+                            }
+                        Button("Search") {
+                            viewModel.searchText = draftSearchText
+                            viewModel.submitSearch()
+                        }
+                        .disabled(draftSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSearching)
+                        if !draftSearchText.isEmpty || viewModel.isSearchActive {
+                            Button("Clear") {
+                                draftSearchText = ""
+                                viewModel.searchText = ""
+                            }
                         }
                     }
                 }
@@ -408,38 +421,14 @@ struct SmartCategoriesView: View {
     // MARK: - Photo Cell
 
     private func photoCell(_ photo: CategorizedPhoto) -> some View {
-        ZStack(alignment: .topTrailing) {
-            Color.clear
-                .aspectRatio(1, contentMode: .fit)
-                .overlay {
-                    AsyncThumbnailView(assetId: photo.id, photoService: photoService)
-                }
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
-                // The thumbnail is the preview target; the checkbox is its own element.
-                .accessibilityElement(children: .ignore)
-                .accessibilityAddTraits(.isButton)
-                .accessibilityLabel("Preview photo, \(photo.asset.displaySize)")
-                // VoiceOver activation opens the preview, as a tap does.
-                .accessibilityAction(.default) { previewPhoto = photo }
-
-            // Always-visible selection checkbox. Tapping it (de)selects; tapping
-            // anywhere else on the cell opens the preview.
-            SelectToggle(isSelected: viewModel.selectedIds.contains(photo.id), itemName: "photo") {
-                viewModel.toggleSelection(photo.id)
-            }
-        }
-        .overlay {
-            if viewModel.selectedIds.contains(photo.id) {
-                RoundedRectangle(cornerRadius: Spacing.xs)
-                    .strokeBorder(Color.blue, lineWidth: 2)
-            }
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            previewPhoto = photo
-        }
-        .contextMenu {
+        SelectableMediaGridCell(
+            asset: photo.asset,
+            photoService: photoService,
+            isSelected: viewModel.selectedIds.contains(photo.id),
+            itemName: "photo",
+            onPreview: { previewPhoto = photo },
+            onToggleSelection: { viewModel.toggleSelection(photo.id) }
+        ) {
             Button {
                 previewPhoto = photo
             } label: {

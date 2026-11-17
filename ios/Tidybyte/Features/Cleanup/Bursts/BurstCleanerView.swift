@@ -53,17 +53,27 @@ struct BurstCleanerView: View {
         .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .toolbar {
             if !viewModel.groups.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
                     SelectAllToolbarButton(
                         allSelected: viewModel.allNonBestSelected,
                         selectAll: { viewModel.selectAllNonBest() },
                         deselectAll: { viewModel.deselectAll() }
                     )
+                    Button {
+                        HapticHelper.impact(.light)
+                        Task { await viewModel.refresh() }
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                    }
+                    .accessibilityLabel("Refresh")
                 }
             }
         }
         .happyPathCelebration(isPresented: $isCelebrating, statLine: celebrationStatLine)
         .toast($toast)
+        .onChange(of: viewModel.errorMessage) { _, newValue in
+            if newValue != nil { toast = nil }
+        }
         .alert(CleanupDeletion.confirmTitle(count: viewModel.autoCleanArmedCount), isPresented: $showAutoCleanConfirm) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
@@ -220,7 +230,9 @@ struct BurstCleanerView: View {
                         HapticHelper.impact(.light)
                         showDeleteConfirm = true
                     } label: {
-                        Text("Delete")
+                        Text(viewModel.selectedCount > 0 && !dynamicTypeSize.isAccessibilitySize
+                             ? L10n.format("Delete %lld", fallback: "Delete %lld", viewModel.selectedCount)
+                             : L10n.string("Delete"))
                             .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, Spacing.lg)
@@ -269,24 +281,12 @@ struct BurstCleanerView: View {
     }
 
     private var summaryHeader: some View {
-        HStack(spacing: Spacing.md) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(L10n.format("%lld burst group", fallback: "%lld burst groups", viewModel.groups.count))
-                    .font(.headline)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text("\(viewModel.totalBurstCount) total · \(viewModel.deletableCount) removable · \(viewModel.savingsBytes.formattedFileSize)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .fixedSize(horizontal: false, vertical: true)
-
-            Spacer()
-
-            Image(systemName: "square.stack.3d.up")
-                .font(.title2)
-                .foregroundStyle(CleanupTool.bursts.color)
-        }
-        .glassCard()
+        CleanupSummaryCard(
+            icon: CleanupTool.bursts.icon,
+            tint: CleanupTool.bursts.color,
+            headline: Text(L10n.format("%lld burst group", fallback: "%lld burst groups", viewModel.groups.count)),
+            subtitle: Text("\(viewModel.totalBurstCount) total · \(viewModel.deletableCount) removable · \(viewModel.savingsBytes.formattedFileSize)")
+        )
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.sm)
     }
@@ -323,8 +323,8 @@ struct BurstCleanerView: View {
     }
 
     /// Accessibility sizes need room for "Keep This" and the star label; the
-    /// thumbnails stay 80 pt, centered in a wider column.
-    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 80 }
+    /// thumbnails stay 96 pt, centered in a wider column.
+    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 96 }
 
     private func burstGroupRow(_ group: BurstGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -348,7 +348,7 @@ struct BurstCleanerView: View {
                         let isKeeper = asset.id == group.bestAssetId
                         VStack(spacing: Spacing.xs) {
                             AsyncThumbnailView(assetId: asset.id, photoService: photoService)
-                                .frame(width: 80, height: 80)
+                                .frame(width: 96, height: 96)
                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: CornerRadius.small)

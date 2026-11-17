@@ -66,9 +66,20 @@ struct MediaCleanerView: View {
                         ProgressView("Loading media").padding(Spacing.xl)
                     } else {
                         if viewModel.filteredAssets.isEmpty {
-                            EmptyStateView(icon: viewModel.tool.icon,
-                                           title: "No matching media",
-                                           message: emptyMessage)
+                            EmptyStateView(
+                                icon: viewModel.tool.icon,
+                                title: "No matching media",
+                                message: emptyMessage,
+                                actionTitle: viewModel.tool == .chatMedia ? "Albums" : "Refresh",
+                                action: {
+                                    if viewModel.tool == .chatMedia {
+                                        draftAlbums = viewModel.albumIDs
+                                        showAlbums = true
+                                    } else {
+                                        Task { await viewModel.load() }
+                                    }
+                                }
+                            )
                         }
                         LazyVGrid(columns: ResponsiveGrid.photo(), spacing: Spacing.xs) {
                             ForEach(viewModel.filteredAssets) { asset in cell(asset) }
@@ -91,14 +102,16 @@ struct MediaCleanerView: View {
         .localizedNavigationTitle(viewModel.tool.nameKey)
         .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                SelectAllToolbarButton(allSelected: viewModel.allVisibleSelected,
-                    selectAll: { viewModel.selectedIDs.formUnion(viewModel.filteredAssets.map(\.id)) },
-                    deselectAll: { viewModel.selectedIDs.subtract(viewModel.filteredAssets.map(\.id)) })
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if !viewModel.filteredAssets.isEmpty {
+                    SelectAllToolbarButton(
+                        allSelected: viewModel.allVisibleSelected,
+                        selectAll: { viewModel.selectedIDs.formUnion(viewModel.filteredAssets.map(\.id)) },
+                        deselectAll: { viewModel.selectedIDs.subtract(viewModel.filteredAssets.map(\.id)) }
+                    )
                     .disabled(viewModel.isLoading || viewModel.isDeleting)
-            }
-            if viewModel.tool == .chatMedia {
-                ToolbarItem(placement: .topBarTrailing) {
+                }
+                if viewModel.tool == .chatMedia {
                     Button("Albums") {
                         draftAlbums = viewModel.albumIDs
                         showAlbums = true
@@ -107,9 +120,10 @@ struct MediaCleanerView: View {
             }
         }
         .task(id: libraryMonitor.generation) { await viewModel.load() }
-        .confirmationDialog(CleanupDeletion.confirmTitle(count: pendingDeletion.count), isPresented: Binding(
+        .alert(CleanupDeletion.confirmTitle(count: pendingDeletion.count), isPresented: Binding(
             get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } }
-        ), titleVisibility: .visible) {
+        )) {
+            Button("Cancel", role: .cancel) { pendingDeletion = [] }
             Button("Delete", role: .destructive) {
                 let ids = pendingDeletion
                 pendingDeletion = []
@@ -163,23 +177,27 @@ struct MediaCleanerView: View {
     }
 
     private func cell(_ asset: AssetSummary) -> some View {
-        ZStack(alignment: .topTrailing) {
-            Button { previewAsset = asset } label: {
-                Color.clear.aspectRatio(1, contentMode: .fit)
-                    .overlay { AsyncThumbnailView(assetId: asset.id, photoService: .shared) }
-                    .clipped()
-                    .overlay(alignment: .bottomLeading) {
-                        Text(asset.mediaType == .video ? "\(asset.formattedDuration) · \(asset.displaySize)" : asset.displaySize)
-                            .font(.caption2).foregroundStyle(.white)
-                            .padding(Spacing.xs).background(.black.opacity(0.7))
-                    }
+        SelectableMediaGridCell(
+            asset: asset,
+            photoService: .shared,
+            isSelected: viewModel.selectedIDs.contains(asset.id),
+            itemName: asset.filename ?? L10n.string("media"),
+            previewAccessibilityLabel: "Preview \(asset.filename ?? L10n.string("media")), \(asset.displaySize)",
+            bottomBadgeText: asset.mediaType == .video ? "\(asset.formattedDuration) · \(asset.displaySize)" : asset.displaySize,
+            isSelectionDisabled: viewModel.isDeleting,
+            onPreview: { previewAsset = asset },
+            onToggleSelection: { viewModel.selectedIDs.toggle(asset.id) }
+        ) {
+            Button {
+                previewAsset = asset
+            } label: {
+                Label("Preview", systemImage: "eye")
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Preview \(asset.filename ?? L10n.string("media")), \(asset.displaySize)")
-            SelectToggle(isSelected: viewModel.selectedIDs.contains(asset.id), itemName: asset.filename ?? L10n.string("media")) {
-                viewModel.selectedIDs.toggle(asset.id)
+            Button(role: .destructive) {
+                pendingDeletion = [asset.id]
+            } label: {
+                Label("Delete", systemImage: "trash")
             }
-            .disabled(viewModel.isDeleting)
         }
     }
 }

@@ -141,6 +141,10 @@ struct LivePhotosConverterView: View {
 
     private var contentView: some View {
         VStack(spacing: 0) {
+            LimitedLibraryBanner()
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.sm)
+
             // Summary header
             summaryHeader
                 .fadeSlideIn()
@@ -191,7 +195,7 @@ struct LivePhotosConverterView: View {
                             .font(.headline)
                             .padding(.horizontal, Spacing.xxl)
                             .padding(.vertical, Spacing.sm)
-                            .background(.blue)
+                            .background(Color.actionFill)
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
                     }
@@ -205,27 +209,12 @@ struct LivePhotosConverterView: View {
     // MARK: - Summary Header
 
     private var summaryHeader: some View {
-        HStack(spacing: Spacing.md) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("\(viewModel.items.count) Live Photos")
-                    .font(.headline)
-                Text("Total: \(viewModel.totalSize.formattedFileSize) · est. savings ~\(viewModel.estimatedSavings.formattedFileSize)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                if viewModel.deletedCount > 0 {
-                    Text("Deleted \(viewModel.deletedCount)")
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-            }
-
-            Spacer()
-
-            Image(systemName: "livephoto")
-                .font(.title2)
-                .foregroundStyle(CleanupTool.livePhotos.color)
-        }
-        .glassCard()
+        CleanupSummaryCard(
+            icon: CleanupTool.livePhotos.icon,
+            tint: CleanupTool.livePhotos.color,
+            headline: Text("\(viewModel.items.count) Live Photos"),
+            subtitle: Text("Total: \(viewModel.totalSize.formattedFileSize) · est. savings ~\(viewModel.estimatedSavings.formattedFileSize)")
+        )
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.sm)
     }
@@ -247,11 +236,11 @@ struct LivePhotosConverterView: View {
                     AsyncThumbnailView(assetId: item.id, photoService: photoService)
                         .frame(width: 60, height: 60)
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
-                        .overlay(
-                            BadgeView(text: "LIVE", icon: "livephoto", color: .yellow)
-                                .scaleEffect(0.8),
-                            alignment: .topLeading
-                        )
+                        .overlay(alignment: .bottomLeading) {
+                            if item.asset.isFavorite {
+                                FavoriteMark().padding(Spacing.xs)
+                            }
+                        }
 
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         if let date = item.asset.creationDate {
@@ -262,10 +251,7 @@ struct LivePhotosConverterView: View {
                         // Current size. Actual savings depend on the photo and are shown
                         // after conversion rather than guessed up front.
                         HStack(spacing: Spacing.xs) {
-                            Image(systemName: "livephoto")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                            Text(item.asset.fileSize.formattedFileSize)
+                            Text(verbatim: "\(item.asset.fileSize.formattedFileSize) · \(item.asset.resolution)")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

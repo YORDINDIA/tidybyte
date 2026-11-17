@@ -4,9 +4,15 @@ struct SimilarPhotosView: View {
     @State private var viewModel = SimilarPhotosViewModel()
     @Environment(LibraryChangeMonitor.self) private var libraryMonitor
     @State private var showDeleteConfirm = false
+    @State private var pendingGroup: SimilarGroup?
     @State private var selectedGroup: SimilarGroup?
     @State private var preview: GroupPreviewContext?
     @State private var isCelebrating = false
+
+    private var pendingDeleteCount: Int {
+        if let pendingGroup { return viewModel.checkedIds(in: pendingGroup).count }
+        return viewModel.selectedForDeletion.count
+    }
     // Shared with the Settings mirror on the same key — @AppStorage is the single
     // source of truth, so a change in either screen is observed by the other (the
     // value is invisible to @Observable if held on the VM, hence it lives here).
@@ -62,26 +68,25 @@ struct SimilarPhotosView: View {
         )
         .toolbar {
             if viewModel.scanState == .completed && !viewModel.groups.isEmpty {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    // Delete lives in the bottom bar only. Select All applies the
+                    // suggestion: every non-keeper except favorites.
+                    if viewModel.hasSuggestions {
+                        SelectAllToolbarButton(
+                            allSelected: viewModel.allSuggestedSelected,
+                            selectAll: { viewModel.selectSuggested() },
+                            deselectAll: { viewModel.deselectAll() }
+                        )
+                    }
                     // Back to the idle screen, where the time-window slider lives —
                     // otherwise there's no way to change the window once results show.
                     Button {
                         HapticHelper.impact(.light)
                         viewModel.scanState = .idle
                     } label: {
-                        Label("New Scan", systemImage: "arrow.counterclockwise")
+                        Image(systemName: "arrow.counterclockwise")
                     }
-                }
-                // Delete lives in the bottom bar only. Select All applies the
-                // suggestion: every non-keeper except favorites.
-                if viewModel.hasSuggestions {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SelectAllToolbarButton(
-                        allSelected: viewModel.allSuggestedSelected,
-                        selectAll: { viewModel.selectSuggested() },
-                        deselectAll: { viewModel.deselectAll() }
-                    )
-                }
+                    .accessibilityLabel("New Scan")
                 }
             }
         }
@@ -105,11 +110,17 @@ struct SimilarPhotosView: View {
             .localizedNavigationTitle("Review Group")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .alert(CleanupDeletion.confirmTitle(count: viewModel.selectedForDeletion.count), isPresented: $showDeleteConfirm) {
-            Button("Cancel", role: .cancel) { }
+        .alert(CleanupDeletion.confirmTitle(count: pendingDeleteCount), isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) { pendingGroup = nil }
             Button("Delete", role: .destructive) {
+                let group = pendingGroup
+                pendingGroup = nil
                 Task {
-                    await viewModel.deleteSelected()
+                    if let group {
+                        await viewModel.delete(group: group)
+                    } else {
+                        await viewModel.deleteSelected()
+                    }
                     // DUP-04d: only celebrate an actual deletion.
                     if viewModel.errorMessage == nil && viewModel.deletedCount > 0 {
                         HappyPathReporter.fire(isCelebrating: $isCelebrating)
@@ -197,27 +208,20 @@ struct SimilarPhotosView: View {
                     List {
                         // Summary card
                         Section {
-                            HStack(spacing: Spacing.md) {
-                                VStack(alignment: .leading, spacing: Spacing.xs) {
-                                    Text(L10n.format("%lld group found", fallback: "%lld groups found", viewModel.groups.count))
-                                        .font(.headline)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                    Text("\(viewModel.totalDuplicateCount) extras · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
-                                        .font(.caption)
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
+                                CleanupSummaryCard(
+                                    icon: CleanupTool.similar.icon,
+                                    tint: CleanupTool.similar.color,
+                                    headline: Text(L10n.format("%lld group found", fallback: "%lld groups found", viewModel.groups.count)),
+                                    subtitle: Text("\(viewModel.totalDuplicateCount) extras · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
+                                )
+                                if viewModel.selectedForDeletion.isEmpty {
+                                    Text(viewModel.hasSuggestions ? "Nothing is selected. Tap the circles to pick, or tap Select All." : "Nothing is selected. Tap the circles to pick.")
+                                        .font(.caption2)
                                         .foregroundStyle(.secondary)
-                                    if viewModel.selectedForDeletion.isEmpty {
-                                        Text(viewModel.hasSuggestions ? "Nothing is selected. Tap the circles to pick, or tap Select All." : "Nothing is selected. Tap the circles to pick.")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                    }
+                                        .padding(.horizontal, Spacing.xs)
                                 }
-                                .fixedSize(horizontal: false, vertical: true)
-                                Spacer()
-                                Image(systemName: "square.on.square")
-                                    .font(.title2)
-                                    .foregroundStyle(CleanupTool.similar.color)
                             }
-                            .glassCard()
                             .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.lg, bottom: Spacing.sm, trailing: Spacing.lg))
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
@@ -227,6 +231,18 @@ struct SimilarPhotosView: View {
                         // Groups
                         ForEach(Array(viewModel.groups.enumerated()), id: \.element.id) { index, group in
                             groupRow(group)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    let checked = viewModel.checkedIds(in: group).count
+                                    if checked > 0 {
+                                        Button(role: .destructive) {
+                                            HapticHelper.impact(.light)
+                                            pendingGroup = group
+                                            showDeleteConfirm = true
+                                        } label: {
+                                            Label("Delete \(checked)", systemImage: "trash")
+                                        }
+                                    }
+                                }
                                 .fadeSlideIn(delay: Double(index) * 0.03)
                         }
                     }
@@ -282,31 +298,36 @@ struct SimilarPhotosView: View {
     // MARK: - Group Row
 
     /// Accessibility sizes need room for "Keep This" and the star label; the
-    /// thumbnails stay 80 pt, centered in a wider column.
-    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 80 }
+    /// thumbnails stay 96 pt, centered in a wider column.
+    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 96 }
 
     private func groupRow(_ group: SimilarGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            AdaptiveRow(spacing: nil) {
-                Text("\(group.assets.count) photos")
-                    .font(.subheadline.bold())
-                AdaptiveSpacer()
-                if let date = group.assets.first?.creationDate {
-                    Text(date, format: .dateTime.day().month(.abbreviated).year())
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            Button {
+                selectedGroup = group
+            } label: {
+                AdaptiveRow(spacing: nil) {
+                    Text("\(group.assets.count) photos")
+                        .font(.subheadline.bold())
+                    AdaptiveSpacer()
+                    if let date = group.assets.first?.creationDate {
+                        Text(date, format: .dateTime.day().month(.abbreviated).year())
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: Spacing.xs) {
+                        Text("Review")
+                            .font(.caption.bold())
+                        Image(systemName: "chevron.forward")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
-                Button {
-                    selectedGroup = group
-                } label: {
-                    Label("Review", systemImage: "chevron.forward")
-                        .font(.caption.bold())
-                        // Hit area grows to 44 pt without changing the header's layout.
-                        .contentShape(Rectangle().inset(by: -12))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Review similar photo group")
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Review similar photo group")
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Spacing.sm) {
@@ -315,7 +336,7 @@ struct SimilarPhotosView: View {
                         let isKeeper = asset.id == group.bestAssetId
                         VStack(spacing: Spacing.xs) {
                             AsyncThumbnailView(assetId: asset.id, photoService: photoService)
-                                .frame(width: 80, height: 80)
+                                .frame(width: 96, height: 96)
                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: CornerRadius.small)
