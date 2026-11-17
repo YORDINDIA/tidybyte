@@ -29,6 +29,10 @@ final class AppNavigation {
         selectedTab == activeSwipeSessionTab && activeSwipeSession?.showCompletion == true
     }
 
+    var isInSwipeSession: Bool {
+        selectedTab == activeSwipeSessionTab && activeSwipeSession != nil
+    }
+
     func setActiveSwipeSession(_ session: SwipeSessionViewModel?) {
         activeSwipeSession = session
         activeSwipeSessionTab = session == nil ? nil : selectedTab

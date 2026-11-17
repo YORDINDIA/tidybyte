@@ -44,6 +44,8 @@ struct SettingsView: View {
     @State private var showResetConfirm = false
     @State private var toast: ToastMessage?
     @State private var showResetErrorAlert = false
+    @State private var swipedRecordCount = 0
+    @State private var showOnboardingGuide = false
     @State private var photoPermissionStatus: PHAuthorizationStatus = .notDetermined
     /// Drives the shared pre-prompt explainer for the "Allow Access to Photos"
     /// row, so Settings asks the same way every other surface does.
@@ -327,22 +329,40 @@ struct SettingsView: View {
             }
 
             // MARK: - Video Compression
-            Section("Video Compression") {
+            Section {
                 Picker("Default Preset", selection: $compressionPreset) {
                     ForEach(CompressionPreset.presets) { preset in
                         Text(preset.label).tag(preset.id)
                     }
                 }
+            } header: {
+                Text("Video Compression")
+            } footer: {
+                if let preset = CompressionPreset.presets.first(where: { $0.id == compressionPreset }) {
+                    Text(verbatim: preset.description)
+                }
             }
 
             // MARK: - Photo Compression
-            Section("Photo Compression") {
+            Section {
                 Picker("Default Preset", selection: $photoCompressionPreset) {
                     ForEach(PhotoCompressionPreset.presets) { preset in
                         Text(preset.label).tag(preset.id)
                     }
                 }
                 Toggle("Delete Originals After Compressing", isOn: $deletePhotoOriginals)
+            } header: {
+                Text("Photo Compression")
+            } footer: {
+                let presetDesc = PhotoCompressionPreset.presets.first(where: { $0.id == photoCompressionPreset })?.description ?? ""
+                if deletePhotoOriginals {
+                    if !presetDesc.isEmpty {
+                        Text(verbatim: presetDesc)
+                    }
+                } else {
+                    let toggleNote = L10n.string("Off: keep both versions.")
+                    Text(verbatim: presetDesc.isEmpty ? toggleNote : "\(presetDesc) \(toggleNote)")
+                }
             }
 
             // MARK: - Notifications
@@ -419,7 +439,21 @@ struct SettingsView: View {
                 Button(role: .destructive) {
                     showResetConfirm = true
                 } label: {
-                    Text("Reset Swipe History")
+                    HStack {
+                        Text("Reset Swipe History")
+                        Spacer()
+                        if swipedRecordCount > 0 {
+                            Text(verbatim: "\(swipedRecordCount)")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                Button {
+                    showOnboardingGuide = true
+                } label: {
+                    Label("Swipe Guide", systemImage: "hand.draw")
                 }
             }
 
@@ -499,6 +533,16 @@ struct SettingsView: View {
         )
         .task {
             refreshPhotoPermissionStatus()
+            swipedRecordCount = (try? modelContext.fetchCount(FetchDescriptor<SwipeRecord>())) ?? 0
+        }
+        .fullScreenCover(isPresented: $showOnboardingGuide) {
+            OnboardingView(
+                onFinish: { showOnboardingGuide = false },
+                onRequestAccess: {
+                    await permissionHandler.requestPermission()
+                    refreshPhotoPermissionStatus()
+                }
+            )
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
@@ -601,6 +645,7 @@ struct SettingsView: View {
         do {
             try modelContext.delete(model: SwipeRecord.self)
             try modelContext.save()
+            swipedRecordCount = 0
             toast = ToastMessage.success(text: L10n.string("Swipe history cleared"))
         } catch {
             AppLog.data.error("Failed to reset swipe history: \(error.localizedDescription, privacy: .public)")

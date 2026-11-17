@@ -17,6 +17,7 @@ struct LivePhotoPlayerView: UIViewRepresentable {
     var targetSize: CGSize = CGSize(width: 1200, height: 1200)
     var autoPlay: Bool = true
     var isActive: Bool = true
+    var backgroundColor: UIColor = .black
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -25,11 +26,14 @@ struct LivePhotoPlayerView: UIViewRepresentable {
     func makeUIView(context: Context) -> PHLivePhotoView {
         let view = PHLivePhotoView()
         view.contentMode = .scaleAspectFit
-        view.backgroundColor = .black
+        view.backgroundColor = backgroundColor
         return view
     }
 
     func updateUIView(_ uiView: PHLivePhotoView, context: Context) {
+        if uiView.backgroundColor != backgroundColor {
+            uiView.backgroundColor = backgroundColor
+        }
         // COMP-14: the page went inactive — tear down immediately (a pager
         // keeps adjacent pages alive, so dismantleUIView is never called).
         guard isActive else {
@@ -54,7 +58,7 @@ struct LivePhotoPlayerView: UIViewRepresentable {
                 guard !Task.isCancelled else { return }
                 guard coordinator.loadedAssetId == assetId else { return }
                 view.livePhoto = livePhoto
-                if let livePhoto {
+                if livePhoto != nil {
                     coordinator.loadedAssetId = assetId
                     if shouldAutoPlay, !coordinator.hasAutoPlayed {
                         coordinator.hasAutoPlayed = true

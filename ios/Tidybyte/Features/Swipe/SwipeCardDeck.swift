@@ -184,6 +184,7 @@ struct SwipeCardDeck: View {
         return shownAssetIds.contains(id)
     }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// Mirrors the swipe deck's horizontal axis for Arabic and Hebrew. See
     /// `SwipeDirection.resolve` — without this, "swipe to keep" would delete.
     @Environment(\.layoutDirection) private var layoutDirection
@@ -353,6 +354,9 @@ struct SwipeCardDeck: View {
                             if asset.mediaType == .video {
                                 Button("Play Video") { playRequest += 1 }
                             } else {
+                                if asset.isLivePhoto {
+                                    Button("Live Photo") { playRequest += 1 }
+                                }
                                 Button(isTopCardZoomed ? "Zoom Out" : "Zoom In") {
                                     zoomToggleRequest += 1
                                 }
@@ -545,12 +549,13 @@ struct SwipeCardDeck: View {
             Button {
                 commit(.delete)
             } label: {
-                Image(systemName: "xmark")
-                    .font(.title2.bold())
-                    .foregroundStyle(.white)
-                    .scaledSquare(ScaledSize.actionButton)
-                    .background(.red)
-                    .clipShape(Circle())
+                actionButtonLabel(
+                    systemImage: "xmark",
+                    title: "Delete",
+                    size: ScaledSize.actionButton,
+                    font: .title2.bold(),
+                    background: Color.destructiveFill
+                )
             }
             // Keys follow the swipe: left deletes, right keeps.
             .keyboardShortcut(.leftArrow, modifiers: [])
@@ -562,27 +567,29 @@ struct SwipeCardDeck: View {
             Button {
                 commit(.skip)
             } label: {
-                Image(systemName: "forward.fill")
-                    .font(.title3)
-                    .foregroundStyle(.white)
-                    .scaledSquare(ScaledSize.secondaryActionButton)
-                    .background(Color(.systemGray))
-                    .clipShape(Circle())
+                actionButtonLabel(
+                    systemImage: "forward.fill",
+                    title: "Skip",
+                    size: ScaledSize.secondaryActionButton,
+                    font: .title3,
+                    background: Color(.systemGray)
+                )
             }
             .keyboardShortcut(.downArrow, modifiers: [])
             .accessibilityLabel("Skip")
-            .accessibilityHint("Leaves this photo unchanged and shows the next one")
+            .accessibilityHint("Leaves this photo unchanged and won't show it in Not Swiped Yet unless reset")
 
             // Add to Album button — same as an up-swipe
             Button {
                 commit(.album)
             } label: {
-                Image(systemName: "folder.badge.plus")
-                    .font(.title3)
-                    .foregroundStyle(.white)
-                    .scaledSquare(ScaledSize.secondaryActionButton)
-                    .background(.blue)
-                    .clipShape(Circle())
+                actionButtonLabel(
+                    systemImage: "folder.badge.plus",
+                    title: "Album",
+                    size: ScaledSize.secondaryActionButton,
+                    font: .title3,
+                    background: Color.actionFill
+                )
             }
             .keyboardShortcut(.upArrow, modifiers: [])
             .accessibilityLabel("Add to Album")
@@ -591,16 +598,41 @@ struct SwipeCardDeck: View {
             Button {
                 commit(.keep)
             } label: {
-                Image(systemName: "checkmark")
-                    .font(.title2.bold())
-                    .foregroundStyle(.white)
-                    .scaledSquare(ScaledSize.actionButton)
-                    .background(.green)
-                    .clipShape(Circle())
+                actionButtonLabel(
+                    systemImage: "checkmark",
+                    title: "Keep",
+                    size: ScaledSize.actionButton,
+                    font: .title2.bold(),
+                    background: Color.successFill
+                )
             }
             .keyboardShortcut(.rightArrow, modifiers: [])
             .accessibilityLabel("Keep")
             .accessibilityHint("Keeps this photo without prompting")
+        }
+    }
+
+    private func actionButtonLabel(
+        systemImage: String,
+        title: LocalizedStringKey,
+        size: CGFloat,
+        font: Font,
+        background: Color
+    ) -> some View {
+        VStack(spacing: Spacing.xs) {
+            Image(systemName: systemImage)
+                .font(font)
+                .foregroundStyle(.white)
+                .scaledSquare(size)
+                .background(background)
+                .clipShape(Circle())
+            if !dynamicTypeSize.isAccessibilitySize {
+                Text(title)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(Color.footnoteText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
         }
     }
 }

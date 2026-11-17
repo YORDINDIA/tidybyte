@@ -61,8 +61,9 @@ private struct RecentlyDeletedNoticeInset: ViewModifier {
 
     func body(content: Content) -> some View {
         content.safeAreaInset(edge: .bottom) {
-            // The completion screen shows the notice inline instead.
-            if !appNavigation.isShowingSwipeCompletion {
+            // The swipe deck sits at the bottom edge and the completion screen renders
+            // the notice inline, so suppress the floating inset during a swipe session.
+            if !appNavigation.isInSwipeSession {
                 RecentlyDeletedNotice()
             }
         }

@@ -44,6 +44,41 @@ struct CompressionHistoryView: View {
     /// language switch, and the `String` values in each row (such as
     /// `presetLabel`) only update that way.
     @Environment(\.locale) private var locale
+    @State private var mediaFilter: HistoryFilter = .all
+
+    private enum HistoryFilter: String, CaseIterable {
+        case all
+        case photo
+        case video
+        case livePhoto
+
+        var title: LocalizedStringKey {
+            switch self {
+            case .all: "All"
+            case .photo: "Photos"
+            case .video: "Videos"
+            case .livePhoto: "Live Photos"
+            }
+        }
+    }
+
+    private var availableFilters: [HistoryFilter] {
+        var filters: [HistoryFilter] = [.all]
+        let types = Set(records.map(\.mediaType))
+        if types.contains("photo") { filters.append(.photo) }
+        if types.contains(where: { $0 != "photo" && $0 != "livePhoto" }) { filters.append(.video) }
+        if types.contains("livePhoto") { filters.append(.livePhoto) }
+        return filters
+    }
+
+    private var filteredRecords: [CompressionRecord] {
+        switch mediaFilter {
+        case .all: records
+        case .photo: records.filter { $0.mediaType == "photo" }
+        case .video: records.filter { $0.mediaType != "photo" && $0.mediaType != "livePhoto" }
+        case .livePhoto: records.filter { $0.mediaType == "livePhoto" }
+        }
+    }
 
     var body: some View {
         Group {
@@ -58,32 +93,49 @@ struct CompressionHistoryView: View {
                 List {
                     // Summary
                     Section {
-                        HStack {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                Text("\(completedCount) compressions")
-                                    .font(.headline)
-                                Text("Total saved: \(totalSaved.formattedFileSize)")
-                                    .font(.caption)
-                                    .foregroundStyle(.green)
-                            }
-                            Spacer()
-                            Image(systemName: "arrow.down.circle.fill")
-                                .font(.title)
-                                .foregroundStyle(.green)
-                        }
-                        .glassCard()
+                        CleanupSummaryCard(
+                            icon: "arrow.down.circle.fill",
+                            tint: Color.successText,
+                            headline: Text("\(completedCount) compressions"),
+                            subtitle: Text("Total saved: \(totalSaved.formattedFileSize)")
+                        )
                         .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.lg, bottom: Spacing.sm, trailing: Spacing.lg))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                     }
 
+                    if availableFilters.count > 2 {
+                        Section {
+                            Picker("Filter", selection: $mediaFilter) {
+                                ForEach(availableFilters, id: \.self) { filter in
+                                    Text(filter.title).tag(filter)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .listRowInsets(EdgeInsets(top: 0, leading: Spacing.lg, bottom: Spacing.sm, trailing: Spacing.lg))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                        }
+                    }
+
                     // Records
-                    ForEach(records) { record in
+                    ForEach(filteredRecords) { record in
                         HStack(spacing: Spacing.md) {
-                            Image(systemName: Self.icon(for: record.mediaType))
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .frame(width: 24)
+                            if let replacementId = record.replacementAssetLocalIdentifier {
+                                AsyncThumbnailView(
+                                    assetId: replacementId,
+                                    photoService: .shared,
+                                    targetSize: CGSize(width: 96, height: 96)
+                                )
+                                .frame(width: 44, height: 44)
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                            } else {
+                                Image(systemName: Self.icon(for: record.mediaType))
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: CornerRadius.small))
+                            }
 
                             VStack(alignment: .leading, spacing: Spacing.xs) {
                                 Text(record.compressedAt, format: .dateTime.day().month(.abbreviated).year().hour().minute().locale(locale))

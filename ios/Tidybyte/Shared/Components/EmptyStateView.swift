@@ -36,13 +36,7 @@ struct EmptyStateView: View {
 
             if let actionTitle, let action {
                 Button(action: action) {
-                    Text(actionTitle)
-                        .font(.headline)
-                        .padding(.horizontal, Spacing.xxxl)
-                        .padding(.vertical, Spacing.md)
-                        .background(Color.actionFill)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                    PrimaryActionLabel(title: actionTitle, fullWidth: false)
                 }
                 .scaleOnPress()
             }

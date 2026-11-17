@@ -22131,6 +22131,136 @@
         }
       }
     },
+    "1 Year": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Year"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 साल"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "১ বছর"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ஆண்டு"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 సంవత్సరం"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 वर्ष"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 વર્ષ"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ವರ್ಷ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 വർഷം"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ਸਾਲ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 año"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 an"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Jahr"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ano"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 anno"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1年"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1년"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 年"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 год"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سنة واحدة"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שנה אחת"
+          }
+        }
+      }
+    },
     "1 burst cleaned down to a single photo.": {
       "localizations": {
         "en": {
@@ -22387,6 +22517,266 @@
           "stringUnit": {
             "state": "translated",
             "value": "1. TidyByte שומר %@.\n2. כשכל העותקים נשמרים, iOS מבקש ממך למחוק %@.\n\nאם תלחץ על \"אל תאפשר\", תשאיר את שתי הגרסאות. המקוריים שנמחקו נשארים ב\"נמחקו לאחרונה\" למשך 30 יום."
+          }
+        }
+      }
+    },
+    "3 Years": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 Years"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 साल"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "৩ বছর"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 ஆண்டுகள்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 సంవత్సరాలు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 वर्षे"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 વર્ષ"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 ವರ್ಷಗಳು"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 വർഷം"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 ਸਾਲ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 años"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 ans"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 Jahre"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 anos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 anni"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3年"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3년"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 年"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 года"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 سنوات"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 שנים"
+          }
+        }
+      }
+    },
+    "6 Months": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 Months"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 महीने"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "৬ মাস"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 மாதங்கள்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 నెలలు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 महिने"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 મહિના"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 ತಿಂಗಳು"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 മാസം"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 ਮਹੀਨੇ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 meses"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 mois"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 Monate"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 meses"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 mesi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6か月"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6개월"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 个月"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 месяцев"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 أشهر"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 חודשים"
           }
         }
       }
@@ -27591,136 +27981,6 @@
         }
       }
     },
-    "Back": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Back"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "वापस"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "পিছনে"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "பின்"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "వెనుకకు"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "मागे"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "પાછળ"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಹಿಂದೆ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "പിന്നോട്ട്"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਪਿੱਛੇ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Atrás"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retour"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zurück"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voltar"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Indietro"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戻る"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "뒤로"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "返回"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Назад"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "رجوع"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "חזרה"
-          }
-        }
-      }
-    },
     "Bad URL.": {
       "localizations": {
         "en": {
@@ -29931,6 +30191,136 @@
         }
       }
     },
+    "Burst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बर्स्ट"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বার্স্ট"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "பர்ஸ்ட்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "బర్స్ట్"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बर्स्ट"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "બર્સ્ટ"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಬರ್ಸ್ಟ್"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ബർസ്റ്റ്"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਬਰਸਟ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ráfaga"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rafale"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequência"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raffica"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バースト"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연속 촬영"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连拍"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Серия"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتابع"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "רצף"
+          }
+        }
+      }
+    },
     "Burst Photos": {
       "localizations": {
         "en": {
@@ -31357,136 +31747,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "בוטל."
-          }
-        }
-      }
-    },
-    "Category": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Category"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "श्रेणी"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "শ্রেণি"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "வகை"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "వర్గం"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "श्रेणी"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "શ્રેણી"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ವರ್ಗ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "കാറ്റഗറി"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸ਼੍ਰੇਣੀ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Categoría"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Catégorie"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kategorie"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Categoria"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Categoria"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "カテゴリ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "카테고리"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "类别"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Категория"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الفئة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "קטגוריה"
           }
         }
       }
@@ -45891,136 +46151,6 @@
         }
       }
     },
-    "Delete file": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete file"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "फ़ाइल हटाएँ"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ফাইল মুছুন"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "கோப்பை நீக்கு"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ఫైల్ను తొలగించు"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "फाइल हटवा"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ફાઇલ કાઢી નાખો"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಫೈಲ್ ಅಳಿಸಿ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ഫയൽ ഇല്ലാതാക്കുക"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਫ਼ਾਈਲ ਮਿਟਾਓ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eliminar archivo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Supprimer le fichier"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Datei löschen"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apagar arquivo"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elimina file"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ファイルを削除"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "파일 삭제"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "删除文件"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Удалить файл"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حذف ملف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מחק קובץ"
-          }
-        }
-      }
-    },
     "Delete is off until the photo loads.": {
       "localizations": {
         "en": {
@@ -49921,392 +50051,132 @@
         }
       }
     },
-    "End": {
+    "Ends the session and reviews pending deletions": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "End"
+            "value": "Ends the session and reviews pending deletions"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "समाप्त करें"
+            "value": "सत्र समाप्त करता है और हटाने के लिए चुने आइटम दिखाता है"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "শেষ করুন"
+            "value": "সেশন শেষ করে ও মুছে ফেলার তালিকা দেখায়"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "முடி"
+            "value": "அமர்வை முடித்து நீக்க வேண்டிய உருப்படிகளைக் காட்டும்"
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "ముగించు"
+            "value": "సెషన్‌ను ముగించి తొలగించాల్సిన అంశాలను సమీక్షిస్తుంది"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "संपवा"
+            "value": "सत्र संपवते आणि प्रलंबित हटवण्याचे आयटम पुनरावलोकन करते"
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "સમાપ્ત કરો"
+            "value": "સત્ર સમાપ્ત કરે છે અને બાકી ડિલીટ કરવાની આઇટમ્સ બતાવે છે"
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಕೊನೆಗೊಳಿಸಿ"
+            "value": "ಸೆಷನ್ ಕೊನೆಗೊಳಿಸಿ ಬಾಕಿ ಅಳಿಸುವಿಕೆಗಳನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ"
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "അവസാനിപ്പിക്കുക"
+            "value": "സെഷൻ അവസാനിപ്പിച്ച് ഇല്ലാതാക്കാനുള്ളവ അവലോകനം ചെയ്യുന്നു"
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਸਮਾਪਤ ਕਰੋ"
+            "value": "ਸੈਸ਼ਨ ਸਮਾਪਤ ਕਰਦਾ ਹੈ ਅਤੇ ਮਿਟਾਉਣ ਵਾਲੀਆਂ ਆਈਟਮਾਂ ਦਿਖਾਉਂਦਾ ਹੈ"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finalizar"
+            "value": "Finaliza la sesión y revisa las eliminaciones pendientes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Terminer"
+            "value": "Termine la session et passe en revue les suppressions en attente"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Beenden"
+            "value": "Beendet die Sitzung und prüft ausstehende Löschungen"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Encerrar"
+            "value": "Encerra a sessão e revisa as exclusões pendentes"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Termina"
+            "value": "Termina la sessione e rivedi gli elementi da eliminare"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "終了"
+            "value": "セッションを終了し、削除予定の項目を確認します"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "종료"
+            "value": "세션을 종료하고 삭제 예정 항목을 검토합니다"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结束"
+            "value": "结束本次整理并检查待删除项目"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершить"
+            "value": "Завершает сеанс и открывает проверку отмеченных для удаления"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "إنهاء"
+            "value": "ينهي الجلسة ويعرض العناصر المحددة للحذف"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "סיים"
-          }
-        }
-      }
-    },
-    "End session": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "End session"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "सेशन समाप्त करें"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "সেশন শেষ করুন"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "அமர்வை முடி"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "సెషన్ను ముగించు"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "सत्र संपवा"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "સત્ર સમાપ્ત કરો"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಸೆಷನ್ ಕೊನೆಗೊಳಿಸಿ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "സെഷൻ അവസാനിപ്പിക്കുക"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸੈਸ਼ਨ ਸਮਾਪਤ ਕਰੋ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Finalizar sesión"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terminer la session"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sitzung beenden"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encerrar sessão"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Termina sessione"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "セッションを終了"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "세션 종료"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结束会话"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Завершить сеанс"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إنهاء الجلسة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סיים הפעלה"
-          }
-        }
-      }
-    },
-    "Ends the session and reviews your changes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ends the session and reviews your changes"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "सेशन समाप्त करता है और आपके बदलावों की समीक्षा करता है"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "সেশন শেষ করে আপনার পরিবর্তনগুলি দেখায়"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "அமர்வை முடித்து உங்கள் மாற்றங்களைப் பார்க்கிறது"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "సెషన్ను ముగించి మీ మార్పులను సమీక్షిస్తుంది"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "सत्र संपवते आणि तुमचे बदल तपासते"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "સત્ર સમાપ્ત કરે છે અને તમારા ફેરફારોની સમીક્ષા કરે છે"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಸೆಷನ್ ಕೊನೆಗೊಳಿಸಿ ನಿಮ್ಮ ಬದಲಾವಣೆಗಳನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "സെഷൻ അവസാനിപ്പിച്ച് നിങ്ങളുടെ മാറ്റങ്ങൾ പരിശോധിക്കുന്നു"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸੈਸ਼ਨ ਸਮਾਪਤ ਕਰਦਾ ਹੈ ਅਤੇ ਤੁਹਾਡੇ ਬਦਲਾਅ ਦੀ ਸਮੀਖਿਆ ਕਰਦਾ ਹੈ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Finaliza la sesión y revisa tus cambios"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Termine la session et examine vos changements"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beendet die Sitzung und prüft deine Änderungen"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encerra a sessão e revisa suas alterações"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Termina la sessione ed esamina le modifiche"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "セッションを終了して変更内容を確認します"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "세션을 종료하고 변경 사항을 검토합니다"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结束会话并查看你的更改"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Завершает сеанс и показывает ваши изменения"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ينهي الجلسة ويراجع تغييراتك"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מסיים את ההפעלה ומציג את השינויים שלך"
+            "value": "מסיים את ההפעלה ומציג פריטים שממתינים למחיקה"
           }
         }
       }
@@ -50441,136 +50311,6 @@
         }
       }
     },
-    "Every photo and video in your library": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every photo and video in your library"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "आपकी लाइब्रेरी की हर फ़ोटो और वीडियो"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "আপনার লাইব্রেরির প্রতিটি ফটো ও ভিডিও"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "உங்கள் நூலகத்தில் உள்ள ஒவ்வொரு புகைப்படமும் வீடியோவும்"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "మీ లైబ్రరీలోని ప్రతి ఫోటో మరియు వీడియో"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "तुमच्या लायब्ररीतील प्रत्येक फोटो आणि व्हिडिओ"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "તમારી લાઇબ્રેરીનો દરેક ફોટો અને વિડિયો"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ನಿಮ್ಮ ಲೈಬ್ರರಿಯಲ್ಲಿನ ಪ್ರತಿ ಫೋಟೋ ಮತ್ತು ವೀಡಿಯೊ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "നിങ്ങളുടെ ലൈബ്രറിയിലെ ഓരോ ഫോട്ടോയും വീഡിയോയും"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਤੁਹਾਡੀ ਲਾਇਬ੍ਰੇਰੀ ਦੀ ਹਰ ਫ਼ੋਟੋ ਅਤੇ ਵੀਡੀਓ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Todas las fotos y los vídeos de tu fototeca"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toutes les photos et vidéos de votre photothèque"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle Fotos und Videos in deiner Mediathek"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Todas as fotos e os vídeos da sua biblioteca"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tutte le foto e i video nella tua libreria"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ライブラリ内のすべての写真とビデオ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "사진 보관함의 모든 사진과 동영상"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你图库中的每一张照片和视频"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Все фото и видео в вашей медиатеке"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "كل صورة وفيديو في مكتبتك"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "כל תמונה וסרטון בספרייה שלך"
-          }
-        }
-      }
-    },
     "Exact": {
       "localizations": {
         "en": {
@@ -50697,6 +50437,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "זהים"
+          }
+        }
+      }
+    },
+    "Exit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाहर निकलें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রস্থান"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வெளியேறு"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "నిష్క్రమించు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाहेर पडा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "બહાર નીકળો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನಿರ್ಗಮಿಸಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "പുറത്തുകടക്കുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਬਾਹਰ ਨਿਕਲੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beenden"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esci"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終了"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나가기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выход"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خروج"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "יציאה"
           }
         }
       }
@@ -56692,7 +56562,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Google가 같은 페이지를 두 번 반환해 목록이 불완전합니다."
+            "value": "Google이 같은 페이지를 두 번 반환해 목록이 불완전합니다."
           }
         },
         "zh-Hans": {
@@ -58281,6 +58151,266 @@
         }
       }
     },
+    "Identical local files matched byte-for-byte.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identical local files matched byte-for-byte."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाइट-दर-बाइट मेल खाने वाली हूबहू लोकल फ़ाइलें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাইট-বাই-বাইট মিলে যাওয়া অভিন্ন স্থানীয় ফাইল।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "பைட் வாரியாக ஒரே மாதிரியான உள்ளூர் கோப்புகள்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "బైట్-టు-బైట్ సరిపోలే ఒకేలాంటి లోకల్ ఫైల్స్."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाइट-दर-बाइट जुळणाऱ्या अचूक स्थानिक फाइल्स."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "બાઇટ-બાય-બાઇટ મેળ ખાતી સમાન સ્થાનિક ફાઇલો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಬೈಟ್‌ಗೆ ಬೈಟ್ ಹೊಂದಿಕೆಯಾಗುವ ಒಂದೇ ರೀತಿಯ ಸ್ಥಳೀಯ ಫೈಲ್‌ಗಳು."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ബൈറ്റ്-ബൈ-ബൈറ്റ് പൊരുത്തപ്പെടുന്ന സമാന ലോക്കൽ ഫയലുകൾ."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਬਾਈਟ-ਦਰ-ਬਾਈਟ ਮੇਲ ਖਾਂਦੀਆਂ ਇਕੋ ਜਿਹੀਆਂ ਸਥਾਨਕ ਫ਼ਾਈਲਾਂ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos locales idénticos comparados byte a byte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichiers locaux identiques comparés octet par octet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identische lokale Dateien, Byte für Byte abgeglichen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivos locais idênticos comparados byte a byte."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File locali identici confrontati byte per byte."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バイト単位で完全に一致するローカルファイル。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "바이트 단위로 완전히 일치하는 로컬 파일입니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按字节逐一比对的完全相同的本地文件。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идентичные локальные файлы, сравненные побайтово."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ملفات محلية متطابقة بايت ببايت."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "קבצים מקומיים זהים בייטים במדויק."
+          }
+        }
+      }
+    },
+    "In Settings, tap Photos and choose Full Access.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Settings, tap Photos and choose Full Access."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्स में, Photos पर टैप करें और पूर्ण ऐक्सेस चुनें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেটিংসে গিয়ে Photos-এ ট্যাপ করুন এবং সম্পূর্ণ অ্যাক্সেস বেছে নিন।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "அமைப்புகளில் Photos-ஐத் தட்டி முழு அணுகல் என்பதைத் தேர்ந்தெடுக்கவும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "సెట్టింగ్స్‌లో Photosపై తట్టి పూర్తి యాక్సెస్ ఎంచుకోండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्जमध्ये Photos वर टॅप करा आणि संपूर्ण प्रवेश निवडा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સેટિંગ્સમાં Photos પર ટૅપ કરો અને સંપૂર્ણ ઍક્સેસ પસંદ કરો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ Photos ಟ್ಯಾಪ್ ಮಾಡಿ ಪೂರ್ಣ ಪ್ರವೇಶ ಆಯ್ಕೆಮಾಡಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സെറ്റിംഗ്സിൽ Photos ടാപ്പ് ചെയ്ത് പൂർണ ആക്സസ് തിരഞ്ഞെടുക്കുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸੈਟਿੰਗਜ਼ ਵਿੱਚ Photos 'ਤੇ ਟੈਪ ਕਰੋ ਅਤੇ ਪੂਰੀ ਪਹੁੰਚ ਚੁਣੋ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En Ajustes, toca Fotos y elige Acceso completo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans Réglages, touchez Photos puis choisissez Accès complet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe in den Einstellungen auf „Fotos“ und wähle „Vollzugriff“."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em Ajustes, toque em Fotos e escolha Acesso total."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Impostazioni, tocca Foto e scegli Accesso completo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「設定」で「写真」をタップし、「フルアクセス」を選択してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정에서 사진을 탭한 다음 전체 접근을 선택하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“设置”中轻点“照片”，然后选择“完整访问权限”。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В Настройках откройте «Фото» и выберите «Полный доступ»."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "في الإعدادات، اضغط على الصور واختر الوصول الكامل."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בהגדרות, הקש על תמונות ובחר בגישה מלאה."
+          }
+        }
+      }
+    },
     "In Settings, turn TidyByte's Photos access off, then on again, and choose Full Access.": {
       "localizations": {
         "en": {
@@ -59321,132 +59451,132 @@
         }
       }
     },
-    "Keep Live Photo and close": {
+    "Keep Live Photo": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep Live Photo and close"
+            "value": "Keep Live Photo"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo रखें और बंद करें"
+            "value": "Live Photo रखें"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo রাখুন ও বন্ধ করুন"
+            "value": "Live Photo রাখুন"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo-ஐ வைத்து மூடு"
+            "value": "Live Photo-ஐ வைத்திரு"
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photoను ఉంచి మూసివేయి"
+            "value": "Live Photo ఉంచండి"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo ठेवा आणि बंद करा"
+            "value": "Live Photo ठेवा"
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo રાખો અને બંધ કરો"
+            "value": "Live Photo રાખો"
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo ಇರಿಸಿ ಮತ್ತು ಮುಚ್ಚಿ"
+            "value": "Live Photo ಇರಿಸಿ"
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo നിലനിർത്തി അടയ്ക്കുക"
+            "value": "Live Photo സൂക്ഷിക്കുക"
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo ਰੱਖੋ ਅਤੇ ਬੰਦ ਕਰੋ"
+            "value": "Live Photo ਰੱਖੋ"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conservar Live Photo y cerrar"
+            "value": "Conservar Live Photo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Garder la Live Photo et fermer"
+            "value": "Conserver la Live Photo"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo behalten und schließen"
+            "value": "Live Photo behalten"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Manter Live Photo e fechar"
+            "value": "Manter Live Photo"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tieni la Live Photo e chiudi"
+            "value": "Mantieni Live Photo"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photoを残して閉じる"
+            "value": "Live Photoを残す"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Photo를 남기고 닫기"
+            "value": "Live Photo 유지"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保留 Live Photo 并关闭"
+            "value": "保留 Live Photo"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Оставить Live Photo и закрыть"
+            "value": "Оставить Live Photo"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الاحتفاظ بـ Live Photo وإغلاق"
+            "value": "الاحتفاظ بصورة Live Photo"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "שמור Live Photo וסגור"
+            "value": "שמור את Live Photo"
           }
         }
       }
@@ -62701,132 +62831,132 @@
         }
       }
     },
-    "Leaves this photo unchanged and shows the next one": {
+    "Leaves this photo unchanged and won't show it in Not Swiped Yet unless reset": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leaves this photo unchanged and shows the next one"
+            "value": "Leaves this photo unchanged and won't show it in Not Swiped Yet unless reset"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "इस फ़ोटो को अपरिवर्तित छोड़ता है और अगली दिखाता है"
+            "value": "यह फ़ोटो अपरिवर्तित रहती है और रीसेट किए बिना «अभी स्वाइप नहीं किया» में नहीं दिखेगी"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এই ফটো অপরিবর্তিত রেখে পরেরটি দেখায়"
+            "value": "ছবিটি অপরিবর্তিত রাখে এবং রিসেট না করা পর্যন্ত «এখনও সোয়াইপ করা হয়নি»-তে দেখাবে না"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "இந்தப் புகைப்படத்தை மாற்றாமல் அடுத்ததைக் காட்டுகிறது"
+            "value": "இந்தப் படத்தை மாற்றாமல் விட்டு, மீட்டமைக்கும் வரை «இன்னும் ஸ்வைப் செய்யப்படவில்லை» இல் காட்டாது"
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "ఈ ఫోటోను మార్చకుండా తదుపరిది చూపిస్తుంది"
+            "value": "ఈ ఫోటోను మార్చకుండా ఉంచి, రీసెట్ చేసే వరకు «ఇంకా స్వైప్ చేయలేదు» లో చూపించదు"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "हा फोटो बदलत नाही आणि पुढचा दाखवते"
+            "value": "हा फोटो बदलला जात नाही आणि रीसेट केल्याशिवाय «अजून स्वाइप केलेले नाही» मध्ये पुन्हा दिसणार नाही"
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "આ ફોટો બદલતું નથી અને આગલો બતાવે છે"
+            "value": "આ ફોટોને યથાવત રાખે છે અને રીસેટ ન થાય ત્યાં સુધી «હજી સ્વાઇપ કરેલું નથી» માં બતાવશે નહીં"
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಈ ಫೋಟೋ ಬದಲಾಗದೆ ಮುಂದಿನದನ್ನು ತೋರಿಸುತ್ತದೆ"
+            "value": "ಈ ಫೋಟೋವನ್ನು ಬದಲಾಯಿಸದೆ ಬಿಡುತ್ತದೆ ಮತ್ತು ಮರುಹೊಂದಿಸುವವರೆಗೆ «ಇನ್ನೂ ಸ್ವೈಪ್ ಮಾಡಿಲ್ಲ» ನಲ್ಲಿ ತೋರಿಸುವುದಿಲ್ಲ"
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "ഈ ഫോട്ടോ മാറ്റാതെ അടുത്തത് കാണിക്കുന്നു"
+            "value": "ഈ ഫോട്ടോ മാറ്റമില്ലാതെ വെക്കും, റീസെറ്റ് ചെയ്യാതെ «ഇതുവരെ സ്വൈപ്പ് ചെയ്തിട്ടില്ല» വിഭാഗത്തിൽ കാണിക്കില്ല"
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਇਸ ਫ਼ੋਟੋ ਨੂੰ ਬਦਲੇ ਬਿਨਾਂ ਅਗਲੀ ਦਿਖਾਉਂਦਾ ਹੈ"
+            "value": "ਇਹ ਫ਼ੋਟੋ ਬਿਨਾਂ ਬਦਲਾਅ ਰਹਿੰਦੀ ਹੈ ਅਤੇ ਰੀਸੈੱਟ ਕੀਤੇ ਬਿਨਾਂ «ਹਾਲੇ ਸਵਾਈਪ ਨਹੀਂ ਕੀਤੀ» ਵਿੱਚ ਨਹੀਂ ਦਿਖੇਗੀ"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deja esta foto sin cambios y muestra la siguiente"
+            "value": "Deja esta foto sin cambios y no volverá a aparecer en «Aún no deslizada» salvo al restablecer"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Laisse cette photo inchangée et affiche la suivante"
+            "value": "Laisse cette photo inchangée et ne l'affiche plus dans « Pas encore balayée » sauf réinitialisation"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lässt dieses Foto unverändert und zeigt das nächste"
+            "value": "Lässt dieses Foto unverändert und blendet es in „Noch nicht gewischt“ aus, bis zurückgesetzt wird"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deixa esta foto como está e mostra a próxima"
+            "value": "Mantém esta foto sem alterações e não a mostra em «Ainda não avaliada» até redefinir"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lascia questa foto invariata e mostra la successiva"
+            "value": "Lascia intatta questa foto e la nasconde da «Non ancora scorrita» finché non ripristini"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この写真を変更せずに次を表示します"
+            "value": "この写真を変更せず、リセットするまで「未スワイプ」に表示しません"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 사진을 그대로 두고 다음 항목을 표시합니다"
+            "value": "이 사진을 유지하며 재설정하기 전까지 '아직 스와이프 안 함'에 다시 표시하지 않습니다"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不更改此照片并显示下一张"
+            "value": "保持此照片不变；除非重置历史，否则不会再出现在“尚未滑动”中"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Оставляет это фото без изменений и показывает следующее"
+            "value": "Оставляет фото без изменений и скрывает его из «Не просмотрено» до сброса"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يترك هذه الصورة دون تغيير ويعرض التالية"
+            "value": "يترك هذه الصورة دون تغيير ولن تظهر في «لم يتم السحب بعد» إلا عند إعادة التعيين"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "משאיר תמונה זו ללא שינוי ומציג את הבאה"
+            "value": "משאיר תמונה זו ללא שינוי ולא יציג אותה ב«טרם הוחלק» אלא אם תאופס"
           }
         }
       }
@@ -65077,6 +65207,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "גישה מוגבלת לתמונות"
+          }
+        }
+      }
+    },
+    "Live Photo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo"
           }
         }
       }
@@ -69497,6 +69757,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "החדש ביותר"
+          }
+        }
+      }
+    },
+    "Next": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगला"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরবর্তী"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "அடுத்து"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "తరువాత"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुढील"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "આગળ"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಮುಂದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "അടുത്തത്"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਅਗਲਾ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivant"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próxima"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Successiva"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次へ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一张"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Далее"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التالي"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הבא"
           }
         }
       }
@@ -85361,6 +85751,136 @@
         }
       }
     },
+    "Plays or pauses Live Photo motion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plays or pauses Live Photo motion"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo की गति चलाता या रोकता है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo-র গতি চালায় বা থামায়"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo இயக்கத்தை இயக்கும் அல்லது இடைநிறுத்தும்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo చలనాన్ని ప్లే లేదా పాజ్ చేస్తుంది"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo हालचाल सुरू किंवा थांबवते"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo ની ગતિ ચલાવે છે અથવા થોભાવે છે"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo ಚಲನೆಯನ್ನು ಪ್ಲೇ ಮಾಡುತ್ತದೆ ಅಥವಾ ವಿರಾಮಗೊಳಿಸುತ್ತದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo ചലനം പ്ലേ ചെയ്യുകയോ താൽക്കാലികമായി നിർത്തുകയോ ചെയ്യുന്നു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo ਦੀ ਗਤੀ ਚਲਾਉਂਦਾ ਜਾਂ ਰੋਕਦਾ ਹੈ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reproduce o pausa el movimiento de Live Photo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lit ou met en pause l'animation Live Photo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielt die Live Photo-Bewegung ab oder pausiert sie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reproduz ou pausa o movimento da Live Photo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riproduce o mette in pausa il movimento Live Photo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photoの動きを再生または一時停止します"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo 움직임을 재생하거나 일시 정지합니다"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放或暂停 Live Photo 动态效果"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запускает или ставит на паузу движение Live Photo"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يشغّل أو يوقف حركة Live Photo"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מפעיל או משהה תנועה של Live Photo"
+          }
+        }
+      }
+    },
     "Preparing %@/%@…": {
       "localizations": {
         "en": {
@@ -86508,7 +87028,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "预览截图，%@"
+            "value": "预览截屏，%@"
           }
         },
         "ru": {
@@ -86527,6 +87047,266 @@
           "stringUnit": {
             "state": "translated",
             "value": "תצוגה מקדימה של צילום מסך, %@"
+          }
+        }
+      }
+    },
+    "Preview video, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview video, %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वीडियो का प्रीव्यू, %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিডিওর প্রিভিউ, %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வீடியோ முன்னோட்டம், %@"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "వీడియో ప్రివ్యూ, %@"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "व्हिडिओचे पूर्वावलोकन, %@"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "વિડિયોનું પૂર્વાવલોકન, %@"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ವೀಡಿಯೊ ಮುನ್ನೋಟ, %@"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "വീഡിയോ പ്രിവ്യൂ, %@"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਵੀਡੀਓ ਦੀ ਝਲਕ, %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa del vídeo, %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperçu de la vidéo, %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau des Videos, %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualizar vídeo, %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anteprima video, %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビデオをプレビュー、%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동영상 미리보기, %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览视频，%@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Просмотр видео, %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معاينة الفيديو، %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תצוגה מקדימה של סרטון, %@"
+          }
+        }
+      }
+    },
+    "Previous": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछला"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পূর্ববর্তী"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "முந்தையது"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మునుపటి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मागील"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "અગાઉનું"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಹಿಂದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "മുമ്പത്തേത്"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਪਿਛਲਾ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anterior"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Précédent"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anterior"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precedente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前へ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一张"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назад"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السابق"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הקודם"
           }
         }
       }
@@ -90691,132 +91471,262 @@
         }
       }
     },
-    "Returns to the swipe home; reviews pending deletions first if any": {
+    "Resume Session": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Returns to the swipe home; reviews pending deletions first if any"
+            "value": "Resume Session"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप होम पर लौटता है; लंबित हटाने पहले दिखाता है, अगर कोई हो"
+            "value": "सत्र जारी रखें"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "সোয়াইপ হোমে ফিরে যায়; কোনও মুলতুবি মোছা থাকলে আগে তা দেখায়"
+            "value": "সেশন চালিয়ে যান"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "ஸ்வைப் முகப்புக்குத் திரும்பும்; நிலுவையில் உள்ள நீக்கங்கள் இருந்தால் முதலில் அவற்றைப் பார்க்கும்"
+            "value": "அமர்வைத் தொடர்"
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "స్వైప్ హోమ్కు తిరిగి వెళ్తుంది; పెండింగ్ తొలగింపులు ఉంటే ముందు వాటిని చూపిస్తుంది"
+            "value": "సెషన్ కొనసాగించు"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप होमवर परत जाते; काही प्रलंबित हटवणी असल्यास आधी त्यांचे पुनरावलोकन करते"
+            "value": "सत्र पुन्हा सुरू करा"
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "સ્વાઇપ હોમ પર પાછું જાય છે; બાકી કાઢી નાખવાની હોય તો પહેલાં તેની સમીક્ષા કરે છે"
+            "value": "સત્ર ફરી શરૂ કરો"
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಸ್ವೈಪ್ ಮುಖಪುಟಕ್ಕೆ ಮರಳುತ್ತದೆ; ಬಾಕಿ ಇರುವ ಅಳಿಸುವಿಕೆಗಳಿದ್ದರೆ ಮೊದಲು ಅವನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ"
+            "value": "ಸೆಷನ್ ಮುಂದುವರಿಸಿ"
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "സ്വൈപ്പ് ഹോമിലേക്ക് മടങ്ങുന്നു; ബാക്കിയുള്ള ഇല്ലാതാക്കലുകൾ ഉണ്ടെങ്കിൽ ആദ്യം അവ പരിശോധിക്കുന്നു"
+            "value": "സെഷൻ തുടരുക"
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਸਵਾਈਪ ਹੋਮ ਉੱਤੇ ਵਾਪਸ ਜਾਂਦਾ ਹੈ; ਜੇ ਬਾਕੀ ਮਿਟਾਉਣੀਆਂ ਹੋਣ ਤਾਂ ਪਹਿਲਾਂ ਉਨ੍ਹਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰਦਾ ਹੈ"
+            "value": "ਸੈਸ਼ਨ ਮੁੜ ਸ਼ੁਰੂ ਕਰੋ"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vuelve al inicio de deslizar; si hay eliminaciones pendientes, las revisa primero"
+            "value": "Reanudar sesión"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revient à l'accueil du balayage ; examine d'abord les suppressions en attente, s'il y en a"
+            "value": "Reprendre la session"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kehrt zum Start des Wischens zurück; prüft zuvor ausstehende Löschungen, falls vorhanden"
+            "value": "Sitzung fortsetzen"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Volta para a tela inicial de deslizes; revisa exclusões pendentes primeiro, se houver"
+            "value": "Continuar sessão"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Torna alla schermata iniziale degli scorrimenti; esamina prima le eliminazioni in sospeso, se presenti"
+            "value": "Riprendi sessione"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スワイプのホームに戻ります。保留中の削除があれば先に確認します"
+            "value": "セッションを再開"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스와이프 홈으로 돌아갑니다. 대기 중인 삭제가 있으면 먼저 검토합니다"
+            "value": "세션 계속하기"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回滑动主页；如有待处理的删除，会先进行查看"
+            "value": "继续整理"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Возвращает на главный экран свайпов; если есть ожидающие удаления, сначала показывает их"
+            "value": "Продолжить сеанс"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يعود إلى شاشة السحب الرئيسية؛ ويراجع عمليات الحذف المعلقة أولًا إن وُجدت"
+            "value": "استئناف الجلسة"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "חוזר למסך ההחלקה הראשי; מציג תחילה מחיקות ממתינות אם יש"
+            "value": "המשך הפעלה"
+          }
+        }
+      }
+    },
+    "Returns to the swipe home": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Returns to the swipe home"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप होम स्क्रीन पर वापस जाता है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সোয়াইপ হোমে ফিরে যায়"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஸ்வைப் முகப்பிற்குத் திரும்பும்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "స్వైప్ హోమ్‌కు తిరిగి వెళ్తుంది"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप मुख्यपृष्ठावर परत जाते"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સ્વાઇપ હોમ પર પાછા જાય છે"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸ್ವೈಪ್ ಹೋಮ್‌ಗೆ ಹಿಂತಿರುಗುತ್ತದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സ്വൈപ്പ് ഹോമിലേക്ക് മടങ്ങുന്നു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਵਾਈਪ ਹੋਮ 'ਤੇ ਵਾਪਸ ਜਾਂਦਾ ਹੈ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a la pantalla principal de deslizamiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revient à l'accueil du balayage"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kehrt zur Wisch-Startseite zurück"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volta para a tela inicial de deslizes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torna alla schermata iniziale di scorrimento"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワイプホームに戻ります"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스와이프 홈으로 돌아갑니다"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回滑动整理首页"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Возвращает на главный экран свайпов"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يعود إلى الصفحة الرئيسية للسحب"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מחזיר למסך הראשי של ההחלקה"
           }
         }
       }
@@ -91727,6 +92637,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "סקור קבוצה"
+          }
+        }
+      }
+    },
+    "Review Marked Items": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Marked Items"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चुने गए आइटम की समीक्षा करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চিহ্নিত আইটেম পর্যালোচনা করুন"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "குறித்த உருப்படிகளை மதிப்பாய்வு செய்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "గుర్తించిన అంశాలను సమీక్షించు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चिन्हांकित आयटम तपासा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ચિહ્નિત આઇટમ્સની સમીક્ષા કરો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಗುರುತಿಸಿದ ಐಟಂಗಳನ್ನು ಪರಿಶೀಲಿಸಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "അടയാളപ്പെടുത്തിയവ അവലോകനം ചെയ്യുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਨਿਸ਼ਾਨਬੱਧ ਆਈਟਮਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisar elementos marcados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier les éléments marqués"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markierte Objekte prüfen"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisar itens marcados"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rivedi elementi contrassegnati"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除候補を確認"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제 예정 항목 검토"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查已标记项目"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить отмеченное"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مراجعة العناصر المحددة"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סקור פריטים מסומנים"
           }
         }
       }
@@ -92771,136 +93811,6 @@
         }
       }
     },
-    "Review similar photo group": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Review similar photo group"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "मिलती-जुलती फ़ोटो के समूह की समीक्षा करें"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "একইরকম ফটোর গ্রুপ পর্যালোচনা করুন"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ஒத்த புகைப்படக் குழுவை மதிப்பாய்வு செய்"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "సమానమైన ఫోటో సమూహాన్ని సమీక్షించండి"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "समान फोटो गटाचे पुनरावलोकन करा"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "સમાન ફોટો જૂથની સમીક્ષા કરો"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಸಮಾನ ಫೋಟೋ ಗುಂಪನ್ನು ಪರಿಶೀಲಿಸಿ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "സമാന ഫോട്ടോ ഗ്രൂപ്പ് പരിശോധിക്കുക"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸਮਾਨ ਫ਼ੋਟੋ ਗਰੁੱਪ ਦੀ ਸਮੀਖਿਆ ਕਰੋ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revisar grupo de fotos similares"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Examiner le groupe de photos similaires"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gruppe ähnlicher Fotos prüfen"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revisar grupo de fotos semelhantes"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esamina gruppo di foto simili"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類似した写真のグループを確認"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "비슷한 사진 그룹 검토"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看相似照片组"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Просмотреть группу похожих фото"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مراجعة مجموعة الصور المشابهة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סקור קבוצת תמונות דומות"
-          }
-        }
-      }
-    },
     "Review whether you still need this screen recording.": {
       "localizations": {
         "en": {
@@ -93287,6 +94197,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "סקירה בהחלקה"
+          }
+        }
+      }
+    },
+    "Runs both exact and visual matching.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runs both exact and visual matching."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सटीक और विज़ुअल दोनों मिलान चलाता है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবিকল এবং দৃশ্যমান উভয় মিল খোঁজে।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "துல்லியமான மற்றும் காட்சிப் பொருத்தம் இரண்டையும் இயக்கும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఖచ్చితమైన మరియు విజువల్ సరిపోలిక రెండింటినీ నడుపుతుంది."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अचूक आणि दृश्य दोन्ही जुळणी चालवते."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સચોટ અને વિઝ્યુઅલ બંને મેચિંગ ચલાવે છે."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನಿಖರ ಮತ್ತು ದೃಶ್ಯ ಹೋಲಿಕೆ ಎರಡನ್ನೂ ನಡೆಸುತ್ತದೆ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "കൃത്യമായ പൊരുത്തവും കാഴ്ചയിലുള്ള സാമ്യവും പരിശോധിക്കുന്നു."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਹੀ ਅਤੇ ਦ੍ਰਿਸ਼ ਦੋਵੇਂ ਮਿਲਾਨ ਚਲਾਉਂਦਾ ਹੈ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ejecuta coincidencias exactas y visuales."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effectue une comparaison exacte et visuelle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führt sowohl exakten als auch visuellen Abgleich durch."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Executa correspondência exata e visual."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esegue sia il confronto esatto che quello visivo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全一致と視覚的な類似検索の両方を実行します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정확한 일치와 시각적 유사 비교를 모두 실행합니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同时执行精确匹配与视觉相似匹配。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выполняет как точный, так и визуальный поиск."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يجري المطابقة الدقيقة والبصرية معًا."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מבצע התאמה מדויקת וחזותית יחד."
           }
         }
       }
@@ -94201,6 +95241,136 @@
         }
       }
     },
+    "Scan in Cleanup to estimate recoverable Google Photos storage.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan in Cleanup to estimate recoverable Google Photos storage."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Photos में खाली होने वाला स्टोरेज जानने के लिए क्लीनअप में स्कैन करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পুনরুদ্ধারযোগ্য Google Photos স্টোরেজ অনুমান করতে পরিষ্কার ট্যাবে স্ক্যান করুন।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மீட்டெடுக்கக்கூடிய Google Photos சேமிப்பகத்தை மதிப்பிட சுத்தம் பிரிவில் ஸ்கேன் செய்யுங்கள்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఖాళీ చేయదగిన Google Photos నిల్వను అంచనా వేయడానికి క్లీనప్‌లో స్కాన్ చేయండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मोकळे करता येणारे Google Photos स्टोरेज पाहण्यासाठी क्लीनअपमध्ये स्कॅन करा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Photos નો ખાલી કરી શકાય તેવો સ્ટોરેજ અંદાજવા ક્લીનઅપમાં સ્કૅન કરો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಮರಳಿ ಪಡೆಯಬಹುದಾದ Google Photos ಸಂಗ್ರಹಣೆಯನ್ನು ಅಂದಾಜಿಸಲು ಕ್ಲೀನ್ಅಪ್‌ನಲ್ಲಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "വീണ്ടെടുക്കാവുന്ന Google Photos സ്റ്റോറേജ് കണക്കാക്കാൻ ക്ലീനപ്പിൽ സ്കാൻ ചെയ്യുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Photos ਵਿੱਚ ਖਾਲੀ ਹੋ ਸਕਣ ਵਾਲੀ ਸਟੋਰੇਜ ਦੇਖਣ ਲਈ ਸਫ਼ਾਈ ਵਿੱਚ ਸਕੈਨ ਕਰੋ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analiza en Limpieza para estimar el espacio recuperable en Google Photos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysez dans Nettoyage pour estimer l'espace récupérable sur Google Photos."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanne in „Bereinigung“, um den freigebbaren Google Photos-Speicher zu schätzen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneie em Limpeza para estimar o espaço recuperável no Google Photos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scansiona in Pulizia per stimare lo spazio recuperabile su Google Photos."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリーンアップでスキャンして Google Photos の解放可能容量を確認します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정리 탭에서 스캔하여 확보 가능한 Google Photos 저장 공간을 확인하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“清理”中扫描即可估算可释放的 Google Photos 空间。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выполните сканирование в разделе «Очистка», чтобы оценить доступный для освобождения объем Google Photos."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افحص في التنظيف لتقدير المساحة القابلة للاسترداد في Google Photos."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סרוק בניקוי כדי להעריך את השטח שניתן לפנות ב-Google Photos."
+          }
+        }
+      }
+    },
     "Scan your library for exact and visually similar duplicates.": {
       "localizations": {
         "en": {
@@ -94587,6 +95757,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "סורק…"
+          }
+        }
+      }
+    },
+    "Scans library": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scans library"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लाइब्रेरी स्कैन करता है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লাইব্রেরি স্ক্যান করে"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "நூலகத்தை ஸ்கேன் செய்யும்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "లైబ్రరీని స్కాన్ చేస్తుంది"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लायब्ररी स्कॅन करते"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "લાઇબ્રેરી સ્કૅન કરે છે"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಲೈಬ್ರರಿ ಸ್ಕ್ಯಾನ್ ಮಾಡುತ್ತದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ലൈബ്രറി സ്കാൻ ചെയ്യുന്നു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਲਾਇਬ੍ਰੇਰੀ ਸਕੈਨ ਕਰਦਾ ਹੈ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea la fototeca"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse la photothèque"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durchsucht die Mediathek"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escaneia a biblioteca"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scansiona la libreria"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライブラリをスキャン"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보관함 스캔"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将扫描图库"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирует медиатеку"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يفحص المكتبة"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סורק ספרייה"
           }
         }
       }
@@ -100831,6 +102131,136 @@
         }
       }
     },
+    "Similar-looking shots matched by appearance.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Similar-looking shots matched by appearance."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दिखने के आधार पर मिलने वाले एक जैसे शॉट।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চেহারা অনুযায়ী মিলে যাওয়া একই ধরনের শট।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "தோற்றத்தின் அடிப்படையில் பொருந்திய ஒரே மாதிரியான காட்சிகள்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "రూపం ఆధారంగా సరిపోలే ఒకేలాంటి షాట్లు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दिसण्यानुसार जुळणारे सारखे शॉट्स."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "દેખાવ મુજબ મેળ ખાતા સરખા શૉટ્સ."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಗೋಚರತೆಯ ಆಧಾರದ ಮೇಲೆ ಹೊಂದಿಕೆಯಾದ ಒಂದೇ ರೀತಿಯ ಶಾಟ್‌ಗಳು."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "കാഴ്ചയിലുള്ള സാമ്യമനുസരിച്ച് കണ്ടെത്തിയ ഷോട്ടുകൾ."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਦਿੱਖ ਦੇ ਆਧਾਰ 'ਤੇ ਮਿਲਦੇ-ਜੁਲਦੇ ਸ਼ਾਟ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomas parecidas comparadas por su aspecto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clichés similaires regroupés selon leur apparence."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ähnlich aussehende Aufnahmen nach Erscheinungsbild."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos parecidas agrupadas pela aparência."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scatti simili abbinati per aspetto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "見た目で判定された類似ショット。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "화면 모양이 비슷한 사진을 찾습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按画面外观匹配的相似照片。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Похожие снимки, подобранные по внешнему виду."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لقطات متشابهة مطابقة حسب المظهر."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "צילומים דומים המותאמים לפי מראה."
+          }
+        }
+      }
+    },
     "Size": {
       "localizations": {
         "en": {
@@ -103431,136 +104861,6 @@
         }
       }
     },
-    "Space comes back when it is emptied. In Photos, open Albums, then Recently Deleted.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Space comes back when it is emptied. In Photos, open Albums, then Recently Deleted."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "इसे खाली करने पर जगह वापस आती है. फ़ोटो में, एल्बम खोलें, फिर हाल ही में हटाए गए."
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "এটি খালি করলে জায়গা ফিরে আসে. ফটো-তে অ্যালবাম খুলুন, তারপর সম্প্রতি মোছা."
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "அது காலி செய்யப்படும்போது இடம் திரும்பும். புகைப்படங்களில் ஆல்பங்களைத் திறந்து, பின் சமீபத்தில் நீக்கியவை என்பதைத் திறக்கவும்."
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "అది ఖాళీ చేయబడినప్పుడు స్థలం తిరిగి వస్తుంది. ఫోటోలలో ఆల్బమ్లు తెరిచి, ఆపై ఇటీవల తొలగించినవి తెరవండి."
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ते रिकामे केल्यावर जागा परत मिळते. फोटो अ‍ॅपमध्ये अल्बम उघडा, नंतर अलीकडे हटवलेले."
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "તે ખાલી થાય ત્યારે જગ્યા પાછી મળે છે. ફોટા એપમાં આલ્બમ ખોલો, પછી તાજેતરમાં કાઢી નાખેલા."
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಅದನ್ನು ಖಾಲಿ ಮಾಡಿದಾಗ ಜಾಗ ಮರಳಿ ಬರುತ್ತದೆ. ಫೋಟೋಗಳ ಆ್ಯಪ್ನಲ್ಲಿ ಆಲ್ಬಮ್ಗಳು ತೆರೆದು, ನಂತರ ಇತ್ತೀಚೆಗೆ ಅಳಿಸಿದವು ತೆರೆಯಿರಿ."
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "അത് ഒഴിവാക്കുമ്പോൾ സ്ഥലം തിരികെ ലഭിക്കും. ഫോട്ടോകൾ ആപ്പിൽ ആൽബങ്ങൾ തുറന്ന്, എന്നിട്ട് അടുത്തിടെ ഇല്ലാതാക്കിയവ തുറക്കുക."
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਇਹ ਖਾਲੀ ਹੋਣ 'ਤੇ ਥਾਂ ਵਾਪਸ ਆਉਂਦੀ ਹੈ. ਫ਼ੋਟੋਜ਼ ਵਿੱਚ ਐਲਬਮਾਂ ਖੋਲ੍ਹੋ, ਫਿਰ ਹਾਲ ਹੀ ਵਿੱਚ ਮਿਟਾਏ."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El espacio se recupera cuando se vacíe. En Fotos, abre Álbumes y luego Recientemente eliminados."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'espace est récupéré quand il est vidé. Dans Photos, ouvrez Albums, puis Récemment supprimés."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Speicher wird frei, sobald der Ordner geleert wird. Öffne in Fotos „Alben“, dann „Zuletzt gelöscht“."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O espaço volta quando ele for esvaziado. No Fotos, abra Álbuns e depois Excluídos recentemente."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lo spazio torna quando viene svuotato. In Foto, apri Album, poi Eliminati di recente."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "空にすると空き容量が戻ります。「写真」で「アルバム」を開き、「最近削除した項目」を選んでください。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "비우면 저장 공간이 돌아옵니다. 사진 앱에서 앨범을 연 다음 최근 삭제된 항목을 여세요."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "清空后空间才会释放。在“照片”中打开“相簿”，再打开“最近删除”。"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Место вернется, когда оно будет очищено. В «Фото» откройте «Альбомы», затем «Недавно удаленные»."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تعود المساحة عند تفريغها. في «الصور»، افتح «الألبومات»، ثم «المحذوفة مؤخرًا»."
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "המקום מתפנה כשמרוקנים אותה. בתמונות, פתח את אלבומים ואז את \"נמחקו לאחרונה\"."
-          }
-        }
-      }
-    },
     "Space you free up with any cleanup tool shows up here.": {
       "localizations": {
         "en": {
@@ -104727,6 +106027,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "התחל הפעלת ניקוי"
+          }
+        }
+      }
+    },
+    "Start from the beginning — includes skipped items": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start from the beginning — includes skipped items"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शुरुआत से शुरू करें — स्किप किए गए आइटम सहित"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শুরু থেকে দেখুন — এড়িয়ে যাওয়া আইটেমসহ"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "தொடக்கத்திலிருந்து தொடங்கு — தவிர்த்தவை உட்பட"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మొదటి నుండి ప్రారంభించు — దాటవేసిన అంశాలతో సహా"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सुरुवातीपासून सुरू करा — वगळलेले आयटम समाविष्ट आहेत"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "શરૂઆતથી જુઓ — છોડેલી આઇટમ્સ સહિત"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಪ್ರಾರಂಭದಿಂದ ನೋಡಿ — ಬಿಟ್ಟುಬಿಟ್ಟ ಐಟಂಗಳು ಸೇರಿವೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ആദ്യം മുതൽ തുടങ്ങുക — ഒഴിവാക്കിയവ ഉൾപ്പെടെ"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸ਼ੁਰੂ ਤੋਂ ਸ਼ੁਰੂ ਕਰੋ — ਛੱਡੀਆਂ ਆਈਟਮਾਂ ਸਮੇਤ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar desde el principio — incluye elementos omitidos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommencer depuis le début — inclut les éléments ignorés"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von vorn beginnen — enthält übersprungene Objekte"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Começar do início — inclui itens pulados"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia dall'inizio — include gli elementi saltati"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最初からやり直す — スキップした項目も含む"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "처음부터 시작 — 건너뛴 항목 포함"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从头开始浏览 — 包含已跳过的项目"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать сначала — включая пропущенные объекты"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البدء من البداية — يتضمن العناصر المتخطاة"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחל מההתחלה — כולל פריטים שדולגו"
           }
         }
       }
@@ -106677,6 +108107,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "החלקה"
+          }
+        }
+      }
+    },
+    "Swipe Guide": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe Guide"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप गाइड"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সোয়াইপ নির্দেশিকা"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஸ்வைப் வழிகாட்டி"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "స్వైప్ గైడ్"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप मार्गदर्शक"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સ્વાઇપ માર્ગદર્શિકા"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸ್ವೈಪ್ ಮಾರ್ಗದರ್ಶಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സ്വൈപ്പ് ഗൈഡ്"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਵਾਈਪ ਗਾਈਡ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guía de deslizamiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guide de balayage"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wisch-Anleitung"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guia de deslizes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guida allo scorrimento"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワイプガイド"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스와이프 안내"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手势指南"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подсказка по свайпам"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دليل السحب"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מדריך החלקה"
           }
         }
       }
@@ -108886,7 +110446,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הפריימים שנבחרו מהרצף ימחקו. התמונות הטובות שבחרת נשמרות."
+            "value": "הפריימים שנבחרו מהרצף יימחקו. התמונות הטובות שבחרת נשמרות."
           }
         }
       }
@@ -109258,7 +110818,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所选截图将从照片中删除。"
+            "value": "所选截屏将从照片中删除。"
           }
         },
         "ru": {
@@ -111858,7 +113418,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此截图将从照片中删除。"
+            "value": "此截屏将从照片中删除。"
           }
         },
         "ru": {
@@ -114928,7 +116488,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "সামনের অংশ ছেড়ে যাওয়ায় TidyByte Live Photo রূপান্তর বন্ধ করেছে। রূপান্তরের সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
+            "value": "অ্যাপটি ফোরগ্রাউন্ড ছেড়ে যাওয়ায় TidyByte Live Photo রূপান্তর বন্ধ করেছে। রূপান্তরের সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
           }
         },
         "ta": {
@@ -115036,7 +116596,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "TidyByte הפסיקה את המרת Live Photo כי האפליקציה יצאה מהחזית. השאירו את TidyByte פתוחה בזמן ההמרה, ואז נסו שוב."
+            "value": "TidyByte עצר את המרת Live Photo כי האפליקציה יצאה מהמסך הפעיל. השאר את TidyByte פתוח בזמן ההמרה, ואז נסה שוב."
           }
         }
       }
@@ -116857,6 +118417,266 @@
           "stringUnit": {
             "state": "translated",
             "value": "נסה לטעון שוב"
+          }
+        }
+      }
+    },
+    "Try a different search term.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different search term."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई दूसरा खोज शब्द आज़माएँ।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অন্য কোনো শব্দ দিয়ে অনুসন্ধান করুন।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வேறு தேடல் சொல்லை முயற்சிக்கவும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "వేరే శోధన పదాన్ని ప్రయత్నించండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वेगळा शोध शब्द वापरून पहा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "અલગ શોધ શબ્દ અજમાવો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಬೇರೆ ಹುಡುಕಾಟ ಪದವನ್ನು ಪ್ರಯತ್ನಿಸಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "മറ്റൊരു തിരയൽ പദം പരീക്ഷിക്കുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਕੋਈ ਹੋਰ ਖੋਜ ਸ਼ਬਦ ਅਜ਼ਮਾਓ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prueba otro término de búsqueda."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essayez un autre terme de recherche."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versuche einen anderen Suchbegriff."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tente outro termo de busca."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova un altro termine di ricerca."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別の検索語を試してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다른 검색어를 입력해 보세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请尝试其他搜索词。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попробуйте другой поисковый запрос."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جرّب عبارة بحث أخرى."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נסה מילת חיפוש אחרת."
+          }
+        }
+      }
+    },
+    "Unable to load quota.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to load quota."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोटा लोड नहीं हो सका।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোটা লোড করা যায়নি।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஒதுக்கீட்டை ஏற்ற முடியவில்லை."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "కోటాను లోడ్ చేయడం సాధ్యం కాలేదు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोटा लोड करता आला नाही."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ક્વોટા લોડ કરવામાં અસમર્થ."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಕೋಟಾ ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ക്വോട്ട ലോഡ് ചെയ്യാനായില്ല."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਕੋਟਾ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo cargar la cuota."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de charger le quota."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speicherkontingent konnte nicht geladen werden."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível carregar a cota."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile caricare la quota."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容量情報を読み込めませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장 공간 할당량을 불러올 수 없습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载存储配额。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось загрузить квоту."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر تحميل الحصة."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא ניתן לטעון את המכסה."
           }
         }
       }

@@ -14,6 +14,8 @@ struct SessionCompletionView: View {
     /// batch deletions pending) or after the commit lands — never both.
     @State private var recordedSessionSuccess = false
     @State private var isCelebrating = false
+    @State private var showDeletionReview = false
+    @State private var deletionReviewAssets: [AssetSummary] = []
 
     private enum ExitDestination {
         case swipeHome
@@ -34,7 +36,17 @@ struct SessionCompletionView: View {
             }
         }
         .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .tabBar)
         .happyPathCelebration(isPresented: $isCelebrating, statLine: celebrationStatLine)
+        .task(id: viewModel.pendingDeletionIds) {
+            deletionReviewAssets = await viewModel.fetchPendingDeletionAssets()
+        }
+        .sheet(isPresented: $showDeletionReview) {
+            BatchDeletionReviewSheet(
+                viewModel: viewModel,
+                assets: deletionReviewAssets
+            )
+        }
     }
 
     /// The deck ran out with nothing left pending, or the deletions were
@@ -93,16 +105,19 @@ struct SessionCompletionView: View {
 
             // One primary action; the second exit is a plain text button.
             VStack(spacing: Spacing.md) {
+                if viewModel.hasMoreCards {
+                    Button {
+                        viewModel.showCompletion = false
+                    } label: {
+                        SecondaryActionLabel(title: "Resume Session", icon: "arrow.uturn.backward")
+                    }
+                    .scaleOnPress()
+                }
+
                 Button {
                     requestExit(.swipeHome)
                 } label: {
-                    Text("Start Another Session")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(Spacing.lg)
-                        .background(Color.accentColor)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.large))
+                    PrimaryActionLabel(title: "Start Another Session", cornerRadius: CornerRadius.large)
                 }
                 .scaleOnPress()
 
@@ -166,10 +181,9 @@ struct SessionCompletionView: View {
                 }
             }
             Button("Cancel", role: .cancel) {
+                // Keep the user on the review screen so nothing is lost and they
+                // aren't dumped out of their pending batch.
                 pendingExit = nil
-                // Back to the live deck — Cancel must not strand the user on
-                // the completion screen (B3).
-                viewModel.showCompletion = false
             }
         } message: {
             Text("Deleted items go to Recently Deleted in Photos, where you can restore them for 30 days.")
@@ -294,6 +308,42 @@ struct SessionCompletionView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
+            if !deletionReviewAssets.isEmpty {
+                Button {
+                    showDeletionReview = true
+                } label: {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: Spacing.xs) {
+                            ForEach(deletionReviewAssets.prefix(10)) { asset in
+                                AsyncThumbnailView(
+                                    assetId: asset.id,
+                                    photoService: viewModel.photoService,
+                                    targetSize: CGSize(width: 140, height: 140)
+                                )
+                                .frame(width: 64, height: 64)
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                            }
+                        }
+                        .padding(.vertical, Spacing.xs)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Review Marked Items")
+
+                Button {
+                    showDeletionReview = true
+                } label: {
+                    SecondaryActionLabel(
+                        title: "Review Marked Items",
+                        icon: "square.grid.2x2",
+                        tint: .primary
+                    )
+                }
+                .disabled(viewModel.isDeletingBatch)
+                .scaleOnPress()
+            }
+
             Button {
                 Task { await viewModel.commitDeletions() }
             } label: {
@@ -307,7 +357,7 @@ struct SessionCompletionView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(Spacing.lg)
-                .background(Color.destructive)
+                .background(Color.destructiveFill)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.large))
             }
@@ -380,5 +430,127 @@ struct SessionCompletionView: View {
                 }
             }
         }
+    }
+}
+
+/// Interactive grid allowing users to inspect thumbnails and uncheck accidental deletions before commit.
+private struct BatchDeletionReviewSheet: View {
+    @Bindable var viewModel: SwipeSessionViewModel
+    let assets: [AssetSummary]
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var markedForDeletion: Set<String>
+    @State private var previewAsset: AssetSummary?
+
+    init(viewModel: SwipeSessionViewModel, assets: [AssetSummary]) {
+        self.viewModel = viewModel
+        self.assets = assets
+        _markedForDeletion = State(initialValue: Set(viewModel.pendingDeletionIds))
+    }
+
+    private var selectedBytes: Int64 {
+        assets.reduce(0) { sum, asset in
+            markedForDeletion.contains(asset.id) ? sum + asset.fileSize : sum
+        }
+    }
+
+    private var keptCount: Int {
+        max(0, assets.count - markedForDeletion.count)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    Text(
+                        keptCount > 0
+                            ? L10n.format("%lld selected · %@", fallback: "%lld selected · %@", markedForDeletion.count, selectedBytes.formattedFileSize)
+                            : L10n.format("%lld items · %@", fallback: "%lld items · %@", markedForDeletion.count, selectedBytes.formattedFileSize)
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.lg)
+
+                    LazyVGrid(columns: ResponsiveGrid.photo(), spacing: Spacing.xs) {
+                        ForEach(assets) { asset in
+                            SelectableMediaGridCell(
+                                asset: asset,
+                                photoService: viewModel.photoService,
+                                isSelected: markedForDeletion.contains(asset.id),
+                                bottomBadgeText: asset.mediaType == .video ? "\(asset.formattedDuration) · \(asset.displaySize)" : asset.displaySize,
+                                selectionColor: Color.destructiveFill,
+                                isSelectionDisabled: viewModel.isDeletingBatch,
+                                onPreview: { previewAsset = asset },
+                                onToggleSelection: { markedForDeletion.toggle(asset.id) }
+                            )
+                        }
+                    }
+                    .padding(.horizontal, Spacing.xs)
+                }
+                .padding(.vertical, Spacing.sm)
+            }
+            .safeAreaInset(edge: .bottom) {
+                ActionBarView {
+                    if markedForDeletion.isEmpty {
+                        Button {
+                            applySelection()
+                            dismiss()
+                        } label: {
+                            SecondaryActionLabel(title: "Keep All Items")
+                        }
+                    } else {
+                        Text(L10n.format("%lld selected · %@", fallback: "%lld selected · %@", markedForDeletion.count, selectedBytes.formattedFileSize))
+                            .font(.subheadline.bold())
+                        Spacer()
+                        Button("Done") {
+                            applySelection()
+                            dismiss()
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        Button(role: .destructive) {
+                            applySelection()
+                            dismiss()
+                            Task { await viewModel.commitDeletions() }
+                        } label: {
+                            Text(L10n.format("Delete %lld item", fallback: "Delete %lld items", markedForDeletion.count))
+                                .font(.headline)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.destructiveFill)
+                        .disabled(viewModel.isDeletingBatch)
+                    }
+                }
+            }
+            .localizedNavigationTitle("Review Changes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    SelectAllToolbarButton(
+                        allSelected: markedForDeletion.count == assets.count && !assets.isEmpty,
+                        selectAll: { markedForDeletion = Set(assets.map(\.id)) },
+                        deselectAll: { markedForDeletion.removeAll() }
+                    )
+                }
+            }
+            .fullScreenCover(item: $previewAsset) { asset in
+                MediaPreviewView(
+                    assets: assets,
+                    startIndex: assets.firstIndex { $0.id == asset.id } ?? 0,
+                    photoService: viewModel.photoService
+                )
+            }
+            .onAppear {
+                markedForDeletion = Set(viewModel.pendingDeletionIds)
+            }
+        }
+    }
+
+    private func applySelection() {
+        let allIds = Set(assets.map(\.id))
+        let keptIds = allIds.subtracting(markedForDeletion)
+        viewModel.applyDeletionReview(keeping: keptIds)
     }
 }

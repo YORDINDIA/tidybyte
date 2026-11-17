@@ -104,6 +104,33 @@ final class GooglePhotosTests: XCTestCase {
         XCTAssertEqual(result.recoverableBytes, 60)
     }
 
+    @MainActor
+    func testVisibleInsightsRespectsDoneIdsAndUnknownSizes() {
+        var result = CloudScanResult()
+        result.items = [
+            "a": item("a", size: 10),
+            "b": item("b", size: 20),
+            "u": item("u", size: nil)
+        ]
+        result.duplicateGroups = [.init(id: "g", itemIds: ["a", "b"], isExactDuplicate: true)]
+        result.blurry = ["u"]
+
+        let full = GooglePhotosViewModel.visibleInsights(for: result, excluding: [])
+        XCTAssertEqual(full.recoverableBytes, 20)
+        XCTAssertEqual(full.findingCount, 2)
+        XCTAssertTrue(full.hasUnknownSizes)
+
+        let onlyUnknownLeft = GooglePhotosViewModel.visibleInsights(for: result, excluding: ["b"])
+        XCTAssertEqual(onlyUnknownLeft.recoverableBytes, 0)
+        XCTAssertEqual(onlyUnknownLeft.findingCount, 1)
+        XCTAssertTrue(onlyUnknownLeft.hasUnknownSizes)
+
+        let allDone = GooglePhotosViewModel.visibleInsights(for: result, excluding: ["b", "u"])
+        XCTAssertEqual(allDone.recoverableBytes, 0)
+        XCTAssertEqual(allDone.findingCount, 0)
+        XCTAssertFalse(allDone.hasUnknownSizes)
+    }
+
     func testFormBodyEncodesReservedCharacters() {
         let body = String(data: GoogleAuthService.formBody(["b": "x y&z", "a": "1"]), encoding: .utf8)
         XCTAssertEqual(body, "a=1&b=x%20y%26z")

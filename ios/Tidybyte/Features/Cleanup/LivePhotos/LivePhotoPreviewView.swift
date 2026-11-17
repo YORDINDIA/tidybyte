@@ -141,6 +141,13 @@ struct LivePhotoPreviewView: View {
                             // pin full live-photo buffers.
                             isActive: index == currentIndex
                         )
+                    } else {
+                        AsyncThumbnailView(
+                            assetId: item.replacementId ?? item.id,
+                            photoService: photoService,
+                            targetSize: CGSize(width: 1200, height: 1200),
+                            contentMode: .fit
+                        )
                     }
                     conversionStateOverlay(for: item)
                 }
@@ -246,7 +253,11 @@ struct LivePhotoPreviewView: View {
         HStack(spacing: Spacing.sm) {
             Button {
                 HapticHelper.impact(.light)
-                dismiss()
+                if currentIndex < viewModel.items.count - 1 {
+                    withAnimation { currentIndex += 1 }
+                } else {
+                    dismiss()
+                }
             } label: {
                 Text("Keep")
                     .font(.headline)
@@ -256,7 +267,7 @@ struct LivePhotoPreviewView: View {
                     .foregroundStyle(.white)
             }
             .scaleOnPress()
-            .accessibilityLabel("Keep Live Photo and close")
+            .accessibilityLabel("Keep Live Photo")
 
             Button(role: .destructive) {
                 HapticHelper.impact(.medium)

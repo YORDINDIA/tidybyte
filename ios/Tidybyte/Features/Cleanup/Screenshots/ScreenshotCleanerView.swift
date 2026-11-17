@@ -20,7 +20,13 @@ struct ScreenshotCleanerView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            if !viewModel.isLoading {
+                LimitedLibraryBanner()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.sm)
+            }
+
             if viewModel.isLoading {
                 // D-01: the fetch runs inside a cancellable task, so this is the
                 // one loading state that keeps a Cancel.
@@ -134,7 +140,7 @@ struct ScreenshotCleanerView: View {
         .toolbar {
             // "Review with Swipe" lives in the header row only.
             if !viewModel.screenshots.isEmpty {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
                     SelectAllToolbarButton(
                         allSelected: viewModel.allVisibleSelected,
                         selectAll: { viewModel.selectAll() },
@@ -221,37 +227,16 @@ struct ScreenshotCleanerView: View {
     }
 
     private func screenshotCell(_ screenshot: AssetSummary) -> some View {
-        ZStack(alignment: .topTrailing) {
-            Color.clear
-                .aspectRatio(1, contentMode: .fit)
-                .overlay {
-                    AsyncThumbnailView(assetId: screenshot.id, photoService: photoService)
-                }
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
-                // The thumbnail is the preview target; the checkbox is its own element.
-                .accessibilityElement(children: .ignore)
-                .accessibilityAddTraits(.isButton)
-                .accessibilityLabel("Preview screenshot, \(screenshot.displaySize)")
-                // VoiceOver activation opens the preview, as a tap does.
-                .accessibilityAction(.default) { previewAsset = screenshot }
-
-            // Always-visible selection checkbox. Tapping it (de)selects; tapping
-            // anywhere else on the cell opens the preview.
-            SelectToggle(isSelected: viewModel.selectedIds.contains(screenshot.id), itemName: "screenshot") {
-                viewModel.toggleSelection(screenshot.id)
-            }
-        }
-        .overlay {
-            if viewModel.selectedIds.contains(screenshot.id) {
-                RoundedRectangle(cornerRadius: Spacing.xs)
-                    .strokeBorder(Color.blue, lineWidth: 2)
-            }
-        }
-        .onTapGesture {
-            previewAsset = screenshot
-        }
-        .contextMenu {
+        SelectableMediaGridCell(
+            asset: screenshot,
+            photoService: photoService,
+            isSelected: viewModel.selectedIds.contains(screenshot.id),
+            itemName: "screenshot",
+            previewAccessibilityLabel: "Preview screenshot, \(screenshot.displaySize)",
+            bottomBadgeText: screenshot.displaySize,
+            onPreview: { previewAsset = screenshot },
+            onToggleSelection: { viewModel.toggleSelection(screenshot.id) }
+        ) {
             Button {
                 previewAsset = screenshot
             } label: {

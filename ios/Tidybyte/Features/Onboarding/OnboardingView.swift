@@ -23,6 +23,7 @@ struct OnboardingView: View {
     let onRequestAccess: () async -> Void
 
     @State private var pageIndex = 0
+    @State private var isRequestingAccess = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Computed, not a `static let`.
@@ -116,10 +117,14 @@ struct OnboardingView: View {
         VStack(spacing: Spacing.xl) {
             Spacer()
 
-            Image(systemName: page.systemImage)
-                .scaledGlyph(ScaledSize.stateGlyph, weight: .light)
-                .foregroundStyle(page.tint)
-                .accessibilityHidden(true)
+            if page.systemImage == Self.pages.first?.systemImage {
+                gesturePreviewCard
+            } else {
+                Image(systemName: page.systemImage)
+                    .scaledGlyph(ScaledSize.stateGlyph, weight: .light)
+                    .foregroundStyle(page.tint)
+                    .accessibilityHidden(true)
+            }
 
             VStack(spacing: Spacing.md) {
                 Text(page.title)
@@ -141,6 +146,32 @@ struct OnboardingView: View {
         .readableWidth()
     }
 
+    private var gesturePreviewCard: some View {
+        HStack(spacing: Spacing.sm) {
+            gesturePill(icon: "arrow.left", label: "Delete", color: .destructiveFill)
+            gesturePill(icon: "arrow.up", label: "Add to Album", color: .actionFill)
+            gesturePill(icon: "arrow.right", label: "Keep", color: .successFill)
+        }
+        .glassCard(padding: Spacing.md)
+        .accessibilityHidden(true)
+    }
+
+    private func gesturePill(icon: String, label: LocalizedStringKey, color: Color) -> some View {
+        VStack(spacing: Spacing.xs) {
+            Image(systemName: icon)
+                .font(.headline.bold())
+                .foregroundStyle(.white)
+                .scaledSquare(36)
+                .background(color, in: Circle())
+            Text(label)
+                .font(.caption.bold())
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     // MARK: - Footer
 
     private var footer: some View {
@@ -156,14 +187,12 @@ struct OnboardingView: View {
             .accessibilityLabel("Page \(pageIndex + 1) of \(Self.pages.count)")
 
             Button(action: advance) {
-                Text(isLastPage ? "Allow Access" : "Continue")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(Spacing.lg)
-                    .background(.tint)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                PrimaryActionLabel(
+                    title: isLastPage ? "Allow Access" : "Continue",
+                    isLoading: isRequestingAccess
+                )
             }
+            .disabled(isRequestingAccess)
             .scaleOnPress()
             // The permission gate behind this cover renders its own
             // "Allow Access" button, so UI tests scope to this one by id.
@@ -185,6 +214,8 @@ struct OnboardingView: View {
             }
             return
         }
+        guard !isRequestingAccess else { return }
+        isRequestingAccess = true
         Task { @MainActor in
             // Ask first, finish second: the cover stays up behind the system
             // alert, so the user isn't dropped into an unexplained screen
@@ -195,6 +226,7 @@ struct OnboardingView: View {
             // would not inherit the main actor, yet `onFinish()` records the
             // `@AppStorage` completion flag.
             await onRequestAccess()
+            isRequestingAccess = false
             onFinish()
         }
     }

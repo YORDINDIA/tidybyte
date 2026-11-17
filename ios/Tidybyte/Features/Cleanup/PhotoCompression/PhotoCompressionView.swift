@@ -13,7 +13,13 @@ struct PhotoCompressionView: View {
     private let photoService = PhotoLibraryService.shared
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            if !viewModel.isLoading {
+                LimitedLibraryBanner()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.sm)
+            }
+
             if viewModel.isLoading {
                 loadingView
             } else if viewModel.photos.isEmpty, viewModel.filterHidesPhotos {
@@ -40,8 +46,8 @@ struct PhotoCompressionView: View {
         .localizedNavigationTitle("Photo Compression")
         .happyPathCelebration(isPresented: $isCelebrating, statLine: celebrationStatLine)
         .toolbar {
-            if !viewModel.isLoading && !viewModel.photos.isEmpty {
-                ToolbarItem(placement: .topBarLeading) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if !viewModel.isLoading && !viewModel.photos.isEmpty {
                     SelectAllToolbarButton(
                         allSelected: viewModel.allSelected,
                         selectAll: { viewModel.selectAll() },
@@ -49,15 +55,12 @@ struct PhotoCompressionView: View {
                     )
                     .disabled(viewModel.isCompressing)
                 }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: Spacing.md) {
-                    NavigationLink {
-                        CompressionHistoryView()
-                    } label: {
-                        Label("Compression History", systemImage: "clock.arrow.circlepath")
-                    }
+                NavigationLink {
+                    CompressionHistoryView()
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
                 }
+                .accessibilityLabel("Compression History")
             }
         }
         .alert("Compress Photos", isPresented: $showCompressConfirm) {
@@ -202,31 +205,54 @@ struct PhotoCompressionView: View {
 
     /// States what the list shows, with one button to widen or narrow it.
     private var filterRow: some View {
-        HStack(spacing: Spacing.sm) {
-            Text(viewModel.showAllPhotos
-                 ? "\(viewModel.photos.count) photos"
-                 : "\(viewModel.photos.count) photos over \(PhotoCompressionPolicy.minimumMegabytes) MB that can shrink")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Menu {
-                Picker("Sort", selection: $viewModel.sortOrder) {
-                    ForEach(PhotoCompressionSortOrder.allCases) { order in
-                        Text(order.label).tag(order)
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(spacing: Spacing.sm) {
+                Text(viewModel.showAllPhotos
+                     ? "\(viewModel.photos.count) photos"
+                     : "\(viewModel.photos.count) photos over \(PhotoCompressionPolicy.minimumMegabytes) MB that can shrink")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Menu {
+                    Picker("Sort", selection: $viewModel.sortOrder) {
+                        ForEach(PhotoCompressionSortOrder.allCases) { order in
+                            Text(order.label).tag(order)
+                        }
                     }
+                } label: {
+                    Label("Sort", systemImage: "arrow.up.arrow.down")
+                        .font(.caption.bold())
+                        .frame(minHeight: 44)
                 }
-            } label: {
-                Label("Sort", systemImage: "arrow.up.arrow.down")
-                    .font(.caption.bold())
-                    .frame(minHeight: 44)
+                .accessibilityLabel("Sort photos")
+                Button(viewModel.showAllPhotos ? "Show Large Only" : "Show All") {
+                    viewModel.showAllPhotos.toggle()
+                }
+                .font(.caption.bold())
+                .frame(minHeight: 44)
+                .disabled(viewModel.isCompressing)
             }
-            .accessibilityLabel("Sort photos")
-            Button(viewModel.showAllPhotos ? "Show Large Only" : "Show All") {
-                viewModel.showAllPhotos.toggle()
+
+            if !viewModel.selectedIds.isEmpty && !viewModel.isCompressing {
+                HStack(spacing: Spacing.md) {
+                    Toggle("Delete Originals", isOn: $viewModel.deleteOriginals)
+                        .font(.caption)
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                    Spacer()
+                    Button {
+                        viewModel.measureSelected()
+                    } label: {
+                        Label(
+                            viewModel.isMeasuring ? L10n.string("Checking sizes…") : L10n.string("Check Result Sizes"),
+                            systemImage: "scalemass"
+                        )
+                        .font(.caption.bold())
+                    }
+                    .disabled(viewModel.isMeasuring)
+                }
+                .padding(.bottom, Spacing.xs)
             }
-            .font(.caption.bold())
-            .frame(minHeight: 44)
-            .disabled(viewModel.isCompressing)
         }
         .padding(.horizontal, Spacing.lg)
     }
@@ -257,6 +283,11 @@ struct PhotoCompressionView: View {
                 AsyncThumbnailView(assetId: photo.id, photoService: photoService)
                     .frame(width: 60, height: 60)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                    .overlay(alignment: .bottomLeading) {
+                        if photo.asset.isFavorite {
+                            FavoriteMark().padding(Spacing.xs)
+                        }
+                    }
 
                 if isAX {
                     Spacer()
@@ -405,7 +436,12 @@ struct PhotoCompressionView: View {
                 if !viewModel.isCompressing {
                     Menu {
                         ForEach(PhotoCompressionPreset.presets) { preset in
-                            Button(preset.label) { viewModel.setPresetForSelected(preset) }
+                            Button {
+                                viewModel.setPresetForSelected(preset)
+                            } label: {
+                                Text(preset.label)
+                                Text(preset.description)
+                            }
                         }
                         Section("Max File Size") {
                             ForEach(PhotoCompressionPreset.maxSizeChoicesMB, id: \.self) { mb in
@@ -414,26 +450,8 @@ struct PhotoCompressionView: View {
                                 }
                             }
                         }
-                        Section {
-                            Toggle("Delete Originals", isOn: $viewModel.deleteOriginals)
-                        } footer: {
-                            Text("Off: keep both versions.")
-                        }
-                        Button {
-                            viewModel.measureSelected()
-                        } label: {
-                            Label("Check Result Sizes", systemImage: "scalemass")
-                        }
-                        .disabled(viewModel.isMeasuring)
                     } label: {
-                        // See VideoCompressionView: the preset label is a
-                        // technical name, "Mixed" is a word. The two quality
-                        // keys are separate `L10n.format` calls rather than one
-                        // with a ternary: a key held in a variable is invisible
-                        // to the localization scan and would ship untranslated.
-                        Text(viewModel.isMeasuring
-                             ? L10n.string("Checking sizes…")
-                             : viewModel.deleteOriginals
+                        Text(viewModel.deleteOriginals
                              ? L10n.format("Quality: %@",
                                            viewModel.selectedPreset?.label ?? L10n.string("Mixed"))
                              : L10n.format("Quality: %@ · keep originals",
@@ -477,7 +495,7 @@ struct PhotoCompressionView: View {
                         .font(.headline)
                         .padding(.horizontal, Spacing.xxl)
                         .padding(.vertical, Spacing.sm)
-                        .background(.blue)
+                        .background(Color.actionFill)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
                 }

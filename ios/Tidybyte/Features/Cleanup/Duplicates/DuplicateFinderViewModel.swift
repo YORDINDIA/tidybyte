@@ -377,4 +377,12 @@ enum DuplicateScanType: String, CaseIterable {
         case .all: L10n.string("All")
         }
     }
+
+    var description: LocalizedStringKey {
+        switch self {
+        case .exact: "Identical local files matched byte-for-byte."
+        case .visual: "Similar-looking shots matched by appearance."
+        case .all: "Runs both exact and visual matching."
+        }
+    }
 }

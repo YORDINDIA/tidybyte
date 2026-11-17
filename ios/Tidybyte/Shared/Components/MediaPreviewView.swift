@@ -60,6 +60,7 @@ struct MediaPreviewView: View {
     @State private var currentIndex: Int
     @State private var showDeleteConfirm = false
     @State private var isDeleting = false
+    @State private var showChrome = true
 
     /// The live paged list: the provider closure when given (re-read every
     /// render so deletes elsewhere re-render the pager), else the static array.
@@ -133,15 +134,25 @@ struct MediaPreviewView: View {
 
     private var contentView: some View {
         VStack(spacing: 0) {
-            topBar
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.sm)
+            if showChrome {
+                topBar
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.sm)
+            }
 
             pagedViewer
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showChrome.toggle()
+                    }
+                }
 
             Spacer(minLength: 0)
 
-            metadataAndActions
+            if showChrome {
+                metadataAndActions
+            }
         }
         .alert("Delete Item?", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
@@ -180,7 +191,7 @@ struct MediaPreviewView: View {
                 Image(systemName: "xmark")
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.white)
-                    .padding(Spacing.sm)
+                    .frame(minWidth: 44, minHeight: 44)
                     .background(.white.opacity(0.12), in: Circle())
             }
             .accessibilityLabel("Close preview")
@@ -248,10 +259,11 @@ struct MediaPreviewView: View {
                     .font(.subheadline.bold())
                     .foregroundStyle(.white)
                     .lineLimit(1)
-            } else if let date = asset.creationDate {
+            }
+            if let date = asset.creationDate {
                 Text(Formatters.dateTime(date, in: locale))
-                    .font(.subheadline)
-                    .foregroundStyle(.white)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.85))
             }
             // Stacks at accessibility sizes: three labels side by side clip there.
             let row = dynamicTypeSize.isAccessibilitySize

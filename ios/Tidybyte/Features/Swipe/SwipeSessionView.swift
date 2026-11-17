@@ -121,10 +121,14 @@ struct SwipeSessionView: View {
             Task { await reloadEmptyDeck() }
         }
         .toast($toast)
+        .onChange(of: viewModel.errorMessage) { _, newValue in
+            if newValue != nil { toast = nil }
+        }
         .photoPermissionPrimer(isPresented: $showPermissionPrimer, permissionHandler: permissionHandler)
         .localizedNavigationTitle("Swipe Session")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             // The count sits under the title, clear of the toast area.
             ToolbarItem(placement: .principal) {
@@ -141,31 +145,50 @@ struct SwipeSessionView: View {
             }
             ToolbarItem(placement: .topBarLeading) {
                 Button {
+                    HapticHelper.impact(.light)
                     if viewModel.hasPendingDeletions {
                         // Route through the end-session review so pending deletions
                         // aren't silently dropped (they were never committed).
                         Task { await viewModel.endSession() }
                     } else {
-                        // Nothing marked for deletion — behave like a normal back,
-                        // but release the prefetch cache first (SWIPE-01).
+                        viewModel.cancelLoading()
+                        // Nothing marked for deletion — release the prefetch cache
+                        // first (SWIPE-01) and dismiss cleanly.
                         Task { await viewModel.stopAllCaching() }
                         dismiss()
                     }
                 } label: {
-                    Image(systemName: "chevron.backward")
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "chevron.backward")
+                        Text("Exit")
+                    }
                 }
-                .accessibilityLabel("Back")
-                .accessibilityHint("Returns to the swipe home; reviews pending deletions first if any")
+                .accessibilityLabel("Exit")
+                .accessibilityHint(viewModel.hasPendingDeletions
+                    ? "Ends the session and reviews pending deletions"
+                    : "Returns to the swipe home")
             }
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    Task { await viewModel.endSession() }
-                } label: {
-                    // Neutral: ending reviews changes, it deletes nothing.
-                    Text("End")
+            if !viewModel.pendingDeletionIds.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        HapticHelper.impact(.light)
+                        Task { await viewModel.endSession() }
+                    } label: {
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: "trash.fill")
+                                .font(.caption.bold())
+                            Text(verbatim: "\(viewModel.pendingDeletionIds.count)")
+                                .font(.subheadline.bold().monospacedDigit())
+                        }
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, 4)
+                        .background(Color.destructiveFill, in: Capsule())
+                        .foregroundStyle(.white)
+                    }
+                    .disabled(viewModel.isDeletingBatch)
+                    .accessibilityLabel("Review Marked Items")
+                    .accessibilityValue(L10n.format("%lld item", fallback: "%lld items", viewModel.pendingDeletionIds.count))
                 }
-                .accessibilityLabel("End session")
-                .accessibilityHint("Ends the session and reviews your changes")
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -186,6 +209,7 @@ struct SwipeSessionView: View {
         }) {
             AlbumPickerSheet(
                 photoService: viewModel.photoService,
+                assetId: viewModel.pendingKeepAsset?.id,
                 onAlbumSelected: { albumId in
                     await viewModel.addToAlbum(albumId: albumId)
                 },
@@ -302,13 +326,7 @@ struct SwipeSessionView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Try Another Filter")
-                        .font(.headline)
-                        .padding(.horizontal, Spacing.xxxl)
-                        .padding(.vertical, Spacing.md)
-                        .background(.blue)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                    emptyStateButtonLabel("Try Another Filter")
                 }
                 .scaleOnPress()
             } else if !viewModel.isPhotoLibraryAccessible {
@@ -387,13 +405,7 @@ struct SwipeSessionView: View {
                 Button {
                     Task { await reloadEmptyDeck() }
                 } label: {
-                    Text("Try Again")
-                        .font(.headline)
-                        .padding(.horizontal, Spacing.xxxl)
-                        .padding(.vertical, Spacing.md)
-                        .background(.blue)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                    emptyStateButtonLabel("Try Again")
                 }
                 .scaleOnPress()
             }
@@ -420,13 +432,7 @@ struct SwipeSessionView: View {
     /// Filled primary button for the empty state, matching the styling of the
     /// other empty-state actions.
     private func emptyStateButtonLabel(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .font(.headline)
-            .padding(.horizontal, Spacing.xxxl)
-            .padding(.vertical, Spacing.md)
-            .background(.blue)
-            .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+        PrimaryActionLabel(title: title, fullWidth: false)
     }
 
     private func flashZoomHint() {

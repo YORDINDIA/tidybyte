@@ -4,11 +4,14 @@ import SwiftData
 struct SwipeHomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppNavigation.self) private var appNavigation
+    @Environment(LibraryChangeMonitor.self) private var libraryMonitor
     @State private var selectedRoute: SwipeSessionRoute?
     @State private var showAlbumSelection = false
     @State private var pendingAlbumFilter: SwipeFilter?
     @State private var showDateSelection = false
     @State private var pendingDateFilter: SwipeFilter?
+    @State private var libraryTotalCount: Int = 0
+    @State private var swipedRecordCount: Int = 0
 
     @AppStorage(AppPreferences.Key.defaultSwipeFilter) private var defaultFilterRaw: String = DefaultSwipeFilterPreference.notSwipedYet.rawValue
 
@@ -46,6 +49,14 @@ struct SwipeHomeView: View {
         }
         .onAppear {
             consumePendingFilter()
+        }
+        .onChange(of: selectedRoute) { oldRoute, newRoute in
+            if oldRoute != nil, newRoute == nil {
+                Task { await refreshHomeCounts() }
+            }
+        }
+        .task(id: libraryMonitor.generation) {
+            await refreshHomeCounts()
         }
         .sheet(isPresented: $showAlbumSelection, onDismiss: {
             // Start the session only after the sheet has fully dismissed —
@@ -99,18 +110,25 @@ struct SwipeHomeView: View {
                     .fadeSlideIn(delay: 0.05)
 
                     if #available(iOS 18, *) {
-                        filterCard(title: "Worst Shots", description: "Review low-scoring photos, lowest first",
-                                   icon: "camera.metering.unknown", color: .orange, filter: .worstShots)
-                            .fadeSlideIn(delay: 0.08)
+                        filterCard(
+                            title: "Worst Shots",
+                            description: "Review low-scoring photos, lowest first",
+                            icon: "camera.metering.unknown",
+                            color: .orange,
+                            filter: .worstShots,
+                            tag: "Scans library"
+                        )
+                        .fadeSlideIn(delay: 0.08)
                     }
 
                     filterCard(
                         title: "All Media",
-                        description: "Every photo and video in your library",
+                        description: "Start from the beginning — includes skipped items",
                         icon: "photo.on.rectangle.angled",
                         color: .purple,
                         filter: .allMedia,
-                        isDefault: defaultFilterPreference == .allMedia
+                        isDefault: defaultFilterPreference == .allMedia,
+                        count: libraryTotalCount > 0 ? libraryTotalCount : nil
                     )
                     .fadeSlideIn(delay: 0.1)
 
@@ -128,7 +146,7 @@ struct SwipeHomeView: View {
                         title: "Not in Any User Album",
                         description: "Photos not organized into your albums",
                         icon: "folder.badge.questionmark",
-                        color: .orange,
+                        color: .cyan,
                         filter: .notInAnyAlbum,
                         isDefault: defaultFilterPreference == .notInAnyAlbum
                     )
@@ -184,6 +202,13 @@ struct SwipeHomeView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+
+                if libraryTotalCount > 0, swipedRecordCount > 0 {
+                    Text("\(swipedRecordCount) of \(libraryTotalCount) reviewed")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 2)
+                }
             }
 
             Button {
@@ -192,10 +217,10 @@ struct SwipeHomeView: View {
             } label: {
                 Label("Start with \(defaultFilterPreference.title)", systemImage: "play.fill")
                     .font(.subheadline.bold())
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.vertical, Spacing.sm)
-                    .background(Color.cardSurface)
-                    .foregroundStyle(.primary)
+                    .padding(.horizontal, Spacing.xl)
+                    .padding(.vertical, Spacing.sm + 2)
+                    .background(Color.actionFill)
+                    .foregroundStyle(.white)
                     .clipShape(Capsule())
             }
             .scaleOnPress()
@@ -215,6 +240,8 @@ struct SwipeHomeView: View {
         color: Color,
         filter: SwipeFilter?,
         isDefault: Bool = false,
+        count: Int? = nil,
+        tag: LocalizedStringKey? = nil,
         onCustomAction: (() -> Void)? = nil
     ) -> some View {
         Button {
@@ -243,16 +270,31 @@ struct SwipeHomeView: View {
                             .foregroundStyle(.primary)
                         if isDefault {
                             Text("Default")
-                                .font(.caption.bold())
+                                .font(.caption2.bold())
+                                .foregroundStyle(Color.actionText)
+                                .padding(.horizontal, Spacing.xs + 2)
+                                .padding(.vertical, 2)
+                                .background(Color.actionText.opacity(0.12), in: Capsule())
+                        }
+                        if let tag {
+                            Text(tag)
+                                .font(.caption2.bold())
                                 .foregroundStyle(.secondary)
                         }
                     }
                     Text(description)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
                 }
 
                 Spacer()
+
+                if let count {
+                    Text(verbatim: "\(count)")
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
 
                 Image(systemName: "chevron.forward")
                     .font(.caption.bold())
@@ -264,6 +306,19 @@ struct SwipeHomeView: View {
         // Reads as one control: the icon, the "Default" pill, the title, and the
         // description would otherwise become four separate VoiceOver stops.
         .accessibilityElement(children: .combine)
+    }
+
+    private func refreshHomeCounts() async {
+        let total = await photoService.totalAssetCount()
+        libraryTotalCount = total
+        let records = (try? modelContext.fetch(FetchDescriptor<SwipeRecord>())) ?? []
+        if records.isEmpty {
+            swipedRecordCount = 0
+        } else {
+            let ids = records.map(\.assetLocalIdentifier)
+            let liveCount = await photoService.existingIds(ids).count
+            swipedRecordCount = min(total, liveCount)
+        }
     }
 
     private func startSwipeSession(with filter: SwipeFilter) {
@@ -312,10 +367,17 @@ struct SwipeDateCutoffSheet: View {
             // Scrolls, so the note under the calendar is never clipped on a
             // small phone or at large text sizes.
             ScrollView {
-            VStack(spacing: Spacing.xl) {
+            VStack(spacing: Spacing.lg) {
+                HStack(spacing: Spacing.sm) {
+                    presetButton(title: "6 Months", months: -6)
+                    presetButton(title: "1 Year", months: -12)
+                    presetButton(title: "3 Years", months: -36)
+                }
+
                 DatePicker(
                     "Date",
                     selection: $cutoff,
+                    in: ...Date.now,
                     displayedComponents: [.date]
                 )
                 .datePickerStyle(.graphical)
@@ -343,5 +405,23 @@ struct SwipeDateCutoffSheet: View {
             }
         }
         .presentationDetents([.large])
+    }
+
+    private func presetButton(title: LocalizedStringKey, months: Int) -> some View {
+        let target = Calendar.current.date(byAdding: .month, value: months, to: .now) ?? .now
+        let isSelected = Calendar.current.isDate(cutoff, inSameDayAs: target)
+        return Button {
+            HapticHelper.selection()
+            cutoff = target
+        } label: {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .frame(maxWidth: .infinity)
+                .background(isSelected ? Color.actionFill : Color.cardSurface, in: Capsule())
+                .foregroundStyle(isSelected ? .white : .primary)
+        }
+        .buttonStyle(.plain)
     }
 }

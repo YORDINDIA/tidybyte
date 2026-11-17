@@ -11,6 +11,7 @@ struct BlurryPhotosView: View {
     @State private var previewPhoto: AnalyzedPhoto?
     @State private var pendingSwipeReview = false
     @State private var cellToDelete: AnalyzedPhoto?
+    @AppStorage(AppPreferences.Key.blurSensitivity) private var blurSensitivityRaw: String = BlurSensitivity.medium.rawValue
 
     private let photoService = PhotoLibraryService.shared
 
@@ -79,16 +80,14 @@ struct BlurryPhotosView: View {
         }
         .toolbar {
             if viewModel.scanState == .completed {
-                if !viewModel.filteredPhotos.isEmpty {
-                    ToolbarItem(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    if !viewModel.filteredPhotos.isEmpty {
                         SelectAllToolbarButton(
                             allSelected: viewModel.allVisibleSelected,
                             selectAll: { viewModel.selectAll() },
                             deselectAll: { viewModel.deselectAll() }
                         )
                     }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         if !viewModel.filteredPhotos.isEmpty {
                             Button {
@@ -183,7 +182,19 @@ struct BlurryPhotosView: View {
                 HapticHelper.impact(.light)
                 viewModel.startScan()
             }
-        )
+        ) {
+            VStack(spacing: Spacing.sm) {
+                Text("Blur Detection Sensitivity")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                Picker("Blur Detection Sensitivity", selection: $blurSensitivityRaw) {
+                    ForEach(BlurSensitivity.allCases, id: \.rawValue) { sensitivity in
+                        Text(sensitivity.displayName).tag(sensitivity.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+        }
         .fadeSlideIn()
     }
 
@@ -211,19 +222,12 @@ struct BlurryPhotosView: View {
 
     private var resultsView: some View {
         VStack(spacing: 0) {
-            // Tab bar
-            Picker("Category", selection: $viewModel.activeTab) {
-                Text("Blurry (\(viewModel.blurryCount))").tag(BlurryTab.blurry)
-                Text("Dark (\(viewModel.darkCount))").tag(BlurryTab.tooDark)
-                Text("Bright (\(viewModel.overexposedCount))").tag(BlurryTab.overexposed)
-                if viewModel.supportsLensSmudge {
-                    Text("Lens Smudge (\(viewModel.smudgeCount))").tag(BlurryTab.lensSmudge)
-                }
-            }
-            .pickerStyle(.menu)
-            .padding(.horizontal, Spacing.lg)
-            .padding(.vertical, Spacing.md)
-            .readableWidth()
+            LimitedLibraryBanner()
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.sm)
+
+            // Horizontal category chips matching Smart Categories
+            categoryChips
 
             if viewModel.filteredPhotos.isEmpty {
                 Spacer()
@@ -296,66 +300,64 @@ struct BlurryPhotosView: View {
         }
     }
 
+    // MARK: - Category Chips
+
+    private var categoryChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.sm) {
+                categoryChip(.blurry, count: viewModel.blurryCount, title: L10n.format("Blurry (%lld)", viewModel.blurryCount), icon: "camera.metering.unknown")
+                categoryChip(.tooDark, count: viewModel.darkCount, title: L10n.format("Dark (%lld)", viewModel.darkCount), icon: "moon.fill")
+                categoryChip(.overexposed, count: viewModel.overexposedCount, title: L10n.format("Bright (%lld)", viewModel.overexposedCount), icon: "sun.max.fill")
+                if viewModel.supportsLensSmudge {
+                    categoryChip(.lensSmudge, count: viewModel.smudgeCount, title: L10n.format("Lens Smudge (%lld)", viewModel.smudgeCount), icon: "sparkles")
+                }
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+        }
+    }
+
+    private func categoryChip(_ tab: BlurryTab, count: Int, title: String, icon: String) -> some View {
+        let isActive = viewModel.activeTab == tab
+        let tint = scoreColor(for: tab)
+        return Button {
+            withAnimation(.reduceMotionAware(.spring(response: 0.3, dampingFraction: 0.8), reduceMotion: reduceMotion)) {
+                viewModel.activeTab = tab
+            }
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.caption)
+                Text(verbatim: title)
+                    .font(.subheadline.weight(isActive ? .semibold : .regular))
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .background(isActive ? tint : Color.secondary.opacity(0.15))
+            .foregroundStyle(isActive ? .white : .primary)
+            .clipShape(Capsule())
+            .opacity(isActive || count > 0 ? 1 : 0.6)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : .isButton)
+    }
+
     // MARK: - Photo Cell
 
     private func photoCell(_ photo: AnalyzedPhoto) -> some View {
-        ZStack(alignment: .bottomLeading) {
-            Color.clear
-                .aspectRatio(1, contentMode: .fit)
-                .overlay {
-                    AsyncThumbnailView(assetId: photo.id, photoService: photoService)
-                }
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: Spacing.xs))
-                // The thumbnail is the preview target; the checkbox is its own element.
-                .accessibilityElement(children: .ignore)
-                .accessibilityAddTraits(.isButton)
-                .accessibilityLabel("Preview photo, \(photo.asset.displaySize)")
-                // VoiceOver activation opens the preview, as a tap does.
-                .accessibilityAction(.default) { previewPhoto = photo }
-
-            // Score indicator
-            HStack(spacing: Spacing.xs) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Rectangle()
-                            .fill(Color.white.opacity(0.3))
-                        Rectangle()
-                            .fill(scoreColor(for: viewModel.activeTab))
-                            .frame(width: geo.size.width * CGFloat(scoreValue(for: photo, tab: viewModel.activeTab)))
-                    }
-                }
-                .frame(width: 40, height: 4)
-                .clipShape(Capsule())
-            }
-            .padding(Spacing.sm)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(scoreLabel(for: viewModel.activeTab))
-            .accessibilityValue("\(Int((scoreValue(for: photo, tab: viewModel.activeTab) * 100).rounded())) percent")
-
-            // Always-visible selection checkbox. Tapping it (de)selects; tapping
-            // anywhere else on the cell opens the preview.
-            VStack {
-                HStack {
-                    Spacer()
-                    SelectToggle(isSelected: viewModel.selectedIds.contains(photo.id), itemName: "photo") {
-                        viewModel.toggleSelection(photo.id)
-                    }
-                }
-                Spacer()
-            }
-        }
-        .overlay {
-            if viewModel.selectedIds.contains(photo.id) {
-                RoundedRectangle(cornerRadius: Spacing.xs)
-                    .strokeBorder(Color.blue, lineWidth: 2)
-            }
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            previewPhoto = photo
-        }
-        .contextMenu {
+        SelectableMediaGridCell(
+            asset: photo.asset,
+            photoService: photoService,
+            isSelected: viewModel.selectedIds.contains(photo.id),
+            itemName: "photo",
+            scoreBar: (
+                value: scoreValue(for: photo, tab: viewModel.activeTab),
+                color: scoreColor(for: viewModel.activeTab),
+                label: scoreLabel(for: viewModel.activeTab)
+            ),
+            onPreview: { previewPhoto = photo },
+            onToggleSelection: { viewModel.toggleSelection(photo.id) }
+        ) {
             Button {
                 previewPhoto = photo
             } label: {
