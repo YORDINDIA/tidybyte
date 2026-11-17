@@ -438,6 +438,25 @@
         dragLocked = false;
       }
 
+      function updatePointerCapture(card, pointerId, capture) {
+        if (!card || pointerId === null) return;
+        try {
+          if (capture) {
+            if (card.setPointerCapture) card.setPointerCapture(pointerId);
+          } else if (
+            card.releasePointerCapture &&
+            (!card.hasPointerCapture || card.hasPointerCapture(pointerId))
+          ) {
+            card.releasePointerCapture(pointerId);
+          }
+        } catch (err) {
+          // Synthetic/Playwright or already-ended pointers throw NotFoundError; log unexpected ones.
+          if (err && err.name !== 'NotFoundError' && typeof console !== 'undefined' && console.debug) {
+            console.debug('Swipe deck pointer capture skipped:', err);
+          }
+        }
+      }
+
       deck.addEventListener('pointerdown', function (e) {
         if (busy || !cards.length || dragStart) return;
         if (e.isPrimary === false) return;
@@ -459,9 +478,7 @@
           if (Math.abs(rawDx) > 6 && Math.abs(rawDx) > Math.abs(rawDy)) {
             dragLocked = true;
             activeCard.classList.add('is-dragging');
-            if (activeCard.setPointerCapture && activePointerId !== null) {
-              try { activeCard.setPointerCapture(activePointerId); } catch (_) {}
-            }
+            updatePointerCapture(activeCard, activePointerId, true);
           } else if (Math.abs(rawDy) > 6 && Math.abs(rawDy) >= Math.abs(rawDx)) {
             resetDragState();
             return;
@@ -487,13 +504,7 @@
         var cancelled = e && e.type === 'pointercancel';
         resetDragState();
 
-        if (wasLocked && card.releasePointerCapture && pointerId !== null) {
-          try {
-            if (!card.hasPointerCapture || card.hasPointerCapture(pointerId)) {
-              card.releasePointerCapture(pointerId);
-            }
-          } catch (_) {}
-        }
+        if (wasLocked) updatePointerCapture(card, pointerId, false);
 
         if (!wasLocked) return;
         card.classList.remove('is-dragging');
