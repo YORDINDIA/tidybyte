@@ -16,6 +16,15 @@ TidyByte is a native iOS app (Swift/SwiftUI, iOS 17+) that helps users clean up 
 - **App icon** uses Xcode's single-size format: one opaque 1024×1024 PNG per appearance (`icon_1024.png`, `icon_1024_dark.png`, `icon_1024_tinted.png`) on `universal` / `platform: ios` slots. There are no per-idiom slots; Xcode derives every smaller size, including the iPad 152×152 icon. The dark and tinted appearances only work in this format — the older per-size format silently drops the `appearances` keys. Regenerate with `swift Tidybyte/Scripts/GenerateAppIcon.swift`; add `--sync-site` to refresh the site's logo, favicon and touch icons, or `--check` to verify what is on disk. One script renders both the app icon and the site marks, but the two now have separate geometry (`art` for the app, `siteArt` for the site): the app icon leads, so the site keeps the art it already has until someone runs `--sync-site`. `--check` also measures small-size legibility from the shipped 1024 and fails on a flat card, a lost card, or a missing shine; it runs on the light icon only.
 - Must test on a physical device for photo library operations — simulator has a fake photo library
 
+## Testing devices
+
+- **Boot one iPhone simulator only.** Run every build, test and manual check on that one device. Do not boot an iPad or an iPhone Duo simulator to check a layout, and do not run the suite again once per device.
+- **Every change must still work on iPhone, iPad and iPhone Duo.** Check the other sizes from the one booted iPhone:
+  1. Base layout on geometry (window width, size class), not on `userInterfaceIdiom`. A Duo inner display reports `.phone` but is wide.
+  2. Make sure the view works at these widths: Duo outer 466 × 678 pt, Duo inner 669 × 951 pt, narrowest iPad 744 pt, and iPad in all orientations.
+  3. To see a view at one of these sizes, host it at a fixed frame inside the booted iPhone (a unit test with `UIHostingController` at that frame, or a `#Preview` with a fixed-size layout). Do not boot a new device for it.
+  4. `IPadLayoutUITests` and `DuoLayoutUITests` gate on window width, so they skip or pass on the iPhone. Keep new wide-layout tests geometry-gated the same way.
+
 ## Architecture
 
 **MVVM + Actors + SwiftData**

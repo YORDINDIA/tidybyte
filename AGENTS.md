@@ -20,6 +20,9 @@ Run these from inside each folder:
   regenerate it after any `project.yml` change. Build and test with
   `xcodebuild -project Tidybyte.xcodeproj -scheme Tidybyte -destination
   'platform=iOS Simulator,name=<installed iPhone>' CODE_SIGNING_ALLOWED=NO`.
+  Boot only one iPhone simulator. Layouts must also work on iPad and iPhone
+  Duo, but check those sizes from that one iPhone; do not boot a device per
+  size (see "Testing devices" in `ios/AGENTS.md`).
   Release, App Store, and creatives tooling is npm scripts in
   `ios/package.json` (`npm run growth`, `archive`, `publish:*`); there is no
   fastlane.
