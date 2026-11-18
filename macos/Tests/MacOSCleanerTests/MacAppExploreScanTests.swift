@@ -130,6 +130,7 @@ final class MacAppExploreScanTests: XCTestCase {
         host.frame = NSRect(origin: .zero, size: size)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
         window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         window.contentView = host
         window.setFrame(NSRect(origin: .zero, size: size), display: true)
@@ -172,8 +173,8 @@ final class MacAppExploreScanTests: XCTestCase {
         outcome.files = files
         model.outcome = outcome
         model.selectExploreRecord(id: files[6].id)
-        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("mac-app-explore", isDirectory: true)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let folder = try TestFixtures.makeTemporaryDirectory(named: "mac-app-explore-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
         let sizes: [(String, CGSize)] = [("900", CGSize(width: 900, height: 620)), ("1400", CGSize(width: 1400, height: 720))]
         for (width, size) in sizes {
             for dark in [false, true] {
@@ -198,12 +199,12 @@ final class MacAppExploreScanTests: XCTestCase {
                     let shot = try snapshot(view, size: size, dark: dark)
                     let url = folder.appendingPathComponent("explore-\(name)-\(width)-\(scheme).png")
                     try shot.data.write(to: url)
+                    shot.window.close()
                     let drawn = try drawnFraction(shot.data)
                     XCTAssertGreaterThan(drawn, 0.01, "\(name) at \(width) pt (\(scheme)) drew almost nothing")
                 }
             }
         }
-        print("EXP render PNGs written to \(folder.path)")
     }
 
     /// Root-level scans have "/" as the common path. Folder ids must not start with "//", and must resolve.

@@ -10,6 +10,8 @@ Locked decisions for v1:
 2. Deletes move files to the **Trash** (recoverable until emptied).
 3. Ships via **both** the Mac App Store and direct download.
 
+> **Implementation status (`macos/`):** Both channels ship from the shared SwiftPM codebase in 21 languages (including RTL Arabic and Hebrew) with a live in-app switcher. The **Mac App Store** build (`APP_STORE=1`) is sandboxed to `Overview`, `Photos & Media` (user-selected folders + PhotoKit Photos library), and `History`, with no Sparkle or network calls. The **Direct** download adds Full Mac system/developer/app cleanup, APFS clone folding, Space Explorer (`List` + 8 visual modes), 13-tab System Monitor with Apple Silicon sensors, `tidybyte` CLI, `tidybyte-mcp` server, unattended APFS autoscan LaunchAgent, Sparkle updates, and optional AI (`Local Only` by default).
+
 ---
 
 ## 1. Scope model
@@ -29,6 +31,8 @@ Scans these preset locations in one pass:
 2. The user can toggle any location off before scanning.
 3. System paths (`/System`, `/Library`, `~/Library`, app bundles) are **never
    listed and never deletable**.
+
+> **Status note:** In the sandboxed App Store build, each personal preset folder requires explicit user authorization via the system folder picker (`Grant access…`, persisted via security-scoped bookmarks).
 
 ### 1.3 What gets listed
 
@@ -68,6 +72,8 @@ Mirrors the iOS card stack, adapted for desktop input.
 
 A half-finished drag snaps back. Trashing a file never asks twice inside a
 session; the single end-of-session confirm covers the batch.
+
+> **Status note:** Shipped Swipe Review also supports horizontal two-finger trackpad scroll gestures, non-destructive `Add to Album…` (for Photos assets, including creating new albums), and `⌘Z` / `Edit ▸ Undo` for pending session decisions.
 
 ### 3.2 Session filters
 
@@ -130,12 +136,17 @@ Each tool shows a live item-count badge; tools needing a full scan show
    copy verifies. Per-file progress, max two concurrent jobs, history log
    with before/after sizes.
 2. **Image Compression** — quality presets with estimated savings, same
-   verify-then-trash flow and history as video. Follow-up from iOS user
-   feedback (2026-11-04): keep-both option, delete-originals choice, sort by
-   date added, and a max-file-size mode. See `macos/FEATURE_TRACKER.md` IC-01..IC-04.
+   verify-then-trash flow and history as video.
+   > **Status note (iOS `IC-01..IC-04` parity shipped):** Image & Video Compression ship `Keep Both` vs `Replace & Trash Original`, photo sort orders (`Recently Added`, `Date Taken`, `Largest First`), `Max File Size` target mode (`1`–`10 MB`) with `"Check Result Sizes"` measured preflight and `"Already Under Target"` indicator, max dimensions (`Original`, `3024 px`, `2048 px`), `Convert to HEIC`, `Use HEVC (H.265)` video export, and a `2×` batch free-space headroom check.
 3. **Duplicate-Format Pairs** — RAW+JPEG, HEIC+JPEG, and Live-Photo-style
    still/video pairs (Mac photo libraries and camera imports); convert or
    keep-one-side with savings shown first.
+4. **Live Photos (`Live Photos → Still Images`, shipped):** Dedicated Photos
+   library converter with interactive `PHLivePhotoView` playback, showing motion
+   video vs still byte breakdowns and supporting `Replace & Trash Live Photo` or
+   `Keep Both`.
+
+> **Status note (§4.1–§4.2 shipped enhancements):** Photos & Media analysis also runs Vision Aesthetics scoring, Lens Smudge detection (Apple GPU family 7+), 512 px blur/exposure measurement, `Favorite` and `Burst Pick` auto-selection protection, Quick Filters (`All`, `Safe Picks`, `Blurry / Smudged`, `Screenshots by App`) + `Filter by App`, synchronized zoomable `Side-by-Side Comparison`, and iCloud asset download.
 
 ---
 
@@ -153,7 +164,8 @@ Each tool shows a live item-count badge; tools needing a full scan show
 5. **Trend** — daily size snapshots with a line chart once two exist, plus
    an honest span label ("Library shrank by 2.1 GB in 6 days").
 6. **Trash shortcut** — space only returns when the Trash is emptied, so a
-   permanent card shows the Trash size with an "Empty Trash" action.
+   permanent card shows the Trash size with an "Empty Trash" action (direct
+   builds; App Store builds show **Open Trash** in Finder).
 
 ---
 
@@ -181,15 +193,17 @@ Lifetime ledger of everything the app trashed or compressed:
 Separately: an optional **weekly cleanup reminder** (day picker, off by
 default) quoting the last scan's real numbers, e.g. "214 screenshots
 (1.2 GB) to review." Tapping it opens Cleanup. Plus **Reset Review
-History** with a confirm dialog, and an About section (version, build,
+History** with a confirm dialog, a **Photos Library Access** status/Limited
+Access management section, a 21-language live UI switcher in `Settings › General`
+(including RTL Arabic and Hebrew), and an About section (version, build,
 "all processing happens on this device").
 
 ---
 
 ## 8. Safety contract
 
-1. Every delete moves to the **Trash**. Nothing is permanently deleted
-   by the app, ever.
+1. Every delete moves to the **Trash** (or Photos **Recently Deleted**). Nothing is permanently deleted
+   by the app, except the confirmed, user-invoked **Empty Trash…** action on Overview (§5.6, direct builds only; App Store builds provide **Open Trash** in Finder).
 2. Destructive batch actions confirm once, stating exactly what happens.
 3. System and app-bundle paths can never appear in any review list.
 4. After any trash batch, a dismissible notice states the count and size
@@ -199,6 +213,9 @@ History** with a confirm dialog, and an About section (version, build,
    download** additionally checks for updates (Sparkle) and offers opt-in AI
    classification, off by default and sent only to the provider the user
    configures.
+6. **Unattended maintenance (direct builds only):** The optional background
+   `--autoscan` LaunchAgent executes only non-deleting APFS clone folds and
+   never moves files to Trash or deletes them.
 
 ---
 
@@ -225,6 +242,8 @@ History** with a confirm dialog, and an About section (version, build,
    flagged "not downloaded" and skipped by scans).
 2. Photo-library management inside Apple Photos (albums, faces, iCloud
    optimization tips) — file-level cleanup only.
+   > **Status note:** Shipped v1 includes Apple Photos library scanning via Apple's PhotoKit API (`PHAsset` / `PHPhotoLibrary`, including Limited Access guidance, iCloud download, `Add to Album…`, verified replacement, and Recently Deleted) while keeping `.photoslibrary` bundle filesystem scanning forbidden. Direct builds also ship Full Mac system/developer cleanup, 8-mode Space Explorer, 13-tab System Monitor, `tidybyte` CLI, and `tidybyte-mcp`.
 3. Syncing review state between Macs.
 4. Anything that permanently deletes, encrypts, or modifies file contents
-   outside the two compression tools.
+   outside the two compression tools, Live Photo → Still replacement, and the
+   confirmed, user-invoked **Empty Trash…** action (§5.6, §8.1, direct builds only).

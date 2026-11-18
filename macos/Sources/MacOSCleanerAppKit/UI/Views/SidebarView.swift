@@ -5,7 +5,7 @@ struct SidebarView: View {
     @Bindable var model: AppViewModel
 
     var body: some View {
-        let _ = model.languageStore.activeOverride
+        let language = model.languageStore.activeOverride
         let pending = model.pendingBytesByDestination
         List(
             selection: Binding<AppDestination?>(
@@ -13,20 +13,21 @@ struct SidebarView: View {
                 set: { if let destination = $0 { model.destination = destination } }
             )
         ) {
-            ForEach(Array(AppDestination.sections.enumerated()), id: \.offset) { _, section in
+            ForEach(Array(AppDestination.sections(language: language).enumerated()), id: \.offset) { _, section in
                 if let title = section.title {
-                    Section(title) { rows(section.rows, pending: pending) }
+                    Section(title) { rows(section.rows, pending: pending, language: language) }
                 } else {
-                    rows(section.rows, pending: pending)
+                    rows(section.rows, pending: pending, language: language)
                 }
             }
         }
+        .id(model.languageStore.language)
         .listStyle(.sidebar)
     }
 
-    private func rows(_ rows: [AppDestination], pending: [AppDestination: Int64]) -> some View {
+    private func rows(_ rows: [AppDestination], pending: [AppDestination: Int64], language: AppLanguage?) -> some View {
         ForEach(rows) { row in
-            Label(row.title, systemImage: row.icon)
+            Label(row.title(language: language), systemImage: row.icon)
                 .badge(badge(for: row, pending: pending))
                 .tag(row)
         }

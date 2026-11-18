@@ -77,14 +77,18 @@ enum ProcessRunner {
         handle.cancelTimers()
 
         if let startError = startErrorBox.withLock({ $0 }) {
-            try? handle.stdoutPipe.fileHandleForReading.close()
-            try? handle.stderrPipe.fileHandleForReading.close()
-            try? handle.stdoutPipe.fileHandleForWriting.close()
-            try? handle.stderrPipe.fileHandleForWriting.close()
+            closePipes(of: handle)
             _ = await drains.waitAsync(seconds: 2)
             return ProcessResult(exitCode: 1, stdout: "", stderr: startError)
         }
         return await collectDrains(drains, didTimeOut: handle.didTimeOut, exitCode: exitCode, timeout: timeout)
+    }
+
+    private static func closePipes(of handle: ProcessExecutionHandle) {
+        try? handle.stdoutPipe.fileHandleForReading.close()
+        try? handle.stderrPipe.fileHandleForReading.close()
+        try? handle.stdoutPipe.fileHandleForWriting.close()
+        try? handle.stderrPipe.fileHandleForWriting.close()
     }
 
     /// Text with valid UTF-8 kept intact. Each invalid byte sequence becomes U+FFFD,

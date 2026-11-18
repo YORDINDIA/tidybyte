@@ -96,7 +96,12 @@ public actor SafetyAuditor {
         filesByPath: [String: FileRecord]? = nil
     ) throws -> SafetyAuditResult {
         if action.actionType == .inspectOnly {
-            return SafetyAuditResult(decision: .allowed, reasons: ["Inspection-only action."], undoStatus: .notUndoable, auditedAt: Date())
+            return SafetyAuditResult(
+                decision: .allowed,
+                reasons: [String(localized: "Inspection-only action.", comment: "Safety audit reason for inspect-only action")],
+                undoStatus: .notUndoable,
+                auditedAt: Date()
+            )
         }
 
         guard action.userDecision == .approved || action.userDecision == .alwaysDoThis else {
@@ -118,8 +123,13 @@ public actor SafetyAuditor {
             return SafetyAuditResult(
                 decision: .allowed,
                 reasons: [
-                    "Package-manager cleanup uses the provider CLI and is not fully undoable; "
-                        + "explicit user approval serves as the required review."
+                    String(
+                        localized: """
+                            Package-manager cleanup uses the provider CLI and is not fully undoable; \
+                            explicit user approval serves as the required review.
+                            """,
+                        comment: "Safety audit reason for package-manager cleanup"
+                    )
                 ],
                 undoStatus: .notUndoable,
                 auditedAt: Date()

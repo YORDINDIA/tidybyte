@@ -76,7 +76,15 @@ struct FinderTagHelper {
         case ENOSPC:
             return CocoaError(.fileWriteOutOfSpace)
         case ELOOP:
-            return CocoaError(.fileWriteUnknown, userInfo: [NSLocalizedDescriptionKey: "The item is a symbolic link and was not tagged."])
+            return CocoaError(
+                .fileWriteUnknown,
+                userInfo: [
+                    NSLocalizedDescriptionKey: String(
+                        localized: "The item is a symbolic link and was not tagged.",
+                        comment: "Finder tag symlink error"
+                    )
+                ]
+            )
         default:
             let message = "setxattr failed with errno \(err): \(String(cString: strerror(err)))"
             return CocoaError(.fileWriteUnknown, userInfo: [NSLocalizedDescriptionKey: message])

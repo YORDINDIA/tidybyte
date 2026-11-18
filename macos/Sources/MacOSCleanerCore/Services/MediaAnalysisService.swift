@@ -366,8 +366,11 @@ extension MediaAnalysisService {
         var selected = proposed
         let protected = Set(items.filter { $0.isFavorite || $0.isBurstPick }.map(\.id))
             .union(groups.flatMap(\.protectedIDs))
-        selected.subtract(protected.subtracting(explicitlyChosen))
-        for group in groups where group.memberIDs.allSatisfy({ selected.contains($0) }) {
+        let autoProtected = protected.subtracting(explicitlyChosen)
+        selected.subtract(autoProtected)
+        for group in groups where group.memberIDs.allSatisfy({
+            selected.contains($0) || autoProtected.contains($0)
+        }) {
             selected.remove(group.bestID)
         }
         return selected

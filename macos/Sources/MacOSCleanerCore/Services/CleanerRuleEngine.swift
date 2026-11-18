@@ -177,16 +177,16 @@ public actor CleanerRuleEngine {
         guard size > 0 else {
             return nil
         }
-        let isLowRisk = Self.lowRiskDeveloperArtifacts.contains(loweredName)
+        return buildDeveloperArtifactPair(record: record, project: project, size: size, sessionID: sessionID)
+    }
+
+    private func buildDeveloperArtifactPair(
+        record: FileRecord, project: ProjectUnit?, size: Int64, sessionID: String
+    ) -> (finding: Finding, recommendation: Recommendation) {
+        let isLowRisk = Self.lowRiskDeveloperArtifacts.contains(record.fileName.lowercased())
         let risk: RiskLevel = isLowRisk ? .low : .medium
-        let confidence = project == nil && loweredName == "node_modules" ? 0.66 : (isLowRisk ? 0.94 : 0.84)
+        let confidence = project == nil && record.fileName.lowercased() == "node_modules" ? 0.66 : (isLowRisk ? 0.94 : 0.84)
         let findingID = UUID().uuidString
-        let evidence = [
-            "folder_name": record.fileName,
-            "project": project?.name ?? "unknown",
-            "project_status": project?.status.rawValue ?? "unknown",
-            "bytes": String(size)
-        ]
         let finding = Finding(
             id: findingID,
             scanSessionID: sessionID,
@@ -195,7 +195,12 @@ public actor CleanerRuleEngine {
             confidence: confidence,
             bytesReclaimable: size,
             summary: String(localized: "\(record.fileName) appears to be a rebuildable developer artifact.", comment: "Finding summary for developer artifact"),
-            evidence: evidence,
+            evidence: [
+                "folder_name": record.fileName,
+                "project": project?.name ?? "unknown",
+                "project_status": project?.status.rawValue ?? "unknown",
+                "bytes": String(size)
+            ],
             targetFileIDs: [record.id]
         )
         let recommendation = Recommendation(
@@ -727,7 +732,10 @@ public actor CleanerRuleEngine {
                 spec: CachePairSpec(
                     category: .developerArtifact, actionType: .moveToTrash, risk: .low,
                     policyTraceID: "dev_cache_rule",
-                    summary: String(localized: "Xcode Clang module cache (ModuleCache.noindex).", comment: "Finding summary for ModuleCache"),
+                    summary: String(
+                        localized: "Xcode Clang module cache (ModuleCache.noindex).",
+                        comment: "Finding summary for ModuleCache"
+                    ),
                     reason: String(
                         localized: "Xcode rebuilds ModuleCache.noindex automatically on the next build.",
                         comment: "Reason for ModuleCache cleanup"
@@ -852,34 +860,43 @@ public actor CleanerRuleEngine {
             home.appendingPathComponent("Applications/Caskroom", isDirectory: true)
         ]
         for root in nestedSearchRoots {
-            guard let children = try? FileManager.default.contentsOfDirectory(
-                at: root, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
-            ) else { continue }
-            for child in children {
-                if child.pathExtension == "app" {
-                    bundleURLs.append(child)
-                } else if let grandChildren = try? FileManager.default.contentsOfDirectory(
-                    at: child, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
-                ) {
-                    bundleURLs.append(contentsOf: grandChildren.filter { $0.pathExtension == "app" })
-                }
-            }
+            bundleURLs.append(contentsOf: Self.nestedAppBundleURLs(in: root))
         }
         var names: Set<String> = []
         var bundleIDs: Set<String> = []
         for url in bundleURLs {
-            names.insert(normalizeAppName(url.deletingPathExtension().lastPathComponent))
-            if let bundle = Bundle(url: url) {
-                if let bundleID = bundle.bundleIdentifier {
-                    bundleIDs.insert(bundleID)
-                }
-                if let info = bundle.infoDictionary {
-                    if let name = info["CFBundleName"] as? String { names.insert(normalizeAppName(name)) }
-                    if let display = info["CFBundleDisplayName"] as? String { names.insert(normalizeAppName(display)) }
-                }
-            }
+            collectBundleMetadata(from: url, names: &names, bundleIDs: &bundleIDs)
         }
         return InstalledAppInventory(names: names, index: InstalledAppIndex(bundleIDs: bundleIDs))
+    }
+
+    private static func nestedAppBundleURLs(in root: URL) -> [URL] {
+        guard let children = try? FileManager.default.contentsOfDirectory(
+            at: root, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+        ) else { return [] }
+        var urls: [URL] = []
+        for child in children {
+            if child.pathExtension == "app" {
+                urls.append(child)
+            } else if let grandChildren = try? FileManager.default.contentsOfDirectory(
+                at: child, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+            ) {
+                urls.append(contentsOf: grandChildren.filter { $0.pathExtension == "app" })
+            }
+        }
+        return urls
+    }
+
+    private func collectBundleMetadata(from url: URL, names: inout Set<String>, bundleIDs: inout Set<String>) {
+        names.insert(normalizeAppName(url.deletingPathExtension().lastPathComponent))
+        guard let bundle = Bundle(url: url) else { return }
+        if let bundleID = bundle.bundleIdentifier {
+            bundleIDs.insert(bundleID)
+        }
+        if let info = bundle.infoDictionary {
+            if let name = info["CFBundleName"] as? String { names.insert(normalizeAppName(name)) }
+            if let display = info["CFBundleDisplayName"] as? String { names.insert(normalizeAppName(display)) }
+        }
     }
 
     private func isInstalledApplicationFolder(_ folderName: String, inventory: InstalledAppInventory) -> Bool {

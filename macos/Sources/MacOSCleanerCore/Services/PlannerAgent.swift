@@ -177,15 +177,22 @@ public actor PlannerAgent {
         }
 
         // Apply all collected filters with OR logic (not cumulative AND)
+        var resolvedFilterSummary: String?
         if !filters.isEmpty {
+            let targetSummary = summaryText
+                ?? String(localized: "filtered", comment: "Fallback summary fragment for NL filter")
+            resolvedFilterSummary = targetSummary
             plan.actions = plan.actions.filter { action in filters.contains { $0(action) } }
-            plan.summary = String(localized: "Targeted plan: \(summaryText ?? "filtered").", comment: "Plan summary for NL filter")
+            plan.summary = String(localized: "Targeted plan: \(targetSummary).", comment: "Plan summary for NL filter")
         }
 
         if intent.scopes.contains(.safeOnly) {
             plan.actions = plan.actions.filter { $0.risk == .low }
-            if !filters.isEmpty {
-                plan.summary = String(localized: "Targeted safe plan: \(summaryText ?? "filtered").", comment: "Plan summary for targeted safe-only filter")
+            if let resolvedFilterSummary {
+                plan.summary = String(
+                    localized: "Targeted safe plan: \(resolvedFilterSummary).",
+                    comment: "Plan summary for targeted safe-only filter"
+                )
             } else {
                 plan.summary = String(localized: "Filtered to safe-only (low risk) actions.", comment: "Plan summary for safe-only filter")
             }

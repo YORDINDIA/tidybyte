@@ -148,6 +148,19 @@ public actor PackageManagerScanner {
                 estimatedBytes: safeBytes
             ))
         }
+        candidates.append(contentsOf: Self.dockerAggressiveAndVolumeCandidates(
+            docker: docker, reclaimable: reclaimable, safeBytes: safeBytes, dryRunOutput: result.stdout
+        ))
+        return candidates
+    }
+
+    private static func dockerAggressiveAndVolumeCandidates(
+        docker: URL,
+        reclaimable: DockerReclaimableBreakdown,
+        safeBytes: Int64,
+        dryRunOutput: String
+    ) -> [PackageCleanupCandidate] {
+        var candidates: [PackageCleanupCandidate] = []
         let riskyBytes = safeBytes + reclaimable.volumes
         if riskyBytes > 0 {
             candidates.append(PackageCleanupCandidate(
@@ -161,7 +174,7 @@ public actor PackageManagerScanner {
                 ),
                 commandPath: docker,
                 arguments: ["system", "prune", "--volumes", "--force"],
-                dryRunOutput: result.stdout,
+                dryRunOutput: dryRunOutput,
                 risk: .high,
                 category: .dockerCleanup,
                 estimatedBytes: riskyBytes
@@ -176,7 +189,7 @@ public actor PackageManagerScanner {
                 ),
                 commandPath: docker,
                 arguments: ["volume", "prune", "--force"],
-                dryRunOutput: result.stdout,
+                dryRunOutput: dryRunOutput,
                 risk: .high,
                 category: .dockerCleanup,
                 estimatedBytes: reclaimable.volumes
@@ -328,6 +341,9 @@ public actor PackageManagerScanner {
             blockingProcesses: ["Simulator", "Xcode"])]
     }
 
+}
+
+extension PackageManagerScanner {
     /// "This operation would free approximately 1.2GB of disk space."
     /// Homebrew's `disk_usage_readable` uses powers of 1024.
     static func brewFreedBytes(_ output: String) -> Int64? {
@@ -398,25 +414,19 @@ public actor PackageManagerScanner {
     }
 
     static func parseStorageSize(_ text: String) -> Int64? {
-        guard let match = text.firstMatch(of: /(?i)([0-9]+(?:\.[0-9]+)?)\s*(KiB|MiB|GiB|TiB|KB|MB|GB|TB|bytes|B)/) else {
+        guard let match = text.firstMatch(of: /(?i)([0-9]+(?:\.[0-9]+)?)\s*(KiB|MiB|GiB|TiB|KB|MB|GB|TB|bytes|B)/),
+              let value = Double(match.1),
+              let multiplier = storageUnitMultipliers[match.2.lowercased()] else {
             return nil
-        }
-        guard let value = Double(match.1) else { return nil }
-        let unit = match.2.lowercased()
-        let multiplier: Double = switch unit {
-        case "b", "bytes": 1
-        case "kb": 1_000
-        case "mb": 1_000_000
-        case "gb": 1_000_000_000
-        case "tb": 1_000_000_000_000
-        case "kib": 1_024
-        case "mib": 1_048_576
-        case "gib": 1_073_741_824
-        case "tib": 1_099_511_627_776
-        default: 0
         }
         let product = value * multiplier
         guard product.isFinite, product >= 0, product <= Double(Int64.max / 2) else { return nil }
         return Int64(product.rounded(.towardZero))
     }
+
+    private static let storageUnitMultipliers: [String: Double] = [
+        "b": 1, "bytes": 1,
+        "kb": 1_000, "mb": 1_000_000, "gb": 1_000_000_000, "tb": 1_000_000_000_000,
+        "kib": 1_024, "mib": 1_048_576, "gib": 1_073_741_824, "tib": 1_099_511_627_776
+    ]
 }

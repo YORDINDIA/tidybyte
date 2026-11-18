@@ -224,7 +224,7 @@
           <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-pink-ink">1</p>
         </div>
         <h3 class="mt-4 font-display text-lg font-semibold text-clay-pink-ink">Download and open TidyByte</h3>
-        <p class="mt-1.5 text-sm text-clay-pink-soft">Get the disk image from GitHub and drag TidyByte to Applications. It is signed and notarized, and it updates itself.</p>
+        <p class="mt-1.5 text-sm text-clay-pink-soft">Get the Direct disk image from GitHub and drag TidyByte to Applications. It is signed, notarized, and updates with Sparkle (system-wide Monitor requires the Direct build, not the sandboxed App Store build).</p>
       </li>
       <li class="rounded-2xl bg-clay-lav p-6" data-reveal>
         <div class="flex items-center gap-3">
@@ -267,11 +267,11 @@
       </div>
       <div>
         <h3 class="font-display text-xl font-medium text-ink">A CLI for the terminal</h3>
-        <p class="muted mt-3"><code>tidybyte monitor status|top|ports|agents|limits</code> answers the common questions straight from the shell, printing a table or JSON.</p>
+        <p class="muted mt-3">In Direct builds, the <code>tidybyte</code> CLI inside <code>Tidybyte.app/Contents/MacOS/</code> (or symlinked into <code>PATH</code> via Settings or Terminal) runs <code>tidybyte monitor status|top|ports|agents|limits|history</code>, printing a table or JSON.</p>
       </div>
       <div>
         <h3 class="font-display text-xl font-medium text-ink">MCP tools for assistants</h3>
-        <p class="muted mt-3">The app ships MCP tools, so a local AI assistant can query live readings on your behalf. The queries run on your Mac, like everything else.</p>
+        <p class="muted mt-3">Direct builds also ship <code>tidybyte-mcp</code> inside <code>Tidybyte.app/Contents/MacOS/</code>. Monitor tools (<code>monitor_*</code>) are read-only, while cleanup tools default to preview-first (<code>scan</code>, <code>show_plan</code>, <code>check_finding</code>, <code>history</code>). <code>execute</code> and <code>undo</code> require explicit <code>confirm: true</code>, with <code>execute</code> restricted to APFS clone folding and SQLite undo tracking.</p>
       </div>
     </div>
   </div>
@@ -359,7 +359,7 @@
           <span>Can I query it from the terminal or an AI assistant (CLI/MCP)?</span>
           <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
-        <p class="muted mt-4">Yes, both. The <code>tidybyte</code> CLI answers from the shell — <code>monitor status</code>, <code>top</code>, <code>ports</code>, <code>agents</code>, <code>limits</code> — as a table or JSON, and MCP tools let a local AI assistant query live readings. Both run on your Mac.</p>
+        <p class="muted mt-4">Yes, in Direct builds. The <code>tidybyte</code> CLI and <code>tidybyte-mcp</code> live inside <code>Tidybyte.app/Contents/MacOS/</code> (or symlinked into <code>PATH</code>). Run <code>monitor status</code>, <code>top</code>, <code>ports</code>, <code>agents</code>, <code>limits</code>, or <code>history</code> as a table or JSON. In <code>tidybyte-mcp</code>, <code>monitor_*</code> and cleanup preview tools are read-only by default, while <code>execute</code> and <code>undo</code> require explicit <code>confirm: true</code> (with <code>execute</code> limited to APFS clone folding and SQLite undo tracking).</p>
       </details>
       <details class="clay-card group p-5 sm:p-6">
         <summary class="faq-summary">
@@ -373,7 +373,7 @@
           <span>Can it change anything on my Mac?</span>
           <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
-        <p class="muted mt-4">Only what you ask. The Monitor watches and records; the one place it takes an action is the Process Inspector, where Quit and Force Quit each confirm before they run.</p>
+        <p class="muted mt-4">Only what you ask. Monitor watches and records locally; in the Process Inspector, Quit and Force Quit confirm before running, and any optional cleanup through <code>tidybyte-mcp</code> requires explicit <code>confirm: true</code> and is limited to non-deleting APFS clone folding backed by SQLite undo history.</p>
       </details>
       <details class="clay-card group p-5 sm:p-6">
         <summary class="faq-summary">
@@ -387,7 +387,7 @@
           <span>How do I get it?</span>
           <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
-        <p class="muted mt-4">TidyByte for Mac is a direct download: a signed and notarized disk image from the <a href="https://github.com/YORDINDIA/tidybyte/releases" target="_blank" rel="noopener" class="link">GitHub releases page</a>. Install it once and it updates itself.</p>
+        <p class="muted mt-4">TidyByte Monitor ships in the Direct release of TidyByte for Mac: a signed and notarized disk image from the <a href="https://github.com/YORDINDIA/tidybyte/releases" target="_blank" rel="noopener" class="link">GitHub releases page</a> with Sparkle auto-updates. Sandboxed App Store builds omit system-wide Monitor, Sparkle, CLI/MCP, and unattended LaunchAgent automation, focusing on user-selected folders and Photos.</p>
       </details>
     </div>
   </div>

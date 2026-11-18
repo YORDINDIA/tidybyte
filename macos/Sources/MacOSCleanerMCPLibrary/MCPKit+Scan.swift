@@ -189,7 +189,7 @@ extension MCPKit {
         let payload: [String: Any] = [
             "status": "ready",
             "session_id": lastScan.outcome.session.id,
-            "files_count": lastScan.outcome.files.count,
+            "files_count": lastScan.outcome.files.filter { $0.kind != .directory }.count,
             "findings_count": lastScan.outcome.findings.count,
             "reclaimable_bytes": reclaimable,
             "categories": categoryCounts,

@@ -214,48 +214,6 @@ final class MonitoringParserTests: XCTestCase {
         XCTAssertEqual(MemoryLayout<RUsageInfoV4>.size, 296)
     }
 
-    // MARK: - SMC value decoding
-
-    func testSP78Decoding() {
-        XCTAssertEqual(SMCSensors.sp78Value([0x40, 0x00]), 64.0)
-        XCTAssertEqual(SMCSensors.sp78Value([0x1A, 0x80]), 26.5)
-        XCTAssertNil(SMCSensors.sp78Value([0x1A]))
-    }
-
-    func testFixedPointDecoding() {
-        // fpe2: big-endian with 16 fractional bits → value / 65536.
-        let value = SMCSensors.fixedPoint([0x0E, 0x66, 0x2A, 0x00], dataType: "fpe2")
-        XCTAssertEqual(value ?? 0, 0x0E662A00 / 65536.0, accuracy: 0.001)
-    }
-
-    func testEncodeFixedPointRoundTrip() {
-        let encoded = SMCSensors.encodeFixedPoint(26.5, byteCount: 4, fractionBits: 16)
-        XCTAssertEqual(encoded, [0x00, 0x1A, 0x80, 0x00])
-        XCTAssertEqual(SMCSensors.fixedPoint(encoded, dataType: "fpe2") ?? 0, 26.5, accuracy: 0.001)
-        // Clamped, never overflowing the byte count.
-        XCTAssertEqual(SMCSensors.encodeFixedPoint(300, byteCount: 2, fractionBits: 0), [0x01, 0x2C])
-    }
-
-    /// data8 is one byte before the data32/data union; writing it must not
-    /// clobber the value bytes, in either write order.
-    func testParameterBufferSetData8LeavesDataUntouched() {
-        let selectorFirst = SMCSensors.ParameterBuffer()
-        selectorFirst.setData8(0x05)
-        selectorFirst.setData([0xAB, 0xCD])
-        XCTAssertEqual(selectorFirst.dataBytes(2), [0xAB, 0xCD])
-
-        let dataFirst = SMCSensors.ParameterBuffer()
-        dataFirst.setData([0xAB, 0xCD])
-        dataFirst.setData8(0x05)
-        XCTAssertEqual(dataFirst.dataBytes(2), [0xAB, 0xCD])
-        XCTAssertEqual(dataFirst.dataSizeByte(), 0)
-    }
-
-    func testFanKeyFormatting() {
-        XCTAssertEqual(SMCSensors.fanKey(index: 0, suffix: "Ac"), "F0Ac")
-        XCTAssertEqual(SMCSensors.fanKey(index: 2, suffix: "Mn"), "F2Mn")
-    }
-
     // MARK: - Bluetooth
 
     func testBluetoothJSONParsing() {
@@ -368,5 +326,141 @@ final class MonitoringParserTests: XCTestCase {
         XCTAssertEqual(unnamed.count, 1)
         XCTAssertEqual(unnamed[0].name, "weird.name")
         XCTAssertNil(unnamed[0].pid)
+    }
+}
+
+final class SMCSensorDecodingTests: XCTestCase {
+    func testSP78AndSP87Decoding() {
+        XCTAssertEqual(SMCSensors.sp78Value([0x40, 0x00]), 64.0)
+        XCTAssertEqual(SMCSensors.sp78Value([0x1A, 0x80]), 26.5)
+        // Signed 7.8 negative value: -12.5 * 256 = -3200 = 0xF380.
+        XCTAssertEqual(SMCSensors.sp78Value([0xF3, 0x80]), -12.5)
+        XCTAssertNil(SMCSensors.sp78Value([0x1A]))
+
+        // sp87: signed 8.7 fixed point (Int16 / 128).
+        XCTAssertEqual(SMCSensors.sp87Value([0x1A, 0x40]), 52.5)
+        // -12.5 * 128 = -1600 = 0xF9C0.
+        XCTAssertEqual(SMCSensors.sp87Value([0xF9, 0xC0]), -12.5)
+        XCTAssertNil(SMCSensors.sp87Value([0x1A]))
+    }
+
+    func testFixedPointDecoding() {
+        // fpe2: big-endian 16-bit unsigned with 2 fractional bits -> raw / 4.0 (e.g. Apple Silicon fan RPM).
+        let fpe2 = SMCSensors.fixedPoint([0x0E, 0x66], dataType: "fpe2")
+        XCTAssertEqual(fpe2 ?? 0, Double(0x0E66) / 4.0, accuracy: 0.001)
+
+        // fp2e: 14 fractional bits -> raw / 16384.0.
+        let fp2e = SMCSensors.fixedPoint([0x60, 0x00], dataType: "fp2e")
+        XCTAssertEqual(fp2e ?? 0, 1.5, accuracy: 0.0001)
+
+        // fp88: 8 fractional bits -> raw / 256.0.
+        let fp88 = SMCSensors.fixedPoint([0x1A, 0x80], dataType: "fp88")
+        XCTAssertEqual(fp88 ?? 0, 26.5, accuracy: 0.001)
+
+        // Unknown type falls back to 0 fractional bits; empty data returns nil.
+        XCTAssertEqual(SMCSensors.fixedPoint([0x01, 0x2C], dataType: "ui16"), 300.0)
+        XCTAssertNil(SMCSensors.fixedPoint([], dataType: "fpe2"))
+    }
+
+    func testEncodeFixedPointRoundTrip() {
+        let encodedFpe2 = SMCSensors.encodeFixedPoint(921.5, byteCount: 2, fractionBits: 2)
+        XCTAssertEqual(encodedFpe2, [0x0E, 0x66])
+        XCTAssertEqual(SMCSensors.fixedPoint(encodedFpe2, dataType: "fpe2") ?? 0, 921.5, accuracy: 0.001)
+
+        let encodedFp2e = SMCSensors.encodeFixedPoint(1.5, byteCount: 2, fractionBits: 14)
+        XCTAssertEqual(encodedFp2e, [0x60, 0x00])
+        XCTAssertEqual(SMCSensors.fixedPoint(encodedFp2e, dataType: "fp2e") ?? 0, 1.5, accuracy: 0.0001)
+
+        let encodedFp88 = SMCSensors.encodeFixedPoint(26.5, byteCount: 2, fractionBits: 8)
+        XCTAssertEqual(encodedFp88, [0x1A, 0x80])
+        XCTAssertEqual(SMCSensors.fixedPoint(encodedFp88, dataType: "fp88") ?? 0, 26.5, accuracy: 0.001)
+
+        // Clamped, never overflowing the byte count.
+        XCTAssertEqual(SMCSensors.encodeFixedPoint(300, byteCount: 2, fractionBits: 0), [0x01, 0x2C])
+    }
+
+    func testFloatValueDecoding() {
+        let bytes = withUnsafeBytes(of: Float(42.75).bitPattern.littleEndian) { Array($0) }
+        XCTAssertEqual(SMCSensors.readFloatValue(bytes) ?? 0, 42.75, accuracy: 0.0001)
+
+        let nanBytes = withUnsafeBytes(of: Float.nan.bitPattern.littleEndian) { Array($0) }
+        XCTAssertNil(SMCSensors.readFloatValue(nanBytes))
+
+        let infBytes = withUnsafeBytes(of: Float.infinity.bitPattern.littleEndian) { Array($0) }
+        XCTAssertNil(SMCSensors.readFloatValue(infBytes))
+
+        XCTAssertNil(SMCSensors.readFloatValue([0x00, 0x00, 0x2A]))
+    }
+
+    func testFriendlyTemperatureNameAndThermalOnlyTemperatureKeys() {
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "Tp01"), "CPU / SoC (Tp01)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "TC0P"), "CPU / SoC (TC0P)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "Tg0f"), "GPU (Tg0f)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "TG0D"), "GPU (TG0D)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "Te05"), "Efficiency Cluster (Te05)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "Tf04"), "Neural / Fabric (Tf04)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "TB0T"), "Battery (TB0T)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "TH0A"), "Storage (TH0A)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "Ts0P"), "Enclosure (Ts0P)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "TaLP"), "Ambient (TaLP)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "TA0P"), "Ambient (TA0P)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "Tm0P"), "Memory (Tm0P)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "TM0P"), "Memory (TM0P)")
+        XCTAssertEqual(SMCSensors.friendlyTemperatureName(for: "XX99"), "Sensor XX99")
+
+        let keys = Set(SMCSensors.temperatureKeys.map(\.key))
+        XCTAssertFalse(keys.contains("VP0R"), "Non-thermal voltage key VP0R must not be in temperatureKeys")
+        XCTAssertFalse(keys.contains("VLDF"), "Non-thermal voltage key VLDF must not be in temperatureKeys")
+        XCTAssertTrue(keys.allSatisfy { $0.hasPrefix("T") && $0.count == 4 },
+                      "Every temperature key must be a 4-char T-prefixed thermal key")
+        XCTAssertTrue(keys.contains("Tp01"))
+        XCTAssertTrue(keys.contains("TC0P"))
+    }
+
+    func testSMC80ByteParamLayoutAndKeyCountDecoding() {
+        XCTAssertEqual(SMCSensors.ParamLayout.size, 80)
+        XCTAssertEqual(SMCSensors.ParamLayout.key, 0)
+        XCTAssertEqual(SMCSensors.ParamLayout.dataSize, 28)
+        XCTAssertEqual(SMCSensors.ParamLayout.dataType, 32)
+        XCTAssertEqual(SMCSensors.ParamLayout.result, 40)
+        XCTAssertEqual(SMCSensors.ParamLayout.data8, 42)
+        XCTAssertEqual(SMCSensors.ParamLayout.data32, 44)
+        XCTAssertEqual(SMCSensors.ParamLayout.data, 48)
+        XCTAssertEqual(SMCSensors.ParamLayout.keyFromIndexCommand, 8)
+        XCTAssertEqual(SMCSensors.ParamLayout.keyInfoCommand, 9)
+
+        let buffer = SMCSensors.ParameterBuffer()
+        buffer.setKey("#KEY")
+        buffer.setDataSize(UInt32(4))
+        buffer.setDataType("ui32")
+        buffer.setData8(SMCSensors.ParamLayout.readKeyCommand)
+        buffer.setData32(42)
+        buffer.setData([0x00, 0x00, 0x01, 0x2C])
+
+        XCTAssertEqual(buffer.key(), "#KEY")
+        XCTAssertEqual(buffer.dataSize(), 4)
+        XCTAssertEqual(buffer.dataType(), "ui32")
+        XCTAssertEqual(SMCSensors.readBigEndianUInt32(buffer.dataBytes(4)), 300)
+        XCTAssertNil(SMCSensors.readBigEndianUInt32([0x01, 0x02, 0x03]))
+    }
+
+    /// data8 is one byte before the data32/data union; writing it must not
+    /// clobber the value bytes, in either write order.
+    func testParameterBufferSetData8LeavesDataUntouched() {
+        let selectorFirst = SMCSensors.ParameterBuffer()
+        selectorFirst.setData8(0x05)
+        selectorFirst.setData([0xAB, 0xCD])
+        XCTAssertEqual(selectorFirst.dataBytes(2), [0xAB, 0xCD])
+
+        let dataFirst = SMCSensors.ParameterBuffer()
+        dataFirst.setData([0xAB, 0xCD])
+        dataFirst.setData8(0x05)
+        XCTAssertEqual(dataFirst.dataBytes(2), [0xAB, 0xCD])
+        XCTAssertEqual(dataFirst.dataSizeByte(), 0)
+    }
+
+    func testFanKeyFormatting() {
+        XCTAssertEqual(SMCSensors.fanKey(index: 0, suffix: "Ac"), "F0Ac")
+        XCTAssertEqual(SMCSensors.fanKey(index: 2, suffix: "Mn"), "F2Mn")
     }
 }

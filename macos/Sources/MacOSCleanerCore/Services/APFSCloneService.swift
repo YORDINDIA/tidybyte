@@ -101,7 +101,7 @@ public enum APFSCloneService {
         let duplicatePath = duplicate.path
         let keeperPath = keeper.path
         guard let before = lstatInfo(duplicatePath), let keeperStat = lstatInfo(keeperPath) else {
-            return .failed("file is missing")
+            return .failed(String(localized: "file is missing", comment: "APFS fold failure reason"))
         }
         if let blocked = foldPreflight(
             before: before, keeperStat: keeperStat,
@@ -123,7 +123,7 @@ public enum APFSCloneService {
     ) -> FoldOutcome? {
         // A clone can only share blocks within one APFS volume.
         guard before.device == keeperStat.device else {
-            return .skipped("different volume")
+            return .skipped(String(localized: "different volume", comment: "APFS fold skip reason"))
         }
         guard before.inode != keeperStat.inode else {
             return .alreadyShared
@@ -135,20 +135,20 @@ public enum APFSCloneService {
               before.uid == getuid(), keeperStat.uid == getuid(),
               before.flags & untouchableFlags == 0,
               keeperStat.flags & untouchableFlags == 0 else {
-            return .skipped("protected file")
+            return .skipped(String(localized: "protected file", comment: "APFS fold skip reason"))
         }
         if let privateBytes = ReclaimableBytes.privateSize(of: URL(fileURLWithPath: duplicatePath)), privateBytes == 0 {
             return .alreadyShared
         }
         guard Date().timeIntervalSince1970 - before.mtime >= quietPeriod else {
-            return .skipped("modified in the last few minutes")
+            return .skipped(String(localized: "modified in the last few minutes", comment: "APFS fold skip reason"))
         }
         guard !isOpenForWriting(duplicatePath), !isOpenForWriting(keeperPath) else {
-            return .skipped("open in another app")
+            return .skipped(String(localized: "open in another app", comment: "APFS fold skip reason"))
         }
         // The scan's hash is stale by definition; prove identity live at swap time.
         guard contentsEqual(duplicatePath, keeperPath) else {
-            return .changed("contents differ")
+            return .changed(String(localized: "contents differ", comment: "APFS fold change reason"))
         }
         return nil
     }
@@ -172,26 +172,26 @@ public enum APFSCloneService {
         guard clonefile(keeperPath, temp, UInt32(CLONE_NOFOLLOW | CLONE_NOOWNERCOPY)) == 0 else {
             let reason = String(cString: strerror(errno))
             logger.error("clonefile failed for \(duplicatePath, privacy: .public): \(reason, privacy: .public)")
-            return .failed("clone failed: \(reason)")
+            return .failed(String(localized: "clone failed: \(reason)", comment: "APFS fold failure reason"))
         }
         // The user-visible file keeps ITS metadata, not the keeper's.
         guard copyMetadata(from: duplicatePath, to: temp) else {
-            return .failed("could not copy metadata")
+            return .failed(String(localized: "could not copy metadata", comment: "APFS fold failure reason"))
         }
         guard let cloned = metadataSnapshot(temp), let original = metadataSnapshot(duplicatePath),
               cloned == original else {
-            return .failed("metadata could not be kept exactly")
+            return .failed(String(localized: "metadata could not be kept exactly", comment: "APFS fold failure reason"))
         }
         guard contentsEqual(temp, duplicatePath) else {
-            return .changed("contents differ")
+            return .changed(String(localized: "contents differ", comment: "APFS fold change reason"))
         }
         guard lstatInfo(duplicatePath) == before else {
-            return .changed("file changed during fold")
+            return .changed(String(localized: "file changed during fold", comment: "APFS fold change reason"))
         }
         guard rename(temp, duplicatePath) == 0 else {
             let reason = String(cString: strerror(errno))
             logger.error("rename failed for \(duplicatePath, privacy: .public): \(reason, privacy: .public)")
-            return .failed("rename failed: \(reason)")
+            return .failed(String(localized: "rename failed: \(reason)", comment: "APFS fold failure reason"))
         }
         keepTemp = true
         let freedBytes = unsharedBefore.map { min(before.allocatedBytes, $0) } ?? before.allocatedBytes

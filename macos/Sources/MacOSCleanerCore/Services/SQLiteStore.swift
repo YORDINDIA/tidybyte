@@ -282,39 +282,47 @@ public actor SQLiteStore {
         var destinationHandle: OpaquePointer?
         let openResult = sqlite3_open_v2(staging.path, &destinationHandle, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE, nil)
         guard openResult == SQLITE_OK, let destinationHandle else {
-            let message = destinationHandle.flatMap { sqlite3_errmsg($0) }.map { String(cString: $0) } ?? String(localized: "Unable to open export destination.", comment: "Error when opening the export destination database")
-            if let destinationHandle {
-                sqlite3_close(destinationHandle)
-            }
+            let message = destinationHandle.flatMap { sqlite3_errmsg($0) }.map { String(cString: $0) }
+                ?? String(localized: "Unable to open export destination.", comment: "Error when opening the export destination database")
+            if let destinationHandle { sqlite3_close(destinationHandle) }
             throw DatabaseError.exportFailed(message)
         }
-
-        guard let backup = sqlite3_backup_init(destinationHandle, "main", source, "main") else {
-            let message = String(cString: sqlite3_errmsg(destinationHandle))
+        do {
+            try Self.runSQLiteBackup(from: source, to: destinationHandle)
             sqlite3_close(destinationHandle)
-            throw DatabaseError.exportFailed(message)
+        } catch {
+            sqlite3_close(destinationHandle)
+            throw error
         }
+        try Self.promoteExportedDatabase(from: staging, to: destination)
+    }
 
+    private static func runSQLiteBackup(from source: OpaquePointer, to destination: OpaquePointer) throws {
+        guard let backup = sqlite3_backup_init(destination, "main", source, "main") else {
+            throw DatabaseError.exportFailed(String(cString: sqlite3_errmsg(destination)))
+        }
         var stepResult = sqlite3_backup_step(backup, -1)
         var busyRetries = 0
         while stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED {
-            // Bounded: the store actor is blocked for the whole wait, so give up after about 5 s.
             busyRetries += 1
             if busyRetries > 500 { break }
-            // Nap between retries: a hot spin pegs a core while contended.
             sqlite3_sleep(10)
             stepResult = sqlite3_backup_step(backup, -1)
         }
         guard stepResult == SQLITE_DONE else {
             _ = sqlite3_backup_finish(backup)
-            sqlite3_close(destinationHandle)
-            throw DatabaseError.exportFailed(String(localized: "Database export failed with code \(stepResult).", comment: "Error when a database backup step fails"))
+            throw DatabaseError.exportFailed(
+                String(localized: "Database export failed with code \(stepResult).", comment: "Error when a database backup step fails")
+            )
         }
-        let finishResult = sqlite3_backup_finish(backup)
-        sqlite3_close(destinationHandle)
-        guard finishResult == SQLITE_OK else {
-            throw DatabaseError.exportFailed(String(localized: "Database export could not be finalized.", comment: "Error when finalizing a database backup"))
+        guard sqlite3_backup_finish(backup) == SQLITE_OK else {
+            throw DatabaseError.exportFailed(
+                String(localized: "Database export could not be finalized.", comment: "Error when finalizing a database backup")
+            )
         }
+    }
+
+    private static func promoteExportedDatabase(from staging: URL, to destination: URL) throws {
         if FileManager.default.fileExists(atPath: destination.path) {
             _ = try FileManager.default.replaceItemAt(destination, withItemAt: staging)
             for sidecar in ["-wal", "-shm"] {
@@ -971,28 +979,31 @@ public actor SQLiteStore {
         // WAL, creating tables and creating indexes all modify the file.
         let currentVersion = try getUserVersion(database: database)
         try Self.refuseNewerSchema(currentVersion)
-        // WAL mode may fail on some filesystems (network drives, certain configurations).
-        // Fall back to non-WAL mode if WAL cannot be enabled.
         do {
             try executeMigration("PRAGMA journal_mode=WAL", database: database)
         } catch {
             Self.logger.warning("WAL mode failed, falling back to non-WAL mode: \(error.localizedDescription)")
         }
         try executeMigration("PRAGMA foreign_keys=ON", database: database)
-        // synchronous=FULL pairs with WAL so a power loss cannot lose a committed
-        // undo trail — the durability guarantee the executor's write-ahead
-        // persistence depends on.
         try executeMigration("PRAGMA synchronous=FULL", database: database)
-        // Three processes share this file (the app, the hourly --autoscan
-        // LaunchAgent, and the MCP server). Without a busy timeout, a write
-        // that collides with another process's write transaction fails
-        // immediately with SQLITE_BUSY; 5s lets short collisions resolve.
         try executeMigration("PRAGMA busy_timeout=5000", database: database)
+        try ensureBaseSchema(database: database)
 
-        // Idempotent base schema. CREATE TABLE/INDEX IF NOT EXISTS is safe to run
-        // on any existing database, so base tables are always ensured regardless
-        // of user_version. This makes opening an older or partially migrated DB
-        // self-healing without redesigning the schema.
+        if currentVersion < 2 {
+            try setUserVersion(2, database: database)
+        }
+        try migrateV3ToV5(database: database, currentVersion: currentVersion)
+        if currentVersion < 6 {
+            try setUserVersion(6, database: database)
+        }
+        if currentVersion < 7 {
+            try runMigrationStep(7, database: database) {
+                try migrateV7(database: database)
+            }
+        }
+    }
+
+    private static func ensureBaseSchema(database: OpaquePointer) throws {
         for table in SQLiteTable.allCases {
             try executeMigration("""
             CREATE TABLE IF NOT EXISTS \(table.rawValue) (
@@ -1005,26 +1016,14 @@ public actor SQLiteStore {
             try executeMigration("CREATE INDEX IF NOT EXISTS idx_\(table.rawValue)_scan_session_id ON \(table.rawValue)(scan_session_id)", database: database)
             try executeMigration("CREATE INDEX IF NOT EXISTS idx_\(table.rawValue)_created_at ON \(table.rawValue)(created_at)", database: database)
         }
+    }
 
-        // Schema version tracking. Any future schema additions (e.g.
-        // ALTER TABLE ... ADD COLUMN) must be guarded by a user_version check so
-        // they run exactly once on existing databases.
-
-        // v2: initial tracked version (base schema above is idempotent).
-        // v3: undo_records.operation_log_id column + index + backfill, so undo
-        //     sibling lookups and orphan purges do not require full-table scans.
-        if currentVersion < 2 {
-            try setUserVersion(2, database: database)
-        }
+    private static func migrateV3ToV5(database: OpaquePointer, currentVersion: Int32) throws {
         if currentVersion < 3 {
             try runMigrationStep(3, database: database) {
-                // Column-exists guard: a database that crashed mid-migration
-                // may already carry the column with user_version still behind.
                 if !hasColumn("undo_records", "operation_log_id", database: database) {
                     try executeMigration("ALTER TABLE undo_records ADD COLUMN operation_log_id TEXT", database: database)
                 }
-                // Backfill from the JSON blob for rows written before the column existed.
-                // json_extract is part of SQLite's JSON1 extension (bundled on macOS).
                 try executeMigration(
                     "UPDATE undo_records SET operation_log_id = json_extract(json, '$.operationLogID') WHERE operation_log_id IS NULL",
                     database: database
@@ -1035,8 +1034,6 @@ public actor SQLiteStore {
             }
         }
         if currentVersion < 4 {
-            // v4: undo_records.status column so the startup sweep can find
-            // interrupted (pending) operations without loading every JSON blob.
             try runMigrationStep(4, database: database) {
                 if !hasColumn("undo_records", "status", database: database) {
                     try executeMigration("ALTER TABLE undo_records ADD COLUMN status TEXT", database: database)
@@ -1049,9 +1046,6 @@ public actor SQLiteStore {
             }
         }
         if currentVersion < 5 {
-            // v5: file_records.file_path column + index so path lookups and
-            // stable-ID derivation avoid full-table JSON scans. Backfilled from
-            // the JSON blob for rows written before the column existed.
             try runMigrationStep(5, database: database) {
                 if !hasColumn("file_records", "file_path", database: database) {
                     try executeMigration("ALTER TABLE file_records ADD COLUMN file_path TEXT", database: database)
@@ -1061,27 +1055,16 @@ public actor SQLiteStore {
                     database: database
                 )
                 try executeMigration("CREATE INDEX IF NOT EXISTS idx_file_records_file_path ON file_records(file_path)", database: database)
-            // v5: persistent content-hash cache so re-scans skip re-hashing
-            // unchanged files. Keyed by path; validity is (size, mtime).
-            try executeMigration("""
-            CREATE TABLE IF NOT EXISTS file_hashes (
-                id TEXT PRIMARY KEY NOT NULL,
-                scan_session_id TEXT,
-                created_at REAL NOT NULL,
-                json TEXT NOT NULL
-            )
-            """, database: database)
-            try executeMigration("CREATE INDEX IF NOT EXISTS idx_file_hashes_scan_session_id ON file_hashes(scan_session_id)", database: database)
-            try executeMigration("CREATE INDEX IF NOT EXISTS idx_file_hashes_created_at ON file_hashes(created_at)", database: database)
-            } 
-        }
-        if currentVersion < 6 {
-            // Cleanup tables are additive and deliberately excluded from scan retention.
-            try setUserVersion(6, database: database)
-        }
-        if currentVersion < 7 {
-            try runMigrationStep(7, database: database) {
-                try migrateV7(database: database)
+                try executeMigration("""
+                CREATE TABLE IF NOT EXISTS file_hashes (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    scan_session_id TEXT,
+                    created_at REAL NOT NULL,
+                    json TEXT NOT NULL
+                )
+                """, database: database)
+                try executeMigration("CREATE INDEX IF NOT EXISTS idx_file_hashes_scan_session_id ON file_hashes(scan_session_id)", database: database)
+                try executeMigration("CREATE INDEX IF NOT EXISTS idx_file_hashes_created_at ON file_hashes(created_at)", database: database)
             }
         }
     }
@@ -1115,6 +1098,10 @@ public actor SQLiteStore {
                 database: database
             )
         }
+        try repairV5FilePaths(database: database)
+    }
+
+    private static func repairV5FilePaths(database: OpaquePointer) throws {
         // Repair v5 file_path backfill where json_extract(json, '$.url') wrote file:///... URLs.
         var selectStmt: OpaquePointer?
         let selectSQL = """

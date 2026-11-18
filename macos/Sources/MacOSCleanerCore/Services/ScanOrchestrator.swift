@@ -215,7 +215,7 @@ public actor ScanOrchestrator {
                 crawlSink = nil
             }
             let crawl = await crawler.crawl(rootURLs: roots, sessionID: session.id, progress: crawlSink)
-            finishStage("Crawl")
+            finishStage(String(localized: "Crawl", comment: "Scan stage log label"))
             let files = crawl.files
             partial.files = crawl.files
             partial.errors = crawl.errors
@@ -251,7 +251,7 @@ public actor ScanOrchestrator {
                 contentSummaries = await contentExtractor.summarize(files: files, privacyMode: providerSettings.privacyMode)
             }
             let duplicateAnalysis = try await duplicateTask
-            finishStage("Duplicates and content")
+            finishStage(String(localized: "Duplicates and content", comment: "Scan stage log label"))
             partial.contentSummaries = contentSummaries
             partial.fingerprints = duplicateAnalysis.fingerprints
             partial.findings += duplicateAnalysis.findings
@@ -275,7 +275,7 @@ public actor ScanOrchestrator {
             } else {
                 packageResult = ([], [], [])
             }
-            finishStage("Rules and packages")
+            finishStage(String(localized: "Rules and packages", comment: "Scan stage log label"))
             partial.findings += packageResult.0
             partial.recommendations += packageResult.1
             partial.packageCandidates = packageResult.2
@@ -321,7 +321,7 @@ public actor ScanOrchestrator {
                 filesByID: filesByID,
                 aiRecommendations: aiRecommendations
             )
-            finishStage("Memory, AI, and plan")
+            finishStage(String(localized: "Memory, AI, and plan", comment: "Scan stage log label"))
             return try await finalizeScan(
                 session: &session,
                 files: crawl.files,
@@ -572,7 +572,7 @@ public actor ScanOrchestrator {
         await notifyProgress(2, String(localized: "Scanning known paths"))
         var session = session
         let result = await moCleanScanner.scan(section: section, sessionID: session.id)
-        finishStage("Known-path scan")
+        finishStage(String(localized: "Known-path scan", comment: "Scan stage log label"))
         partial.files = result.files
         partial.errors = result.crawlErrors
         partial.findings = result.findings

@@ -133,17 +133,19 @@ public actor OrganizationPlanner {
         let exportExtensions: Set<String> = ["mov", "mp4", "m4v", "avi", "mkv"]
 
         if rawPhotoExtensions.contains(ext) {
-            return "Raw Photo"
+            return String(localized: "Raw Photo", comment: "Finder taxonomy tag")
         }
         if imageExtensions.contains(ext) {
-            return "Screenshot or Export"
+            return String(localized: "Screenshot or Export", comment: "Finder taxonomy tag")
         }
         if docExtensions.contains(ext) {
-            return "Keep"
+            return String(localized: "Keep", comment: "Finder taxonomy tag")
         }
         if exportExtensions.contains(ext) {
-            return "Generated Export"
+            return String(localized: "Generated Export", comment: "Finder taxonomy tag")
         }
-        return risk == .low ? "Archive Candidate" : "Review Later"
+        return risk == .low
+            ? String(localized: "Archive Candidate", comment: "Finder taxonomy tag")
+            : String(localized: "Review Later", comment: "Finder taxonomy tag")
     }
 }

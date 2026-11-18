@@ -14,7 +14,7 @@ public actor SMCSensors {
     private var availableKeys: Set<String> = []
     private var keyInfoCache: [String: KeyInfo] = [:]
     private var missingKeys: Set<String> = []
-    private var activeTemperatureKeys: [(key: String, name: String)]?
+    private var activeTemperatureKeys: [String]?
     private var overriddenFanMinimums: [Int: Double] = [:]
 
     struct KeyInfo {
@@ -34,12 +34,14 @@ public actor SMCSensors {
 
     public func temperatures() -> [SensorReading] {
         guard open() else { return [] }
-        let keys = activeTemperatureKeys ?? Self.temperatureKeys
+        let knownNames = Dictionary(Self.temperatureKeys, uniquingKeysWith: { first, _ in first })
+        let keys = activeTemperatureKeys ?? Self.temperatureKeys.map(\.key)
         var readings: [SensorReading] = []
-        for (key, name) in keys where !missingKeys.contains(key) {
+        for key in keys where !missingKeys.contains(key) {
             guard let value = readTemperature(key: key), value.isFinite, (10.0...125.0).contains(value) else {
                 continue
             }
+            let name = knownNames[key] ?? Self.friendlyTemperatureName(for: key)
             readings.append(SensorReading(key: key, name: name, celsius: value))
         }
         return readings
@@ -176,17 +178,17 @@ public actor SMCSensors {
     }
 
     private func buildActiveTemperatureKeys() {
-        var resolved: [(key: String, name: String)] = []
+        var resolved: [String] = []
         var knownSet = Set<String>()
         for entry in Self.temperatureKeys where availableKeys.isEmpty || availableKeys.contains(entry.key) {
-            if knownSet.insert(entry.key).inserted { resolved.append(entry) }
+            if knownSet.insert(entry.key).inserted { resolved.append(entry.key) }
         }
         let extraKeys = availableKeys.filter { $0.hasPrefix("T") && !knownSet.contains($0) }.sorted()
         for key in extraKeys {
             guard let value = readTemperature(key: key), value.isFinite, (10.0...125.0).contains(value) else {
                 continue
             }
-            resolved.append((key: key, name: Self.friendlyTemperatureName(for: key)))
+            resolved.append(key)
         }
         activeTemperatureKeys = resolved
     }
@@ -424,43 +426,53 @@ extension SMCSensors {
 
     static func friendlyTemperatureName(for key: String) -> String {
         switch String(key.prefix(2)) {
-        case "Tp", "TC": return "CPU / SoC (\(key))"
-        case "Tg", "TG": return "GPU (\(key))"
-        case "Te": return "Efficiency Cluster (\(key))"
-        case "Tf": return "Neural / Fabric (\(key))"
-        case "TB": return "Battery (\(key))"
-        case "TH": return "Storage (\(key))"
-        case "Ts": return "Enclosure (\(key))"
-        case "Ta", "TA": return "Ambient (\(key))"
-        case "Tm", "TM": return "Memory (\(key))"
-        default: return "Sensor \(key)"
+        case "Tp", "TC": return L10n.format("CPU / SoC (%@)", key)
+        case "Tg", "TG": return L10n.format("GPU (%@)", key)
+        case "Te": return L10n.format("Efficiency Cluster (%@)", key)
+        case "Tf": return L10n.format("Neural / Fabric (%@)", key)
+        case "TB": return L10n.format("Battery (%@)", key)
+        case "TH": return L10n.format("Storage (%@)", key)
+        case "Ts": return L10n.format("Enclosure (%@)", key)
+        case "Ta", "TA": return L10n.format("Ambient (%@)", key)
+        case "Tm", "TM": return L10n.format("Memory (%@)", key)
+        default: return L10n.format("Sensor %@", key)
         }
     }
 
-    static let temperatureKeys: [(key: String, name: String)] = [
-        // Apple Silicon SoC / PMU / GPU / enclosure keys
-        ("Tp01", "CPU / SoC 1"), ("Tp05", "CPU / SoC 2"), ("Tp09", "CPU / SoC 3"),
-        ("Tp0D", "CPU / SoC 4"), ("Tp0H", "CPU / SoC 5"), ("Tp0L", "CPU / SoC 6"),
-        ("Tp0P", "CPU / SoC 7"), ("Tp0T", "CPU / SoC 8"), ("Tp0X", "CPU / SoC 9"),
-        ("Tp0b", "CPU / SoC 10"), ("Tp0f", "CPU / SoC 11"), ("Tp0j", "CPU / SoC 12"),
-        ("Tg0f", "GPU 1"), ("Tg0j", "GPU 2"), ("Tg0n", "GPU 3"),
-        ("Tg0D", "GPU diode"), ("Tg0P", "GPU proximity"),
-        ("Te05", "Efficiency core 1"), ("Te0L", "Efficiency core 2"),
-        ("Te0P", "Efficiency core 3"), ("Te0S", "Efficiency core 4"),
-        ("Tf04", "ANE / Fabric 1"), ("Tf09", "ANE / Fabric 2"), ("Tf0A", "ANE / Fabric 3"),
-        ("Tf0B", "ANE / Fabric 4"), ("Tf0C", "ANE / Fabric 5"),
-        ("TB0T", "Battery"), ("TB1T", "Battery 1"), ("TB2T", "Battery 2"),
-        ("Ts0P", "Palm rest"), ("Ts1P", "Palm rest 2"), ("Ts0S", "Storage"),
-        ("TH0A", "NAND 1"), ("TH0B", "NAND 2"), ("TW0P", "Wireless"),
-        ("TaLP", "Airflow left"), ("TaRF", "Airflow right"), ("Tm0P", "Memory proximity"),
-        // Intel SMC keys
-        ("TC0P", "CPU proximity"), ("TC0C", "CPU core"), ("TC0D", "CPU diode"),
-        ("TC0E", "CPU"), ("TC0F", "CPU Fin Stack"), ("TC0H", "CPU heatsink"),
-        ("TCAD", "CPU PECI"), ("TCAG", "CPU GC"), ("TCBH", "CPU 2 heatsink"),
-        ("TCXC", "CPU PECI core"), ("TG0D", "GPU diode"), ("TG0H", "GPU heatsink"),
-        ("TG0P", "GPU proximity"), ("TGDD", "GPU"), ("TPCD", "Platform controller hub"),
-        ("TP01", "Heat pipe 1"), ("TP02", "Heat pipe 2"), ("Th0H", "Heatsink system"),
-        ("Th1H", "Heatsink 1"), ("Th2H", "Heatsink 2"), ("TA0P", "Ambient"),
-        ("TA1P", "Ambient 2"), ("TM0P", "Memory proximity"), ("TM0S", "Memory module")
-    ]
+    static var temperatureKeys: [(key: String, name: String)] {
+        [
+            // Apple Silicon SoC / PMU / GPU / enclosure keys
+            ("Tp01", L10n.string("CPU / SoC 1")), ("Tp05", L10n.string("CPU / SoC 2")),
+            ("Tp09", L10n.string("CPU / SoC 3")), ("Tp0D", L10n.string("CPU / SoC 4")),
+            ("Tp0H", L10n.string("CPU / SoC 5")), ("Tp0L", L10n.string("CPU / SoC 6")),
+            ("Tp0P", L10n.string("CPU / SoC 7")), ("Tp0T", L10n.string("CPU / SoC 8")),
+            ("Tp0X", L10n.string("CPU / SoC 9")), ("Tp0b", L10n.string("CPU / SoC 10")),
+            ("Tp0f", L10n.string("CPU / SoC 11")), ("Tp0j", L10n.string("CPU / SoC 12")),
+            ("Tg0f", L10n.string("GPU 1")), ("Tg0j", L10n.string("GPU 2")), ("Tg0n", L10n.string("GPU 3")),
+            ("Tg0D", L10n.string("GPU diode")), ("Tg0P", L10n.string("GPU proximity")),
+            ("Te05", L10n.string("Efficiency core 1")), ("Te0L", L10n.string("Efficiency core 2")),
+            ("Te0P", L10n.string("Efficiency core 3")), ("Te0S", L10n.string("Efficiency core 4")),
+            ("Tf04", L10n.string("ANE / Fabric 1")), ("Tf09", L10n.string("ANE / Fabric 2")),
+            ("Tf0A", L10n.string("ANE / Fabric 3")), ("Tf0B", L10n.string("ANE / Fabric 4")),
+            ("Tf0C", L10n.string("ANE / Fabric 5")),
+            ("TB0T", L10n.string("Battery")), ("TB1T", L10n.string("Battery 1")), ("TB2T", L10n.string("Battery 2")),
+            ("Ts0P", L10n.string("Palm rest")), ("Ts1P", L10n.string("Palm rest 2")), ("Ts0S", L10n.string("Storage")),
+            ("TH0A", L10n.string("NAND 1")), ("TH0B", L10n.string("NAND 2")), ("TW0P", L10n.string("Wireless")),
+            ("TaLP", L10n.string("Airflow left")), ("TaRF", L10n.string("Airflow right")),
+            ("Tm0P", L10n.string("Memory proximity")),
+            // Intel SMC keys
+            ("TC0P", L10n.string("CPU proximity")), ("TC0C", L10n.string("CPU core")),
+            ("TC0D", L10n.string("CPU diode")), ("TC0E", L10n.string("CPU")),
+            ("TC0F", L10n.string("CPU Fin Stack")), ("TC0H", L10n.string("CPU heatsink")),
+            ("TCAD", L10n.string("CPU PECI")), ("TCAG", L10n.string("CPU GC")),
+            ("TCBH", L10n.string("CPU 2 heatsink")), ("TCXC", L10n.string("CPU PECI core")),
+            ("TG0D", L10n.string("GPU diode")), ("TG0H", L10n.string("GPU heatsink")),
+            ("TG0P", L10n.string("GPU proximity")), ("TGDD", L10n.string("GPU")),
+            ("TPCD", L10n.string("Platform controller hub")), ("TP01", L10n.string("Heat pipe 1")),
+            ("TP02", L10n.string("Heat pipe 2")), ("Th0H", L10n.string("Heatsink system")),
+            ("Th1H", L10n.string("Heatsink 1")), ("Th2H", L10n.string("Heatsink 2")),
+            ("TA0P", L10n.string("Ambient")), ("TA1P", L10n.string("Ambient 2")),
+            ("TM0P", L10n.string("Memory proximity")), ("TM0S", L10n.string("Memory module"))
+        ]
+    }
 }

@@ -33,21 +33,34 @@ enum AppDestination: String, CaseIterable, Identifiable {
     /// The monitor reads system-wide state, which the sandboxed build cannot.
     var isAvailable: Bool { self != .monitor || DistributionChannel.supportsAdvanced }
 
-    var title: String {
+    var title: String { title(language: nil) }
+
+    func title(language: AppLanguage?) -> String {
+        scanDestinationTitle(language: language) ?? managementDestinationTitle(language: language)
+    }
+
+    private func scanDestinationTitle(language: AppLanguage?) -> String? {
         switch self {
-        case .overview: L10n.string("Overview")
-        case .monitor: L10n.string("Monitor")
-        case .systemJunk: L10n.string("System Junk")
-        case .developer: L10n.string("Developer")
-        case .largeFiles: L10n.string("Large & Old Files")
-        case .duplicates: L10n.string("Duplicates")
-        case .media: L10n.string("Photos & Media")
-        case .applications: L10n.string("Applications")
-        case .leftovers: L10n.string("Leftovers")
-        case .loginItems: L10n.string("Login Items")
-        case .explorer: L10n.string("Space Explorer")
-        case .changes: L10n.string("Changes")
-        case .history: L10n.string("History")
+        case .overview: L10n.string("Overview", language: language)
+        case .monitor: L10n.string("Monitor", language: language)
+        case .systemJunk: L10n.string("System Junk", language: language)
+        case .developer: L10n.string("Developer", language: language)
+        case .largeFiles: L10n.string("Large & Old Files", language: language)
+        case .duplicates: L10n.string("Duplicates", language: language)
+        case .media: L10n.string("Photos & Media", language: language)
+        default: nil
+        }
+    }
+
+    private func managementDestinationTitle(language: AppLanguage?) -> String {
+        switch self {
+        case .applications: L10n.string("Applications", language: language)
+        case .leftovers: L10n.string("Leftovers", language: language)
+        case .loginItems: L10n.string("Login Items", language: language)
+        case .explorer: L10n.string("Space Explorer", language: language)
+        case .changes: L10n.string("Changes", language: language)
+        case .history: L10n.string("History", language: language)
+        default: ""
         }
     }
 
@@ -74,16 +87,18 @@ enum AppDestination: String, CaseIterable, Identifiable {
 
     /// Sidebar sections in order. The App Store build has no system access,
     /// so it shows only the folder-scoped rows.
-    static var sections: [(title: String?, rows: [AppDestination])] {
+    static var sections: [(title: String?, rows: [AppDestination])] { sections(language: nil) }
+
+    static func sections(language: AppLanguage?) -> [(title: String?, rows: [AppDestination])] {
         guard DistributionChannel.supportsAdvanced else {
-            return [(nil, [.overview]), (L10n.string("Clean"), [.media]), (nil, [.history])]
+            return [(nil, [.overview]), (L10n.string("Clean", language: language), [.media]), (nil, [.history])]
         }
         return [
             (nil, [.overview]),
-            (L10n.string("Monitor"), [.monitor]),
-            (L10n.string("Clean"), [.systemJunk, .developer, .largeFiles, .duplicates, .media]),
-            (L10n.string("Apps"), [.applications, .leftovers, .loginItems]),
-            (L10n.string("Insights"), [.explorer, .changes, .history])
+            (L10n.string("Monitor", language: language), [.monitor]),
+            (L10n.string("Clean", language: language), [.systemJunk, .developer, .largeFiles, .duplicates, .media]),
+            (L10n.string("Apps", language: language), [.applications, .leftovers, .loginItems]),
+            (L10n.string("Insights", language: language), [.explorer, .changes, .history])
         ]
     }
 
@@ -181,12 +196,12 @@ struct CleanerCommands: Commands {
             .keyboardShortcut("f", modifiers: .command)
         }
         CommandMenu(L10n.string("Go", language: override)) {
-            ForEach(AppDestination.sections.flatMap(\.rows)) { row in
+            ForEach(AppDestination.sections(language: override).flatMap(\.rows)) { row in
                 if let index = Self.shortcutRows.firstIndex(of: row) {
-                    Button(row.title) { model.destination = row }
+                    Button(row.title(language: override)) { model.destination = row }
                         .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
                 } else {
-                    Button(row.title) { model.destination = row }
+                    Button(row.title(language: override)) { model.destination = row }
                 }
             }
         }

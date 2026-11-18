@@ -45,9 +45,8 @@ final class CleanupFreshnessSafetyTests: XCTestCase {
         let model = CleanupModel(store: try SQLiteStore.inMemory())
         model.scope = ReviewScope()
         model.scope.mode = .folder
-        let root = URL(fileURLWithPath: "/tmp/tidybyte-freshness-debounce")
+        let root = try TestFixtures.makeTemporaryDirectory(named: "tidybyte-freshness-debounce-\(UUID().uuidString)")
         model.scope.roots = [root]
-        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
 
         let scansBefore = model.scanRequestCount

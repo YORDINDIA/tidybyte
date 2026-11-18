@@ -59,7 +59,7 @@ final class AutoScanTests: XCTestCase {
     func testUnattendedFilterApprovesOnlyCloneFoldActions() {
         // The headless pass must never self-approve destructive work: trash,
         // moves, tags, package-manager commands all wait for a human.
-        var clone = PlannedAction(
+        let clone = PlannedAction(
             id: "clone-1", planID: "plan", actionType: .cloneDeduplicate, targets: ["f1"],
             destination: nil, status: .proposed, risk: .low, confidence: 0.9,
             reason: "fold", userDecision: .undecided, executedAt: nil, findingID: nil)

@@ -48,20 +48,9 @@ public actor SpaceForecaster {
             return nil
         }
         let allSnapshots = try await store.recentSnapshots(limit: 14).sorted { $0.createdAt < $1.createdAt }
-        guard let latest = allSnapshots.last else { return nil }
+        guard !allSnapshots.isEmpty else { return nil }
 
-        let comparable: [(createdAt: Date, bytes: Int64)]
-        if let rootPath {
-            comparable = allSnapshots.compactMap { snapshot in
-                guard let rootBytes = snapshot.bytesByRootPath[rootPath] else { return nil }
-                return (snapshot.createdAt, rootBytes)
-            }
-        } else {
-            let latestRoots = Set(latest.bytesByRootPath.keys)
-            comparable = allSnapshots
-                .filter { Set($0.bytesByRootPath.keys) == latestRoots }
-                .map { ($0.createdAt, $0.totalBytes) }
-        }
+        let comparable = Self.comparableSnapshots(from: allSnapshots, rootPath: rootPath)
         guard comparable.count >= 2, let oldest = comparable.first, let newest = comparable.last else {
             return nil
         }
@@ -85,6 +74,23 @@ public actor SpaceForecaster {
             )
         }
 
+        return buildGrowthForecast(capacity: capacity, availableBytes: availableBytes, dailyGrowthRate: dailyGrowthRate)
+    }
+
+    private static func comparableSnapshots(from allSnapshots: [StorageSnapshot], rootPath: String?) -> [(createdAt: Date, bytes: Int64)] {
+        if let rootPath {
+            return allSnapshots.compactMap { snapshot in
+                snapshot.bytesByRootPath[rootPath].map { (snapshot.createdAt, $0) }
+            }
+        }
+        guard let latest = allSnapshots.last else { return [] }
+        let latestRoots = Set(latest.bytesByRootPath.keys)
+        return allSnapshots
+            .filter { Set($0.bytesByRootPath.keys) == latestRoots }
+            .map { ($0.createdAt, $0.totalBytes) }
+    }
+
+    private func buildGrowthForecast(capacity: Int64, availableBytes: Int64, dailyGrowthRate: Int64) -> Forecast {
         // Forecast against ACTUAL volume usage (capacity minus available), not the
         // scanned-bytes total: partial scans must not distort the days-until-full math.
         let usedBytes = capacity - availableBytes

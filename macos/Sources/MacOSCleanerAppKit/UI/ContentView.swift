@@ -18,7 +18,7 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: Spacing.sidebarWidth, max: 280)
         } detail: {
             searchableDetail(override: override)
-                .navigationTitle(model.destination.title)
+                .navigationTitle(model.destination.title(language: override))
                 .navigationSubtitle(busyText(override: override) ?? "")
                 .frame(minWidth: 420, maxWidth: .infinity, maxHeight: .infinity)
                 .safeAreaInset(edge: .top, spacing: 0) { StatusNotices(model: model) }
@@ -117,7 +117,7 @@ struct ContentView: View {
                 .searchable(
                     text: $model.searchText,
                     placement: .toolbar,
-                    prompt: L10n.format("Search %@", language: override, model.destination.title)
+                    prompt: L10n.format("Search %@", language: override, model.destination.title(language: override))
                 )
                 .searchFocused($isSearchFocused)
         } else {

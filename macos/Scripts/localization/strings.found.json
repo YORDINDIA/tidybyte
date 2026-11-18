@@ -50,7 +50,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/FilesView.swift"
     },
     {
-      "key": "· %lld",
+      "key": "· %@",
       "targets": [
         "appkit"
       ],
@@ -62,13 +62,6 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
-    },
-    {
-      "key": "%@",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/ExploreViewSwitcher.swift"
     },
     {
       "key": "%@ · %@",
@@ -85,28 +78,21 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorDeviceViews.swift"
     },
     {
-      "key": "%@ · %lld",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupSettingsView.swift"
-    },
-    {
-      "key": "%@ · 1 item · %lld · %@",
+      "key": "%@ · 1 item · %@ · %@",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupActivityView.swift"
     },
     {
-      "key": "%@ · R %lld% · T %lld%",
+      "key": "%@ · R %lld%% · T %lld%%",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
     },
     {
-      "key": "%@ (pid %@)",
+      "key": "%@ (pid %d)",
       "targets": [
         "appkit"
       ],
@@ -132,6 +118,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/ProcessInspectorView.swift"
+    },
+    {
+      "key": "%@ → %@ %@",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
     },
     {
       "key": "%@ = %@",
@@ -169,7 +162,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/OverviewView.swift"
     },
     {
-      "key": "%@ averaged %lld% CPU for %lld minutes.",
+      "key": "%@ averaged %lld%% CPU for %lld minutes.",
       "targets": [
         "core"
       ],
@@ -190,25 +183,11 @@
       "file": "Sources/MacOSCleanerCore/Services/MoCleanScanner.swift"
     },
     {
-      "key": "%@ cores",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
-    },
-    {
       "key": "%@ could not be added because the plan changed. Try again.",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/App/AppViewModel+Tabs.swift"
-    },
-    {
-      "key": "%@ cycles",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorView.swift"
     },
     {
       "key": "%@ failed: %@",
@@ -225,14 +204,14 @@
       "file": "Sources/MacOSCleanerAppKit/App/MacOSCleanerApp.swift"
     },
     {
-      "key": "%@ grew by %lld over the last hour.",
+      "key": "%@ grew by %@ over the last hour.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/Monitoring/AlertEngine.swift"
     },
     {
-      "key": "%@ grew rapidly by %lld in %@ minutes.",
+      "key": "%@ grew rapidly by %@ in %lld minutes.",
       "targets": [
         "core"
       ],
@@ -295,46 +274,11 @@
       "file": "Sources/MacOSCleanerCore/Services/Monitoring/AlertEngine.swift"
     },
     {
-      "key": "%@ items could not be read during the scan and are not included in these results.",
-      "targets": [
-        "core"
-      ],
-      "file": "Sources/MacOSCleanerCore/Services/ScanOrchestrator.swift"
-    },
-    {
       "key": "%@ MB",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
-    },
-    {
-      "key": "%@ moved · %@ skipped",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
-    },
-    {
-      "key": "%@ pages",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/ReviewPreview.swift"
-    },
-    {
-      "key": "%@ px",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupSettingsView.swift"
-    },
-    {
-      "key": "%@ rpm",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
     },
     {
       "key": "%@ s",
@@ -352,27 +296,6 @@
     },
     {
       "key": "%@ sent to Trash or Recently Deleted",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
-    },
-    {
-      "key": "%@ successful · %@ failed · %@ unprocessed",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
-    },
-    {
-      "key": "%@ successful · %@ failed · %@ unprocessed. Check Activity.",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/App/CleanupBatch.swift"
-    },
-    {
-      "key": "%@ Trash · %@ kept · %@ moved · %@ skipped",
       "targets": [
         "appkit"
       ],
@@ -404,7 +327,7 @@
       "targets": [
         "appkit"
       ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/AgeMapView.swift"
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/ToolGridItemCard.swift"
     },
     {
       "key": "%@, %@, %@",
@@ -421,13 +344,6 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/FlameView.swift"
     },
     {
-      "key": "%@, %lld",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/ToolGridItemCard.swift"
-    },
-    {
       "key": "%@, change %@",
       "targets": [
         "appkit"
@@ -435,7 +351,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/SnapshotDiffView.swift"
     },
     {
-      "key": "%@: %@ (%lld)",
+      "key": "%@: %@ (%@)",
       "targets": [
         "core"
       ],
@@ -463,25 +379,18 @@
       "file": "Sources/MacOSCleanerAppKit/App/CleanupModel+Settings.swift"
     },
     {
-      "key": "%@/%@",
+      "key": "%d rpm",
       "targets": [
         "appkit"
       ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Views/StatusNotices.swift"
+      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
     },
     {
-      "key": "%@%",
+      "key": "%d%%",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
-    },
-    {
-      "key": "%@×%@",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/GroupComparisonView.swift"
     },
     {
       "key": "%lld",
@@ -495,28 +404,7 @@
       "targets": [
         "appkit"
       ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Views/OverviewCards.swift"
-    },
-    {
-      "key": "%lld · %lld",
-      "targets": [
-        "appkit"
-      ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupWorkspace.swift"
-    },
-    {
-      "key": "%lld → %@ %@",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
-    },
-    {
-      "key": "%lld → %lld",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Views/SnapshotDiffView.swift"
     },
     {
       "key": "%lld actions completed cleanly. Files in Trash can be restored or emptied anytime.",
@@ -575,11 +463,25 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorMenuBar.swift"
     },
     {
-      "key": "%lld cores · 5m %@",
+      "key": "%lld cores",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
+    },
+    {
+      "key": "%lld cores · 5m %.2f",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
+    },
+    {
+      "key": "%lld cycles",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorView.swift"
     },
     {
       "key": "%lld dev servers",
@@ -659,6 +561,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupSettingsView.swift"
     },
     {
+      "key": "%lld items · %@ motion video · %@ stills",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
+    },
+    {
       "key": "%lld items · %@ removed. Files are in Trash; Photos assets are in Recently Deleted. Empty them in Finder or Photos to return space.",
       "targets": [
         "appkit"
@@ -666,11 +575,11 @@
       "file": "Sources/MacOSCleanerAppKit/App/CleanupModel.swift"
     },
     {
-      "key": "%lld items · %lld motion video · %lld stills",
+      "key": "%lld items could not be read during the scan and are not included in these results.",
       "targets": [
-        "appkit"
+        "core"
       ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
+      "file": "Sources/MacOSCleanerCore/Services/ScanOrchestrator.swift"
     },
     {
       "key": "%lld items processed",
@@ -715,6 +624,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupToolView+Actions.swift"
     },
     {
+      "key": "%lld moved · %lld skipped",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
+    },
+    {
       "key": "%lld of %lld reviewed",
       "targets": [
         "appkit"
@@ -722,11 +638,18 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
     },
     {
-      "key": "%lld older Xcode device support folders (%lld)",
+      "key": "%lld older Xcode device support folders (%@)",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/MoCleanScanner.swift"
+    },
+    {
+      "key": "%lld pages",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/ReviewPreview.swift"
     },
     {
       "key": "%lld processes",
@@ -736,11 +659,18 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorComponents.swift"
     },
     {
-      "key": "%lld proposed actions: %@ low risk, %@ medium risk, %@ high risk. Estimated reviewable space: %lld.",
+      "key": "%lld proposed actions: %lld low risk, %lld medium risk, %lld high risk. Estimated reviewable space: %@.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/PlannerAgent.swift"
+    },
+    {
+      "key": "%lld px",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupSettingsView.swift"
     },
     {
       "key": "%lld readings",
@@ -757,7 +687,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
     },
     {
-      "key": "%lld screenshots in %@ (%lld)",
+      "key": "%lld screenshots in %@ (%@)",
       "targets": [
         "core"
       ],
@@ -778,6 +708,27 @@
       "file": "Sources/MacOSCleanerCore/Services/PackageManagerScanner.swift"
     },
     {
+      "key": "%lld successful · %lld failed · %lld unprocessed",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
+    },
+    {
+      "key": "%lld successful · %lld failed · %lld unprocessed. Check Activity.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/CleanupBatch.swift"
+    },
+    {
+      "key": "%lld Trash · %lld kept · %lld moved · %lld skipped",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
+    },
+    {
       "key": "%lld visually similar images detected.",
       "targets": [
         "core"
@@ -785,7 +736,21 @@
       "file": "Sources/MacOSCleanerCore/Services/DuplicateDetector.swift"
     },
     {
-      "key": "%lld%",
+      "key": "%lld/%lld",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/StatusNotices.swift"
+    },
+    {
+      "key": "%lld%%",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/GroupComparisonView.swift"
+    },
+    {
+      "key": "%lld×%lld",
       "targets": [
         "appkit"
       ],
@@ -975,7 +940,7 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorComponents.swift"
     },
     {
-      "key": "1 screenshot in %@ (%lld)",
+      "key": "1 screenshot in %@ (%@)",
       "targets": [
         "core"
       ],
@@ -1283,7 +1248,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/UndoHistoryView.swift"
     },
     {
-      "key": "After: %lld",
+      "key": "After: %@",
       "targets": [
         "appkit"
       ],
@@ -1374,7 +1339,7 @@
       "file": "Sources/MacOSCleanerCore/Services/AIGateway.swift"
     },
     {
-      "key": "AI provider returned HTTP %@: %@",
+      "key": "AI provider returned HTTP %lld: %@",
       "targets": [
         "core"
       ],
@@ -1386,6 +1351,20 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/AIGateway.swift"
+    },
+    {
+      "key": "Airflow left",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Airflow right",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Alerts",
@@ -1549,6 +1528,27 @@
       "file": "Sources/MacOSCleanerCore/Services/MemoryEngine.swift"
     },
     {
+      "key": "Ambient",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Ambient (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Ambient 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "An earlier operation stopped before finishing. Verify any output paths below, then dismiss to reconcile Activity.",
       "targets": [
         "appkit"
@@ -1589,6 +1589,41 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/MediaAnalysisService.swift"
+    },
+    {
+      "key": "ANE / Fabric 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "ANE / Fabric 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "ANE / Fabric 3",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "ANE / Fabric 4",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "ANE / Fabric 5",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Another cleanup batch is already running. Wait for it to finish before starting a new one.",
@@ -1865,6 +1900,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/DomainDisplayNames.swift"
     },
     {
+      "key": "Archive Candidate",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/OrganizationPlanner.swift"
+    },
+    {
       "key": "Archives",
       "targets": [
         "core"
@@ -1893,21 +1935,21 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/ApplicationsView.swift"
     },
     {
-      "key": "At your current growth rate, your disk could reach 80% full in approximately %@ days.",
+      "key": "At your current growth rate, your disk could reach 80%% full in approximately %lld days.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/SpaceForecaster.swift"
     },
     {
-      "key": "At your current growth rate, your disk could reach 90% full in approximately %@ days.",
+      "key": "At your current growth rate, your disk could reach 90%% full in approximately %lld days.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/SpaceForecaster.swift"
     },
     {
-      "key": "At your current growth rate, your disk could reach 95% full in approximately %@ days.",
+      "key": "At your current growth rate, your disk could reach 95%% full in approximately %lld days.",
       "targets": [
         "core"
       ],
@@ -2021,9 +2063,31 @@
     {
       "key": "Battery",
       "targets": [
+        "core",
         "appkit"
       ],
-      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorModel.swift"
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Battery (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Battery 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Battery 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Be more willing to suggest cleanup for old downloads and installers.",
@@ -2839,6 +2903,13 @@
       "file": "Sources/MacOSCleanerCore/Services/SafetyAuditor.swift"
     },
     {
+      "key": "clone failed: %@",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
       "key": "Close session",
       "targets": [
         "appkit"
@@ -3000,14 +3071,14 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/GroupComparisonView.swift"
     },
     {
-      "key": "Complete uninstall: %@ app bundle (%lld)",
+      "key": "Complete uninstall: %@ app bundle (%@)",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/ApplicationFootprintService.swift"
     },
     {
-      "key": "Complete uninstall: %@ scattered data (%lld locations, %lld)",
+      "key": "Complete uninstall: %@ scattered data (%lld locations, %@)",
       "targets": [
         "core"
       ],
@@ -3078,7 +3149,7 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorView.swift"
     },
     {
-      "key": "Compressed and replaced originals; saved %lld.",
+      "key": "Compressed and replaced originals; saved %@.",
       "targets": [
         "appkit"
       ],
@@ -3106,7 +3177,7 @@
       "file": "Sources/MacOSCleanerCore/Services/MediaCompressionService.swift"
     },
     {
-      "key": "Compression requires %lld of free disk space (2× the selected batch) to write verified copies safely. Available: %@. Deselect some large items or free up space first.",
+      "key": "Compression requires %@ of free disk space (2× the selected batch) to write verified copies safely. Available: %@. Deselect some large items or free up space first.",
       "targets": [
         "appkit"
       ],
@@ -3170,6 +3241,13 @@
       "file": "Sources/MacOSCleanerCore/Services/ApplicationFootprintService.swift"
     },
     {
+      "key": "contents differ",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
       "key": "Continue",
       "targets": [
         "appkit"
@@ -3226,14 +3304,14 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
     },
     {
-      "key": "Converted %@ Live Photos to stills (%@ reclaimed).",
+      "key": "Converted %lld Live Photos to stills (%@ reclaimed).",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/App/CleanupBatch.swift"
     },
     {
-      "key": "Converted %@ of %lld; %@ failed. Check Activity.",
+      "key": "Converted %lld of %lld; %lld failed. Check Activity.",
       "targets": [
         "appkit"
       ],
@@ -3301,6 +3379,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/PhotoLibraryService.swift"
+    },
+    {
+      "key": "could not copy metadata",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
     },
     {
       "key": "Could not create the album.",
@@ -3396,23 +3481,157 @@
     {
       "key": "CPU",
       "targets": [
+        "core",
         "appkit"
       ],
-      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
-      "key": "CPU %@%",
+      "key": "CPU / SoC (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 10",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 11",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 12",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 3",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 4",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 5",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 6",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 7",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 8",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU / SoC 9",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU %@%%",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorMenuBar.swift"
     },
     {
-      "key": "CPU exceeds %lld%",
+      "key": "CPU 2 heatsink",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU core",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU diode",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU exceeds %lld%%",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitoringSettingsView.swift"
+    },
+    {
+      "key": "CPU Fin Stack",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU GC",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU heatsink",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "CPU over the last 24 hours",
@@ -3422,11 +3641,39 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/ProcessInspectorView.swift"
     },
     {
+      "key": "CPU PECI",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU PECI core",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "CPU proximity",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "CPU time",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/ProcessInspectorView.swift"
+    },
+    {
+      "key": "Crawl",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScanOrchestrator.swift"
     },
     {
       "key": "Crawling files",
@@ -3569,7 +3816,7 @@
       "file": "Sources/MacOSCleanerCore/Services/SQLiteStore.swift"
     },
     {
-      "key": "Database export failed with code %@.",
+      "key": "Database export failed with code %d.",
       "targets": [
         "core"
       ],
@@ -3647,7 +3894,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
     },
     {
-      "key": "Delete & reclaim ~%lld",
+      "key": "Delete & reclaim ~%@",
       "targets": [
         "appkit"
       ],
@@ -3794,6 +4041,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/DomainDisplayNames.swift"
     },
     {
+      "key": "different volume",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
       "key": "Discard draft",
       "targets": [
         "appkit"
@@ -3857,7 +4111,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/StatusNotices.swift"
     },
     {
-      "key": "Dismissed %@ interrupted operations.",
+      "key": "Dismissed %lld interrupted operations.",
       "targets": [
         "appkit"
       ],
@@ -3878,14 +4132,14 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/ProcessInspectorView.swift"
     },
     {
-      "key": "Docker aggressive cleanup prunes %lld including unused volumes. Volumes may contain persistent data.",
+      "key": "Docker aggressive cleanup prunes %@ including unused volumes. Volumes may contain persistent data.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/PackageManagerScanner.swift"
     },
     {
-      "key": "Docker build cache can be cleared (%lld). Images and containers stay.",
+      "key": "Docker build cache can be cleared (%@). Images and containers stay.",
       "targets": [
         "core"
       ],
@@ -3906,14 +4160,14 @@
       "file": "Sources/MacOSCleanerCore/Models/DomainModels.swift"
     },
     {
-      "key": "Docker safe cleanup can prune %lld of stopped containers, dangling images, and build cache.",
+      "key": "Docker safe cleanup can prune %@ of stopped containers, dangling images, and build cache.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/PackageManagerScanner.swift"
     },
     {
-      "key": "Docker Volume Prune (%lld reclaimable; removes unused named volumes).",
+      "key": "Docker Volume Prune (%@ reclaimable; removes unused named volumes).",
       "targets": [
         "core"
       ],
@@ -3990,7 +4244,7 @@
       "file": "Sources/MacOSCleanerCore/Services/CleanerRuleEngine.swift"
     },
     {
-      "key": "Downloading %lld%",
+      "key": "Downloading %lld%%",
       "targets": [
         "appkit"
       ],
@@ -4084,6 +4338,13 @@
       "file": "Sources/MacOSCleanerCore/Models/ReviewModels.swift"
     },
     {
+      "key": "Duplicates and content",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScanOrchestrator.swift"
+    },
+    {
       "key": "Each item shows a live reading and opens a list of the apps behind it.",
       "targets": [
         "appkit"
@@ -4096,6 +4357,41 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/SnapshotDiffView.swift"
+    },
+    {
+      "key": "Efficiency Cluster (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Efficiency core 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Efficiency core 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Efficiency core 3",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Efficiency core 4",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Empty the Trash?",
@@ -4124,6 +4420,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
+    },
+    {
+      "key": "Enclosure (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Encoded JSON was not valid UTF-8.",
@@ -4175,7 +4478,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/MonitorTabView.swift"
     },
     {
-      "key": "Est. → %lld",
+      "key": "Est. → %@",
       "targets": [
         "appkit"
       ],
@@ -4252,7 +4555,7 @@
       "file": "Sources/MacOSCleanerAppKit/App/AppViewModel+Reports.swift"
     },
     {
-      "key": "Execution cancelled; %@ remaining actions were not run.",
+      "key": "Execution cancelled; %lld remaining actions were not run.",
       "targets": [
         "core"
       ],
@@ -4372,6 +4675,13 @@
       "file": "Sources/MacOSCleanerCore/Services/ImageQualityAnalysis.swift"
     },
     {
+      "key": "Feature-print distance < %@.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/DuplicateDetector.swift"
+    },
+    {
       "key": "File",
       "targets": [
         "core",
@@ -4387,6 +4697,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/SelectionInspectorView.swift"
     },
     {
+      "key": "file changed during fold",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
       "key": "File identity changed since scan: %@",
       "targets": [
         "core"
@@ -4399,6 +4716,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/ReviewPreview.swift"
+    },
+    {
+      "key": "file is missing",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
     },
     {
       "key": "File relationship node",
@@ -4476,6 +4800,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupToolView+Actions.swift"
+    },
+    {
+      "key": "filtered",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/PlannerAgent.swift"
     },
     {
       "key": "Filtered plan excluding selected items.",
@@ -4738,11 +5069,25 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupWorkspace.swift"
     },
     {
+      "key": "Full SHA-256 hash matched.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/DuplicateDetector.swift"
+    },
+    {
       "key": "General",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
+    },
+    {
+      "key": "Generated Export",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/OrganizationPlanner.swift"
     },
     {
       "key": "Generated From",
@@ -4768,9 +5113,52 @@
     {
       "key": "GPU",
       "targets": [
+        "core",
         "appkit"
       ],
-      "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "GPU (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "GPU 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "GPU 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "GPU 3",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "GPU diode",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "GPU heatsink",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "GPU Memory Used",
@@ -4778,6 +5166,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
+    },
+    {
+      "key": "GPU proximity",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Grant access…",
@@ -4843,7 +5238,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/SnapshotDiffView.swift"
     },
     {
-      "key": "Growth rate: %lld/day",
+      "key": "Growth rate: %@/day",
       "targets": [
         "appkit"
       ],
@@ -4855,6 +5250,41 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorView.swift"
+    },
+    {
+      "key": "Heat pipe 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Heat pipe 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Heatsink 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Heatsink 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Heatsink system",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Heavy disk activity",
@@ -5130,6 +5560,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/DomainDisplayNames.swift"
     },
     {
+      "key": "Inspection-only action.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/SafetyAuditor.swift"
+    },
+    {
       "key": "Inspector",
       "targets": [
         "appkit"
@@ -5341,7 +5778,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/DuplicatesTabView.swift"
     },
     {
-      "key": "Keychain operation failed with status %@.",
+      "key": "Keychain operation failed with status %d.",
       "targets": [
         "core"
       ],
@@ -5360,6 +5797,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupToolView+Actions.swift"
+    },
+    {
+      "key": "Known-path scan",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScanOrchestrator.swift"
     },
     {
       "key": "Kqueue",
@@ -5404,7 +5848,7 @@
       "file": "Sources/MacOSCleanerCore/Services/CleanerRuleEngine.swift"
     },
     {
-      "key": "Large file: %@ (%lld)",
+      "key": "Large file: %@ (%@)",
       "targets": [
         "core"
       ],
@@ -5517,7 +5961,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/SelectionInspectorView.swift"
     },
     {
-      "key": "Last scan %@: %@ (%lld total to review).",
+      "key": "Last scan %@: %@ (%@ total to review).",
       "targets": [
         "appkit"
       ],
@@ -5594,7 +6038,7 @@
       "file": "Sources/MacOSCleanerAppKit/App/AppDestination.swift"
     },
     {
-      "key": "Leftovers of a removed app: %@ (%lld items, %lld)",
+      "key": "Leftovers of a removed app: %@ (%lld items, %@)",
       "targets": [
         "core"
       ],
@@ -5742,7 +6186,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
     },
     {
-      "key": "Load %@",
+      "key": "Load %.1f",
       "targets": [
         "appkit"
       ],
@@ -6029,7 +6473,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
     },
     {
-      "key": "Measured → %lld",
+      "key": "Measured → %@",
       "targets": [
         "appkit"
       ],
@@ -6085,6 +6529,13 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
     },
     {
+      "key": "Memory (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "Memory %@ of %@",
       "targets": [
         "appkit"
@@ -6106,6 +6557,13 @@
       "file": "Sources/MacOSCleanerCore/Services/NotificationScheduler.swift"
     },
     {
+      "key": "Memory module",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "Memory pressure is critical",
       "targets": [
         "appkit"
@@ -6118,6 +6576,20 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/App/MacOSCleanerApp.swift"
+    },
+    {
+      "key": "Memory proximity",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Memory, AI, and plan",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScanOrchestrator.swift"
     },
     {
       "key": "Menu Bar",
@@ -6146,6 +6618,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitoringSettingsView.swift"
+    },
+    {
+      "key": "metadata could not be kept exactly",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
     },
     {
       "key": "Metadata Only AI",
@@ -6237,6 +6716,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/MediaAnalysisService.swift"
+    },
+    {
+      "key": "modified in the last few minutes",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
     },
     {
       "key": "Modified on or before",
@@ -6331,7 +6817,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
     },
     {
-      "key": "Move Others to Trash (%lld)…",
+      "key": "Move Others to Trash (%@)…",
       "targets": [
         "appkit"
       ],
@@ -6415,6 +6901,20 @@
       "file": "Sources/MacOSCleanerCore/Services/ApplicationFootprintMatching.swift"
     },
     {
+      "key": "NAND 1",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "NAND 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "Nature",
       "targets": [
         "core"
@@ -6469,6 +6969,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorModel.swift"
+    },
+    {
+      "key": "Neural / Fabric (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Neural Engine",
@@ -7382,6 +7889,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/SelectionInspectorView.swift"
     },
     {
+      "key": "open in another app",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
       "key": "Open Monitor",
       "targets": [
         "appkit"
@@ -7658,6 +8172,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/WhyPanelView.swift"
     },
     {
+      "key": "Package-manager cleanup uses the provider CLI and is not fully undoable; explicit user approval serves as the required review.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/SafetyAuditor.swift"
+    },
+    {
       "key": "Package-Manager Commands (permanent)",
       "targets": [
         "appkit"
@@ -7672,7 +8193,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/ExecutionConfirmView.swift"
     },
     {
-      "key": "Page %lld of %@",
+      "key": "Page %lld of %lld",
       "targets": [
         "appkit"
       ],
@@ -7691,6 +8212,20 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/MediaAnalysisService.swift"
+    },
+    {
+      "key": "Palm rest",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Palm rest 2",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Parent",
@@ -7834,7 +8369,7 @@
       "file": "Sources/MacOSCleanerCore/Services/ImageQualityAnalysis.swift"
     },
     {
-      "key": "pid %@",
+      "key": "pid %d",
       "targets": [
         "appkit"
       ],
@@ -7860,6 +8395,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/SafetyAuditor.swift"
+    },
+    {
+      "key": "Platform controller hub",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
     },
     {
       "key": "Play Live Photo",
@@ -8107,6 +8649,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/DomainDisplayNames.swift"
     },
     {
+      "key": "protected file",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
       "key": "Protected file",
       "targets": [
         "appkit"
@@ -8224,6 +8773,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/TopSizesView.swift"
+    },
+    {
+      "key": "Raw Photo",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/OrganizationPlanner.swift"
     },
     {
       "key": "Re-run with safer mode",
@@ -8485,6 +9041,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/WhyPanelView.swift"
     },
     {
+      "key": "rename failed: %@",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
       "key": "Renderer",
       "targets": [
         "appkit"
@@ -8520,7 +9083,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupActivityView.swift"
     },
     {
-      "key": "Replacing originals reclaims about %lld.",
+      "key": "Replacing originals reclaims about %@.",
       "targets": [
         "appkit"
       ],
@@ -8555,7 +9118,7 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorDeviceViews.swift"
     },
     {
-      "key": "Resolution: %@ × %@",
+      "key": "Resolution: %lld × %lld",
       "targets": [
         "appkit"
       ],
@@ -8738,7 +9301,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/SelectionInspectorView.swift"
     },
     {
-      "key": "Review card for %@, %lld",
+      "key": "Review card for %@, %@",
       "targets": [
         "appkit"
       ],
@@ -8752,7 +9315,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/ExecutionConfirmView.swift"
     },
     {
-      "key": "Review cleanup suggestions for %lld.",
+      "key": "Review cleanup suggestions for %@.",
       "targets": [
         "core"
       ],
@@ -8764,6 +9327,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
+    },
+    {
+      "key": "Review Later",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/OrganizationPlanner.swift"
     },
     {
       "key": "Review now",
@@ -8897,6 +9467,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Design/ViewModifiers.swift"
+    },
+    {
+      "key": "Rules and packages",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScanOrchestrator.swift"
     },
     {
       "key": "Run a Photos & Media scan to refresh this breakdown.",
@@ -9081,7 +9658,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
     },
     {
-      "key": "Save original (new copy ~%lld)",
+      "key": "Save original (new copy ~%@)",
       "targets": [
         "appkit"
       ],
@@ -9382,6 +9959,13 @@
       "file": "Sources/MacOSCleanerCore/Models/DomainModels.swift"
     },
     {
+      "key": "Screenshot or Export",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/OrganizationPlanner.swift"
+    },
+    {
       "key": "Screenshots",
       "targets": [
         "core"
@@ -9564,6 +10148,13 @@
       "file": "Sources/MacOSCleanerCore/Models/ReviewModels.swift"
     },
     {
+      "key": "Sensor %@",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "Sensor readings are not available on this Mac.",
       "targets": [
         "appkit"
@@ -9732,14 +10323,14 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorProcessTable.swift"
     },
     {
-      "key": "Showing %@ of %@ apps. Search to narrow the list.",
+      "key": "Showing %lld of %lld apps. Search to narrow the list.",
       "targets": [
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorProcessTable.swift"
     },
     {
-      "key": "Showing %@ of %@ processes. Search to narrow the list.",
+      "key": "Showing %lld of %lld processes. Search to narrow the list.",
       "targets": [
         "appkit"
       ],
@@ -10293,6 +10884,20 @@
       "file": "Sources/MacOSCleanerAppKit/UI/ContentView.swift"
     },
     {
+      "key": "Storage",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
+      "key": "Storage (%@)",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "Storage by kind",
       "targets": [
         "appkit"
@@ -10384,7 +10989,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/ExploreViewSwitcher.swift"
     },
     {
-      "key": "Sustained for %@ minutes",
+      "key": "Sustained for %lld minutes",
       "targets": [
         "appkit"
       ],
@@ -10804,6 +11409,13 @@
       "file": "Sources/MacOSCleanerCore/Services/UndoManagerService.swift"
     },
     {
+      "key": "The item is a symbolic link and was not tagged.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/FinderTagHelper.swift"
+    },
+    {
       "key": "The item is no longer in Trash and cannot be restored: %@",
       "targets": [
         "core"
@@ -11161,7 +11773,7 @@
       "file": "Sources/MacOSCleanerCore/Services/ReviewExecutor.swift"
     },
     {
-      "key": "This item uses %lld; review whether you need it.",
+      "key": "This item uses %@; review whether you need it.",
       "targets": [
         "core"
       ],
@@ -11364,7 +11976,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/ApplicationsView.swift"
     },
     {
-      "key": "Tidybyte Cleanup Session Report\n\nScan started: %@\n%@\nFiles reviewed: %@\nBytes scanned: %lld\nProposed actions: %lld\nEstimated reviewable space: %lld\nDuplicate findings: %lld\nDeveloper artifact findings: %lld\nHigh-risk recommendations (require explicit confirmation before execution): %@\n%@\n\nTop categories\n%@\n\n%@\n\nSummary\n%@\n\nSafety posture\nFiles are moved to Trash or organized with reversible records where possible. Package-manager and Docker actions are marked not fully undoable.",
+      "key": "Tidybyte Cleanup Session Report\n\nScan started: %@\n%@\nFiles reviewed: %lld\nBytes scanned: %@\nProposed actions: %lld\nEstimated reviewable space: %@\nDuplicate findings: %lld\nDeveloper artifact findings: %lld\nHigh-risk recommendations (require explicit confirmation before execution): %lld\n%@\n\nTop categories\n%@\n\n%@\n\nSummary\n%@\n\nSafety posture\nFiles are moved to Trash or organized with reversible records where possible. Package-manager and Docker actions are marked not fully undoable.",
       "targets": [
         "core"
       ],
@@ -11842,7 +12454,7 @@
       "file": "Sources/MacOSCleanerCore/Services/PackageManagerScanner.swift"
     },
     {
-      "key": "User %@% · System %@%",
+      "key": "User %.0f%% · System %.0f%%",
       "targets": [
         "appkit"
       ],
@@ -11934,7 +12546,7 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CompressionControlsView.swift"
     },
     {
-      "key": "Video: %lld · Still: %lld",
+      "key": "Video: %@ · Still: %@",
       "targets": [
         "appkit"
       ],
@@ -12116,6 +12728,13 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorView.swift"
     },
     {
+      "key": "Wireless",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/Monitoring/SMCSensors.swift"
+    },
+    {
       "key": "Write",
       "targets": [
         "appkit"
@@ -12265,44 +12884,54 @@
     " Natural-language command requested removal.",
     "%@ appears to be a rebuildable developer artifact.",
     "%@ at %@ is high-risk or cloud-managed. Review manually before removing.",
-    "%@ averaged %lld% CPU for %lld minutes.",
+    "%@ averaged %lld%% CPU for %lld minutes.",
     "%@ cache directory.",
     "%@ cache/log at %@ is rebuildable. Review before moving to Trash.",
     "%@ failed: %@",
-    "%@ grew by %lld over the last hour.",
-    "%@ grew rapidly by %lld in %@ minutes.",
+    "%@ grew by %@ over the last hour.",
+    "%@ grew rapidly by %@ in %lld minutes.",
     "%@ is moving a lot of data right now.",
     "%@ is not a Trash folder.",
     "%@ is writing to disk heavily right now.",
-    "%@ items could not be read during the scan and are not included in these results.",
     "%@ was removed",
     "%@ was skipped: it is a protected or system location, so it was not scanned.",
-    "%@: %@ (%lld)",
+    "%@: %@ (%@)",
     "%lld exact duplicate files, confirmed by full SHA-256.",
     "%lld exact duplicate files, confirmed by full SHA-256. Their space can be reclaimed without deleting anything.",
+    "%lld items could not be read during the scan and are not included in these results.",
     "%lld local Time Machine snapshots, oldest %@",
-    "%lld older Xcode device support folders (%lld)",
-    "%lld proposed actions: %@ low risk, %@ medium risk, %@ high risk. Estimated reviewable space: %lld.",
-    "%lld screenshots in %@ (%lld)",
+    "%lld older Xcode device support folders (%@)",
+    "%lld proposed actions: %lld low risk, %lld medium risk, %lld high risk. Estimated reviewable space: %@.",
+    "%lld screenshots in %@ (%@)",
     "%lld simulators belong to runtimes that are no longer installed.",
     "%lld visually similar images detected.",
     "0 bytes",
     "1 local Time Machine snapshot, oldest %@",
-    "1 screenshot in %@ (%lld)",
+    "1 screenshot in %@ (%@)",
     "A lens smudge may have reduced image clarity.",
     "AI classification was skipped (%@); results are from local rules only.",
     "AI is disabled in local-only privacy mode.",
     "AI metadata-only suggestion: %@",
-    "AI provider returned HTTP %@: %@",
+    "AI provider returned HTTP %lld: %@",
     "AI provider returned a malformed response: %@",
     "AI request failed after multiple attempts. Last error: %@",
+    "ANE / Fabric 1",
+    "ANE / Fabric 2",
+    "ANE / Fabric 3",
+    "ANE / Fabric 4",
+    "ANE / Fabric 5",
     "Action %@ was already executed and cannot run again.",
     "Action destination is not safe: %@",
     "Agent (all users)",
     "Agent (this user)",
+    "Airflow left",
+    "Airflow right",
     "Also used by another installed app",
     "Always consider %@ for %@ in this scope after review.",
     "Always consider %@ in this directory (approved %lld times).",
+    "Ambient",
+    "Ambient (%@)",
+    "Ambient 2",
     "Analyzing findings",
     "Analyzing media",
     "Another cleanup batch is already running. Wait for it to finish before starting a new one.",
@@ -12316,14 +12945,19 @@
     "Application Support",
     "Application Support Cache",
     "Application or package cache.",
+    "Archive Candidate",
     "Archives",
-    "At your current growth rate, your disk could reach 80% full in approximately %@ days.",
-    "At your current growth rate, your disk could reach 90% full in approximately %@ days.",
-    "At your current growth rate, your disk could reach 95% full in approximately %@ days.",
+    "At your current growth rate, your disk could reach 80%% full in approximately %lld days.",
+    "At your current growth rate, your disk could reach 90%% full in approximately %lld days.",
+    "At your current growth rate, your disk could reach 95%% full in approximately %lld days.",
     "Audio",
     "Automatic maintenance is not enabled.",
     "Automatic maintenance needs the app installed in /Applications (found %@).",
     "Batch limit exceeded: %@",
+    "Battery",
+    "Battery (%@)",
+    "Battery 1",
+    "Battery 2",
     "Before a Date",
     "Belongs to the same developer team",
     "Blurry Images",
@@ -12334,6 +12968,29 @@
     "Bun package cache.",
     "Burst Sequences",
     "Burst sequence",
+    "CPU",
+    "CPU / SoC (%@)",
+    "CPU / SoC 1",
+    "CPU / SoC 10",
+    "CPU / SoC 11",
+    "CPU / SoC 12",
+    "CPU / SoC 2",
+    "CPU / SoC 3",
+    "CPU / SoC 4",
+    "CPU / SoC 5",
+    "CPU / SoC 6",
+    "CPU / SoC 7",
+    "CPU / SoC 8",
+    "CPU / SoC 9",
+    "CPU 2 heatsink",
+    "CPU Fin Stack",
+    "CPU GC",
+    "CPU PECI",
+    "CPU PECI core",
+    "CPU core",
+    "CPU diode",
+    "CPU heatsink",
+    "CPU proximity",
     "Cache",
     "Cache directory: %@",
     "Cache entry at %@ is rebuildable. Review before moving to Trash.",
@@ -12370,8 +13027,8 @@
     "Coding Agent Artifact",
     "Coding agent",
     "Coding-agent log/cache artifact. Config and memory paths remain protected.",
-    "Complete uninstall: %@ app bundle (%lld)",
-    "Complete uninstall: %@ scattered data (%lld locations, %lld)",
+    "Complete uninstall: %@ app bundle (%@)",
+    "Complete uninstall: %@ scattered data (%lld locations, %@)",
     "Completed",
     "Compression does not support this image's format or animation data.",
     "Container metadata names this app",
@@ -12383,11 +13040,12 @@
     "Could not give %@ its own storage again (not enough free space, file in use, or a filesystem error). Try again later.",
     "Could not record the undo trail (%@); the action was not performed.",
     "Could not remove “%@” from the Trash.",
+    "Crawl",
     "Crawling files",
     "Create a safe organized alias from the Inbox before moving the original.",
     "Daemon",
     "Database export could not be finalized.",
-    "Database export failed with code %@.",
+    "Database export failed with code %d.",
     "Date Taken",
     "Deep System",
     "Deep system",
@@ -12398,11 +13056,11 @@
     "Development App Cache",
     "Development applications",
     "Docker Cleanup",
-    "Docker Volume Prune (%lld reclaimable; removes unused named volumes).",
-    "Docker aggressive cleanup prunes %lld including unused volumes. Volumes may contain persistent data.",
-    "Docker build cache can be cleared (%lld). Images and containers stay.",
+    "Docker Volume Prune (%@ reclaimable; removes unused named volumes).",
+    "Docker aggressive cleanup prunes %@ including unused volumes. Volumes may contain persistent data.",
+    "Docker build cache can be cleared (%@). Images and containers stay.",
     "Docker cleanup",
-    "Docker safe cleanup can prune %lld of stopped containers, dangling images, and build cache.",
+    "Docker safe cleanup can prune %@ of stopped containers, dangling images, and build cache.",
     "Documents",
     "Documents %@",
     "Downloaded AI model weights can be large and slow to re-download. Inspect before deleting.",
@@ -12413,14 +13071,22 @@
     "Duplicate",
     "Duplicate-Format Pairs",
     "Duplicates",
+    "Duplicates and content",
+    "Efficiency Cluster (%@)",
+    "Efficiency core 1",
+    "Efficiency core 2",
+    "Efficiency core 3",
+    "Efficiency core 4",
+    "Enclosure (%@)",
     "Encoded JSON was not valid UTF-8.",
     "Enter an album name.",
     "Everything Here",
     "Exact content match",
-    "Execution cancelled; %@ remaining actions were not run.",
+    "Execution cancelled; %lld remaining actions were not run.",
     "Export verification failed. The Photos original was kept.",
     "Failed",
     "Favorited",
+    "Feature-print distance < %@.",
     "File",
     "File identity changed since scan: %@",
     "Filtered plan excluding selected items.",
@@ -12430,8 +13096,23 @@
     "Finder metadata",
     "Fold each copy onto the newest file as an APFS clone. Every file keeps its name, contents and metadata. Nothing is deleted, the space is reclaimed immediately, and this can be undone.",
     "Food",
+    "Full SHA-256 hash matched.",
+    "GPU",
+    "GPU (%@)",
+    "GPU 1",
+    "GPU 2",
+    "GPU 3",
+    "GPU diode",
+    "GPU heatsink",
+    "GPU proximity",
+    "Generated Export",
     "Group Containers",
     "HTTP Storage",
+    "Heat pipe 1",
+    "Heat pipe 2",
+    "Heatsink 1",
+    "Heatsink 2",
+    "Heatsink system",
     "Heavy disk activity",
     "Heavy network activity",
     "Helper started by this app's launch item",
@@ -12446,25 +13127,27 @@
     "Image Exports %@",
     "Image source is unavailable.",
     "Images",
+    "Inspection-only action.",
     "Interrupted operation dismissed.",
     "Interrupted restore dismissed.",
     "Interrupted; check outputs",
     "Its settings and caches are still on this Mac. Review them in Tidybyte.",
     "Keep",
     "Keeps the newest version per platform. Xcode copies symbols again when a device with an older system connects.",
-    "Keychain operation failed with status %@.",
+    "Keychain operation failed with status %d.",
     "Keychain returned invalid data.",
+    "Known-path scan",
     "Kqueue",
     "Large File",
     "Large File Review",
     "Large Files",
     "Large file worth reviewing.",
-    "Large file: %@ (%lld)",
+    "Large file: %@ (%@)",
     "Large files to review",
     "Largest First",
     "Launch Agents",
     "Launch item that runs this app",
-    "Leftovers of a removed app: %@ (%lld items, %lld)",
+    "Leftovers of a removed app: %@ (%lld items, %@)",
     "Lens smudge",
     "Likely match",
     "Live Photo pair. Removing a component loses motion or still data",
@@ -12478,7 +13161,11 @@
     "Lower confidence for similar cleanup suggestions.",
     "Manual review is still required before executing %@.",
     "Memes",
+    "Memory (%@)",
     "Memory keeps growing",
+    "Memory module",
+    "Memory proximity",
+    "Memory, AI, and plan",
     "Missing package cleanup candidate: %@.",
     "Missing target %@.",
     "Modified close together",
@@ -12486,9 +13173,12 @@
     "Move",
     "Move %lld leftover data locations for %@ (caches, preferences, logs) to Trash. Rebuildable or regenerable data; preferences are lost unless restored from Trash.%@",
     "Move the %@ app bundle to Trash. The app stops working once trashed; restore from Trash or reinstall to recover. Review before approving.",
+    "NAND 1",
+    "NAND 2",
     "Named after the app",
     "Named after the app's bundle ID",
     "Nature",
+    "Neural / Fabric (%@)",
     "Never repeat similar cleanup without manual review. Regret reason: %@",
     "Never suggest %@ in %@.",
     "Never suggest %@ in this directory (rejected %lld times).",
@@ -12521,7 +13211,10 @@
     "Package Manager Cleanup",
     "Package cleanup command is not on the approved allowlist: %@.",
     "Package manager caches are rebuildable. Review before moving to Trash.",
+    "Package-manager cleanup uses the provider CLI and is not fully undoable; explicit user approval serves as the required review.",
     "Paired formats. Removing a component loses its editing or motion data",
+    "Palm rest",
+    "Palm rest 2",
     "Pets",
     "Photos Library",
     "Photos access was not granted. You can still scan folders.",
@@ -12530,6 +13223,7 @@
     "Picked in burst",
     "Pipe",
     "Planned action references a missing target: %@",
+    "Platform controller hub",
     "Possible app support leftover for an app that is not currently installed.",
     "Possible match",
     "Preferences",
@@ -12538,6 +13232,7 @@
     "Protected",
     "Python caches and environments",
     "Quit %@ first, then try again.",
+    "Raw Photo",
     "Reading Photos resources",
     "Reading files",
     "Recently Added",
@@ -12546,13 +13241,15 @@
     "Resolving scan scope",
     "Restore destination already exists: %@",
     "Restored all original actions.",
-    "Review cleanup suggestions for %lld.",
+    "Review Later",
+    "Review cleanup suggestions for %@.",
     "Review only: %@ may hold data you still need, such as dSYMs for shipped builds or a global package store. Remove it yourself if you no longer need it.",
     "Review only: %lld more items that may belong to %@",
     "Review only: Docker's virtual machine disk. Trashing it deletes every image, container and volume.",
     "Review screenshots and screen recordings before moving them to Trash.",
     "Review whether you still need this screen recording.",
     "Review whether you still need this screenshot.",
+    "Rules and packages",
     "Running AI classification",
     "SQLite database is unavailable.",
     "Sandboxed App Cache",
@@ -12568,10 +13265,12 @@
     "Screen Recordings",
     "Screen Recordings %@",
     "Screenshot",
+    "Screenshot or Export",
     "Screenshots",
     "Select at least one folder before scanning.",
     "Select two different snapshots to compare.",
     "Selfies",
+    "Sensor %@",
     "Shared app group of this app",
     "Sharpest photo",
     "Similar Files",
@@ -12582,6 +13281,8 @@
     "Socket",
     "Some app data folders were skipped because Full Disk Access is off, so app caches and leftovers are missing from these results.",
     "Starts with the app's bundle ID",
+    "Storage",
+    "Storage (%@)",
     "Store: %@",
     "Stored JSON was not UTF-8.",
     "Swipe Review",
@@ -12625,6 +13326,7 @@
     "The inbox cannot be created there. %@",
     "The item at %@ is not the artifact this undo record created, so it was not deleted.",
     "The item in Trash at %@ is not the file this undo record trashed, so it was not restored.",
+    "The item is a symbolic link and was not tagged.",
     "The item is no longer in Trash and cannot be restored: %@",
     "The item was moved, but its recovery record could not be saved. Check Trash or the destination in Finder.",
     "The original file has not been restored yet, so the archive copy at %@ is being kept.",
@@ -12654,7 +13356,7 @@
     "This item cannot be compressed.",
     "This item cannot be restored here. Check Trash or Recently Deleted.",
     "This item is not available for changes.",
-    "This item uses %lld; review whether you need it.",
+    "This item uses %@; review whether you need it.",
     "This looks like a coding-agent log/cache path. Archive is suggested before deletion because agent sessions can contain useful private context.",
     "This operation is already running. Check Activity for its result.",
     "This photo has very high brightness.",
@@ -12669,7 +13371,7 @@
     "This video is below 480p and will not be upscaled.",
     "This video's track layout is not supported for compression.",
     "Tidybyte Archive %@",
-    "Tidybyte Cleanup Session Report\n\nScan started: %@\n%@\nFiles reviewed: %@\nBytes scanned: %lld\nProposed actions: %lld\nEstimated reviewable space: %lld\nDuplicate findings: %lld\nDeveloper artifact findings: %lld\nHigh-risk recommendations (require explicit confirmation before execution): %@\n%@\n\nTop categories\n%@\n\n%@\n\nSummary\n%@\n\nSafety posture\nFiles are moved to Trash or organized with reversible records where possible. Package-manager and Docker actions are marked not fully undoable.",
+    "Tidybyte Cleanup Session Report\n\nScan started: %@\n%@\nFiles reviewed: %lld\nBytes scanned: %@\nProposed actions: %lld\nEstimated reviewable space: %@\nDuplicate findings: %lld\nDeveloper artifact findings: %lld\nHigh-risk recommendations (require explicit confirmation before execution): %lld\n%@\n\nTop categories\n%@\n\n%@\n\nSummary\n%@\n\nSafety posture\nFiles are moved to Trash or organized with reversible records where possible. Package-manager and Docker actions are marked not fully undoable.",
     "Tidybyte needs Full Disk Access to empty the Trash. You can also empty it in Finder.",
     "Time Machine Backup",
     "Time Machine backups",
@@ -12697,6 +13399,7 @@
     "Visual near-match. Check before removing",
     "WebKit Data",
     "Weekly Storage Digest",
+    "Wireless",
     "Xcode Clang module cache (ModuleCache.noindex).",
     "Xcode Previews caches simulator state and takes significant space. Prune safely with `xcrun simctl --set previews`.",
     "Xcode SwiftUI Previews cache.",
@@ -12707,10 +13410,17 @@
     "Your disk usage is stable or shrinking. No forecast needed.",
     "Your weekly storage report is ready. Open Tidybyte to review what grew this week.",
     "caches and temporary files",
+    "clone failed: %@",
+    "contents differ",
+    "could not copy metadata",
     "developer artifacts",
+    "different volume",
     "duplicate files",
     "explicit user setting",
+    "file changed during fold",
+    "file is missing",
     "files older than %lld days",
+    "filtered",
     "iOS Device Backup",
     "iOS device backups",
     "large files (1GB+)",
@@ -12720,67 +13430,61 @@
     "macOS System Cache",
     "macOS removes local snapshots when it needs the space. To remove them now, run \"tmutil thinlocalsnapshots / 999999999999 4\" in Terminal.",
     "macOS system caches",
+    "metadata could not be kept exactly",
+    "modified in the last few minutes",
     "npm and Node.js cleanup",
     "npm cache clean will delete the entire npm cache at %@. Packages will be re-downloaded on next install.",
     "npm cache is visible at %@. Review before cleaning.",
     "old files in Downloads",
     "old installers",
+    "open in another app",
     "organization suggestions",
     "pip cache at %@%@ can be purged safely.",
     "pnpm store at %@ can drop packages no project uses.",
+    "protected file",
     "regret",
+    "rename failed: %@",
     "uv Python package cache.",
     "uv package cache files can be re-downloaded when needed. Review before moving to Trash."
   ],
   "appKitKeys": [
-    "%@",
     "%@ %@:%@",
     "%@ %lld",
-    "%@ (pid %@)",
+    "%@ (pid %d)",
     "%@ = %@",
     "%@ MB",
-    "%@ Trash · %@ kept · %@ moved · %@ skipped",
     "%@ and %lld more",
     "%@ available of %@",
-    "%@ cores",
     "%@ could not be added because the plan changed. Try again.",
-    "%@ cycles",
     "%@ free on disk",
     "%@ have no known date",
     "%@ history chart",
     "%@ is already in Leftovers.",
     "%@ is review-only and cannot be staged for cleanup.",
     "%@ is still installed; leftover cleanup skipped.",
-    "%@ moved · %@ skipped",
-    "%@ pages",
-    "%@ px",
-    "%@ rpm",
     "%@ s",
     "%@ selected for removal",
     "%@ sent to Trash or Recently Deleted",
-    "%@ successful · %@ failed · %@ unprocessed",
-    "%@ successful · %@ failed · %@ unprocessed. Check Activity.",
     "%@ used, %@ available",
     "%@ · %@",
     "%@ · %@:%@",
-    "%@ · %lld",
-    "%@ · 1 item · %lld · %@",
-    "%@ · R %lld% · T %lld%",
+    "%@ · 1 item · %@ · %@",
+    "%@ · R %lld%% · T %lld%%",
     "%@ → %@",
-    "%@%",
+    "%@ → %@ %@",
     "%@, %@",
     "%@, %@, %@",
     "%@, %@, depth %lld",
-    "%@, %lld",
     "%@, change %@",
-    "%@/%@",
     "%@: %@, %@",
     "%@: %lld items",
     "%@: 1 item",
-    "%@×%@",
+    "%d rpm",
+    "%d%%",
     "%lld",
     "%lld MB",
     "%lld MB or larger",
+    "%lld Trash · %lld kept · %lld moved · %lld skipped",
     "%lld actions completed cleanly. Files in Trash can be restored or emptied anytime.",
     "%lld approved",
     "%lld approved actions are review-only and were not executed.",
@@ -12789,7 +13493,9 @@
     "%lld coding agents",
     "%lld connections",
     "%lld containers",
-    "%lld cores · 5m %@",
+    "%lld cores",
+    "%lld cores · 5m %.2f",
+    "%lld cycles",
     "%lld dev servers",
     "%lld files",
     "%lld files match this session",
@@ -12800,20 +13506,24 @@
     "%lld interrupted operations",
     "%lld items",
     "%lld items processed",
+    "%lld items · %@ motion video · %@ stills",
     "%lld items · %@ removed. Files are in Trash; Photos assets are in Recently Deleted. Empty them in Finder or Photos to return space.",
-    "%lld items · %lld motion video · %lld stills",
     "%lld levels",
     "%lld locations could not be read during the scan.",
+    "%lld moved · %lld skipped",
     "%lld of %lld reviewed",
+    "%lld pages",
     "%lld processes",
+    "%lld px",
     "%lld readings",
     "%lld removed · %lld kept",
     "%lld sensors",
+    "%lld successful · %lld failed · %lld unprocessed",
+    "%lld successful · %lld failed · %lld unprocessed. Check Activity.",
     "%lld · %@",
-    "%lld · %lld",
-    "%lld → %@ %@",
-    "%lld → %lld",
-    "%lld%",
+    "%lld%%",
+    "%lld/%lld",
+    "%lld×%lld",
     "(%@–%@)",
     "0 bytes",
     "1 action completed cleanly. Files in Trash can be restored or emptied anytime.",
@@ -12885,7 +13595,7 @@
     "Affected files",
     "Affected: %@%@. Check the Trash and undo history.",
     "After",
-    "After: %lld",
+    "After: %@",
     "Age Map",
     "Agent CLIs appear here with their project, what they started, and any local plan usage.",
     "Agents",
@@ -12990,8 +13700,8 @@
     "Byte sizes",
     "Bytes",
     "CPU",
-    "CPU %@%",
-    "CPU exceeds %lld%",
+    "CPU %@%%",
+    "CPU exceeds %lld%%",
     "CPU over the last 24 hours",
     "CPU time",
     "Caches, logs, and browser data that apps rebuild.",
@@ -13058,10 +13768,10 @@
     "Compress and Keep Originals",
     "Compress and Replace",
     "Compressed",
-    "Compressed and replaced originals; saved %lld.",
+    "Compressed and replaced originals; saved %@.",
     "Compressing media",
     "Compression",
-    "Compression requires %lld of free disk space (2× the selected batch) to write verified copies safely. Available: %@. Deselect some large items or free up space first.",
+    "Compression requires %@ of free disk space (2× the selected batch) to write verified copies safely. Available: %@. Deselect some large items or free up space first.",
     "Compression savings",
     "Confidence",
     "Confirm compression",
@@ -13077,8 +13787,8 @@
     "Convert Selected (%lld) · %@…",
     "Convert photos to HEIC",
     "Convert to HEIC",
-    "Converted %@ Live Photos to stills (%@ reclaimed).",
-    "Converted %@ of %lld; %@ failed. Check Activity.",
+    "Converted %lld Live Photos to stills (%@ reclaimed).",
+    "Converted %lld of %lld; %lld failed. Check Activity.",
     "Converted 1 Live Photo to a still (%@ reclaimed).",
     "Converting Live Photos to stills",
     "Converting keeps the full-resolution still photo (with date, location, and albums) and reclaims the paired motion video.",
@@ -13118,7 +13828,7 @@
     "Deep System",
     "Default swipe filter",
     "Defaults",
-    "Delete & reclaim ~%lld",
+    "Delete & reclaim ~%@",
     "Denied",
     "Depth",
     "Depth as stacked bars, top group first.",
@@ -13140,7 +13850,7 @@
     "Disk read & write exceed %lld MB/s",
     "Disk written",
     "Dismiss",
-    "Dismissed %@ interrupted operations.",
+    "Dismissed %lld interrupted operations.",
     "Dismissed 1 interrupted operation.",
     "Do you want to quit “%@”? Unsaved work in this app could be lost.",
     "Done",
@@ -13148,7 +13858,7 @@
     "Download from iCloud",
     "Download this file in Finder before previewing.",
     "Download this item from iCloud to preview, compress, or convert it. You can still move it to Recently Deleted without downloading.",
-    "Downloading %lld%",
+    "Downloading %lld%%",
     "Drag into the Full Disk Access list",
     "Drill In",
     "Drills into this group",
@@ -13169,7 +13879,7 @@
     "Est.",
     "Est. %lld days until the next threshold",
     "Est. 1 day until the next threshold",
-    "Est. → %lld",
+    "Est. → %@",
     "Estimated reduction: %@",
     "Estimates can differ from the result. Compression can reduce quality. Each original is removed only after its smaller replacement verifies. Photos replacements can lose edit history or compound-media data; deletion can sync to iCloud. Originals remain recoverable in Trash or Recently Deleted.",
     "Every group as a bubble, sized by bytes.",
@@ -13247,7 +13957,7 @@
     "Group actions for %@",
     "Group files by",
     "Grown folders",
-    "Growth rate: %lld/day",
+    "Growth rate: %@/day",
     "Health",
     "Heavy thermal throttling",
     "Hidden tabs disappear from the monitor's tab rail. Overview always stays.",
@@ -13308,7 +14018,7 @@
     "Last automatic run",
     "Last hour",
     "Last opened",
-    "Last scan %@: %@ (%lld total to review).",
+    "Last scan %@: %@ (%@ total to review).",
     "Last scan %@: No cleanup items waiting.",
     "Last year",
     "Latest Scan",
@@ -13332,7 +14042,7 @@
     "Live Photo unavailable",
     "Live Photo unavailable.",
     "Live Photos → Still Images",
-    "Load %@",
+    "Load %.1f",
     "Load Average",
     "Loading Live Photo…",
     "Loading applications…",
@@ -13357,7 +14067,7 @@
     "Max photo dimension",
     "Maximum tokens: %lld",
     "Measured",
-    "Measured → %lld",
+    "Measured → %@",
     "Measuring associated data…",
     "Measuring…",
     "Media playback controls",
@@ -13390,7 +14100,7 @@
     "Move %@ to %@",
     "Move %@ to Trash",
     "Move %lld to Trash · %@…",
-    "Move Others to Trash (%lld)…",
+    "Move Others to Trash (%@)…",
     "Move duplicates to Trash",
     "Move to Trash",
     "Move to Trash (recoverable 30 days)",
@@ -13544,7 +14254,7 @@
     "Package-Manager Commands (permanent)",
     "Package-manager cleanup cannot be undone. Review the command before approval.",
     "Package-manager commands are irreversible. They run external tools (brew, docker, npm) and cannot be undone from Tidybyte.",
-    "Page %lld of %@",
+    "Page %lld of %lld",
     "Paired devices show up here with their battery levels.",
     "Parent",
     "Partially Undoable",
@@ -13638,12 +14348,12 @@
     "Replace & Trash Original",
     "Replace and trash originals after compression",
     "Replacement Photos asset: %@",
-    "Replacing originals reclaims about %lld.",
+    "Replacing originals reclaims about %@.",
     "Reset Review History",
     "Reset Review History…",
     "Reset review history and discard saved review drafts? Activity and recovery records will remain.",
     "Resets %@",
-    "Resolution: %@ × %@",
+    "Resolution: %lld × %lld",
     "Resolve",
     "Resolving scan scope",
     "Restore",
@@ -13668,7 +14378,7 @@
     "Review Action",
     "Review Changes",
     "Review and approve proposed changes before applying them.",
-    "Review card for %@, %lld",
+    "Review card for %@, %@",
     "Review cloud files carefully",
     "Review now",
     "Review one file at a time",
@@ -13706,7 +14416,7 @@
     "Sandboxed App Caches",
     "Save API Key",
     "Save a snapshot image of the monitor",
-    "Save original (new copy ~%lld)",
+    "Save original (new copy ~%@)",
     "Saved rules",
     "Saved scans",
     "Saved smaller compressed copies while keeping originals.",
@@ -13782,8 +14492,8 @@
     "Show or hide details",
     "Show the monitor in the menu bar",
     "Show user apps, system background, or everything",
-    "Showing %@ of %@ apps. Search to narrow the list.",
-    "Showing %@ of %@ processes. Search to narrow the list.",
+    "Showing %lld of %lld apps. Search to narrow the list.",
+    "Showing %lld of %lld processes. Search to narrow the list.",
     "Showing 50 of %lld connections.",
     "Showing largest %lld of %lld files in this month.",
     "Shows free space and quick actions. Tidybyte keeps running when its window closes.",
@@ -13864,7 +14574,7 @@
     "Strict",
     "Summarized Folders",
     "Sunburst",
-    "Sustained for %@ minutes",
+    "Sustained for %lld minutes",
     "Sustained for 1 minute",
     "Swap Used",
     "Swipe Decision",
@@ -13969,7 +14679,7 @@
     "Use Restore in the history list. Recovery depends on the files remaining available.",
     "Use as Best Shot",
     "Use configured AI provider",
-    "User %@% · System %@%",
+    "User %.0f%% · System %.0f%%",
     "User Essentials",
     "Valid until",
     "Value",
@@ -13978,7 +14688,7 @@
     "Version Of",
     "Video Resolution",
     "Video resolution",
-    "Video: %lld · Still: %lld",
+    "Video: %@ · Still: %@",
     "View",
     "View History",
     "View last report",
@@ -14023,11 +14733,11 @@
     "macOS hides Mail, Safari, and other apps' data until you allow it. Turn on Tidybyte in Privacy & Security › Full Disk Access. You can also drag the icon below into that list.",
     "medium-risk and below",
     "old installers",
-    "pid %@",
+    "pid %d",
     "project leftovers",
     "safe caches",
     "unknown",
-    "· %lld",
+    "· %@",
     "—",
     "↑ %@",
     "↓ %@",
@@ -14065,5 +14775,5 @@
       "file": "Scripts/build-app.sh"
     }
   ],
-  "total": 1747
+  "total": 1835
 }

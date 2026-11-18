@@ -535,7 +535,7 @@ public actor DuplicateDetector {
                 toFileID: duplicate.id,
                 edgeType: .duplicate,
                 confidence: 0.99,
-                evidence: "Full SHA-256 hash matched."
+                evidence: String(localized: "Full SHA-256 hash matched.", comment: "Exact duplicate edge evidence")
             ))
         }
     }
@@ -649,6 +649,7 @@ public actor DuplicateDetector {
                 llmTraceID: nil,
                 policyTraceID: "duplicate_feature_print_distance"
             ))
+            let thresholdText = String(format: "%.1f", Self.nearDuplicateDistanceThreshold)
             for dup in nearDuplicates {
                 edgesOut.append(RelationshipEdge(
                     id: "\(keep.id)-\(dup.id)-nearDuplicate",
@@ -656,7 +657,7 @@ public actor DuplicateDetector {
                     toFileID: dup.id,
                     edgeType: .nearDuplicateOf,
                     confidence: 0.85,
-                    evidence: "Feature-print distance < \(String(format: "%.1f", Self.nearDuplicateDistanceThreshold))."
+                    evidence: String(localized: "Feature-print distance < \(thresholdText).", comment: "Near-duplicate edge evidence")
                 ))
             }
         }

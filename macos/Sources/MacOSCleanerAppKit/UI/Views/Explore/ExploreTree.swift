@@ -325,20 +325,32 @@ enum ExploreTreeBuilder {
                 children: []
             )
         }
-        let remainder = sorted.dropFirst(kept.count)
-        if !remainder.isEmpty {
-            let rest = remainder.flatMap(\.files)
-            groups.append(ExploreGroup(
-                id: "__other__",
-                name: L10n.string("Other", language: language),
-                bytes: rest.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
-                fileCount: rest.reduce(0) { $0 + itemCount(of: $1) },
-                detail: nil,
-                paletteIndex: kept.count,
-                children: []
-            ))
+        if let otherGroup = makeOtherTypeGroup(
+            remainder: sorted.dropFirst(kept.count),
+            paletteIndex: kept.count,
+            language: language
+        ) {
+            groups.append(otherGroup)
         }
         return groups
+    }
+
+    private static func makeOtherTypeGroup(
+        remainder: ArraySlice<ExtensionBucketEntry>,
+        paletteIndex: Int,
+        language: AppLanguage?
+    ) -> ExploreGroup? {
+        guard !remainder.isEmpty else { return nil }
+        let rest = remainder.flatMap(\.files)
+        return ExploreGroup(
+            id: "__other__",
+            name: L10n.string("Other", language: language),
+            bytes: rest.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
+            fileCount: rest.reduce(0) { $0 + itemCount(of: $1) },
+            detail: nil,
+            paletteIndex: paletteIndex,
+            children: []
+        )
     }
 
     // MARK: - By Age
