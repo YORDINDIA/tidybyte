@@ -16,6 +16,7 @@ struct LivePhotoItem: Identifiable {
     let asset: AssetSummary
     var conversionState: ConversionState = .idle
     var savedBytes: Int64 = 0
+    var replacementId: String? = nil
 }
 
 @Observable
@@ -196,6 +197,7 @@ final class LivePhotosConverterViewModel {
         for item in outcome.committed {
             if let idx = indexById[item.assetId] {
                 items[idx].savedBytes = max(0, item.originalSize - item.compressedSize)
+                items[idx].replacementId = item.swap.replacementId
                 items[idx].conversionState = .completed
             }
         }

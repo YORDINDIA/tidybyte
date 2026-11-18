@@ -17,7 +17,15 @@ struct SwipeAlbumPickerSheet: View {
     let onSelect: (String) -> Void
 
     @State private var albumState = AlbumSheetState()
+    @State private var searchText = ""
     @Environment(\.dismiss) private var dismiss
+
+    private var filteredAlbums: [AlbumInfo] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return albumState.albums }
+        return albumState.albums.filter { $0.title.localizedCaseInsensitiveContains(query) }
+    }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -36,15 +44,17 @@ struct SwipeAlbumPickerSheet: View {
                         }
                         .padding(.vertical, Spacing.xl)
                     }
-                } else if albumState.albums.isEmpty {
+                } else if filteredAlbums.isEmpty {
                     EmptyStateView(
                         icon: "rectangle.stack",
                         title: "No Albums",
-                        message: "No albums with photos were found.",
+                        message: albumState.albums.isEmpty
+                            ? "No albums with photos were found."
+                            : "Try a different search term.",
                         iconColor: .teal
                     )
                 } else {
-                    List(albumState.albums) { album in
+                    List(filteredAlbums) { album in
                         Button {
                             onSelect(album.id)
                             dismiss()
@@ -68,6 +78,7 @@ struct SwipeAlbumPickerSheet: View {
             }
             .localizedNavigationTitle("Select Album")
             .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, prompt: "Search")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Cancel") { dismiss() }

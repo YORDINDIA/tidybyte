@@ -43,6 +43,9 @@ struct StorageDashboardView: View {
                             .fadeSlideIn(delay: 0.05)
                     }
 
+                    savingsSection
+                        .fadeSlideIn(delay: 0.08)
+
                     deviceStorageSection
                         .fadeSlideIn(delay: 0.1)
 
@@ -52,7 +55,9 @@ struct StorageDashboardView: View {
                     recentlyDeletedSection
                         .fadeSlideIn(delay: 0.2)
 
-                    cameraFormatSection
+                    if !viewModel.cameraFormats.isEmpty {
+                        cameraFormatSection
+                    }
 
                     whereStorageGoesSection
                         .fadeSlideIn(delay: 0.25)
@@ -62,9 +67,6 @@ struct StorageDashboardView: View {
 
                     trendSection
                         .fadeSlideIn(delay: 0.35)
-
-                    savingsSection
-                        .fadeSlideIn(delay: 0.4)
                 }
                 .padding(Spacing.lg)
                 .readableWidth()
@@ -533,7 +535,7 @@ struct StorageDashboardView: View {
                     icon: "trash",
                     color: .gray,
                     title: "Recently Deleted",
-                    detail: "Space comes back when it is emptied. In Photos, open Albums, then Recently Deleted."
+                    detail: "Open Photos, find Recently Deleted under Utilities, then unlock it and delete the items you no longer need."
                 )
             }
             .buttonStyle(.plain)
@@ -854,11 +856,12 @@ struct StorageDashboardView: View {
                     .frame(maxWidth: .infinity)
                 } else {
                     VStack(spacing: 0) {
+                        let maxBytes = max(1, buckets.map(\.bytes).max() ?? 1)
                         ForEach(Array(buckets.enumerated()), id: \.element.id) { index, bucket in
                             Button {
                                 handle(.swipe(.customAssetIds(Set(bucket.assetIds))))
                             } label: {
-                                breakdownRow(label: bucket.label, count: bucket.count, bytes: bucket.bytes)
+                                breakdownRow(label: bucket.label, count: bucket.count, bytes: bucket.bytes, maxBytes: maxBytes)
                             }
                             .buttonStyle(.plain)
 
@@ -872,11 +875,12 @@ struct StorageDashboardView: View {
         }
     }
 
-    private func breakdownRow(label: String, count: Int, bytes: Int64) -> some View {
+    private func breakdownRow(label: String, count: Int, bytes: Int64, maxBytes: Int64) -> some View {
+        let ratio = min(1, max(0, CGFloat(bytes) / CGFloat(max(1, maxBytes))))
         let chevron = Image(systemName: "chevron.forward")
             .font(.caption.bold())
             .foregroundStyle(.tertiary)
-        return Group {
+        return VStack(alignment: .leading, spacing: Spacing.xs) {
             if dynamicTypeSize.isAccessibilitySize {
                 // Accessibility sizes: the label and the size go full width
                 // below the fixed chevron, so they never wrap per word.
@@ -915,6 +919,17 @@ struct StorageDashboardView: View {
                     chevron
                 }
             }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.cardSurface)
+                    Capsule()
+                        .fill(Color.accentColor.opacity(0.65))
+                        .frame(width: max(4, geo.size.width * ratio))
+                }
+            }
+            .frame(height: 4)
         }
         .padding(.vertical, Spacing.xs)
     }
@@ -940,7 +955,7 @@ struct StorageDashboardView: View {
                             .foregroundStyle(.secondary)
                         Text("\(viewModel.localCount)")
                             .font(.title3.bold())
-                        Text("items")
+                        Text(viewModel.onDeviceMediaSize.formattedFileSize)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -959,7 +974,7 @@ struct StorageDashboardView: View {
                             .foregroundStyle(.secondary)
                         Text("\(viewModel.iCloudOnlyCount)")
                             .font(.title3.bold())
-                        Text(viewModel.iCloudOnlySize.formattedFileSize)
+                        Text(viewModel.iCloudOnlyCount == 0 ? "—" : viewModel.iCloudOnlySize.formattedFileSize)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

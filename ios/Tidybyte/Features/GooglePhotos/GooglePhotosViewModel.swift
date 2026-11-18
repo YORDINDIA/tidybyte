@@ -30,6 +30,7 @@ final class GooglePhotosViewModel {
 
     private(set) var isSignedIn = GoogleAuthService.shared.isSignedIn
     private(set) var quota: GoogleStorageQuota?
+    private(set) var isLoadingQuota = false
     private(set) var phase: Phase = .idle
     private(set) var result: CloudScanResult?
     var selectedIds: Set<String> = []
@@ -41,6 +42,7 @@ final class GooglePhotosViewModel {
     /// writes no state once it no longer matches, so an old account's results
     /// cannot land after sign-out.
     private var sessionGeneration = 0
+    private var quotaGeneration: Int?
 
     var isConfigured: Bool { GoogleAuthService.isConfigured }
 
@@ -48,6 +50,7 @@ final class GooglePhotosViewModel {
         errorMessage = nil
         do {
             try await auth.signIn()
+            sessionGeneration += 1
             isSignedIn = auth.isSignedIn
             await loadQuota()
         } catch GoogleAuthError.cancelled {
@@ -73,9 +76,13 @@ final class GooglePhotosViewModel {
 
     func loadQuota() async {
         guard isSignedIn else { return }
-        // A reply for an account that has since signed out must not write into
-        // the session that replaced it.
         let generation = sessionGeneration
+        if isLoadingQuota && quotaGeneration == generation { return }
+        quotaGeneration = generation
+        isLoadingQuota = true
+        defer {
+            if quotaGeneration == generation { isLoadingQuota = false }
+        }
         do {
             let fetched = try await api.storageQuota()
             guard generation == sessionGeneration else { return }
@@ -84,6 +91,27 @@ final class GooglePhotosViewModel {
             guard generation == sessionGeneration else { return }
             handle(error)
         }
+    }
+
+    func loadPreviewImage(for item: CloudMediaItem) async -> UIImage? {
+        guard isSignedIn else { return nil }
+        let generation = sessionGeneration
+        do {
+            let data = try await api.thumbnailData(of: item, size: 1600)
+            guard generation == sessionGeneration else { return nil }
+            return UIImage(data: data)
+        } catch GoogleAuthError.signedOut {
+            if generation == sessionGeneration {
+                handle(GoogleAuthError.signedOut)
+            }
+            return nil
+        } catch {
+            return nil
+        }
+    }
+
+    func deselectAll() {
+        selectedIds.removeAll()
     }
 
     /// Opens the Google Photos Picker, waits for the user to finish, then scans.
@@ -121,8 +149,8 @@ final class GooglePhotosViewModel {
                 await api.deleteSession(id: session.id)
                 guard generation == sessionGeneration else { return }
                 phase = .scanning(0)
-                let scan = await scanner.scan(items) { [weak self] value in
-                    if self?.sessionGeneration == generation { self?.phase = .scanning(value) }
+                let scan = await scanner.scan(items) { value in
+                    if self.sessionGeneration == generation { self.phase = .scanning(value) }
                 }
                 // Signed out during the scan: these results belong to the old account.
                 guard generation == sessionGeneration else { return }
@@ -150,6 +178,55 @@ final class GooglePhotosViewModel {
     /// Ids in a section, minus items the user already marked done.
     func visible(_ ids: [String]) -> [String] { ids.filter { !doneIds.contains($0) } }
 
+    struct VisibleInsights: Equatable, Sendable {
+        let recoverableBytes: Int64
+        let findingCount: Int
+        let hasUnknownSizes: Bool
+    }
+
+    var visibleDuplicateGroups: [CloudScanResult.Group] {
+        result?.duplicateGroups.filter { visible($0.itemIds).count > 1 } ?? []
+    }
+
+    var visibleSimilarGroups: [CloudScanResult.Group] {
+        result?.similarGroups.filter { visible($0.itemIds).count > 1 } ?? []
+    }
+
+    var visibleBlurryIds: [String] { visible(result?.blurry ?? []) }
+    var visibleScreenshotIds: [String] { visible(result?.screenshots ?? []) }
+    var visibleLargeVideoIds: [String] { visible(result?.largeVideos ?? []) }
+
+    var visibleInsights: VisibleInsights {
+        guard let result else { return VisibleInsights(recoverableBytes: 0, findingCount: 0, hasUnknownSizes: false) }
+        return Self.visibleInsights(for: result, excluding: doneIds)
+    }
+
+    static func visibleInsights(for result: CloudScanResult, excluding doneIds: Set<String>) -> VisibleInsights {
+        var candidateIds = Set<String>()
+        for group in result.duplicateGroups {
+            let shown = group.itemIds.filter { !doneIds.contains($0) }
+            if shown.count > 1 { candidateIds.formUnion(shown.dropFirst()) }
+        }
+        for group in result.similarGroups {
+            let shown = group.itemIds.filter { !doneIds.contains($0) }
+            if shown.count > 1 { candidateIds.formUnion(shown.dropFirst()) }
+        }
+        candidateIds.formUnion(result.blurry.filter { !doneIds.contains($0) })
+        candidateIds.formUnion(result.screenshots.filter { !doneIds.contains($0) })
+        candidateIds.formUnion(result.largeVideos.filter { !doneIds.contains($0) })
+
+        var bytes: Int64 = 0
+        var unknown = false
+        for id in candidateIds {
+            if let size = result.items[id]?.fileSize {
+                bytes += size
+            } else {
+                unknown = true
+            }
+        }
+        return VisibleInsights(recoverableBytes: bytes, findingCount: candidateIds.count, hasUnknownSizes: unknown)
+    }
+
     func item(_ id: String) -> CloudMediaItem? { result?.items[id] }
     func thumbnail(_ id: String) -> UIImage? { result?.thumbnails[id] }
 
@@ -174,6 +251,8 @@ final class GooglePhotosViewModel {
     /// and the signed-out error, so the two cannot drift apart.
     private func clearAccountState() {
         isSignedIn = false
+        quotaGeneration = nil
+        isLoadingQuota = false
         result = nil
         quota = nil
         selectedIds = []

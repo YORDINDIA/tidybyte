@@ -74,6 +74,7 @@ final class SwipeSessionViewModel {
     /// can't be rebuilt from `assets` alone — this map survives reloads and
     /// fills the gap. It holds exactly the ids in `pendingDeletionIds`.
     var pendingDeletionSizeById: [String: Int64] = [:]
+    private var pendingDeletionAssetById: [String: AssetSummary] = [:]
     var pendingDeletionBytes: Int64 { pendingDeletionSizeById.values.reduce(0, +) }
     var isDeletingBatch = false
     var deletionCommitted = false
@@ -352,13 +353,50 @@ final class SwipeSessionViewModel {
         pendingDeletionSizeById[assetId] != nil
     }
 
+    /// Best-available summaries for pending deletion items in mark order.
+    var pendingDeletionAssets: [AssetSummary] {
+        let byId = Dictionary(assets.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        return pendingDeletionIds.compactMap { pendingDeletionAssetById[$0] ?? byId[$0] }
+    }
+
+    /// Resolves any pending-deletion summaries missing from in-memory caches via PhotoKit.
+    func fetchPendingDeletionAssets() async -> [AssetSummary] {
+        let byId = Dictionary(assets.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let missing = pendingDeletionIds.filter { pendingDeletionAssetById[$0] == nil && byId[$0] == nil }
+        if !missing.isEmpty {
+            let fetched = await fetchDetails(for: missing)
+            for (id, summary) in fetched {
+                pendingDeletionAssetById[id] = summary
+            }
+        }
+        return pendingDeletionAssets
+    }
+
+    /// Removes the given IDs from the pending deletion batch without marking them as skipped.
+    func applyDeletionReview(keeping keptIds: Set<String>) {
+        guard !keptIds.isEmpty else { return }
+        for id in keptIds {
+            guard let removedSize = pendingDeletionSizeById.removeValue(forKey: id) else { continue }
+            pendingDeletionAssetById.removeValue(forKey: id)
+            pendingDeletionIds.removeAll { $0 == id }
+            sessionStats.deletedCount = max(0, sessionStats.deletedCount - 1)
+            sessionStats.deletedBytes = max(0, sessionStats.deletedBytes - removedSize)
+            undoStack.removeAll { $0.asset.id == id && $0.decision == .deleted }
+        }
+    }
+
+    func unmarkPendingDeletion(id: String) {
+        applyDeletionReview(keeping: [id])
+    }
+
     /// A keep, file or skip always wins over an earlier delete mark for the
     /// same photo. Without this, a kept photo would still be deleted at commit.
     private func unmarkPendingDeletion(_ asset: AssetSummary) {
-        guard pendingDeletionSizeById.removeValue(forKey: asset.id) != nil else { return }
+        guard let removedSize = pendingDeletionSizeById.removeValue(forKey: asset.id) else { return }
+        pendingDeletionAssetById.removeValue(forKey: asset.id)
         pendingDeletionIds.removeAll { $0 == asset.id }
         sessionStats.deletedCount = max(0, sessionStats.deletedCount - 1)
-        sessionStats.deletedBytes = max(0, sessionStats.deletedBytes - asset.fileSize)
+        sessionStats.deletedBytes = max(0, sessionStats.deletedBytes - removedSize)
     }
 
     /// Keeps one frame per burst: the user's pick, then iPhone's pick, then
@@ -385,6 +423,7 @@ final class SwipeSessionViewModel {
         if !pendingDeletionIds.contains(asset.id) {
             pendingDeletionIds.append(asset.id)
             pendingDeletionSizeById[asset.id] = asset.fileSize
+            pendingDeletionAssetById[asset.id] = asset
             sessionStats.deletedCount += 1
             sessionStats.deletedBytes += asset.fileSize
             undoStack.append(SwipeUndoEntry(asset: asset, decision: .deleted, albumId: nil))
@@ -545,7 +584,10 @@ final class SwipeSessionViewModel {
             CleanupLedger.shared.record(kind: .swipe, deletedIds: confirmedIds, sizeOf: { sizeById[$0] ?? 0 })
             deletionCommitted = true
             pendingDeletionIds.removeAll { requestedIds.contains($0) }
-            for id in requestedIds { pendingDeletionSizeById.removeValue(forKey: id) }
+            for id in requestedIds {
+                pendingDeletionSizeById.removeValue(forKey: id)
+                pendingDeletionAssetById.removeValue(forKey: id)
+            }
             // Replace the optimistic per-swipe tally with the exact one. Swipes
             // still pending after the commit stay in the tally.
             sessionStats.deletedCount = committedDeletionCount + pendingDeletionIds.count
@@ -574,7 +616,10 @@ final class SwipeSessionViewModel {
                 committedDeletionBytes += succeededBytes
                 CleanupLedger.shared.record(kind: .swipe, deletedIds: confirmedSucceeded, sizeOf: { sizeById[$0] ?? 0 })
                 pendingDeletionIds.removeAll { succeededIds.contains($0) }
-                for id in succeededIds { pendingDeletionSizeById.removeValue(forKey: id) }
+                for id in succeededIds {
+                    pendingDeletionSizeById.removeValue(forKey: id)
+                    pendingDeletionAssetById.removeValue(forKey: id)
+                }
                 deletionCommitted = pendingDeletionIds.isEmpty
                 // The per-item retry may have cleared the batch entirely —
                 // that's success, not an error.
@@ -613,6 +658,7 @@ final class SwipeSessionViewModel {
         sessionStats.deletedBytes = committedDeletionBytes
         pendingDeletionIds.removeAll()
         pendingDeletionSizeById.removeAll()
+        pendingDeletionAssetById.removeAll()
     }
 
     /// Releases every image this session asked the image manager to cache.

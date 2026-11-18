@@ -132,14 +132,19 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
     /// row re-render on a language change. `Formatters` resolves against
     /// `Locale.current` on its own, which never changes.
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(spacing: 0) {
             // Paged image viewer
             TabView(selection: $currentPage) {
                 ForEach(Array(group.assets.enumerated()), id: \.element.id) { index, asset in
-                    assetDetailCard(asset)
-                        .tag(index)
+                    ScrollView {
+                        assetDetailCard(asset)
+                            .padding(.vertical, Spacing.sm)
+                            .readableWidth()
+                    }
+                    .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
@@ -149,31 +154,34 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
 
             // Bottom actions
             ActionBarView {
-                let current = group.assets[safe: currentPage]
-                let isBest = current?.id == group.bestAssetId
-
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("\(currentPage + 1) of \(group.assets.count)")
-                        .font(.caption.bold())
-                    if let status = descriptor.statusText(group, isBest) {
-                        Text(status)
-                            .font(.caption)
-                            .foregroundStyle(descriptor.statusColor(group, isBest))
-                    }
-                }
-
-                Spacer()
-
-                if let current, !isBest {
-                    // Side by side when they fit; stacked at large text sizes
-                    // or on narrow phones instead of truncating.
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: Spacing.sm) { compareButtons(current) }
-                        VStack(alignment: .trailing, spacing: Spacing.sm) { compareButtons(current) }
+                if let current = group.assets[safe: currentPage] {
+                    let isBest = current.id == group.bestAssetId
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            pagerControls(isBest: isBest)
+                            comparisonActionControls(for: current, isBest: isBest)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: Spacing.sm) {
+                                pagerControls(isBest: isBest)
+                                Spacer(minLength: Spacing.sm)
+                                comparisonActionControls(for: current, isBest: isBest)
+                            }
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                pagerControls(isBest: isBest)
+                                HStack {
+                                    Spacer()
+                                    comparisonActionControls(for: current, isBest: isBest)
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+        .toolbar(.hidden, for: .tabBar)
         .fullScreenCover(item: $fullScreenPreview) { preview in
             MediaPreviewView(
                 assets: preview.assets,
@@ -229,37 +237,42 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
 
     private func assetDetailCard(_ asset: AssetSummary) -> some View {
         VStack(spacing: 0) {
-            // Image
-            AsyncThumbnailView(
-                assetId: asset.id,
-                photoService: photoService,
-                targetSize: CGSize(width: 600, height: 600)
-            )
-            .aspectRatio(1, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
-            .contentShape(Rectangle())
-            .onTapGesture {
-                fullScreenPreview = GroupPreviewContext(
-                    assets: group.assets,
-                    startIndex: group.assets.firstIndex { $0.id == asset.id } ?? 0
-                )
-            }
-            .accessibilityAddTraits(.isButton)
-            .accessibilityLabel("Preview photo, \(asset.displaySize)")
-            .accessibilityHint("Opens the photo full screen")
-            .overlay(alignment: .topTrailing) {
-                if asset.id == group.bestAssetId {
-                    statusPill(icon: "star.fill", text: descriptor.bestPillText(group), color: Color.successFill)
-                } else if selectedForDeletion.contains(asset.id) {
-                    statusPill(icon: "trash.fill", text: L10n.string("Delete"), color: Color.destructiveFill)
+            // Image — fit uncropped inside a subtle frame so portraits and wide shots
+            // can be compared corner-to-corner.
+            Color.cardSurface
+                .aspectRatio(1, contentMode: .fit)
+                .overlay {
+                    AsyncThumbnailView(
+                        assetId: asset.id,
+                        photoService: photoService,
+                        targetSize: CGSize(width: 600, height: 600),
+                        contentMode: .fit
+                    )
                 }
-            }
-            .padding(.horizontal, Spacing.lg)
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    fullScreenPreview = GroupPreviewContext(
+                        assets: group.assets,
+                        startIndex: group.assets.firstIndex { $0.id == asset.id } ?? 0
+                    )
+                }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel("Preview photo, \(asset.displaySize)")
+                .accessibilityHint("Opens the photo full screen")
+                .overlay(alignment: .topTrailing) {
+                    if asset.id == group.bestAssetId {
+                        statusPill(icon: "star.fill", text: descriptor.bestPillText(group), color: Color.successFill)
+                    } else if selectedForDeletion.contains(asset.id) {
+                        statusPill(icon: "trash.fill", text: L10n.string("Delete"), color: Color.destructiveFill)
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
 
             // Metadata
             VStack(spacing: Spacing.sm) {
                 MetadataRow(label: "Resolution", value: asset.resolution)
-                MetadataRow(label: "File Size", value: asset.displaySize)
+                MetadataRow(label: "File Size", value: fileSizeDisplay(for: asset))
                 if let date = asset.creationDate {
                     MetadataRow(label: "Date", value: Formatters.dateTime(date, in: locale))
                 }
@@ -276,7 +289,71 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
         }
     }
 
-    private func statusPill(icon: String, text: String, color: Color) -> some View {
+    @ViewBuilder
+    private func pagerControls(isBest: Bool) -> some View {
+        HStack(spacing: Spacing.sm) {
+            if group.assets.count > 1 {
+                Button {
+                    withAnimation { currentPage = max(0, currentPage - 1) }
+                } label: {
+                    Image(systemName: "chevron.backward")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(minWidth: 32, minHeight: 36)
+                }
+                .disabled(currentPage == 0)
+                .accessibilityLabel("Previous")
+            }
+
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text("\(currentPage + 1) of \(group.assets.count)")
+                    .font(.caption.bold().monospacedDigit())
+                if let status = descriptor.statusText(group, isBest) {
+                    Text(status)
+                        .font(.caption)
+                        .foregroundStyle(descriptor.statusColor(group, isBest))
+                }
+            }
+
+            if group.assets.count > 1 {
+                Button {
+                    withAnimation { currentPage = min(group.assets.count - 1, currentPage + 1) }
+                } label: {
+                    Image(systemName: "chevron.forward")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(minWidth: 32, minHeight: 36)
+                }
+                .disabled(currentPage >= group.assets.count - 1)
+                .accessibilityLabel("Next")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func comparisonActionControls(for current: AssetSummary, isBest: Bool) -> some View {
+        if isBest {
+            statusPill(icon: "star.fill", text: descriptor.bestPillText(group), color: Color.successFill, padding: 0)
+        } else {
+            // Side by side when they fit; stacked at large text sizes
+            // or on narrow phones instead of truncating.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Spacing.sm) { compareButtons(current) }
+                VStack(alignment: .trailing, spacing: Spacing.sm) { compareButtons(current) }
+            }
+        }
+    }
+
+    private func fileSizeDisplay(for asset: AssetSummary) -> String {
+        guard asset.id != group.bestAssetId,
+              let best = group.assets.first(where: { $0.id == group.bestAssetId }),
+              best.fileSize > 0, asset.fileSize > 0, asset.fileSize != best.fileSize else {
+            return asset.displaySize
+        }
+        let delta = asset.fileSize - best.fileSize
+        let sign = delta > 0 ? "+" : "-"
+        return "\(asset.displaySize) (\(sign)\(abs(delta).formattedFileSize))"
+    }
+
+    private func statusPill(icon: String, text: String, color: Color, padding: CGFloat = Spacing.sm) -> some View {
         HStack(spacing: Spacing.xs) {
             Image(systemName: icon)
             Text(text)
@@ -287,7 +364,7 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
         .padding(.vertical, Spacing.xs)
         .background(color)
         .clipShape(Capsule())
-        .padding(Spacing.sm)
+        .padding(padding)
     }
 }
 

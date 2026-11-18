@@ -233,6 +233,13 @@ final class BlurryPhotosViewModel {
             return
         }
         if !supportsLensSmudge && activeTab == .lensSmudge { activeTab = .blurry }
+        if !analyzedPhotos.contains(where: { $0.categories.contains(activeTab) }),
+           let firstNonEmpty = BlurryTab.allCases.first(where: { tab in
+               (tab != .lensSmudge || supportsLensSmudge)
+               && analyzedPhotos.contains(where: { $0.categories.contains(tab) })
+           }) {
+            activeTab = firstNonEmpty
+        }
         scanState = .scanning(1.0)
         scanState = .completed
         // A library change that landed mid-scan: prune now that publishing

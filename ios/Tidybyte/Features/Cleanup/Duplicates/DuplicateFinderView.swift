@@ -69,24 +69,23 @@ struct DuplicateFinderView: View {
         )
         .toolbar {
             if viewModel.scanState == .completed && !viewModel.allGroups.isEmpty {
-                // DUP-05: a scan type / library change needs a fresh scan — return
-                // to the idle screen instead of being stuck on stale results.
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        HapticHelper.impact(.light)
-                        viewModel.scanState = .idle
-                    } label: {
-                        Label("New Scan", systemImage: "arrow.counterclockwise")
-                    }
-                }
-                // DUP-04c: select/deselect every asset across all groups.
-                // Delete lives in the bottom bar only.
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    // DUP-04c: select/deselect every asset across all groups.
+                    // Delete lives in the bottom bar only.
                     SelectAllToolbarButton(
                         allSelected: viewModel.allSelectedForDeletion,
                         selectAll: { viewModel.selectAllForDeletion() },
                         deselectAll: { viewModel.deselectAllForDeletion() }
                     )
+                    // DUP-05: a scan type / library change needs a fresh scan — return
+                    // to the idle screen instead of being stuck on stale results.
+                    Button {
+                        HapticHelper.impact(.light)
+                        viewModel.scanState = .idle
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                    }
+                    .accessibilityLabel("New Scan")
                 }
             }
         }
@@ -154,10 +153,18 @@ struct DuplicateFinderView: View {
                 viewModel.startScan()
             }
         ) {
-            Picker("Scan Type", selection: $viewModel.scanType) {
-                ForEach(DuplicateScanType.allCases, id: \.self) { Text($0.displayName).tag($0) }
+            VStack(spacing: Spacing.sm) {
+                Picker("Scan Type", selection: $viewModel.scanType) {
+                    ForEach(DuplicateScanType.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                }
+                .pickerStyle(.segmented)
+
+                Text(viewModel.scanType.description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .pickerStyle(.segmented)
         }
         .fadeSlideIn()
     }
@@ -188,38 +195,30 @@ struct DuplicateFinderView: View {
                 }
             } else {
                 VStack(spacing: 0) {
-                    HStack(spacing: Spacing.md) {
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text(L10n.format("%lld group", fallback: "%lld groups", viewModel.allGroups.count))
-                                .font(.headline)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Text("\(viewModel.totalDuplicateCount) duplicates · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
-                                .font(.caption)
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        CleanupSummaryCard(
+                            icon: CleanupTool.duplicates.icon,
+                            tint: CleanupTool.duplicates.color,
+                            headline: Text(L10n.format("%lld group", fallback: "%lld groups", viewModel.allGroups.count)),
+                            subtitle: Text("\(viewModel.totalDuplicateCount) duplicates · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
+                        )
+                        if viewModel.skippedICloudCount > 0 {
+                            Text(L10n.format("%lld iCloud-only photo skipped (not on this device)",
+                                             fallback: "%lld iCloud-only photos skipped (not on this device)",
+                                             viewModel.skippedICloudCount))
+                                .font(.caption2)
                                 .foregroundStyle(.secondary)
-                            // DUP-03: explain why iCloud-only photos are absent
-                            // from an exact scan.
-                            if viewModel.skippedICloudCount > 0 {
-                                Text(L10n.format("%lld iCloud-only photo skipped (not on this device)",
-                                                 fallback: "%lld iCloud-only photos skipped (not on this device)",
-                                                 viewModel.skippedICloudCount))
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            // Only while no visual group has a pick yet.
-                            if viewModel.allGroups.contains(where: { $0.type == .visual }),
-                               !viewModel.allGroups.contains(where: { $0.type == .visual && !viewModel.checkedIds(in: $0).isEmpty }) {
-                                Text("Visual matches are not selected. Open a group to pick, or tap Select All.")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
+                                .padding(.horizontal, Spacing.xs)
                         }
-                        .fixedSize(horizontal: false, vertical: true)
-                        Spacer()
-                        Image(systemName: "doc.on.doc")
-                            .font(.title2)
-                            .foregroundStyle(.red.opacity(0.7))
+                        // Only while no visual group has a pick yet.
+                        if viewModel.allGroups.contains(where: { $0.type == .visual }),
+                           !viewModel.allGroups.contains(where: { $0.type == .visual && !viewModel.checkedIds(in: $0).isEmpty }) {
+                            Text("Visual matches are not selected. Open a group to pick, or tap Select All.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, Spacing.xs)
+                        }
                     }
-                    .glassCard()
                     .padding(.horizontal, Spacing.lg)
                     .padding(.vertical, Spacing.sm)
                     .fadeSlideIn()
@@ -295,8 +294,8 @@ struct DuplicateFinderView: View {
     }
 
     /// Accessibility sizes need room for "Keep This" and the star label; the
-    /// thumbnails stay 80 pt, centered in a wider column.
-    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 80 }
+    /// thumbnails stay 96 pt, centered in a wider column.
+    private var groupColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 150 : 96 }
 
     private func duplicateGroupRow(_ group: DuplicateGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -331,8 +330,12 @@ struct DuplicateFinderView: View {
                         let isKeeper = asset.id == group.bestAssetId
                         VStack(spacing: Spacing.xs) {
                             AsyncThumbnailView(assetId: asset.id, photoService: photoService)
-                                .frame(width: 80, height: 80)
+                                .frame(width: 96, height: 96)
                                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: CornerRadius.small)
+                                        .stroke(isKeeper ? Color.success : Color.clear, lineWidth: 2)
+                                )
                                 .overlay(alignment: .bottomLeading) {
                                     if asset.isFavorite {
                                         FavoriteMark().padding(Spacing.xs)

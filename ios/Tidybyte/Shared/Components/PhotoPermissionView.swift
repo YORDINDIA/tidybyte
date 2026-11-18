@@ -16,6 +16,7 @@ import SwiftUI
 ///   and the copy says why.
 struct PhotoPermissionView: View {
     let permissionHandler: PhotoPermissionHandler
+    @State private var isRequestingAccess = false
 
     private var presentation: PermissionPresentation {
         permissionHandler.permissionState.presentation
@@ -67,6 +68,14 @@ struct PhotoPermissionView: View {
                     }
 
                     capabilitiesCard
+
+                    if permissionHandler.permissionState == .denied {
+                        Text("In Settings, tap Photos and choose Full Access.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
 
                     actionButton
 
@@ -120,14 +129,24 @@ struct PhotoPermissionView: View {
         switch presentation.action {
         case .requestPermission:
             Button {
+                guard !isRequestingAccess else { return }
                 HapticHelper.impact(.light)
+                isRequestingAccess = true
                 // This screen already explains the ask, so it goes straight
                 // to the iOS prompt. A second in-app alert here said "this is
                 // that ask" right after the screen said "iOS will ask next".
-                Task { await permissionHandler.requestPermission() }
+                Task { @MainActor in
+                    await permissionHandler.requestPermission()
+                    isRequestingAccess = false
+                }
             } label: {
-                primaryLabel("Allow Access", icon: "checkmark")
+                PrimaryActionLabel(
+                    title: "Allow Access",
+                    icon: "checkmark",
+                    isLoading: isRequestingAccess
+                )
             }
+            .disabled(isRequestingAccess)
             .scaleOnPress()
             .accessibilityHint("Opens the iOS permission prompt")
         case .openSettings:
@@ -135,25 +154,16 @@ struct PhotoPermissionView: View {
                 HapticHelper.impact(.light)
                 PhotoPermissionHandler.openSettings()
             } label: {
-                primaryLabel("Open Settings", icon: "arrow.up.right.square")
+                PrimaryActionLabel(
+                    title: "Open Settings",
+                    icon: "arrow.up.right.square"
+                )
             }
             .scaleOnPress()
             .accessibilityHint("Opens iOS Settings, where you can turn photo access back on")
         case .none:
             EmptyView()
         }
-    }
-
-    /// Same reason as `capability`: `Label(String, systemImage:)` does not
-    /// localize, so the title has to stay a key.
-    private func primaryLabel(_ title: LocalizedStringKey, icon: String) -> some View {
-        Label(title, systemImage: icon)
-            .font(.headline)
-            .frame(maxWidth: .infinity)
-            .padding(Spacing.lg)
-            .background(Color.actionFill)
-            .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
     }
 }
 

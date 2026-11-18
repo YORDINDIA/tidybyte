@@ -111,6 +111,7 @@ struct CardView: View {
     @State private var loadFailed = false
     @State private var isLoadingPlayer = false
     @State private var player: AVPlayer?
+    @State private var playLivePhoto = false
     /// The in-flight player-item load, tracked so `stopPlayback` can cancel it:
     /// without cancellation, a load started on the top card would still create
     /// a playing player after the card was swiped away (SWIPE-07).
@@ -158,7 +159,23 @@ struct CardView: View {
                 // slow image can't swallow the gesture; zoom/pan stay on the
                 // loaded image's own graph below.
                 if let image {
-                    zoomableImage(image, frame: geometry.size)
+                    ZStack {
+                        zoomableImage(image, frame: geometry.size)
+                        if asset.isLivePhoto && isTopCard && playLivePhoto {
+                            LivePhotoPlayerView(
+                                assetId: asset.id,
+                                photoService: photoService,
+                                autoPlay: true,
+                                isActive: true,
+                                backgroundColor: .clear
+                            )
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                            .scaleEffect(zoomState.scale)
+                            .offset(zoomState.offset)
+                            .allowsHitTesting(false)
+                        }
+                    }
                 } else if loadFailed {
                     loadFailedView
                         .frame(width: geometry.size.width, height: geometry.size.height)
@@ -219,10 +236,26 @@ struct CardView: View {
                     // Top badges
                     HStack(spacing: Spacing.sm) {
                         if asset.isLivePhoto {
-                            BadgeView(text: "LIVE", icon: "livephoto", color: .yellow)
+                            Button {
+                                guard isTopCard else { return }
+                                HapticHelper.selection()
+                                playLivePhoto.toggle()
+                            } label: {
+                                BadgeView(
+                                    text: "LIVE",
+                                    icon: "livephoto",
+                                    color: playLivePhoto ? .yellow : .white
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Live Photo")
+                            .accessibilityHint("Plays or pauses Live Photo motion")
+                        }
+                        if asset.isBurst {
+                            BadgeView(text: L10n.string("Burst"), icon: "square.stack.3d.up", color: .teal)
                         }
                         if !asset.isLocallyAvailable {
-                            BadgeView(text: "iCloud", icon: "icloud.and.arrow.down", color: .blue)
+                            BadgeView(text: "iCloud", icon: "icloud.and.arrow.down", color: .cyan)
                         }
                         Spacer()
                         if asset.isFavorite {
@@ -294,7 +327,12 @@ struct CardView: View {
             }
             .onChange(of: playRequest) { _, newValue in
                 guard newValue > 0, !loadFailed else { return }
-                startPlayback()
+                if asset.isLivePhoto {
+                    HapticHelper.selection()
+                    playLivePhoto.toggle()
+                } else {
+                    startPlayback()
+                }
             }
             .onChange(of: zoomToggleRequest) { _, _ in
                 guard zoomToggleRequest > 0 else { return }
@@ -335,6 +373,7 @@ struct CardView: View {
             // card (SWIPE-07). Zoom resets for the same reason: an off-top
             // card must not come back zoomed or report stale zoom upward.
             if !newValue {
+                playLivePhoto = false
                 imageLoadTask?.cancel()
                 imageLoadTask = nil
                 stopPlayback()
@@ -347,6 +386,7 @@ struct CardView: View {
             // doesn't keep playing under the swipe (SWIPE-07). Keyed on the
             // gesture's own flag, not the offset, which changes every frame.
             if dragging {
+                playLivePhoto = false
                 stopPlayback()
             }
         }
@@ -815,13 +855,14 @@ struct BadgeView: View {
         HStack(spacing: Spacing.xs) {
             Image(systemName: icon)
                 .font(.caption2)
+                .foregroundStyle(color)
             Text(text)
                 .font(.caption2.bold())
+                .foregroundStyle(.white)
         }
-        .foregroundStyle(.white)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)
-        .background(color.opacity(0.7))
+        .background(.black.opacity(0.68))
         .clipShape(Capsule())
     }
 }

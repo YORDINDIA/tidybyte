@@ -1,9 +1,16 @@
 import SwiftUI
 
+/// Which surface `GooglePhotosHomeView` presents across the two Google Photos tabs.
+enum GooglePhotosMode: Sendable {
+    case cleanup
+    case storage
+}
+
 /// Wraps a tab's iPhone content with the "iPhone / Google Photos" switch.
 /// Every build (Debug and Release) shows the switch only when a valid Google
 /// client ID is set, so an unconfigured build has no Google Photos UI at all.
 struct MediaSourceGate<Content: View>: View {
+    var mode: GooglePhotosMode = .cleanup
     @AppStorage(MediaSource.storageKey) private var source: MediaSource = .iPhone
     @ViewBuilder var content: () -> Content
 
@@ -12,7 +19,7 @@ struct MediaSourceGate<Content: View>: View {
     var body: some View {
         Group {
             if showsSwitch, source == .googlePhotos {
-                GooglePhotosHomeView()
+                GooglePhotosHomeView(mode: mode)
             } else {
                 content()
             }
@@ -31,11 +38,15 @@ struct MediaSourceGate<Content: View>: View {
     }
 }
 
-/// The Google Photos source: sign in, storage, pick-and-scan, results, review.
+/// The Google Photos source: split across the two tabs (`Storage` shows quota
+/// and scan savings insights; `Cleanup` handles Pick & Scan, selection, and review).
 struct GooglePhotosHomeView: View {
+    var mode: GooglePhotosMode = .cleanup
     /// One model for both tabs, so a scan in Cleanup also shows in Storage.
     @State private var viewModel = GooglePhotosViewModel.shared
     @State private var showReview = false
+    @State private var previewItem: CloudMediaItem?
+    @Environment(AppNavigation.self) private var appNavigation
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -50,16 +61,30 @@ struct GooglePhotosHomeView: View {
                 } else if !viewModel.isSignedIn {
                     signInSection
                 } else {
-                    storageSection
-                    pickSection
-                    if let result = viewModel.result { resultSections(result) }
+                    switch mode {
+                    case .storage:
+                        storageSection
+                        storageInsightsSection
+                    case .cleanup:
+                        pickSection
+                        if let result = viewModel.result { resultSections(result) }
+                    }
                 }
             }
             .padding(Spacing.lg)
+            .readableWidth()
         }
-        .localizedNavigationTitle("Google Photos")
+        .localizedNavigationTitle(mode == .storage ? "Storage" : "Cleanup")
         .toolbar {
             if viewModel.isSignedIn {
+                if mode == .cleanup, !viewModel.selectedIds.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Deselect All") {
+                            HapticHelper.selection()
+                            viewModel.deselectAll()
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button("Sign Out", role: .destructive) { Task { await viewModel.signOut() } }
@@ -77,7 +102,7 @@ struct GooglePhotosHomeView: View {
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !viewModel.selectedIds.isEmpty {
+            if mode == .cleanup, !viewModel.selectedIds.isEmpty {
                 ActionBarView {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text("\(viewModel.selectedIds.count) selected").font(.caption.bold())
@@ -86,11 +111,17 @@ struct GooglePhotosHomeView: View {
                     Spacer()
                     Button("Review") { showReview = true }
                         .buttonStyle(.borderedProminent)
+                        .tint(Color.actionFill)
                 }
             }
         }
         .sheet(isPresented: $showReview) {
             GooglePhotosReviewSheet(viewModel: viewModel)
+        }
+        .fullScreenCover(item: $previewItem) { item in
+            CloudMediaPreviewSheet(item: item, thumbnail: viewModel.thumbnail(item.id)) {
+                await viewModel.loadPreviewImage(for: item)
+            }
         }
         .task { await viewModel.loadQuota() }
     }
@@ -107,37 +138,109 @@ struct GooglePhotosHomeView: View {
             Button {
                 Task { await viewModel.signIn() }
             } label: {
-                Text("Sign in with Google")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, minHeight: 44)
+                PrimaryActionLabel(title: "Sign in with Google", icon: "person.crop.circle")
             }
-            .buttonStyle(.borderedProminent)
+            .scaleOnPress()
         }
+        .glassCard()
     }
 
-    @ViewBuilder
     private var storageSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Google Account Storage").font(.headline)
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                Text("Google Account Storage").font(.headline)
+                Spacer()
+                if viewModel.isLoadingQuota {
+                    ProgressView()
+                } else {
+                    Button {
+                        Task { await viewModel.loadQuota() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.subheadline)
+                    }
+                    .accessibilityLabel("Refresh")
+                }
+            }
+
             if let quota = viewModel.quota {
                 if let limit = quota.limit {
                     ProgressView(value: quota.fractionUsed)
+                        .tint(quota.fractionUsed > 0.9 ? Color.destructive : Color.accentColor)
                     Text("\(quota.usage.formattedFileSize) of \(limit.formattedFileSize) used")
-                        .font(.subheadline)
+                        .font(.subheadline.bold())
                 } else {
-                    Text("\(quota.usage.formattedFileSize) used").font(.subheadline)
+                    Text("\(quota.usage.formattedFileSize) used").font(.subheadline.bold())
                 }
                 Text("Photos & Gmail: \(quota.photosAndGmail.formattedFileSize) · Drive: \(quota.usageInDrive.formattedFileSize)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                if let result = viewModel.result, result.recoverableBytes > 0 {
-                    Text("Up to \(result.recoverableBytes.formattedFileSize) can be freed in the items you picked")
-                        .font(.caption.bold())
-                        .foregroundStyle(Color.success)
+            } else if !viewModel.isLoadingQuota {
+                HStack {
+                    Text("Unable to load quota.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Try Again") {
+                        Task { await viewModel.loadQuota() }
+                    }
+                    .buttonStyle(.bordered)
                 }
             } else {
-                ProgressView()
+                SkeletonRow()
             }
+        }
+        .glassCard()
+    }
+
+    @ViewBuilder
+    private var storageInsightsSection: some View {
+        if let result = viewModel.result {
+            let insights = viewModel.visibleInsights
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                if insights.recoverableBytes > 0 {
+                    Text("Up to \(insights.recoverableBytes.formattedFileSize) can be freed in the items you picked")
+                        .font(.headline)
+                        .foregroundStyle(Color.successText)
+                } else if insights.findingCount > 0 {
+                    Text(L10n.format("%lld item", fallback: "%lld items", insights.findingCount))
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                } else {
+                    Text("Nothing to clean in the \(result.items.count) items you picked.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                VStack(spacing: Spacing.sm) {
+                    MetadataRow(label: "Duplicates", value: "\(viewModel.visibleDuplicateGroups.count)")
+                    MetadataRow(label: "Similar", value: "\(viewModel.visibleSimilarGroups.count)")
+                    MetadataRow(label: "Blurry", value: "\(viewModel.visibleBlurryIds.count)")
+                    MetadataRow(label: "Screenshots & Recordings", value: "\(viewModel.visibleScreenshotIds.count)")
+                    MetadataRow(label: "Large Videos", value: "\(viewModel.visibleLargeVideoIds.count)")
+                }
+
+                Button {
+                    appNavigation.showCleanup()
+                } label: {
+                    SecondaryActionLabel(title: "Go to Cleanup Tools", icon: "sparkles")
+                }
+                .scaleOnPress()
+            }
+            .glassCard()
+        } else {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                Text("Scan in Cleanup to estimate recoverable Google Photos storage.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Button {
+                    appNavigation.showCleanup()
+                } label: {
+                    PrimaryActionLabel(title: "Go to Cleanup Tools", icon: "sparkles")
+                }
+                .scaleOnPress()
+            }
+            .glassCard()
         }
     }
 
@@ -149,10 +252,13 @@ struct GooglePhotosHomeView: View {
                 Button {
                     viewModel.pickAndScan { openURL($0) }
                 } label: {
-                    Label(viewModel.result == nil ? "Pick Photos to Scan" : "Pick Again", systemImage: "photo.on.rectangle.angled")
-                        .frame(maxWidth: .infinity, minHeight: 44)
+                    if viewModel.result == nil {
+                        PrimaryActionLabel(title: "Pick Photos to Scan", icon: "photo.on.rectangle.angled")
+                    } else {
+                        SecondaryActionLabel(title: "Pick Again", icon: "photo.on.rectangle.angled")
+                    }
                 }
-                .buttonStyle(.bordered)
+                .scaleOnPress()
                 Text("Google lets apps read only the items you pick, up to 2,000 at a time.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -164,11 +270,13 @@ struct GooglePhotosHomeView: View {
                 Spacer()
                 Button("Cancel") { viewModel.cancelPick() }
             }
+            .glassCard()
         case .scanning(let value):
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text("Scanning…").font(.subheadline)
                 ProgressView(value: value)
             }
+            .glassCard()
         }
     }
 
@@ -231,29 +339,129 @@ struct GooglePhotosHomeView: View {
     private func tile(_ id: String, badge: LocalizedStringKey?) -> some View {
         let selected = viewModel.selectedIds.contains(id)
         let item = viewModel.item(id)
-        return Button {
-            HapticHelper.selection()
-            viewModel.toggle(id)
-        } label: {
-            ZStack(alignment: .topTrailing) {
-                CloudThumbnail(image: viewModel.thumbnail(id), isVideo: item?.kind == .video)
-                    .frame(width: 96, height: 96)
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+        return ZStack(alignment: .topTrailing) {
+            Color.clear
+                .frame(width: 96, height: 96)
+                .overlay {
+                    CloudThumbnail(image: viewModel.thumbnail(id), isVideo: item?.kind == .video)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if let item { previewItem = item } else { viewModel.toggle(id) }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(tilePreviewAccessibilityLabel(for: item))
+                .accessibilityAction(.default) {
+                    if let item { previewItem = item } else { viewModel.toggle(id) }
+                }
+
+            Button {
+                HapticHelper.selection()
+                viewModel.toggle(id)
+            } label: {
                 Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(selected ? Color.blue : Color.white)
+                    .shadow(color: .black.opacity(0.45), radius: 2)
                     .padding(Spacing.xs)
+                    .frame(minWidth: 36, minHeight: 36, alignment: .topTrailing)
+                    .contentShape(Rectangle())
             }
-            .overlay(alignment: .bottomLeading) {
-                Text(badge ?? LocalizedStringKey(item?.fileSize?.formattedFileSize ?? ""))
-                    .font(.caption2.bold())
-                    .foregroundStyle(.white)
-                    .padding(Spacing.xs)
-                    .shadow(color: .black.opacity(0.6), radius: 1, y: 1)
+            .buttonStyle(.plain)
+            .accessibilityLabel(item?.filename ?? id)
+            .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        }
+        .overlay {
+            if selected {
+                RoundedRectangle(cornerRadius: CornerRadius.small)
+                    .strokeBorder(Color.blue, lineWidth: 2)
             }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(item?.filename ?? id)
-        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        .overlay(alignment: .bottomLeading) {
+            if let badge {
+                Text(badge)
+                    .font(.caption2.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, Spacing.xs + 2)
+                    .padding(.vertical, 2)
+                    .background(Color.successFill, in: Capsule())
+                    .padding(Spacing.xs)
+            } else if let size = item?.fileSize?.formattedFileSize {
+                Text(verbatim: size)
+                    .font(.caption2.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, Spacing.xs + 2)
+                    .padding(.vertical, 2)
+                    .background(.black.opacity(0.68), in: Capsule())
+                    .padding(Spacing.xs)
+            }
+        }
+    }
+    private func tilePreviewAccessibilityLabel(for item: CloudMediaItem?) -> String {
+        if let size = item?.fileSize?.formattedFileSize {
+            return item?.kind == .video
+                ? L10n.format("Preview video, %@", size)
+                : L10n.format("Preview photo, %@", size)
+        }
+        return L10n.string("Preview")
+    }
+}
+
+private struct CloudMediaPreviewSheet: View {
+    let item: CloudMediaItem
+    let thumbnail: UIImage?
+    let loadFullImage: @MainActor () async -> UIImage?
+    @Environment(\.dismiss) private var dismiss
+    @State private var fullImage: UIImage?
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                if let displayImage = fullImage ?? thumbnail {
+                    Image(uiImage: displayImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Image(systemName: item.kind == .video ? "video" : "photo")
+                        .scaledGlyph(56)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .task(id: item.id) {
+                fullImage = nil
+                fullImage = await loadFullImage()
+            }
+            .localizedNavigationTitle("Preview")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(verbatim: item.filename)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.white)
+                    HStack {
+                        if let date = item.createTime {
+                            Text(date, style: .date)
+                        }
+                        if let size = item.fileSize?.formattedFileSize {
+                            Text(verbatim: size)
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.75))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(Spacing.md)
+                .background(.ultraThinMaterial)
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 }
 
@@ -279,6 +487,7 @@ struct GooglePhotosReviewSheet: View {
     let viewModel: GooglePhotosViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @State private var copiedId: String?
 
     private var ids: [String] {
         viewModel.selectedIds.sorted {
@@ -308,8 +517,22 @@ struct GooglePhotosReviewSheet: View {
                                 }
                             }
                             Spacer()
-                            Text(item?.fileSize?.formattedFileSize ?? "—")
-                                .font(.subheadline.monospacedDigit())
+                            VStack(alignment: .trailing, spacing: Spacing.xs) {
+                                Text(item?.fileSize?.formattedFileSize ?? "—")
+                                    .font(.subheadline.monospacedDigit())
+                                if let filename = item?.filename, !filename.isEmpty {
+                                    Button {
+                                        UIPasteboard.general.string = filename
+                                        copiedId = id
+                                        HapticHelper.selection()
+                                    } label: {
+                                        Image(systemName: copiedId == id ? "checkmark" : "doc.on.doc")
+                                            .font(.caption)
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .accessibilityLabel(filename)
+                                }
+                            }
                         }
                     }
                 } footer: {
