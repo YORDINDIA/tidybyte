@@ -3,19 +3,19 @@
       <header class="max-w-prose pt-8 sm:pt-10">
         <p class="badge mb-5">Terms</p>
         <h1 class="h-display">Terms of Service</h1>
-        <p class="lede mt-5">These terms govern your use of TidyByte, the free photo cleanup app for iPhone and iPad and the free Mac cleaner. TidyByte has no accounts, no subscriptions, no in-app purchases, and no ads. If you downloaded the iOS app from the App Store, Apple&rsquo;s standard End User License Agreement applies to that download, and these terms sit alongside it.</p>
+        <p class="lede mt-5">These terms govern your use of TidyByte, the free photo cleanup app for iPhone and iPad and the free Mac cleaner and system monitor. TidyByte has no accounts, no subscriptions, no in-app purchases, and no ads. If you downloaded TidyByte for iOS or Mac from the App Store, Apple&rsquo;s standard End User License Agreement applies to that download, and these terms sit alongside it.</p>
         <p class="muted mt-6 text-xs">Effective date: November 5, 2026</p>
       </header>
 
       <article class="prose-section mt-12 space-y-12">
         <section>
           <h2 class="h-section text-2xl sm:text-3xl">1. Agreement to these terms</h2>
-          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">By downloading, installing, or using TidyByte, you agree to these Terms of Service and to the <a href="/privacy" class="link hover:underline">Privacy Policy</a>. If you do not agree, do not install or use the app. These terms apply to the iOS/iPadOS app distributed through Apple&rsquo;s App Store and to the Mac app distributed as a download from this site or its GitHub releases.</p>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">By downloading, installing, or using TidyByte, you agree to these Terms of Service and to the <a href="/privacy" class="link hover:underline">Privacy Policy</a>. If you do not agree, do not install or use the app. These terms apply to the iOS, iPadOS, and Mac editions distributed through Apple&rsquo;s App Store, and to the Direct Mac app distributed from this site or its GitHub releases.</p>
         </section>
 
         <section>
           <h2 class="h-section text-2xl sm:text-3xl">2. App Store license</h2>
-          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">When you install the iOS app through Apple&rsquo;s App Store, Apple&rsquo;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener" class="link hover:underline">standard End User License Agreement (EULA)</a> governs that license. Apple, not the developer, is responsible for App Store refunds, support queries related to the store, and handling of your App Store account. Nothing in these terms limits any consumer rights you have that cannot be waived.</p>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">When you install TidyByte for iOS, iPadOS, or macOS through Apple&rsquo;s App Store, Apple&rsquo;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener" class="link hover:underline">standard End User License Agreement (EULA)</a> governs that license. Direct Mac downloads are governed by the MIT license and these terms. Apple, not the developer, is responsible for App Store queries and handling of your App Store account. Nothing in these terms limits any consumer rights you have that cannot be waived.</p>
         </section>
 
         <section>
@@ -25,7 +25,7 @@
 
         <section>
           <h2 class="h-section text-2xl sm:text-3xl">4. What the app does</h2>
-          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte helps you manage your own photo library: finding duplicates and similar shots, reviewing screenshots and large files, compressing videos and photos, and freeing storage. The iPhone app works through Apple&rsquo;s Photos, Vision, and AVFoundation frameworks on your device. Cleanup actions only take effect on media you approve, and deleted items go to the iOS Recently Deleted album.</p>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte helps you manage your media library and Mac storage: finding duplicates and similar shots, reviewing screenshots and large files, converting Live Photos to stills, compressing videos and photos (with Keep Both or Replace &amp; Trash Original), and &mdash; on Mac &mdash; reviewing caches, developer files, app leftovers, login items, and live system activity (Monitor in Direct builds). Cleanup actions only take effect on items you approve. Deleted photos move to the system Recently Deleted album, Mac file removals typically move to Trash or record SQLite restore history, and Direct automation tools such as <code>tidybyte-mcp</code> default to read-only previews until explicitly invoked with <code>confirm: true</code> (for APFS clone folding only).</p>
           <p class="muted mt-4 text-base leading-relaxed sm:text-lg">The app never sends your photos to the developer. See the <a href="/privacy" class="link hover:underline">Privacy Policy</a> for the full data flow.</p>
         </section>
 
@@ -46,7 +46,7 @@
 
         <section>
           <h2 class="h-section text-2xl sm:text-3xl">8. Limitation of liability</h2>
-          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">To the maximum extent permitted by law, the developer is not liable for any indirect, incidental, special, consequential, or punitive damages, or for any loss of data, photos, or profits arising from your use of or inability to use the app. The app&rsquo;s safeguards (Recently Deleted, Trash, History with restore) exist precisely because photo management is destructive by nature &mdash; confirm before you commit.</p>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">To the maximum extent permitted by law, the developer is not liable for any indirect, incidental, special, consequential, or punitive damages, or for any loss of data, photos, or profits arising from your use of or inability to use the app. The app&rsquo;s safeguards (Recently Deleted, Trash, SQLite undo history, and explicit confirmation prompts) exist precisely because file and photo cleanup is destructive by nature &mdash; confirm before you commit, particularly when asking external package managers or simulator tools to purge data without undo.</p>
         </section>
 
         <section>

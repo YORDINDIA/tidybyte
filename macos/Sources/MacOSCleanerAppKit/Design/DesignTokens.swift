@@ -1,5 +1,5 @@
-import SwiftUI
 import MacOSCleanerCore
+import SwiftUI
 
 // Colors are semantic system colors; they adapt to appearance and Increase Contrast.
 
@@ -13,9 +13,10 @@ public enum SemanticScale {
     public static let success = Color(nsColor: .systemGreen)
     public static let error = Color(nsColor: .systemRed)
     public static let warning = Color(nsColor: .systemOrange)
-    public static let successSoft = success.opacity(0.12)
-    public static let errorSoft = error.opacity(0.12)
-    public static let warningSoft = warning.opacity(0.12)
+    public static let successSoft = success.opacity(0.14)
+    public static let errorSoft = error.opacity(0.14)
+    public static let warningSoft = warning.opacity(0.14)
+    public static let subtleBorder = Color.primary.opacity(0.08)
 }
 
 public enum RiskScale {
@@ -23,6 +24,7 @@ public enum RiskScale {
     public static let medium = SemanticScale.warning
     public static let high = SemanticScale.error
     public static let forbidden = Color(nsColor: .systemPurple)
+
     public static func color(for risk: RiskLevel) -> Color {
         switch risk {
         case .low: low
@@ -31,6 +33,7 @@ public enum RiskScale {
         case .forbidden: forbidden
         }
     }
+
     public static func symbol(for risk: RiskLevel) -> String {
         switch risk {
         case .low: "checkmark.shield"

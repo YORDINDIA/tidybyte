@@ -28,7 +28,10 @@ struct MediaTrendView: View {
                 .chartYAxis {
                     AxisMarks { value in
                         AxisGridLine()
-                        AxisValueLabel { Text(Int64(value.as(Double.self) ?? 0).formattedByteCount) }
+                        AxisValueLabel {
+                            Text(Int64(value.as(Double.self) ?? 0).formattedByteCount)
+                                .monospacedDigit()
+                        }
                     }
                 }
                 .frame(minHeight: 180)
@@ -36,6 +39,7 @@ struct MediaTrendView: View {
                 Text(trendLabel(first, last))
                     .font(.callout)
                     .foregroundStyle(.secondary)
+                    .monospacedDigit()
             }
         } else {
             ContentUnavailableView(
@@ -45,10 +49,24 @@ struct MediaTrendView: View {
     }
 
     private func trendLabel(_ first: CleanupSnapshot, _ last: CleanupSnapshot) -> String {
-        let days = Calendar.current.dateComponents([.day], from: first.date, to: last.date).day ?? 0
+        let days = max(0, Calendar.current.dateComponents([.day], from: first.date, to: last.date).day ?? 0)
         let delta = last.bytes - first.bytes
-        return delta < 0
-            ? String(localized: "Shrank by \((-delta).formattedByteCount) in \(days) days")
-            : String(localized: "Grew by \(delta.formattedByteCount) in \(days) days")
+        if delta == 0 {
+            if days == 0 { return String(localized: "No change") }
+            return days == 1
+                ? String(localized: "No change in 1 day")
+                : String(localized: "No change in \(days) days")
+        }
+        let amount = abs(delta).formattedByteCount
+        if delta < 0 {
+            if days == 0 { return String(localized: "Shrank by \(amount)") }
+            return days == 1
+                ? String(localized: "Shrank by \(amount) in 1 day")
+                : String(localized: "Shrank by \(amount) in \(days) days")
+        }
+        if days == 0 { return String(localized: "Grew by \(amount)") }
+        return days == 1
+            ? String(localized: "Grew by \(amount) in 1 day")
+            : String(localized: "Grew by \(amount) in \(days) days")
     }
 }

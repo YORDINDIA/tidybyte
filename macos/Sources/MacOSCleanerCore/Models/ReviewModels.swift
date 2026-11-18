@@ -21,10 +21,44 @@ public struct ReviewScope: Codable, Equatable, Sendable {
     public var exportedChatFolder: URL?
     public init() {}
     public var id: String {
-        ([mode.rawValue, includesPhotos ? "photos" : "files"] + roots.map(\.standardizedFileURL.path).sorted())
+        let chat = exportedChatFolder?.standardizedFileURL.path ?? ""
+        return ([mode.rawValue, includesPhotos ? "photos" : "files", chat] + roots.map(\.standardizedFileURL.path).sorted())
             .joined(separator: "|")
     }
     public static let presetFolders = ["Pictures", "Movies", "Music", "Downloads", "Documents", "Desktop"]
+}
+
+public enum PhotoAuthorizationState: String, Codable, Sendable {
+    case authorized, limited, denied, notDetermined
+}
+
+public enum PhotoCompressionSortOrder: String, CaseIterable, Codable, Identifiable, Sendable {
+    case recentlyAdded, dateTaken, largestFirst
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .recentlyAdded: String(localized: "Recently Added")
+        case .dateTaken: String(localized: "Date Taken")
+        case .largestFirst: String(localized: "Largest First")
+        }
+    }
+
+    public static func ordered(_ items: [ReviewItem], by order: Self) -> [ReviewItem] {
+        switch order {
+        case .recentlyAdded:
+            return Array(items.reversed())
+        case .dateTaken:
+            return items.enumerated().sorted { lhs, rhs in
+                let lhsDate = lhs.element.facts.capturedAt ?? lhs.element.createdAt ?? lhs.element.modifiedAt ?? .distantPast
+                let rhsDate = rhs.element.facts.capturedAt ?? rhs.element.createdAt ?? rhs.element.modifiedAt ?? .distantPast
+                return lhsDate != rhsDate ? lhsDate > rhsDate : lhs.offset > rhs.offset
+            }.map(\.element)
+        case .largestFirst:
+            return items.sorted { lhs, rhs in
+                lhs.bytes != rhs.bytes ? lhs.bytes > rhs.bytes : lhs.id < rhs.id
+            }
+        }
+    }
 }
 
 public enum MediaKind: String, Codable, CaseIterable, Sendable {
@@ -70,6 +104,8 @@ public struct MediaFacts: Codable, Hashable, Sendable {
     public var sharpness: Double?
     public var luminance: Double?
     public var clippedHighlights: Double?
+    public var aestheticsScore: Double?
+    public var hasLensSmudge = false
     public var category: SmartCategory = .other
     public var isScreenshot = false
     public var isScreenRecording = false
@@ -77,7 +113,33 @@ public struct MediaFacts: Codable, Hashable, Sendable {
     public var contentIdentifier: String?
     public var capturedAt: Date?
     public var isExportedChatMedia: Bool?
+    public var savedFromApp: String?
+    public var bestReason: String?
+    public var reviewReason: String?
     public init() {}
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        width = try container.decodeIfPresent(Int.self, forKey: .width)
+        height = try container.decodeIfPresent(Int.self, forKey: .height)
+        duration = try container.decodeIfPresent(Double.self, forKey: .duration)
+        pageCount = try container.decodeIfPresent(Int.self, forKey: .pageCount)
+        sharpness = try container.decodeIfPresent(Double.self, forKey: .sharpness)
+        luminance = try container.decodeIfPresent(Double.self, forKey: .luminance)
+        clippedHighlights = try container.decodeIfPresent(Double.self, forKey: .clippedHighlights)
+        aestheticsScore = try container.decodeIfPresent(Double.self, forKey: .aestheticsScore)
+        hasLensSmudge = try container.decodeIfPresent(Bool.self, forKey: .hasLensSmudge) ?? false
+        category = try container.decodeIfPresent(SmartCategory.self, forKey: .category) ?? .other
+        isScreenshot = try container.decodeIfPresent(Bool.self, forKey: .isScreenshot) ?? false
+        isScreenRecording = try container.decodeIfPresent(Bool.self, forKey: .isScreenRecording) ?? false
+        burstIdentifier = try container.decodeIfPresent(String.self, forKey: .burstIdentifier)
+        contentIdentifier = try container.decodeIfPresent(String.self, forKey: .contentIdentifier)
+        capturedAt = try container.decodeIfPresent(Date.self, forKey: .capturedAt)
+        isExportedChatMedia = try container.decodeIfPresent(Bool.self, forKey: .isExportedChatMedia)
+        savedFromApp = try container.decodeIfPresent(String.self, forKey: .savedFromApp)
+        bestReason = try container.decodeIfPresent(String.self, forKey: .bestReason)
+        reviewReason = try container.decodeIfPresent(String.self, forKey: .reviewReason)
+    }
 }
 
 public enum SmartCategory: String, Codable, CaseIterable, Sendable {
@@ -112,6 +174,9 @@ public struct ReviewItem: Codable, Identifiable, Hashable, Sendable {
     public var packageVersion: String?
     public var isDownloaded = true
     public var isCloudSynced = false
+    public var isFavorite = false
+    public var isBurstPick = false
+    public var isHEIC = false
     public var resources: [PhotoResource] = []
     public var facts = MediaFacts()
     public var analysisError: String?
@@ -122,6 +187,32 @@ public struct ReviewItem: Codable, Identifiable, Hashable, Sendable {
         self.kind = kind
         self.bytes = bytes
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        source = try container.decode(ReviewSource.self, forKey: .source)
+        name = try container.decode(String.self, forKey: .name)
+        kind = try container.decode(MediaKind.self, forKey: .kind)
+        bytes = try container.decode(Int64.self, forKey: .bytes)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        modifiedAt = try container.decodeIfPresent(Date.self, forKey: .modifiedAt)
+        identity = try container.decodeIfPresent(FileIdentity.self, forKey: .identity)
+        root = try container.decodeIfPresent(URL.self, forKey: .root)
+        linkTarget = try container.decodeIfPresent(URL.self, forKey: .linkTarget)
+        isLink = try container.decodeIfPresent(Bool.self, forKey: .isLink) ?? false
+        isPackage = try container.decodeIfPresent(Bool.self, forKey: .isPackage) ?? false
+        packageVersion = try container.decodeIfPresent(String.self, forKey: .packageVersion)
+        isDownloaded = try container.decodeIfPresent(Bool.self, forKey: .isDownloaded) ?? true
+        isCloudSynced = try container.decodeIfPresent(Bool.self, forKey: .isCloudSynced) ?? false
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        isBurstPick = try container.decodeIfPresent(Bool.self, forKey: .isBurstPick) ?? false
+        isHEIC = try container.decodeIfPresent(Bool.self, forKey: .isHEIC) ?? false
+        resources = try container.decodeIfPresent([PhotoResource].self, forKey: .resources) ?? []
+        facts = try container.decodeIfPresent(MediaFacts.self, forKey: .facts) ?? MediaFacts()
+        analysisError = try container.decodeIfPresent(String.self, forKey: .analysisError)
+    }
+
     public var url: URL? { if case .file(let url) = source { url } else { nil } }
     public var photoID: String? { if case .photos(let id) = source { id } else { nil } }
     public var version: String { "\(bytes)|\(modifiedAt?.timeIntervalSince1970 ?? 0)|\(packageVersion ?? "")" }
@@ -129,7 +220,9 @@ public struct ReviewItem: Codable, Identifiable, Hashable, Sendable {
     public var sourceName: String {
         url?.deletingLastPathComponent().path ?? String(localized: "Photos Library")
     }
-    public var canChange: Bool { isDownloaded && !isCloudSynced }
+    public var canEditLocally: Bool { isDownloaded && !isCloudSynced }
+    public var canDelete: Bool { photoID != nil ? !isCloudSynced : canEditLocally }
+    public var canChange: Bool { canEditLocally }
     public var canAnalyze: Bool { isDownloaded && !isLink && !isPackage }
 }
 
@@ -185,13 +278,20 @@ public struct ReviewSession: Codable, Identifiable, Sendable {
         let decided = Set(decisions.map(\.item.id))
         return items.first { !decided.contains($0.id) }
     }
-    public var pendingChanges: [ReviewDecision] { decisions.filter { $0.choice == .trash || $0.choice == .move } }
+    public var pendingChanges: [ReviewDecision] {
+        var seen = Set<String>()
+        var latest: [ReviewDecision] = []
+        for decision in decisions.reversed() where seen.insert(decision.item.id).inserted {
+            latest.append(decision)
+        }
+        return latest.reversed().filter { $0.choice == .trash || $0.choice == .move }
+    }
 }
 
 public enum CleanupTool: String, Codable, CaseIterable, Identifiable, Sendable {
     case duplicates, similar, blurry, large, bursts, screenRecordings
     case screenshots, categories, downloads
-    case videoCompression, imageCompression, formatPairs, swipe
+    case videoCompression, imageCompression, formatPairs, livePhotos, swipe
     public var id: String { rawValue }
     public var title: String {
         switch self {
@@ -207,6 +307,7 @@ public enum CleanupTool: String, Codable, CaseIterable, Identifiable, Sendable {
         case .videoCompression: String(localized: "Video Compression")
         case .imageCompression: String(localized: "Image Compression")
         case .formatPairs: String(localized: "Duplicate-Format Pairs")
+        case .livePhotos: String(localized: "Live Photos")
         case .swipe: String(localized: "Swipe Review")
         }
     }
@@ -214,7 +315,7 @@ public enum CleanupTool: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .duplicates, .similar, .blurry, .large, .bursts, .screenRecordings: 0
         case .screenshots, .categories, .downloads, .swipe: 1
-        case .videoCompression, .imageCompression, .formatPairs: 2
+        case .videoCompression, .imageCompression, .formatPairs, .livePhotos: 2
         }
     }
     public var isCompression: Bool { self == .videoCompression || self == .imageCompression }
@@ -226,14 +327,30 @@ public struct AnalysisGroup: Codable, Identifiable, Sendable {
     public var memberIDs: [String]
     public var bestID: String
     public var explanation: String
+    public var bestReason: String?
+    public var protectedIDs: [String] = []
     public init(
-        tool: CleanupTool, memberIDs: [String], bestID: String, explanation: String, isVisualMatch: Bool = false
+        tool: CleanupTool, memberIDs: [String], bestID: String, explanation: String,
+        isVisualMatch: Bool = false, bestReason: String? = nil, protectedIDs: [String] = []
     ) {
         self.id = tool.rawValue + (isVisualMatch ? ":visual:" : ":exact:") + memberIDs.sorted().joined(separator: "|")
         self.tool = tool
         self.memberIDs = memberIDs
         self.bestID = bestID
         self.explanation = explanation
+        self.bestReason = bestReason
+        self.protectedIDs = protectedIDs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        tool = try container.decode(CleanupTool.self, forKey: .tool)
+        memberIDs = try container.decode([String].self, forKey: .memberIDs)
+        bestID = try container.decode(String.self, forKey: .bestID)
+        explanation = try container.decode(String.self, forKey: .explanation)
+        bestReason = try container.decodeIfPresent(String.self, forKey: .bestReason)
+        protectedIDs = try container.decodeIfPresent([String].self, forKey: .protectedIDs) ?? []
     }
 }
 
@@ -260,6 +377,8 @@ public enum ImageQuality: String, CaseIterable, Codable, Sendable {
 }
 
 public struct CleanupSettings: Codable, Equatable, Sendable {
+    public static let photoMaxSizeChoicesMB: [Double] = [1, 2, 3, 4.5, 5, 10]
+    public static let photoMaxDimensionChoices: [Int?] = [nil, 3024, 2048]
     public var analysisVersion: String {
         "\(similarSeconds)|\(blurSensitivity)|\(categorySensitivity)|\(largeMegabytes)"
     }
@@ -272,7 +391,34 @@ public struct CleanupSettings: Codable, Equatable, Sendable {
     public var imageQuality: ImageQuality = .balanced
     public var reminderEnabled = false
     public var reminderWeekday = 2
+    public var deleteOriginalsAfterCompression = false
+    public var photoCompressionSortOrder: PhotoCompressionSortOrder = .recentlyAdded
+    public var photoMaxDimension: Int?
+    public var photoMaxSizeMB: Double?
+    public var photoConvertToHEIC = true
+    public var videoUseHEVC = false
     public init() {}
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        similarSeconds = try container.decodeIfPresent(Double.self, forKey: .similarSeconds) ?? 5
+        blurSensitivity = try container.decodeIfPresent(Int.self, forKey: .blurSensitivity) ?? 1
+        categorySensitivity = try container.decodeIfPresent(Int.self, forKey: .categorySensitivity) ?? 1
+        largeMegabytes = try container.decodeIfPresent(Double.self, forKey: .largeMegabytes) ?? 10
+        defaultFilter = try container.decodeIfPresent(ReviewFilter.self, forKey: .defaultFilter) ?? .unreviewed
+        videoHeight = try container.decodeIfPresent(Int.self, forKey: .videoHeight) ?? 1080
+        imageQuality = try container.decodeIfPresent(ImageQuality.self, forKey: .imageQuality) ?? .balanced
+        reminderEnabled = try container.decodeIfPresent(Bool.self, forKey: .reminderEnabled) ?? false
+        reminderWeekday = try container.decodeIfPresent(Int.self, forKey: .reminderWeekday) ?? 2
+        deleteOriginalsAfterCompression = try container.decodeIfPresent(
+            Bool.self, forKey: .deleteOriginalsAfterCompression) ?? false
+        photoCompressionSortOrder = try container.decodeIfPresent(
+            PhotoCompressionSortOrder.self, forKey: .photoCompressionSortOrder) ?? .recentlyAdded
+        photoMaxDimension = try container.decodeIfPresent(Int.self, forKey: .photoMaxDimension)
+        photoMaxSizeMB = try container.decodeIfPresent(Double.self, forKey: .photoMaxSizeMB)
+        photoConvertToHEIC = try container.decodeIfPresent(Bool.self, forKey: .photoConvertToHEIC) ?? true
+        videoUseHEVC = try container.decodeIfPresent(Bool.self, forKey: .videoUseHEVC) ?? false
+    }
 }
 
 public enum OperationState: String, Codable, Sendable {
@@ -316,8 +462,18 @@ public struct ActivityEvent: Codable, Identifiable, Sendable {
         restored ? 0 : completedReduction
     }
     public var completedReduction: Int64 {
-        guard state == .complete, action != "move" else { return 0 }
-        return max(0, bytes - outputBytes)
+        guard state == .complete else { return 0 }
+        switch action {
+        case "trash":
+            return max(0, bytes)
+        case "compress", "keepComponent", "convertToStill":
+            guard outputBytes > 0 else { return 0 }
+            return max(0, bytes - outputBytes)
+        case "move", "keepBoth":
+            return 0
+        default:
+            return max(0, bytes - outputBytes)
+        }
     }
 }
 

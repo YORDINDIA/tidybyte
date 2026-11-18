@@ -29,7 +29,11 @@ public enum AIGatewayError: Error, LocalizedError, Sendable {
         case .invalidResponse(let statusCode, let body): String(localized: "AI provider returned HTTP \(statusCode): \(body)", comment: "AIGateway invalid response error")
         case .retryLimitExhausted(let desc): String(localized: "AI request failed after multiple attempts. Last error: \(desc)", comment: "AIGateway retry exhausted error")
         case .malformedResponse(let detail): String(localized: "AI provider returned a malformed response: \(detail)", comment: "AIGateway malformed response error")
-        case .insecureEndpoint(let url): String(localized: "The AI endpoint must use HTTPS: \(url.absoluteString)", comment: "AIGateway insecure endpoint error")
+        case .insecureEndpoint(let url):
+            String(
+                localized: "The AI endpoint must use HTTPS (or HTTP on localhost): \(url.absoluteString)",
+                comment: "AIGateway insecure endpoint error"
+            )
         }
     }
 }
@@ -100,15 +104,45 @@ public actor AIGateway {
     /// Keychain account (keys saved by earlier app versions). Matches the
     /// ProviderSettings default.
     private static let defaultProviderName = "OpenAI-compatible"
+    private static let loopbackHosts: Set<String> = ["localhost", "127.0.0.1", "::1", "[::1]"]
     private let keychain: KeychainStore
     private let session: URLSession
+    private let homeDirectoryOverride: URL?
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let maxRetries = 3
 
-    public init(keychain: KeychainStore = KeychainStore(), session: URLSession = .shared) {
+    public init(
+        keychain: KeychainStore = KeychainStore(),
+        session: URLSession = .shared,
+        homeDirectoryOverride: URL? = nil
+    ) {
         self.keychain = keychain
         self.session = session
+        self.homeDirectoryOverride = homeDirectoryOverride
+    }
+
+    static func isLoopbackEndpoint(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        return loopbackHosts.contains(host)
+    }
+
+    static func isAllowedEndpoint(_ url: URL) -> Bool {
+        let scheme = url.scheme?.lowercased()
+        if scheme == "https" { return true }
+        return scheme == "http" && isLoopbackEndpoint(url)
+    }
+
+    static func stripMarkdownCodeFences(from raw: String) -> String {
+        var text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.hasPrefix("```") {
+            guard let newline = text.firstIndex(of: "\n") else { return text }
+            text = String(text[text.index(after: newline)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        if text.hasSuffix("```") {
+            text = String(text.dropLast(3)).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return text
     }
 
     public func classify(
@@ -120,12 +154,6 @@ public actor AIGateway {
         guard DistributionChannel.supportsAdvanced, settings.privacyMode != .localOnly else {
             throw AIGatewayError.localOnly
         }
-        // All AI modes (metadataOnlyAI, snippetsAI, visionAI, fullDocumentAI) are supported
-        // Keychain entries are keyed by provider name (saveAPIKey in AppViewModel
-        // uses the provider account); fall back to the legacy shared account ONLY
-        // for the default provider — sending a legacy key to a different provider
-        // would leak one vendor's credential to another.
-        // A Keychain failure propagates. Only a missing item means "no key stored".
         let apiKey: String
         if let providerKey = try await keychain.loadAPIKey(account: settings.providerName),
            !providerKey.isEmpty {
@@ -133,13 +161,15 @@ public actor AIGateway {
         } else if settings.providerName == Self.defaultProviderName,
                   let legacyKey = try await keychain.loadAPIKey(), !legacyKey.isEmpty {
             apiKey = legacyKey
+        } else if Self.isLoopbackEndpoint(settings.apiBaseURL) {
+            // Local model servers (Ollama, LM Studio) rarely require an API key.
+            apiKey = ""
         } else {
             throw AIGatewayError.missingAPIKey
         }
 
-        // Credentials are only sent over TLS. ATS blocks cleartext HTTP, but the
-        // explicit guard makes the requirement local and testable.
-        guard settings.apiBaseURL.scheme?.lowercased() == "https" else {
+        // Credentials travel only over TLS or loopback HTTP for local models.
+        guard Self.isAllowedEndpoint(settings.apiBaseURL) else {
             throw AIGatewayError.insecureEndpoint(settings.apiBaseURL)
         }
 
@@ -154,10 +184,18 @@ public actor AIGateway {
         Be conservative. Source, config, secrets, cloud files, and coding-agent memory are high risk or forbidden.
         """
 
-        let findingsJSON = findingsPrefixJSON(findings: findings, filesByID: filesByID, contentSummaries: contentSummaries, privacyMode: settings.privacyMode)
+        let findingsJSON = findingsPrefixJSON(
+            findings: findings,
+            filesByID: filesByID,
+            contentSummaries: contentSummaries,
+            privacyMode: settings.privacyMode
+        )
 
+        let selectedModel = settings.privacyMode == .visionAI
+            ? (settings.visionModel ?? settings.textModel)
+            : settings.textModel
         let request = ChatCompletionRequest(
-            model: settings.textModel,
+            model: selectedModel,
             temperature: settings.temperature,
             maxTokens: settings.maxTokens,
             responseFormat: .init(type: "json_object"),
@@ -169,14 +207,14 @@ public actor AIGateway {
 
         var lastErrorDescription = "unknown error"
         for attempt in 1...maxRetries {
-            // Server-suggested wait from a 429/503 Retry-After header; when set,
-            // it overrides the exponential backoff for this attempt.
             var retryDelayOverride: TimeInterval?
             do {
                 var urlRequest = URLRequest(url: endpoint)
                 urlRequest.httpMethod = "POST"
                 urlRequest.timeoutInterval = settings.requestTimeoutSeconds
-                urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+                if !apiKey.isEmpty {
+                    urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+                }
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 if let organizationID = settings.organizationID {
                     urlRequest.setValue(organizationID, forHTTPHeaderField: "OpenAI-Organization")
@@ -189,26 +227,20 @@ public actor AIGateway {
                 let (data, response) = try await session.data(for: urlRequest)
                 guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
                     let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-                    // Honor Retry-After (numeric seconds; HTTP-date form is not
-                    // emitted by OpenAI-compatible providers) capped at 60s.
                     if let http = response as? HTTPURLResponse,
                        http.statusCode == 429 || http.statusCode == 503,
                        let retryAfter = http.value(forHTTPHeaderField: "Retry-After"),
                        let seconds = Double(retryAfter.trimmingCharacters(in: .whitespaces)) {
                         retryDelayOverride = min(seconds, 60)
                     }
-                    // A provider may echo the request back. Remove the key before the body
-                    // reaches an error message, a scan notice or the log.
-                    // Only 200 characters are kept. The window is wider than that by the key's
-                    // length (at most four bytes per character), so a key that starts inside the
-                    // kept text is removed whole, and the rest of a large body is never decoded.
                     let head = ProcessRunner.readableText(Data(data.prefix(4 * (200 + apiKey.count))))
-                    let truncatedBody = String(head.replacingOccurrences(of: apiKey, with: "[redacted]").prefix(200))
+                    let sanitized = apiKey.isEmpty ? head : head.replacingOccurrences(of: apiKey, with: "[redacted]")
+                    let truncatedBody = String(sanitized.prefix(200))
                     throw AIGatewayError.invalidResponse(statusCode: statusCode, body: truncatedBody)
                 }
                 let envelope = try decoder.decode(ChatCompletionEnvelope.self, from: data)
                 guard let content = envelope.choices.first?.message.content,
-                      let contentData = content.data(using: .utf8) else {
+                      let contentData = Self.stripMarkdownCodeFences(from: content).data(using: .utf8) else {
                     throw AIGatewayError.invalidResponse(statusCode: 200, body: "missing or empty content field")
                 }
                 let parsed = try decoder.decode(AIRecommendationsEnvelope.self, from: contentData)
@@ -257,35 +289,50 @@ public actor AIGateway {
         throw AIGatewayError.retryLimitExhausted(lastErrorDescription: lastErrorDescription)
     }
 
-    private func findingsPrefixJSON(findings: [Finding], filesByID: [String: FileRecord], contentSummaries: [ContentSummary], privacyMode: PrivacyMode) -> String {
-        let metadata = findings.prefix(30).map { finding in
+    private func findingsPrefixJSON(
+        findings: [Finding],
+        filesByID: [String: FileRecord],
+        contentSummaries: [ContentSummary],
+        privacyMode: PrivacyMode
+    ) -> String {
+        let summariesByFileID = Dictionary(
+            contentSummaries.map { ($0.fileID, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        let prioritized = findings.sorted { lhs, rhs in
+            if lhs.severity != rhs.severity {
+                return lhs.severity > rhs.severity
+            }
+            return lhs.bytesReclaimable > rhs.bytesReclaimable
+        }
+        let metadata = prioritized.prefix(30).map { finding in
             let files = finding.targetFileIDs.compactMap { filesByID[$0] }.prefix(5).map { file in
                 var fileMeta = FileMetadata(
                     id: file.id,
-                    path: redactedPath(file.displayPath),
+                    path: redactedText(file.displayPath),
                     name: file.fileName,
                     ext: file.fileExtension ?? "",
                     sizeBytes: file.sizeBytes,
                     kind: file.kind.rawValue,
                     riskFlags: file.riskFlags.map(\.rawValue)
                 )
-                // Include content snippets for snippetsAI, visionAI, and fullDocumentAI modes.
-                // metadataOnlyAI and localOnly never attach file contents.
-                if privacyMode == .snippetsAI || privacyMode == .visionAI || privacyMode == .fullDocumentAI {
-                    if let summary = contentSummaries.first(where: { $0.fileID == file.id }) {
-                        // Include text preview (truncated) for context
+                if privacyMode == .snippetsAI || privacyMode == .visionAI || privacyMode == .fullDocumentAI,
+                   let summary = summariesByFileID[file.id] {
+                    let hasSensitiveTopic = summary.detectedTopics.contains("possible_secret")
+                        || summary.detectedTopics.contains("protected")
+                    if !hasSensitiveTopic {
                         if let textPreview = summary.textPreview {
                             fileMeta.snippet = String(textPreview.prefix(500))
                         }
                         if let ocrText = summary.ocrText {
                             fileMeta.ocrSnippet = String(ocrText.prefix(500))
                         }
-                        if !summary.imageLabels.isEmpty {
-                            fileMeta.imageLabels = summary.imageLabels
-                        }
-                        if !summary.videoLabels.isEmpty {
-                            fileMeta.videoLabels = summary.videoLabels
-                        }
+                    }
+                    if !summary.imageLabels.isEmpty {
+                        fileMeta.imageLabels = summary.imageLabels
+                    }
+                    if !summary.videoLabels.isEmpty {
+                        fileMeta.videoLabels = summary.videoLabels
                     }
                 }
                 return fileMeta
@@ -295,12 +342,10 @@ public actor AIGateway {
                 category: finding.category.rawValue,
                 confidence: finding.confidence,
                 risk: finding.severity.rawValue,
-                summary: finding.summary,
+                summary: redactedText(finding.summary),
                 files: files
             )
         }
-        // Tell the model the payload is a truncated prefix so its confidence
-        // and coverage claims do not silently overstate what it saw.
         let note = "Showing the first \(metadata.count) of \(findings.count) findings and up to 5 files per finding."
         let envelope = AIFindingsEnvelope(findings: metadata, note: note)
         guard let data = try? encoder.encode(envelope),
@@ -310,17 +355,24 @@ public actor AIGateway {
         return string
     }
 
-    /// Replaces the running user's home-directory prefix with "/~" so the
-    /// provider never receives the OS account name in file paths.
-    private func redactedPath(_ path: String) -> String {
-        let homePath = FileManager.default.homeDirectoryForCurrentUser.path
-        if path == homePath {
-            return "/~"
+    /// Replaces the running user's home-directory prefix and `/Users/<name>` segments
+    /// with `/~` so the provider never receives the OS account name in paths or summaries.
+    private func redactedText(_ value: String) -> String {
+        let homePath = (homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory).path
+        var redacted = value
+        if !homePath.isEmpty {
+            redacted = redacted.replacingOccurrences(of: homePath + "/", with: "/~/")
+            if redacted == homePath {
+                redacted = "/~"
+            } else if redacted.contains(homePath) {
+                redacted = redacted.replacingOccurrences(of: homePath, with: "/~")
+            }
         }
-        if path.hasPrefix(homePath + "/") {
-            return "/~" + path.dropFirst(homePath.count)
-        }
-        return path
+        return redacted.replacingOccurrences(
+            of: #"/Users/[^/\s"'`,]+"#,
+            with: "/~",
+            options: .regularExpression
+        )
     }
 }
 

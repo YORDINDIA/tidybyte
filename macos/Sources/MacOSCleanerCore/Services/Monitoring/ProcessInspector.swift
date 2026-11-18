@@ -3,9 +3,8 @@ import Foundation
 import Security
 
 /// Everything knowable about one process, for the inspector panel: identity
-/// and code signature, parentage, resource totals, open files, and listening
-/// ports. Read-only by design — quitting lives in ProcessActions and always
-/// asks first.
+/// and code signature, parentage, resource totals, open files, listening
+/// ports, and outbound connections. Read-only by design.
 public struct ProcessInspection: Sendable, Equatable {
     public var pid: pid_t
     public var parentPID: pid_t
@@ -24,6 +23,7 @@ public struct ProcessInspection: Sendable, Equatable {
     public var signature: SignatureInfo?
     public var openFiles: [OpenFile]
     public var listeningPorts: [PortBinding]
+    public var outboundConnections: [OutboundConnection] = []
 
     public struct SignatureInfo: Sendable, Equatable {
         public var isSigned: Bool
@@ -45,8 +45,6 @@ public struct ProcessInspection: Sendable, Equatable {
     }
 
     public struct PortBinding: Sendable, Equatable, Identifiable {
-        /// Includes the protocol: one process bound to the same address:port
-        /// over TCP and UDP is two rows, and duplicate ForEach IDs crash.
         public var id: String { "\(pid)-\(port)-\(address)-\(kind)" }
         public var pid: pid_t
         public var port: Int
@@ -60,21 +58,47 @@ public struct ProcessInspection: Sendable, Equatable {
             self.kind = kind
         }
     }
+
+    public struct OutboundConnection: Sendable, Equatable, Identifiable {
+        public var id: String { "\(pid)-\(kind)-\(localAddress)-\(remoteAddress)" }
+        public var pid: pid_t
+        public var localAddress: String
+        public var remoteAddress: String
+        public var kind: String
+        public var state: String?
+
+        public init(pid: pid_t, localAddress: String, remoteAddress: String, kind: String, state: String? = nil) {
+            self.pid = pid
+            self.localAddress = localAddress
+            self.remoteAddress = remoteAddress
+            self.kind = kind
+            self.state = state
+        }
+    }
 }
 
 public enum ProcessInspector {
-    /// Builds the full inspection. The lsof calls are the slow part (tens of
-    /// milliseconds); the inspector is on-demand, so that is fine.
+    /// Builds the full inspection, verifying PID identity against `startedAt`
+    /// before reading per-PID sockets/files.
     public static func inspect(_ sample: ProcessSample, all: [ProcessSample]) async -> ProcessInspection {
-        async let files = openFiles(pid: sample.pid)
-        async let ports = listeningPorts(pid: sample.pid)
+        let sameProcess = sample.startedAt.map { ProcessActions.liveStart(pid: sample.pid) == $0 } ?? true
+        async let files: [ProcessInspection.OpenFile] = sameProcess ? openFiles(pid: sample.pid) : []
+        async let ports: [ProcessInspection.PortBinding] = sameProcess ? listeningPorts(pid: sample.pid) : []
+        async let outbound: [ProcessInspection.OutboundConnection] = sameProcess ? outboundConnections(pid: sample.pid) : []
         async let signature = codeSignatureDetached(sample: sample)
-        let inspection = ProcessInspection(
+        let commandLine = if !sample.commandLine.isEmpty {
+            sample.commandLine
+        } else if sameProcess {
+            ProcessProbe.commandLine(of: sample.pid) ?? []
+        } else {
+            [String]()
+        }
+        return ProcessInspection(
             pid: sample.pid,
             parentPID: sample.parentPID,
             parentName: all.first { $0.pid == sample.parentPID }?.name,
             children: all.filter { $0.parentPID == sample.pid },
-            commandLine: sample.commandLine.isEmpty ? ProcessProbe.commandLine(of: sample.pid) ?? [] : sample.commandLine,
+            commandLine: commandLine,
             executablePath: sample.executablePath,
             bundleID: sample.bundleID,
             version: bundleVersion(sample: sample),
@@ -86,13 +110,10 @@ public enum ProcessInspector {
             diskWrittenBytes: sample.diskWrittenBytes,
             signature: await signature,
             openFiles: await files,
-            listeningPorts: await ports)
-        return inspection
+            listeningPorts: await ports,
+            outboundConnections: await outbound)
     }
 
-    /// Signature validation (SecStaticCodeCheckValidity) touches disk and the
-    /// security daemon enough to stall the cooperative pool, so it runs on a
-    /// dedicated detached task.
     private static func codeSignatureDetached(sample: ProcessSample) async -> ProcessInspection.SignatureInfo? {
         await Task.detached(priority: .userInitiated) {
             Self.codeSignature(sample: sample)
@@ -106,8 +127,6 @@ public enum ProcessInspector {
         return bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
     }
 
-    /// Code signature and sandbox state via the Security framework, with the
-    /// entitlement dictionary when the process exposes it.
     static func codeSignature(sample: ProcessSample) -> ProcessInspection.SignatureInfo? {
         guard let path = sample.executablePath ?? sample.bundlePath else { return nil }
         var staticCode: SecStaticCode?
@@ -116,11 +135,9 @@ public enum ProcessInspector {
             return nil
         }
         var infoCF: CFDictionary?
-        // kSecCSSigningInformation | kSecCSRequirementInformation from
-        // SecCodeSigning.h; Swift does not import those option constants.
         let flags = SecCSFlags(rawValue: 0x01 | 0x02)
         guard SecCodeCopySigningInformation(code, flags, &infoCF) == errSecSuccess,
-            let info = infoCF as? [String: Any] else {
+              let info = infoCF as? [String: Any] else {
             return ProcessInspection.SignatureInfo(
                 isSigned: false, isValid: false, teamID: nil, isSandboxed: false, entitlements: [:])
         }
@@ -133,19 +150,12 @@ public enum ProcessInspector {
         }
         let sandboxed = entitlementsData?.keys.contains("com.apple.security.app-sandbox") == true
             || entitlementsData?.keys.contains("com.apple.security.app-sandbox.temporary-exception") == true
-        // Validity check: the signature exists; deep validation is skipped for
-        // system paths to keep the inspector fast and non-intrusive.
-        var isValid = false
-        if #available(macOS 12.0, *) {
-            isValid = SecStaticCodeCheckValidity(code, [], nil) == errSecSuccess
-        }
+        let isValid = SecStaticCodeCheckValidity(code, [], nil) == errSecSuccess
         return ProcessInspection.SignatureInfo(
             isSigned: true, isValid: isValid, teamID: teamID, isSandboxed: sandboxed,
             entitlements: entitlements)
     }
 
-    /// Open files and sockets from lsof, limited so a busy server cannot
-    /// flood the inspector.
     static func openFiles(pid: pid_t) async -> [ProcessInspection.OpenFile] {
         guard let output = try? await SystemTool.run("/usr/sbin/lsof", arguments: [
             "-nP", "-p", String(pid)
@@ -153,8 +163,6 @@ public enum ProcessInspector {
         return Self.parseOpenFiles(output, limit: 200)
     }
 
-    /// Parses the per-process lsof table. Pure and testable. The NAME column
-    /// (index 8) is split last so paths containing spaces survive whole.
     public static func parseOpenFiles(_ output: String, limit: Int) -> [ProcessInspection.OpenFile] {
         var result: [ProcessInspection.OpenFile] = []
         var seen = Set<String>()
@@ -177,24 +185,32 @@ public enum ProcessInspector {
         return result
     }
 
-    /// TCP and UDP bindings of one process.
+    /// Listening TCP/UDP sockets owned strictly by `pid` (`-a` ANDs filters).
     static func listeningPorts(pid: pid_t) async -> [ProcessInspection.PortBinding] {
         guard let output = try? await SystemTool.run("/usr/sbin/lsof", arguments: [
-            "-nP", "-p", String(pid), "-i"
+            "-a", "-nP", "-p", String(pid), "-i", "-sTCP:LISTEN"
         ]) else { return [] }
         return Self.parsePortBindings(output)
+    }
+
+    static func outboundConnections(pid: pid_t) async -> [ProcessInspection.OutboundConnection] {
+        guard let output = try? await SystemTool.run("/usr/sbin/lsof", arguments: [
+            "-a", "-nP", "-p", String(pid), "-i"
+        ]) else { return [] }
+        return Self.parseOutboundConnections(output, limit: 100)
     }
 
     public static func parsePortBindings(_ output: String) -> [ProcessInspection.PortBinding] {
         var result: [ProcessInspection.PortBinding] = []
         var seen = Set<String>()
         for line in output.split(separator: "\n").dropFirst() {
-            let columns = line.split(separator: " ", omittingEmptySubsequences: true)
+            let columns = line.split(separator: " ", maxSplits: 8, omittingEmptySubsequences: true)
             guard columns.count >= 9 else { continue }
             let node = String(columns[7])
-            // The shared lsof NAME parser: last colon, digits after it.
-            guard node == "TCP" || node == "UDP",
-                let (address, port) = DevEnvironmentProbe.lsofName(String(columns[8])[...]) else { continue }
+            let name = String(columns[8])
+            guard node == "TCP" || node == "UDP", !name.contains("->") else { continue }
+            if node == "TCP", name.contains("("), !name.contains("(LISTEN)") { continue }
+            guard let (address, port) = DevEnvironmentProbe.lsofName(name[...]) else { continue }
             let id = "\(port)-\(address)-\(node)"
             guard seen.insert(id).inserted else { continue }
             result.append(
@@ -202,37 +218,59 @@ public enum ProcessInspector {
         }
         return result.sorted { $0.port < $1.port }
     }
+
+    public static func parseOutboundConnections(
+        _ output: String, limit: Int = 100
+    ) -> [ProcessInspection.OutboundConnection] {
+        var result: [ProcessInspection.OutboundConnection] = []
+        var seen = Set<String>()
+        for line in output.split(separator: "\n").dropFirst() {
+            guard result.count < limit else { break }
+            let columns = line.split(separator: " ", maxSplits: 8, omittingEmptySubsequences: true)
+            guard columns.count >= 9 else { continue }
+            let node = String(columns[7])
+            guard node == "TCP" || node == "UDP" else { continue }
+            let rawName = String(columns[8])
+            guard let arrow = rawName.range(of: "->") else { continue }
+            let local = String(rawName[..<arrow.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let right = String(rawName[arrow.upperBound...]).trimmingCharacters(in: .whitespaces)
+            let remote: String
+            let state: String?
+            if let open = right.firstIndex(of: "("), let close = right.lastIndex(of: ")"), open < close {
+                remote = String(right[..<open]).trimmingCharacters(in: .whitespaces)
+                state = String(right[right.index(after: open)..<close])
+            } else {
+                remote = right
+                state = nil
+            }
+            let pid = pid_t(columns[1]) ?? 0
+            let key = "\(pid)-\(node)-\(local)-\(remote)"
+            guard !remote.isEmpty, seen.insert(key).inserted else { continue }
+            result.append(
+                ProcessInspection.OutboundConnection(
+                    pid: pid, localAddress: local, remoteAddress: remote, kind: node, state: state))
+        }
+        return result
+    }
 }
 
-/// Quit and force-quit. Deliberately separate from the inspector: every call
-/// goes through the confirm-dialog policy in the UI layer, and force-quit is
-/// always the second, explicit step.
+/// Quit and force-quit, verified against kernel start time before signalling.
 public enum ProcessActions {
-    /// SIGTERM first. Returns false when the process was already gone, the pid
-    /// is not a real process id (pid 0 would signal the process group), or the
-    /// pid now belongs to a different process than the one the user confirmed.
     @discardableResult
     public static func quit(pid: pid_t, confirmedStart: Date?) -> Bool {
         signal(pid, confirmedStart: confirmedStart, SIGTERM)
     }
 
-    /// SIGKILL. The UI asks before calling this.
     @discardableResult
     public static func forceQuit(pid: pid_t, confirmedStart: Date?) -> Bool {
         signal(pid, confirmedStart: confirmedStart, SIGKILL)
     }
 
-    /// The kernel start time of the live process at `pid`, or nil when it is gone.
     static func liveStart(pid: pid_t) -> Date? {
         guard let start = LibProc.startTime(pid: pid) else { return nil }
         return ProcessProbe.startDate(seconds: start.seconds, microseconds: start.microseconds)
     }
 
-    /// Pids are reused. The start time is checked and the signal sent in one
-    /// synchronous block, so no other work runs between them. Missing start time
-    /// fails closed. The window that remains is the gap between the start-time
-    /// read and the kill(2) call. macOS has no pidfd or other handle that would
-    /// close it, so it is documented here rather than removed.
     private static func signal(_ pid: pid_t, confirmedStart: Date?, _ signal: Int32) -> Bool {
         guard pid > 0, let confirmedStart, liveStart(pid: pid) == confirmedStart else { return false }
         return kill(pid, signal) == 0

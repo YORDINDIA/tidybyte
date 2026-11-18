@@ -11,6 +11,11 @@
 # Dry run without credentials: NO_SPARKLE=1 SIGNING_IDENTITY=- SKIP_NOTARIZE=1 \
 #   Scripts/package-release.sh direct
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
 CHANNEL="${1:-direct}"
 case "$CHANNEL" in direct|app-store) ;; *) echo "Usage: $0 direct|app-store" >&2; exit 2 ;; esac
 : "${SIGNING_IDENTITY:?Set SIGNING_IDENTITY to the channel-specific application signing identity (- for ad hoc)}"
@@ -24,7 +29,7 @@ if [ "$CHANNEL" = direct ] && [ -z "${NO_SPARKLE:-}" ]; then
     : "${SPARKLE_PRIVATE_KEY_FILE:?direct releases require SPARKLE_PRIVATE_KEY_FILE (sign_update input) — set NO_SPARKLE=1 to override}"
 fi
 
-Scripts/build-app.sh "$CHANNEL"
+"$SCRIPT_DIR/build-app.sh" "$CHANNEL"
 
 # `sign_update` is a build artifact, so it cannot be checked before the build —
 # but it can be checked before the signing and notarizing below, which are the
@@ -40,11 +45,21 @@ TIMESTAMP=(--timestamp)
 if [ "$SIGNING_IDENTITY" = "-" ]; then TIMESTAMP=(); fi
 sign() { codesign --force --options runtime ${TIMESTAMP[@]+"${TIMESTAMP[@]}"} --sign "$SIGNING_IDENTITY" "$@"; }
 
+xml_escape() {
+    local s="$1"
+    s="${s//&/&amp;}"
+    s="${s//</&lt;}"
+    s="${s//>/&gt;}"
+    s="${s//\"/&quot;}"
+    s="${s//\'/&apos;}"
+    printf '%s' "$s"
+}
+
 if [ "$CHANNEL" = app-store ]; then
     : "${INSTALLER_IDENTITY:?Set INSTALLER_IDENTITY to the Mac Installer Distribution identity}"
     APP=".build/app-store/Tidybyte.app"
     sign --entitlements Configuration/AppStore.entitlements "$APP"
-    codesign --verify --strict --verbose=2 "$APP"
+    codesign --verify --strict --deep --verbose=2 "$APP"
     productbuild --component "$APP" /Applications --sign "$INSTALLER_IDENTITY" .build/app-store/Tidybyte.pkg
     echo "Upload .build/app-store/Tidybyte.pkg with Transporter, then submit it in App Store Connect."
     exit 0
@@ -103,22 +118,29 @@ elif [ -n "${SPARKLE_PRIVATE_KEY_FILE:-}" ] && [ -x "$SIGN_UPDATE" ]; then
     SIGNATURE="$("$SIGN_UPDATE" --ed-key-file "$SPARKLE_PRIVATE_KEY_FILE" "$DMG")"
     BUILD="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$APP/Contents/Info.plist")"
     URL="${DOWNLOAD_BASE_URL:-https://github.com/YORDINDIA/tidybyte/releases/download/mac-v$VERSION}/$(basename "$DMG")"
+    ESC_VERSION="$(xml_escape "$VERSION")"
+    ESC_BUILD="$(xml_escape "$BUILD")"
+    ESC_URL="$(xml_escape "$URL")"
+    ESC_PUB_DATE="$(xml_escape "$(date -R)")"
     cat > "$OUT/appcast.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
     <title>Tidybyte for Mac</title>
     <item>
-      <title>Tidybyte $VERSION</title>
-      <pubDate>$(date -R)</pubDate>
-      <sparkle:version>$BUILD</sparkle:version>
-      <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
+      <title>Tidybyte $ESC_VERSION</title>
+      <pubDate>$ESC_PUB_DATE</pubDate>
+      <sparkle:version>$ESC_BUILD</sparkle:version>
+      <sparkle:shortVersionString>$ESC_VERSION</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <enclosure url="$URL" type="application/octet-stream" $SIGNATURE/>
+      <enclosure url="$ESC_URL" type="application/octet-stream" $SIGNATURE/>
     </item>
   </channel>
 </rss>
 XML
+    if command -v xmllint >/dev/null 2>&1; then
+        xmllint --noout "$OUT/appcast.xml"
+    fi
     echo "Wrote $OUT/appcast.xml"
 else
     echo "Error: no appcast written. sign_update not found or executable at $SIGN_UPDATE, or SPARKLE_PRIVATE_KEY_FILE is unset. A direct release without an appcast ships with no update feed. Set NO_SPARKLE=1 only for local testing." >&2

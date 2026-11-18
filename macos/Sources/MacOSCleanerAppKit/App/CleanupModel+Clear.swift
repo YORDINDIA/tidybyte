@@ -12,7 +12,10 @@ extension CleanupModel {
     func resetAfterClear() async {
         freshnessEpoch += 1  // drops a monitor build still in flight
         rescanEpoch += 1  // drops a debounced rescan still queued
+        freshness?.stop()
         freshness = nil
+        selfMutationDepth = 0
+        suppressFreshnessUntil = .distantPast
         for grant in monitoredGrants { grant.stopAccessingSecurityScopedResource() }
         monitoredGrants = []
         scope = ReviewScope()
@@ -30,10 +33,16 @@ extension CleanupModel {
         snapshots = []
         jobs = []
         selection = []
+        explicitlySelectedIDs = []
+        downloadingItemIDs = [:]
+        measuredCompressionSizes = [:]
+        isMeasuringSizes = false
         selectedItem = nil
         error = nil
         notice = nil
         photosAccessDenied = false
+        photoAuthorizationState = PhotoLibraryService.currentAuthorizationState()
+        await photos.purgePreviewCache()
         try? await updateReminder()  // removes the weekly reminder that quotes the old scan
     }
 }

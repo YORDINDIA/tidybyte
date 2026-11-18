@@ -26,6 +26,7 @@ public struct SystemSnapshot: Sendable, Equatable {
     public var agents: [AgentSessionReading]
     public var containers: [ContainerReading]
     public var uptime: TimeInterval
+    public var thermalPressure: ThermalPressure
 
     public init(
         timestamp: Date = .init(),
@@ -46,7 +47,8 @@ public struct SystemSnapshot: Sendable, Equatable {
         devServers: [DevServerReading] = [],
         agents: [AgentSessionReading] = [],
         containers: [ContainerReading] = [],
-        uptime: TimeInterval = 0
+        uptime: TimeInterval = 0,
+        thermalPressure: ThermalPressure = .nominal
     ) {
         self.timestamp = timestamp
         self.interval = interval
@@ -67,6 +69,7 @@ public struct SystemSnapshot: Sendable, Equatable {
         self.agents = agents
         self.containers = containers
         self.uptime = uptime
+        self.thermalPressure = thermalPressure
     }
 
     /// The app groups that lead a metric right now, strongest first.
@@ -252,8 +255,12 @@ public struct GPUDeviceReading: Sendable, Equatable, Identifiable {
     public var vendor: String
     /// Percent of the device's time busy, when the platform reports it.
     public var utilizationPercent: Double?
+    public var rendererUtilizationPercent: Double?
+    public var tilerUtilizationPercent: Double?
     public var coreCount: Int?
     public var memoryLimitBytes: Int64?
+    public var inUseMemoryBytes: Int64?
+    public var allocatedMemoryBytes: Int64?
     public var isLowPower: Bool
     public var registryID: UInt64?
 
@@ -261,16 +268,24 @@ public struct GPUDeviceReading: Sendable, Equatable, Identifiable {
         name: String,
         vendor: String = "Apple",
         utilizationPercent: Double? = nil,
+        rendererUtilizationPercent: Double? = nil,
+        tilerUtilizationPercent: Double? = nil,
         coreCount: Int? = nil,
         memoryLimitBytes: Int64? = nil,
+        inUseMemoryBytes: Int64? = nil,
+        allocatedMemoryBytes: Int64? = nil,
         isLowPower: Bool = false,
         registryID: UInt64? = nil
     ) {
         self.name = name
         self.vendor = vendor
         self.utilizationPercent = utilizationPercent
+        self.rendererUtilizationPercent = rendererUtilizationPercent
+        self.tilerUtilizationPercent = tilerUtilizationPercent
         self.coreCount = coreCount
         self.memoryLimitBytes = memoryLimitBytes
+        self.inUseMemoryBytes = inUseMemoryBytes
+        self.allocatedMemoryBytes = allocatedMemoryBytes
         self.isLowPower = isLowPower
         self.registryID = registryID
     }

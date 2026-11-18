@@ -56,6 +56,15 @@ enum TestFileFixtures {
             throw TestFileFixtureError.couldNotCreatePNG
         }
     }
+
+    /// Writes an executable shell script stub (for allowlisted package-manager
+    /// test commands such as `brew` or `npm`) with POSIX mode `0755`.
+    static func makeStub(_ name: String, in directory: URL, body: String) throws -> URL {
+        let url = directory.appendingPathComponent(name, isDirectory: false)
+        try Data("#!/bin/sh\n\(body)\n".utf8).write(to: url)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+        return url
+    }
 }
 
 enum TestFileFixtureError: Error {

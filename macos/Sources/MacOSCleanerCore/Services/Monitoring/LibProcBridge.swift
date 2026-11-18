@@ -3,14 +3,13 @@ import Foundation
 
 /// Swift declarations for the libproc calls the monitor needs. These symbols
 /// ship in libSystem and are declared in the SDK's libproc.h / sys/resource.h;
-/// Swift cannot see the C headers, so the ABI-stable struct layouts are
-/// mirrored here exactly as the SDK defines them (see `sys/resource.h`,
-/// `struct rusage_info_v4`, and libproc.h `PROC_PIDTASKINFO`).
+/// Swift cannot see the C headers directly, so the ABI-stable struct layouts
+/// are mirrored here (`rusage_info_v4`, `rusage_info_v6`, `PROC_PIDTASKINFO`).
 enum LibProc {
-    /// Flavor for proc_pidinfo asking for the task info block.
     static let procPIDTaskInfo: Int32 = 4
+    static let rusageFlavorV4: Int32 = 4
+    static let rusageFlavorV6: Int32 = 6
 
-    /// proc_taskinfo as the SDK defines it: eighteen 64-bit counters.
     struct TaskInfo {
         var virtualSize: UInt64 = 0
         var residentSize: UInt64 = 0
@@ -32,11 +31,9 @@ enum LibProc {
         var priority: Int32 = 0
     }
 
-    /// The subset of `rusage_info_v4` the monitor reads, converted to friendly
-    /// units. The kernel returns CPU times in mach absolute time units. Those
-    /// are nanoseconds only on Intel; Apple silicon runs a 125/3 timebase.
     struct UsageReport {
         var cpuTimeSeconds: Double
+        var pCoreTimeSeconds: Double?
         var residentBytes: Int64
         var footprintBytes: Int64
         var lifetimeMaxFootprintBytes: Int64
@@ -46,23 +43,41 @@ enum LibProc {
         var pageIns: Int64
         var wakeups: Int64
         var energy: Double
+        var energyNanojoules: UInt64?
     }
 
-    /// Reads the per-pid usage report. Returns nil when the process is gone or
-    /// protected. Mach absolute time fields are converted with the timebase.
+    private static let cachedTimebase: (numer: UInt32, denom: UInt32) = machTimebase()
+
+    /// Reads the per-pid usage report, preferring `rusage_info_v6` for nanojoule
+    /// energy and P-core accounting and falling back to `rusage_info_v4`.
     static func usageReport(pid: pid_t) -> UsageReport? {
-        var info = RUsageInfoV4()
-        let result = withUnsafeMutablePointer(to: &info) { pointer in
-            pointer.withMemoryRebound(to: UnsafeMutableRawPointer.self, capacity: 1) { raw in
-                procPIDRusage(pid, 4, raw)
-            }
+        var v6 = RUsageInfoV6()
+        let v6Status = withUnsafeMutableBytes(of: &v6) { raw in
+            procPIDRusage(pid, rusageFlavorV6, raw.baseAddress)
         }
-        guard result == 0 else { return nil }
-        let timebase = machTimebase()
-        // Reading the raw ticks as nanoseconds made CPU time 42x too low on Apple silicon.
-        let cpuNanoseconds = Double(info.userTime + info.systemTime) * Double(timebase.numer) / Double(timebase.denom)
+        if v6Status == 0 {
+            return makeReport(v4: v6.v4, v6: v6)
+        }
+        var v4 = RUsageInfoV4()
+        let v4Status = withUnsafeMutableBytes(of: &v4) { raw in
+            procPIDRusage(pid, rusageFlavorV4, raw.baseAddress)
+        }
+        guard v4Status == 0 else { return nil }
+        return makeReport(v4: v4, v6: nil)
+    }
+
+    private static func makeReport(v4 info: RUsageInfoV4, v6: RUsageInfoV6?) -> UsageReport {
+        let timebase = cachedTimebase
+        let scale = Double(timebase.numer) / Double(max(1, timebase.denom)) / 1_000_000_000
+        let cpuSeconds = Double(info.userTime + info.systemTime) * scale
+        let pCoreSeconds = v6.map { Double($0.userPTime + $0.systemPTime) * scale }
+        let energyNJ = v6.flatMap { $0.energyNanojoules > 0 ? $0.energyNanojoules : nil }
+        let energy = info.billedEnergy > 0
+            ? Double(info.billedEnergy)
+            : Double(energyNJ ?? 0) / 1_000_000.0
         return UsageReport(
-            cpuTimeSeconds: cpuNanoseconds / 1_000_000_000,
+            cpuTimeSeconds: cpuSeconds,
+            pCoreTimeSeconds: pCoreSeconds,
             residentBytes: Int64(bitPattern: info.residentSize),
             footprintBytes: Int64(bitPattern: info.footprint),
             lifetimeMaxFootprintBytes: Int64(bitPattern: info.lifetimeMaxFootprint),
@@ -71,9 +86,8 @@ enum LibProc {
             diskWrittenBytes: Int64(bitPattern: info.diskWrite),
             pageIns: Int64(bitPattern: info.pageIns),
             wakeups: Int64(bitPattern: info.idleWakeups + info.interruptWakeups),
-            // billedEnergy is already an energy reading in vendor units, not
-            // a floating-point bit pattern; bit-casting it produced nonsense.
-            energy: Double(info.billedEnergy))
+            energy: energy,
+            energyNanojoules: energyNJ)
     }
 
     /// Reads the task info block (thread count, page faults). Returns nil when
@@ -81,23 +95,16 @@ enum LibProc {
     static func taskInfo(pid: pid_t) -> TaskInfo? {
         var info = TaskInfo()
         let size = Int32(MemoryLayout<TaskInfo>.size)
-        let written = withUnsafeMutablePointer(to: &info) { pointer in
-            pointer.withMemoryRebound(to: UnsafeMutableRawPointer.self, capacity: 1) { raw in
-                procPIDInfo(pid, procPIDTaskInfo, 0, raw, size)
-            }
+        let written = withUnsafeMutableBytes(of: &info) { raw in
+            procPIDInfo(pid, procPIDTaskInfo, 0, raw.baseAddress, size)
         }
         guard written == size else { return nil }
         return info
     }
 
-    /// PROC_PIDTBSDINFO and the size of struct proc_bsdinfo. The start time is
-    /// the last 16 bytes: pbi_start_tvsec at offset 120, pbi_start_tvusec at 128.
-    /// Tests check both offsets against the kernel process table.
     static let procPIDTBSDInfo: Int32 = 3
     static let bsdInfoSize = 136
 
-    /// The kernel start time of the live process at `pid`, or nil when it is gone
-    /// or not visible to this user. The same p_start value the process table carries.
     static func startTime(pid: pid_t) -> (seconds: Int64, microseconds: Int64)? {
         var raw = [UInt8](repeating: 0, count: bsdInfoSize)
         let written = raw.withUnsafeMutableBytes { buffer in
@@ -115,14 +122,10 @@ enum LibProc {
         mach_timebase_info(&base)
         return (base.numer, base.denom)
     }
-
 }
 
-/// `struct rusage_info_v4` from the SDK, mirrored field for field. The uuid is
-/// skipped by keeping its 16 bytes as a padding prefix so the offsets match.
+/// `struct rusage_info_v4` from the SDK (296 bytes), mirrored field for field.
 struct RUsageInfoV4 {
-    // The 16 uuid bytes, kept as 2-member tuples so the ABI offsets match
-    // struct rusage_info_v4 while staying inside lint limits.
     var uuidPaddingA: (UInt8, UInt8) = (0, 0)
     var uuidPaddingB: (UInt8, UInt8) = (0, 0)
     var uuidPaddingC: (UInt8, UInt8) = (0, 0)
@@ -166,6 +169,33 @@ struct RUsageInfoV4 {
     var servicedEnergy: UInt64 = 0
     var intervalMaxFootprint: UInt64 = 0
     var runnableTime: UInt64 = 0
+}
+
+/// `struct rusage_info_v6` from the SDK (464 bytes): v4 prefix + Apple Silicon
+/// P-core, nanojoule energy, neural footprint, and page-cache counters.
+struct RUsageInfoV6 {
+    var v4 = RUsageInfoV4()
+    var flags: UInt64 = 0
+    var userPTime: UInt64 = 0
+    var systemPTime: UInt64 = 0
+    var pInstructions: UInt64 = 0
+    var pCycles: UInt64 = 0
+    var energyNanojoules: UInt64 = 0
+    var pEnergyNanojoules: UInt64 = 0
+    var secureTimeInSystem: UInt64 = 0
+    var securePTimeInSystem: UInt64 = 0
+    var neuralFootprint: UInt64 = 0
+    var lifetimeMaxNeuralFootprint: UInt64 = 0
+    var intervalMaxNeuralFootprint: UInt64 = 0
+    var conclaveFootprint: UInt64 = 0
+    var pageWaitTimeMach: UInt64 = 0
+    var pageCacheHits: UInt64 = 0
+    var reserved0: UInt64 = 0
+    var reserved1: UInt64 = 0
+    var reserved2: UInt64 = 0
+    var reserved3: UInt64 = 0
+    var reserved4: UInt64 = 0
+    var reserved5: UInt64 = 0
 }
 
 @_silgen_name("proc_pid_rusage")

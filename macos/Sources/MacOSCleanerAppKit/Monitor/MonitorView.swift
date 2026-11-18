@@ -1,12 +1,11 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// The monitor screen: an icon rail of tabs across the top, one dashboard per
-/// tab, and the process inspector on the side. Lives inside the main window's
-/// detail column when the user picks Monitor in the sidebar.
+/// The monitor screen: an icon rail of tabs across the top and one dashboard per
+/// tab. Process inspection is hosted by ContentView's top-level `.inspector`.
 struct MonitorView: View {
     @Bindable var model: MonitorModel
-    @Environment(\.scenePhase) private var scenePhase
+    @FocusState private var isSearchFocused: Bool
     @AppStorage(MonitoringKeys.hiddenTabs) private var hiddenTabsRaw = ""
 
     var body: some View {
@@ -20,38 +19,7 @@ struct MonitorView: View {
             text: $model.searchText,
             placement: .toolbar,
             prompt: String(localized: "Search processes", comment: "Monitor search prompt"))
-        .inspector(isPresented: Binding(
-            get: { model.inspection != nil },
-            set: { shown in
-                // Closing the column (toggle, Esc, drag) ends the selection;
-                // the inspector could otherwise never be dismissed.
-                if !shown { model.clearSelection() }
-            }
-        )) {
-            if let inspection = model.inspection {
-                ProcessInspectorView(
-                    inspection: inspection,
-                    history: model.selectedAppHistory
-                ) { pid, force in
-                    model.quit(pid: pid, confirmedStart: inspection.startedAt, force: force)
-                }
-                .inspectorColumnWidth(min: 300, ideal: 380, max: 520)
-            } else if model.selectedGroupID != nil {
-                // The probes are still fetching for the fresh selection — a
-                // skeleton instead of the false "No selection" (Phase 3).
-                InspectorSkeletonView()
-                    .inspectorColumnWidth(min: 300, ideal: 380, max: 520)
-            } else {
-                ContentUnavailableView(
-                    String(localized: "No selection"),
-                    systemImage: "sidebar.trailing",
-                    description: Text(String(localized: "Select an app to see its details.")))
-                    .inspectorColumnWidth(min: 300, ideal: 380, max: 520)
-            }
-        }
-        // The engine boots at app scope; with no surface attached it
-        // self-throttles to a 30 s heartbeat, so appearing here restores the
-        // full cadence. start() is idempotent (guards on isRunning).
+        .searchFocused($isSearchFocused)
         .task { model.start() }
         .onAppear {
             model.setWindowVisible(true)
@@ -59,6 +27,8 @@ struct MonitorView: View {
         }
         .onDisappear { model.setWindowVisible(false) }
         .onChange(of: hiddenTabsRaw) { normalizeTabSelection() }
+        .onChange(of: model.selectedTab) { normalizeTabSelection() }
+        .onChange(of: model.searchFocusRequest) { isSearchFocused = true }
     }
 
     /// Falls back to Overview when the selected tab was hidden in Settings.
@@ -68,8 +38,6 @@ struct MonitorView: View {
         }
     }
 
-    /// The icon rail mirrors the visible tab set; tooltips carry the names for
-    /// keyboard and VoiceOver users. ⌘⌥1–⌘⌥9 pick the first nine tabs.
     private var tabRail: some View {
         let tabs = MonitorTab.visibleTabs
         return ScrollView(.horizontal, showsIndicators: false) {
@@ -99,7 +67,7 @@ struct MonitorView: View {
                 .foregroundStyle(model.selectedTab == tab ? tab.tint : .secondary)
         }
         .buttonStyle(.plain)
-        .help(tab.title)
+        .help(index < 9 ? "\(tab.title) (⌘⌥\(index + 1))" : tab.title)
         .accessibilityLabel(tab.title)
         .accessibilityAddTraits(model.selectedTab == tab ? [.isSelected] : [])
         if index < 9 {
@@ -113,29 +81,11 @@ struct MonitorView: View {
     @ViewBuilder
     private var content: some View {
         if model.snapshot == nil {
-            // First tick has not landed yet (~1–2s). Every tab would otherwise
-            // render fake zeros ("0.0% CPU", "0 B/s") or false empties ("This
-            // Mac does not have a battery", "No GPU readings") during warmup;
-            // one gate shows a skeleton of the real layout instead (Phase 3).
             MonitorSkeletonView()
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.sectionGap) {
-                    switch model.selectedTab {
-                    case .overview: OverviewTabView(model: model)
-                    case .cpu: CPUTabView(model: model)
-                    case .memory: MemoryTabView(model: model)
-                    case .disk: DiskTabView(model: model)
-                    case .network: NetworkTabView(model: model)
-                    case .gpu: GPUTabView(model: model)
-                    case .neural: NeuralTabView(model: model)
-                    case .battery: BatteryTabView(model: model)
-                    case .sound: SoundTabView(model: model)
-                    case .bluetooth: BluetoothTabView(model: model)
-                    case .projects: ProjectsTabView(model: model)
-                    case .agents: AgentsTabView(model: model)
-                    case .containers: ContainersTabView(model: model)
-                    }
+                    activeTabView
                     ProcessTableView(model: model)
                         .padding(.bottom, Spacing.elementSection)
                 }
@@ -143,11 +93,29 @@ struct MonitorView: View {
             }
         }
     }
+
+    @ViewBuilder
+    private var activeTabView: some View {
+        switch model.selectedTab {
+        case .overview: OverviewTabView(model: model)
+        case .cpu: CPUTabView(model: model)
+        case .memory: MemoryTabView(model: model)
+        case .disk: DiskTabView(model: model)
+        case .network: NetworkTabView(model: model)
+        case .gpu: GPUTabView(model: model)
+        case .neural: NeuralTabView(model: model)
+        case .battery: BatteryTabView(model: model)
+        case .sound: SoundTabView(model: model)
+        case .bluetooth: BluetoothTabView(model: model)
+        case .projects: ProjectsTabView(model: model)
+        case .agents: AgentsTabView(model: model)
+        case .containers: ContainersTabView(model: model)
+        }
+    }
 }
 
 // MARK: - CPU / Memory / Disk / Network
 
-/// "User 19% · System 8%" for the CPU tile.
 private func cpuSplitContext(_ cpu: CPUReading?) -> String {
     guard let cpu else { return "" }
     return String(
@@ -166,7 +134,7 @@ struct CPUTabView: View {
                 value: String(format: "%.1f", model.snapshot?.cpu.usagePercent ?? 0), unit: "%",
                 context: cpuSplitContext(model.snapshot?.cpu),
                 tint: MonitorTab.cpu.tint, points: model.livePoints(metric: .cpu), scale: 100.0)
-            HistoryChartHeading()
+            HistoryChartHeading(range: model.historyRange)
             HistoryChartSeries(model: model, metric: .cpu, tint: MonitorTab.cpu.tint)
         }
     }
@@ -184,7 +152,7 @@ struct MemoryTabView: View {
                         icon: "memorychip", value: MetricFormatting.byteCount(memory.appBytes), unit: nil,
                         context: MetricFormatting.byteCount(memory.totalBytes),
                         tint: MonitorTab.memory.tint, points: model.livePoints(metric: .memory),
-                        scale: Double(memory.totalBytes))
+                        scale: Double(max(1, memory.totalBytes)))
                     MetricTileView(
                         title: String(localized: "Wired", comment: "Memory tile"),
                         icon: "cable", value: MetricFormatting.byteCount(memory.wiredBytes), unit: nil,
@@ -196,10 +164,10 @@ struct MemoryTabView: View {
                     MetricTileView(
                         title: String(localized: "Swap Used", comment: "Memory tile"),
                         icon: "arrow.triangle.swap", value: MetricFormatting.byteCount(memory.swapUsedBytes), unit: nil,
-                        context: memory.pressure == .normal ? nil : String(localized: "Pressure high", comment: "Swap context"),
-                        tint: memory.pressure == .normal ? MonitorTab.memory.tint : SemanticScale.warning)
+                        context: memory.pressure.localizedTitle,
+                        tint: memory.pressure.tint)
                 }
-                HistoryChartHeading()
+                HistoryChartHeading(range: model.historyRange)
                 HistoryChartSeries(model: model, metric: .memory, tint: MonitorTab.memory.tint)
             }
         }
@@ -210,19 +178,36 @@ struct DiskTabView: View {
     let model: MonitorModel
 
     var body: some View {
+        let disk = model.snapshot?.disk
+        let readOps = disk?.readOperationsPerSecond ?? 0
+        let writeOps = disk?.writeOperationsPerSecond ?? 0
         VStack(alignment: .leading, spacing: Spacing.elementNormal) {
             HStack(spacing: Spacing.elementNormal) {
                 MetricTileView(
                     title: String(localized: "Read", comment: "Disk tile"),
-                    icon: "arrow.down.circle", value: MetricFormatting.rate(model.snapshot?.disk.readBytesPerSecond ?? 0),
-                    unit: nil, context: nil, tint: MonitorTab.disk.tint, points: model.livePoints(metric: .disk))
+                    icon: "arrow.down.circle", value: MetricFormatting.rate(disk?.readBytesPerSecond ?? 0),
+                    unit: nil,
+                    context: readOps > 0 ? "\(MetricFormatting.whole(readOps)) IOPS" : nil,
+                    tint: MonitorTab.disk.tint,
+                    points: model.livePoints(metricKey: "disk_read"))
                 MetricTileView(
                     title: String(localized: "Write", comment: "Disk tile"),
-                    icon: "arrow.up.circle", value: MetricFormatting.rate(model.snapshot?.disk.writeBytesPerSecond ?? 0),
-                    unit: nil, context: nil, tint: MonitorTab.disk.tint, points: model.livePoints(metric: .disk))
+                    icon: "arrow.up.circle", value: MetricFormatting.rate(disk?.writeBytesPerSecond ?? 0),
+                    unit: nil,
+                    context: writeOps > 0 ? "\(MetricFormatting.whole(writeOps)) IOPS" : nil,
+                    tint: MonitorTab.disk.secondarySeriesTint,
+                    points: model.livePoints(metricKey: "disk_write"))
             }
-            HistoryChartHeading()
-            HistoryChartSeries(model: model, metric: .disk, tint: MonitorTab.disk.tint)
+            HistoryChartHeading(range: model.historyRange)
+            DualHistoryChartSeries(
+                model: model,
+                unit: .disk,
+                primaryKey: "disk_read",
+                primaryLabel: String(localized: "Read", comment: "Disk read chart legend"),
+                primaryColor: MonitorTab.disk.tint,
+                secondaryKey: "disk_write",
+                secondaryLabel: String(localized: "Write", comment: "Disk write chart legend"),
+                secondaryColor: MonitorTab.disk.secondarySeriesTint)
         }
     }
 }
@@ -231,81 +216,65 @@ struct NetworkTabView: View {
     let model: MonitorModel
 
     var body: some View {
+        let network = model.snapshot?.network
         VStack(alignment: .leading, spacing: Spacing.elementNormal) {
             HStack(spacing: Spacing.elementNormal) {
                 MetricTileView(
                     title: String(localized: "Download", comment: "Network tile"),
-                    icon: "arrow.down", value: MetricFormatting.rate(model.snapshot?.network.downloadBytesPerSecond ?? 0),
-                    unit: nil, context: model.snapshot?.network.primaryInterface,
-                    tint: MonitorTab.network.tint, points: model.livePoints(metric: .network))
+                    icon: "arrow.down", value: MetricFormatting.rate(network?.downloadBytesPerSecond ?? 0),
+                    unit: nil, context: network?.primaryInterface,
+                    tint: MonitorTab.network.tint,
+                    points: model.livePoints(metricKey: "network_down"))
                 MetricTileView(
                     title: String(localized: "Upload", comment: "Network tile"),
-                    icon: "arrow.up", value: MetricFormatting.rate(model.snapshot?.network.uploadBytesPerSecond ?? 0),
-                    unit: nil, context: nil, tint: MonitorTab.network.tint, points: model.livePoints(metric: .network))
+                    icon: "arrow.up", value: MetricFormatting.rate(network?.uploadBytesPerSecond ?? 0),
+                    unit: nil,
+                    context: network.map { MetricFormatting.byteCount($0.totalUploadBytes) },
+                    tint: MonitorTab.network.secondarySeriesTint,
+                    points: model.livePoints(metricKey: "network_up"))
             }
-            HistoryChartHeading()
-            HistoryChartSeries(model: model, metric: .network, tint: MonitorTab.network.tint)
+            HistoryChartHeading(range: model.historyRange)
+            DualHistoryChartSeries(
+                model: model,
+                unit: .network,
+                primaryKey: "network_down",
+                primaryLabel: String(localized: "Download", comment: "Network download chart legend"),
+                primaryColor: MonitorTab.network.tint,
+                secondaryKey: "network_up",
+                secondaryLabel: String(localized: "Upload", comment: "Network upload chart legend"),
+                secondaryColor: MonitorTab.network.secondarySeriesTint)
         }
     }
 }
 
-/// The "Average today" heading above every metric tab's history chart.
+/// Time-range heading above every metric tab's history chart.
 struct HistoryChartHeading: View {
+    var range: HistoryRange = .day
+
     var body: some View {
-        Text(String(localized: "Average today", comment: "History chart heading"))
+        Text(range.headingTitle)
             .font(.callout.weight(.medium))
             .foregroundStyle(.secondary)
     }
 }
 
-/// History chart with a range picker; data comes from SQLite when open.
+/// Single-series history chart with range picker and live tail updates.
 struct HistoryChartSeries: View {
     let model: MonitorModel
     let metric: UsageMetric
     let tint: Color
 
-    @State private var points: [MetricsHistoryStore.SeriesPoint] = []
+    @State private var storedPoints: [MetricsHistoryStore.SeriesPoint] = []
 
     var body: some View {
+        let displayed = model.chartPoints(metricKey: metric.rawValue, stored: storedPoints)
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
-            Picker(String(localized: "Range", comment: "History range picker"), selection: Binding(
+            HistoryRangePicker(selection: Binding(
                 get: { model.historyRange },
-                // The .task(id:) below reloads on the same change; a manual
-                // Task here would run every range switch twice.
                 set: { model.historyRange = $0 }
-            )) {
-                ForEach(HistoryRange.allCases) { range in
-                    Text(range.title).tag(range)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(width: 320, alignment: .leading)
-            if points.count > 1 {
-                HistoryChartView(points: points, tint: tint, unit: metric)
-            } else {
-                liveFallback
-            }
-        }
-        // Reload on a range change, then once a minute while the tab shows, so the
-        // chart picks up samples recorded since it appeared.
-        .task(id: model.historyRange) {
-            while !Task.isCancelled {
-                await reload()
-                try? await Task.sleep(for: .seconds(60))
-            }
-        }
-    }
-
-    /// No stored points yet (fresh install): the live ring stands in so the
-    /// chart is never an empty box.
-    private var liveFallback: some View {
-        let live = model.livePoints(metric: metric).map { timestamp, value in
-            MetricsHistoryStore.SeriesPoint(timestamp: timestamp, average: value, peak: nil)
-        }
-        return Group {
-            if live.count > 1 {
-                HistoryChartView(points: live, tint: tint, unit: metric)
+            ))
+            if displayed.count > 1 {
+                HistoryChartView(points: displayed, tint: tint, unit: metric)
             } else {
                 Text(String(localized: "History builds up as the monitor runs.", comment: "Empty history note"))
                     .font(.callout)
@@ -313,12 +282,76 @@ struct HistoryChartSeries: View {
                     .frame(maxWidth: .infinity, minHeight: 120, alignment: .center)
             }
         }
+        .task(id: "\(metric.rawValue)-\(model.historyRange.rawValue)") {
+            while !Task.isCancelled {
+                storedPoints = await model.series(metric: metric)
+                try? await Task.sleep(for: .seconds(15))
+            }
+        }
     }
+}
 
-    /// Stored points only. When there are none, liveFallback draws the live ring,
-    /// so the fallback updates every tick instead of freezing a copy.
-    private func reload() async {
-        points = await model.series(metric: metric)
+/// Dual-series history chart (Disk Read/Write, Network Download/Upload).
+struct DualHistoryChartSeries: View {
+    let model: MonitorModel
+    let unit: UsageMetric
+    let primaryKey: String
+    let primaryLabel: String
+    let primaryColor: Color
+    let secondaryKey: String
+    let secondaryLabel: String
+    let secondaryColor: Color
+
+    @State private var primaryStored: [MetricsHistoryStore.SeriesPoint] = []
+    @State private var secondaryStored: [MetricsHistoryStore.SeriesPoint] = []
+
+    var body: some View {
+        let primary = model.chartPoints(metricKey: primaryKey, stored: primaryStored)
+        let secondary = model.chartPoints(metricKey: secondaryKey, stored: secondaryStored)
+        VStack(alignment: .leading, spacing: Spacing.elementTight) {
+            HistoryRangePicker(selection: Binding(
+                get: { model.historyRange },
+                set: { model.historyRange = $0 }
+            ))
+            if primary.count > 1 || secondary.count > 1 {
+                DualHistoryChartView(
+                    primaryLabel: primaryLabel,
+                    primaryColor: primaryColor,
+                    primaryPoints: primary,
+                    secondaryLabel: secondaryLabel,
+                    secondaryColor: secondaryColor,
+                    secondaryPoints: secondary,
+                    unit: unit)
+            } else {
+                Text(String(localized: "History builds up as the monitor runs.", comment: "Empty history note"))
+                    .font(.callout)
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, minHeight: 120, alignment: .center)
+            }
+        }
+        .task(id: "\(primaryKey)-\(secondaryKey)-\(model.historyRange.rawValue)") {
+            while !Task.isCancelled {
+                async let first = model.series(metricKey: primaryKey)
+                async let second = model.series(metricKey: secondaryKey)
+                (primaryStored, secondaryStored) = await (first, second)
+                try? await Task.sleep(for: .seconds(15))
+            }
+        }
+    }
+}
+
+private struct HistoryRangePicker: View {
+    @Binding var selection: HistoryRange
+
+    var body: some View {
+        Picker(String(localized: "Range", comment: "History range picker"), selection: $selection) {
+            ForEach(HistoryRange.allCases) { range in
+                Text(range.title).tag(range)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .frame(width: 320, alignment: .leading)
     }
 }
 
@@ -329,21 +362,36 @@ struct GPUTabView: View {
 
     var body: some View {
         let devices = model.snapshot?.gpu.devices ?? []
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: Spacing.elementNormal)], spacing: Spacing.elementNormal) {
-            ForEach(devices) { device in
-                MetricTileView(
-                    title: device.name, icon: "bolt",
-                    value: device.utilizationPercent.map { String(format: "%.0f", $0) } ?? "-",
-                    unit: device.utilizationPercent == nil ? nil : "%",
-                    context: device.coreCount.map { String(localized: "\($0) cores", comment: "GPU core count") },
-                    tint: MonitorTab.gpu.tint)
-            }
-            if devices.isEmpty {
-                ContentUnavailableView(
-                    String(localized: "No GPU readings"), systemImage: "bolt.slash",
-                    description: Text(String(localized: "This Mac did not report GPU statistics.", comment: "GPU empty state")))
+        if devices.isEmpty {
+            ContentUnavailableView(
+                String(localized: "No GPU readings"), systemImage: "bolt.slash",
+                description: Text(String(localized: "This Mac did not report GPU statistics.", comment: "GPU empty state")))
+        } else {
+            VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: Spacing.elementNormal)], spacing: Spacing.elementNormal) {
+                    ForEach(devices) { device in
+                        MetricTileView(
+                            title: device.name, icon: "bolt",
+                            value: device.primaryUtilization.map { String(format: "%.0f", $0) } ?? "-",
+                            unit: device.primaryUtilization == nil ? nil : "%",
+                            context: gpuCoreContext(device),
+                            tint: MonitorTab.gpu.tint)
+                    }
+                }
+                ForEach(devices) { device in
+                    if device.hasDetailedTelemetry {
+                        AppleSiliconGPUCard(gpu: device)
+                    }
+                }
             }
         }
+    }
+
+    private func gpuCoreContext(_ device: GPUDeviceReading) -> String? {
+        guard let cores = device.coreCount else { return nil }
+        return cores == 1
+            ? String(localized: "1 core", comment: "GPU core count, singular")
+            : String(localized: "\(cores) cores", comment: "GPU core count")
     }
 }
 
@@ -379,25 +427,16 @@ struct BatteryTabView: View {
                 HStack(spacing: Spacing.elementNormal) {
                     MetricTileView(
                         title: String(localized: "Battery", comment: "Battery tile"),
-                        icon: "battery.100",
+                        icon: power.batterySymbolName,
                         value: power.level.map { MetricFormatting.percent($0) } ?? "-", unit: nil,
-                        context: power.isCharging
-                            ? String(localized: "Charging", comment: "Battery state")
-                            : power.timeToEmptySeconds.map { MetricFormatting.duration($0) },
+                        context: power.batteryStatusContext,
                         tint: MonitorTab.battery.tint)
                     if let wattage = power.wattage {
                         MetricTileView(
                             title: String(localized: "Power", comment: "Wattage tile"),
                             icon: "bolt.badge.clock",
                             value: MetricFormatting.watts(abs(wattage)), unit: nil,
-                            // MON-01: the direction follows the same
-                            // isCharging source as the Battery tile — the
-                            // SMC amperage sign disagrees with IOPS on some
-                            // hardware and used to show "Discharging" next
-                            // to a charging battery.
-                            context: power.isCharging
-                                ? String(localized: "Charging", comment: "Power direction")
-                                : String(localized: "Discharging", comment: "Power direction"),
+                            context: power.powerDirectionLabel,
                             tint: MonitorTab.battery.tint)
                     }
                     if let health = power.healthFraction {
@@ -405,7 +444,11 @@ struct BatteryTabView: View {
                             title: String(localized: "Health", comment: "Battery health tile"),
                             icon: "heart.text.square",
                             value: MetricFormatting.percent(health), unit: nil,
-                            context: power.cycleCount.map { String(localized: "\($0) cycles", comment: "Cycle count") },
+                            context: power.cycleCount.map {
+                                $0 == 1
+                                    ? String(localized: "1 cycle", comment: "Battery cycle count, singular")
+                                    : String(localized: "\($0) cycles", comment: "Cycle count")
+                            },
                             tint: MonitorTab.battery.tint)
                     }
                 }
@@ -418,7 +461,6 @@ struct BatteryTabView: View {
         }
     }
 
-    /// What keeps the Mac awake, strongest claim first.
     private func assertionList(_ power: PowerReading) -> some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             Text(String(localized: "Keeping the Mac awake", comment: "Assertions heading"))

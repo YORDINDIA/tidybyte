@@ -1,28 +1,27 @@
-import SwiftUI
 import MacOSCleanerCore
+import SwiftUI
 
 public struct CategoricalPalette {
     public let soft: Color
     public let mid: Color
     public let ink: Color
+    public let border: Color
 
-    private init(_ color: Color) {
-        soft = color.opacity(0.12)
+    private init(_ color: Color, darkInk: Bool = false) {
+        soft = color.opacity(0.14)
         mid = color
-        // Fixed black, not Color.primary: labels sit on bright system-color
-        // fills (Treemap, Bubbles), where the dark-mode primary (white) loses
-        // all contrast.
-        ink = .black
+        ink = darkInk ? Color.black.opacity(0.9) : .white
+        border = color.opacity(0.32)
     }
 }
 
 public extension CategoricalPalette {
     static var blue: Self { Self(Color(nsColor: .systemBlue)) }
     static var purple: Self { Self(Color(nsColor: .systemPurple)) }
-    static var green: Self { Self(Color(nsColor: .systemGreen)) }
-    static var yellow: Self { Self(Color(nsColor: .systemYellow)) }
-    static var orange: Self { Self(Color(nsColor: .systemOrange)) }
-    static var teal: Self { Self(Color(nsColor: .systemTeal)) }
+    static var green: Self { Self(Color(nsColor: .systemGreen), darkInk: true) }
+    static var yellow: Self { Self(Color(nsColor: .systemYellow), darkInk: true) }
+    static var orange: Self { Self(Color(nsColor: .systemOrange), darkInk: true) }
+    static var teal: Self { Self(Color(nsColor: .systemTeal), darkInk: true) }
     static var pink: Self { Self(Color(nsColor: .systemPink)) }
     static var coral: Self { Self(Color(nsColor: .systemRed)) }
     static var protected: Self { Self(Color(nsColor: .systemPurple)) }
@@ -75,69 +74,24 @@ public extension FindingCategory {
     /// Returns the categorical color palette associated with this finding type.
     var palette: CategoricalPalette {
         switch self {
-        case .largeFile:
+        case .largeFile, .iosDeviceBackup, .timeMachineBackup, .largeFileReview:
             return .coral
-        case .duplicate:
+        case .duplicate, .dockerCleanup, .systemDeep, .macOSSystemCache, .cloudStorageCache, .vmToolCache:
             return .blue
-        case .cache:
+        case .cache, .packageManagerCleanup, .userEssentials, .developerToolCache, .applicationSupportCache:
             return .green
-        case .log:
+        case .log, .screenshot:
             return .yellow
-        case .developerArtifact:
+        case .developerArtifact, .codingAgentArtifact, .officeAppCache, .developmentAppCache:
             return .orange
-        case .appLeftover:
+        case .appLeftover, .finderMetadata, .sandboxedAppCache, .uninstalledAppData:
             return .teal
-        case .oldDownload:
+        case .oldDownload, .oldInstaller, .browserCache, .appleSiliconUpdate:
             return .purple
         case .organization:
             return .pink
-        case .packageManagerCleanup:
-            return .green
-        case .dockerCleanup:
-            return .blue
-        case .codingAgentArtifact:
-            return .orange
         case .protected:
             return .protected
-        case .oldInstaller:
-            return .purple
-        case .screenshot:
-            return .yellow
-        // mo clean sections
-        case .systemDeep:
-            return .blue
-        case .userEssentials:
-            return .green
-        case .finderMetadata:
-            return .teal
-        case .macOSSystemCache:
-            return .blue
-        case .sandboxedAppCache:
-            return .teal
-        case .browserCache:
-            return .purple
-        case .cloudStorageCache:
-            return .blue
-        case .officeAppCache:
-            return .orange
-        case .developerToolCache:
-            return .green
-        case .developmentAppCache:
-            return .orange
-        case .vmToolCache:
-            return .blue
-        case .applicationSupportCache:
-            return .green
-        case .uninstalledAppData:
-            return .teal
-        case .appleSiliconUpdate:
-            return .purple
-        case .iosDeviceBackup:
-            return .coral
-        case .timeMachineBackup:
-            return .coral
-        case .largeFileReview:
-            return .coral
         }
     }
 }

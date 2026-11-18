@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import os
 
@@ -100,15 +101,23 @@ public actor UndoManagerService {
     private let memory: MemoryEngine
     private let fileManager: FileManager
     private let trash: any TrashService
+    private let policy: PathSafetyPolicy
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "UndoManagerService")
 
     /// `trash` receives the artifacts that undo removes (archive copies, aliases,
     /// symlinks). They go to the Trash, never straight to deletion.
-    public init(store: SQLiteStore, memory: MemoryEngine, fileManager: FileManager = .default, trash: (any TrashService)? = nil) {
+    public init(
+        store: SQLiteStore,
+        memory: MemoryEngine,
+        fileManager: FileManager = .default,
+        trash: (any TrashService)? = nil,
+        policy: PathSafetyPolicy = PathSafetyPolicy()
+    ) {
         self.store = store
         self.memory = memory
         self.fileManager = fileManager
         self.trash = trash ?? FileSystemTrashProvider()
+        self.policy = policy
     }
 
     /// Batch-restore with a simple success count. Prefer `restoreBatchDetailed` when
@@ -118,23 +127,22 @@ public actor UndoManagerService {
         return (result.restored, result.failures.count)
     }
 
-    /// Batch-restore with per-record failure details. Restores parent directories
-    /// before their children so nested files can be restored once their parent is
-    /// back, and defers archive-trash records until their restore sibling succeeded.
+    /// Batch-restore with per-record failure details. Defers archive-trash records
+    /// until their restore sibling succeeded, and restores shallower paths first.
     public func restoreBatchDetailed(_ undos: [UndoRecord], regretReason: String? = nil) async -> UndoRestoreBatchResult {
         let archiveSiblingLogIDs = Self.archiveSiblingLogIDs(in: undos)
         let ordered = undos.enumerated().sorted { lhs, rhs in
             let left = lhs.element
             let right = rhs.element
-            let leftDepth = left.restoreURL?.pathComponents.count ?? 0
-            let rightDepth = right.restoreURL?.pathComponents.count ?? 0
-            if leftDepth != rightDepth {
-                return leftDepth < rightDepth
-            }
             let leftDefers = left.inverseAction == .moveToTrash && archiveSiblingLogIDs.contains(left.operationLogID)
             let rightDefers = right.inverseAction == .moveToTrash && archiveSiblingLogIDs.contains(right.operationLogID)
             if leftDefers != rightDefers {
                 return !leftDefers
+            }
+            let leftDepth = left.restoreURL?.pathComponents.count ?? 0
+            let rightDepth = right.restoreURL?.pathComponents.count ?? 0
+            if leftDepth != rightDepth {
+                return leftDepth < rightDepth
             }
             return lhs.offset < rhs.offset
         }
@@ -182,7 +190,7 @@ public actor UndoManagerService {
         // unfolding the duplicate never touches the keeper, so a deleted keeper
         // must not kill the undo.
         if undo.inverseAction != .unfoldClone,
-           let trashURL = undo.trashURL, !fileManager.fileExists(atPath: trashURL.path) {
+           let trashURL = undo.trashURL, !Self.itemExistsOnDisk(at: trashURL) {
             var failed = undo
             failed.status = .failed
             try await store.saveUndoRecord(failed)
@@ -194,13 +202,9 @@ public actor UndoManagerService {
             guard let trashURL = undo.trashURL, let restoreURL = undo.restoreURL else {
                 throw UndoManagerServiceError.undoUnavailable
             }
-            if fileManager.fileExists(atPath: restoreURL.path) {
+            if Self.itemExistsOnDisk(at: restoreURL) {
                 throw UndoManagerServiceError.restoreDestinationExists(restoreURL)
             }
-            // The item in Trash must be the exact file this record trashed (device/inode
-            // match against the identity captured at trash time). A different file at the
-            // recorded trash path is never moved over the original location. Legacy
-            // records without a captured identity are restored as before.
             try await verifyTrashIdentity(of: undo, trashURL: trashURL)
             try ensureParentDirectory(for: restoreURL)
             try fileManager.moveItem(at: trashURL, to: restoreURL)
@@ -208,7 +212,7 @@ public actor UndoManagerService {
             guard let currentURL = undo.trashURL, let restoreURL = undo.restoreURL else {
                 throw UndoManagerServiceError.undoUnavailable
             }
-            let destination = try collisionFreeRestoreURL(restoreURL)
+            let destination = try collisionFreeRestoreURL(restoreURL, isDirectory: Self.isDirectoryOnDisk(at: currentURL))
             try await verifyMoveSourceIdentity(of: undo, currentURL: currentURL)
             try ensureParentDirectory(for: destination)
             try fileManager.moveItem(at: currentURL, to: destination)
@@ -219,12 +223,11 @@ public actor UndoManagerService {
             let log = try await store.loadOperationLog(id: undo.operationLogID)
             guard let originalTags = log?.beforeState["tags"].flatMap(Self.decodeTags),
                   let addedTags = log?.afterState["tags"].flatMap(Self.decodeTags) else {
-                // Cannot restore without knowing original and added tags — do not destroy current state
                 throw UndoManagerServiceError.undoUnavailable
             }
-            // Merge: start with current tags, remove what was added, ensure originals are present.
-            // This preserves any tags the user added after the initial operation.
-            let currentTags = Set(Self.readCurrentTags(from: restoreURL))
+            // Merge: start with current live tags (preserving color suffixes),
+            // remove what was added, ensure originals are present.
+            let currentTags = Set(try FinderTagHelper.read(from: restoreURL))
             let addedSet = Set(addedTags)
             let originalSet = Set(originalTags)
             let merged = currentTags.subtracting(addedSet).union(originalSet)
@@ -233,15 +236,13 @@ public actor UndoManagerService {
             guard let createdURL = undo.restoreURL else {
                 throw UndoManagerServiceError.undoUnavailable
             }
-            // Never delete an artifact this record does not provably own, and never
-            // delete an archive copy while the original file is still unrestored.
             try await verifyOwnership(of: undo, artifactURL: createdURL)
             _ = try trash.trashItem(at: createdURL)
         case .rename:
             guard let currentURL = undo.trashURL, let restoreURL = undo.restoreURL else {
                 throw UndoManagerServiceError.undoUnavailable
             }
-            let destination = try collisionFreeRestoreURL(restoreURL)
+            let destination = try collisionFreeRestoreURL(restoreURL, isDirectory: Self.isDirectoryOnDisk(at: currentURL))
             try await verifyMoveSourceIdentity(of: undo, currentURL: currentURL)
             try ensureParentDirectory(for: destination)
             try fileManager.moveItem(at: currentURL, to: destination)
@@ -274,11 +275,20 @@ public actor UndoManagerService {
         try await store.saveUndoRecord(restored)
         if let regretReason {
             let log = try await store.loadOperationLog(id: undo.operationLogID)
-            // Use file_id from beforeState if available, otherwise use the restore URL path as a stable identifier.
-            // The operationLogID is NOT a file ID — using it would corrupt regret-learning data.
-            let fileID = log?.beforeState["file_id"] ?? undo.restoreURL?.path
+            let originalTargetPath: String? = switch log?.operationType {
+            case .createAlias, .createSymlink, .move, .rename, .moveToTrash, .archive:
+                log?.beforeState["path"] ?? undo.restoreURL?.path
+            default:
+                undo.restoreURL?.path ?? log?.beforeState["path"]
+            }
+            let fileID = log?.beforeState["file_id"] ?? originalTargetPath
             if let fileID {
-                try await memory.recordRegret(operationLogID: undo.operationLogID, restoredFileID: fileID, reason: regretReason)
+                try await memory.recordRegret(
+                    operationLogID: undo.operationLogID,
+                    restoredFileID: fileID,
+                    reason: regretReason,
+                    restoredFilePath: originalTargetPath
+                )
             } else {
                 logger.warning("Cannot record regret: no file_id in beforeState and no restoreURL for undo \(undo.id, privacy: .public)")
             }
@@ -286,36 +296,70 @@ public actor UndoManagerService {
         return restored
     }
 
-    /// Recreate a missing parent directory so a restored file has a place to land.
-    /// A no-op when the parent already exists.
+    /// Recreate a missing parent directory after validating safety policy and
+    /// verifying no intermediate user ancestor is a symlink.
     private func ensureParentDirectory(for url: URL) throws {
         let parent = url.deletingLastPathComponent()
-        guard !fileManager.fileExists(atPath: parent.path) else {
+        if case .deny = policy.decide(target: parent, isDirectory: true) {
+            throw SafetyAuditError.unsafeDestination(parent)
+        }
+        try verifyNoSymlinkAncestors(for: parent)
+        guard !Self.itemExistsOnDisk(at: parent) else {
             return
         }
         try fileManager.createDirectory(at: parent, withIntermediateDirectories: true)
     }
 
+    private func verifyNoSymlinkAncestors(for directory: URL) throws {
+        let components = directory.pathComponents
+        // Skip root ("/") and depth-1 system symlinks ("/var", "/tmp", "/etc").
+        guard components.count > 2 else { return }
+        var current = URL(fileURLWithPath: "/", isDirectory: true)
+        for index in 1..<components.count {
+            current.appendPathComponent(components[index], isDirectory: true)
+            guard index >= 2 else { continue }
+            var st = Darwin.stat()
+            if Darwin.lstat(current.path, &st) == 0 {
+                if (st.st_mode & S_IFMT) == S_IFLNK {
+                    throw SafetyAuditError.unsafeDestination(current)
+                }
+            } else if errno == ENOENT || errno == ENOTDIR {
+                break
+            } else {
+                throw SafetyAuditError.unsafeDestination(current)
+            }
+        }
+    }
+
     /// When the original restore location is occupied, restore alongside it
-    /// with a numeric suffix instead of failing outright. The previous
-    /// fail-closed behavior stranded undoable files behind unrelated new
-    /// files; a suffixed restore keeps the data recoverable and the
-    /// destination file untouched.
-    private func collisionFreeRestoreURL(_ restoreURL: URL) throws -> URL {
-        guard fileManager.fileExists(atPath: restoreURL.path) else {
+    /// with a numeric suffix instead of failing outright. Uses lstat so broken
+    /// symlinks count as existing entries, and preserves dots inside folder names.
+    private func collisionFreeRestoreURL(_ restoreURL: URL, isDirectory: Bool = false) throws -> URL {
+        guard Self.itemExistsOnDisk(at: restoreURL) else {
             return restoreURL
         }
         let parent = restoreURL.deletingLastPathComponent()
-        let ext = restoreURL.pathExtension
-        let base = restoreURL.deletingPathExtension().lastPathComponent
+        let base = isDirectory ? restoreURL.lastPathComponent : restoreURL.deletingPathExtension().lastPathComponent
+        let ext = isDirectory ? "" : restoreURL.pathExtension
         for counter in 1...1000 {
             let suffix = ext.isEmpty ? "" : ".\(ext)"
-            let candidate = parent.appendingPathComponent("\(base)-restored-\(counter)\(suffix)")
-            if !fileManager.fileExists(atPath: candidate.path) {
+            let candidate = parent.appendingPathComponent("\(base)-restored-\(counter)\(suffix)", isDirectory: isDirectory)
+            if !Self.itemExistsOnDisk(at: candidate) {
                 return candidate
             }
         }
         throw UndoManagerServiceError.restoreDestinationExists(restoreURL)
+    }
+
+    nonisolated private static func itemExistsOnDisk(at url: URL) -> Bool {
+        var st = Darwin.stat()
+        return Darwin.lstat(url.path, &st) == 0
+    }
+
+    nonisolated private static func isDirectoryOnDisk(at url: URL) -> Bool {
+        var st = Darwin.stat()
+        guard Darwin.lstat(url.path, &st) == 0 else { return false }
+        return (st.st_mode & S_IFMT) == S_IFDIR
     }
 
     /// Verify the moved-aside file is still the one this record moved (the
@@ -359,11 +403,27 @@ public actor UndoManagerService {
     /// 2. The artifact at `artifactURL` must be the exact file this record created
     ///    (device/inode match). A different file is never deleted.
     private func verifyOwnership(of undo: UndoRecord, artifactURL: URL) async throws {
-        // Only the sibling records sharing this operation log are relevant; loading
-        // every undo record would be O(N) per restore and O(N²) for batch restores.
         let siblingRecords = try await store.loadUndoRecords(operationLogID: undo.operationLogID)
-        let originalRestore = siblingRecords.first { $0.inverseAction == .restore }
-        if let originalRestore, originalRestore.status != .restored {
+        if let originalRestore = siblingRecords.first(where: { $0.inverseAction == .restore }),
+           originalRestore.status != .restored {
+            let originalPermanentlyGone: Bool = switch originalRestore.status {
+            case .failed, .expired, .notUndoable:
+                true
+            case .available, .pending, .partiallyUndoable:
+                originalRestore.trashURL.map { !Self.itemExistsOnDisk(at: $0) } ?? true
+            case .restored, .reinstallable:
+                false
+            }
+            if originalPermanentlyGone {
+                if originalRestore.status == .available || originalRestore.status == .pending {
+                    var failedOriginal = originalRestore
+                    failedOriginal.status = .failed
+                    try? await store.saveUndoRecord(failedOriginal)
+                }
+                var failedArchiveUndo = undo
+                failedArchiveUndo.status = .failed
+                try? await store.saveUndoRecord(failedArchiveUndo)
+            }
             throw UndoManagerServiceError.archiveOriginalNotRestored(originalRestore.restoreURL ?? artifactURL)
         }
         let log = try await store.loadOperationLog(id: undo.operationLogID)
@@ -377,25 +437,15 @@ public actor UndoManagerService {
         }
     }
 
-    private nonisolated static func decodeTags(_ value: String) -> [String] {
+    nonisolated private static func decodeTags(_ value: String) -> [String] {
         guard !value.isEmpty else {
             return []
         }
-        return value.split(separator: ",").map(String.init)
-    }
-
-    /// Read current Finder tags from a file's extended attributes.
-    private nonisolated static func readCurrentTags(from url: URL) -> [String] {
-        let path = url.path
-        let key = "com.apple.metadata:_kMDItemUserTags"
-        let size = getxattr(path, key, nil, 0, 0, 0)
-        guard size > 0 else { return [] }
-        var buffer = [UInt8](repeating: 0, count: size)
-        let read = getxattr(path, key, &buffer, size, 0, 0)
-        guard read > 0 else { return [] }
-        guard let plist = try? PropertyListSerialization.propertyList(from: Data(buffer), format: nil) as? [String] else {
-            return []
+        if value.hasPrefix("["),
+           let data = value.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode([String].self, from: data) {
+            return decoded
         }
-        return plist
+        return value.split(separator: ",").map(String.init)
     }
 }

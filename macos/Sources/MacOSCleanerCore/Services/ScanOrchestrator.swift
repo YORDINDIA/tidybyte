@@ -99,6 +99,7 @@ public actor ScanOrchestrator {
         var packageCandidates: [PackageCleanupCandidate] = []
         var contentSummaries: [ContentSummary] = []
         var notices: [ScanNotice] = []
+        var didDetectProjects = false
         /// True once the rule engine has run, so the cancellation path does
         /// not run it a second time over the same files.
         var didRunRules = false
@@ -214,7 +215,7 @@ public actor ScanOrchestrator {
                 crawlSink = nil
             }
             let crawl = await crawler.crawl(rootURLs: roots, sessionID: session.id, progress: crawlSink)
-            finishStage("Crawl")
+            finishStage(String(localized: "Crawl", comment: "Scan stage log label"))
             let files = crawl.files
             partial.files = crawl.files
             partial.errors = crawl.errors
@@ -234,6 +235,7 @@ public actor ScanOrchestrator {
             // Content extraction, duplicate detection, and project detection are independent of each other.
             let projects = try await projectDetector.detectProjects(in: files)
             partial.projects = projects
+            partial.didDetectProjects = true
             let sessionID = session.id // Capture as local to avoid data race
 
             // Run duplicate detection in parallel with content extraction (they are independent).
@@ -249,7 +251,7 @@ public actor ScanOrchestrator {
                 contentSummaries = await contentExtractor.summarize(files: files, privacyMode: providerSettings.privacyMode)
             }
             let duplicateAnalysis = try await duplicateTask
-            finishStage("Duplicates and content")
+            finishStage(String(localized: "Duplicates and content", comment: "Scan stage log label"))
             partial.contentSummaries = contentSummaries
             partial.fingerprints = duplicateAnalysis.fingerprints
             partial.findings += duplicateAnalysis.findings
@@ -261,7 +263,7 @@ public actor ScanOrchestrator {
             let (ruleFindings, ruleRecommendations) = try await ruleEngine.analyze(
                 files: files, projects: projects, sessionID: sessionID, posture: posture)
             let (organizationFindings, organizationRecommendations) = try await organizationPlanner
-                .suggestOrganization(files: files, sessionID: sessionID)
+                .suggestOrganization(files: files, sessionID: sessionID, posture: posture)
             partial.edges += projectEdges
             partial.findings += ruleFindings + organizationFindings
             partial.recommendations += ruleRecommendations + organizationRecommendations
@@ -273,7 +275,7 @@ public actor ScanOrchestrator {
             } else {
                 packageResult = ([], [], [])
             }
-            finishStage("Rules and packages")
+            finishStage(String(localized: "Rules and packages", comment: "Scan stage log label"))
             partial.findings += packageResult.0
             partial.recommendations += packageResult.1
             partial.packageCandidates = packageResult.2
@@ -319,7 +321,7 @@ public actor ScanOrchestrator {
                 filesByID: filesByID,
                 aiRecommendations: aiRecommendations
             )
-            finishStage("Memory, AI, and plan")
+            finishStage(String(localized: "Memory, AI, and plan", comment: "Scan stage log label"))
             return try await finalizeScan(
                 session: &session,
                 files: crawl.files,
@@ -350,31 +352,32 @@ public actor ScanOrchestrator {
             }
             session.completedAt = Date()
             session.status = .cancelled
-            // The rule pass is one fast in-memory sweep. Without it, a stop
-            // during the long crawl — the most common cancel point — would
-            // still show an empty review. Run it off the cancelled task so
-            // `detectProjects`/`analyze`'s own cancellation checks don't throw;
-            // duplicates are skipped: that stage is the expensive one, and its
-            // in-flight work is not recoverable after cancellation anyway.
+            partial.notices.append(ScanNotice(message: String(
+                localized: "Scan was stopped early before finishing. Results show only the items scanned so far.",
+                comment: "Scan notice when a scan is cancelled early")))
             if !partial.didRunRules, !partial.files.isEmpty {
                 let ruleEngine = self.ruleEngine
                 let organizationPlanner = self.organizationPlanner
                 let projectDetector = self.projectDetector
                 let partialFiles = partial.files
+                let existingProjects = partial.projects
+                let alreadyDetectedProjects = partial.didDetectProjects
                 let partialSessionID = session.id
                 let partialPosture = posture
                 let analysis: CancelledScanAnalysis?
                 do {
                     analysis = try await Task.detached { () -> CancelledScanAnalysis in
-                    let projects = try await projectDetector.detectProjects(in: partialFiles)
-                    let (ruleFindings, ruleRecommendations) = try await ruleEngine.analyze(
-                        files: partialFiles, projects: projects, sessionID: partialSessionID, posture: partialPosture)
-                    let (organizationFindings, organizationRecommendations) = try await organizationPlanner
-                        .suggestOrganization(files: partialFiles, sessionID: partialSessionID)
-                    return CancelledScanAnalysis(
-                        projects: projects,
-                        findings: ruleFindings + organizationFindings,
-                        recommendations: ruleRecommendations + organizationRecommendations)
+                        let projects = alreadyDetectedProjects
+                            ? existingProjects
+                            : try await projectDetector.detectProjects(in: partialFiles)
+                        let (ruleFindings, ruleRecommendations) = try await ruleEngine.analyze(
+                            files: partialFiles, projects: projects, sessionID: partialSessionID, posture: partialPosture)
+                        let (organizationFindings, organizationRecommendations) = try await organizationPlanner
+                            .suggestOrganization(files: partialFiles, sessionID: partialSessionID, posture: partialPosture)
+                        return CancelledScanAnalysis(
+                            projects: projects,
+                            findings: ruleFindings + organizationFindings,
+                            recommendations: ruleRecommendations + organizationRecommendations)
                     }.value
                 } catch {
                     logger.error("Rule pass on the stopped scan failed: \(error.localizedDescription, privacy: .public)")
@@ -569,7 +572,7 @@ public actor ScanOrchestrator {
         await notifyProgress(2, String(localized: "Scanning known paths"))
         var session = session
         let result = await moCleanScanner.scan(section: section, sessionID: session.id)
-        finishStage("Known-path scan")
+        finishStage(String(localized: "Known-path scan", comment: "Scan stage log label"))
         partial.files = result.files
         partial.errors = result.crawlErrors
         partial.findings = result.findings

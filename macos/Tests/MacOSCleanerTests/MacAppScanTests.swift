@@ -171,6 +171,8 @@ final class MacAppScanTests: XCTestCase {
         host.frame = NSRect(origin: .zero, size: size)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
         window.contentView = host
         window.setFrame(NSRect(origin: .zero, size: size), display: true)
         host.layoutSubtreeIfNeeded()
@@ -184,10 +186,10 @@ final class MacAppScanTests: XCTestCase {
     func testActiveDecisionChangesTheRowAppearance() throws {
         let approved = try renderRow(decision: .approved)
         let undecided = try renderRow(decision: .undecided)
-        let folder = FileManager.default.temporaryDirectory
+        let folder = try TestFixtures.makeTemporaryDirectory(named: "mac-app-row-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
         try approved.write(to: folder.appendingPathComponent("mac-app-row-approved.png"))
         try undecided.write(to: folder.appendingPathComponent("mac-app-row-undecided.png"))
-        print("MAC-19 row renders written to \(folder.path)")
         XCTAssertNotEqual(approved, undecided, "The approved row must look different from an undecided row")
     }
 

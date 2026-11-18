@@ -1,8 +1,7 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// A view that displays project relationships as a simple graph visualization.
-/// Shows connections between files based on their relationship edges (duplicates, generated files, etc.).
+/// Displays project relationships as a simple graph visualization.
 struct RelationshipGraphView: View {
     @Bindable var model: AppViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -12,70 +11,68 @@ struct RelationshipGraphView: View {
     @State private var hoveredNode: String?
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         VStack(alignment: .leading, spacing: 12) {
-            header
+            header(override: override)
             if edges.isEmpty {
-                emptyState
+                emptyState(override: override)
             } else {
-                graphContent
+                graphContent(override: override)
             }
         }
         .padding(Spacing.cardPadding)
     }
 
-    private var header: some View {
+    private func header(override: AppLanguage?) -> some View {
         HStack(spacing: Spacing.elementTight) {
             Image(systemName: "point.3.connected.trianglepath.dotted")
                 .foregroundStyle(Primary.primary)
                 .accessibilityHidden(true)
-            Text(String(localized: "Project Relationships", comment: "Relationship graph header"))
+            Text(L10n.string("Project Relationships", language: override))
                 .font(.app(.h3))
-                
                 .foregroundStyle(Color.primary)
             Spacer()
             Text(
                 edges.count == 1
-                    ? String(localized: "1 connection", comment: "Relationship edge count, singular")
-                    : String(localized: "\(edges.count) connections", comment: "Relationship edge count"))
-                .appFont(.labelMedium)
-                
-                .foregroundStyle(Color.secondary)
+                    ? L10n.string("1 connection", language: override)
+                    : L10n.format("%lld connections", language: override, edges.count)
+            )
+            .appFont(.labelMedium)
+            .foregroundStyle(Color.secondary)
         }
     }
 
-    private var emptyState: some View {
+    private func emptyState(override: AppLanguage?) -> some View {
         ContentUnavailableView {
             Label(
-                String(localized: "No relationships detected yet.", comment: "Empty relationship graph message"),
-                systemImage: "point.3.connected.trianglepath.dotted")
+                L10n.string("No relationships detected yet.", language: override),
+                systemImage: "point.3.connected.trianglepath.dotted"
+            )
         } description: {
-            Text(String(localized: "Run a scan to discover file connections.", comment: "Empty relationship graph hint"))
+            Text(L10n.string("Run a scan to discover file connections.", language: override))
         } actions: {
             EmptyStateActionsView(model: model)
         }
     }
 
-    private var graphContent: some View {
+    private func graphContent(override: AppLanguage?) -> some View {
         VStack(spacing: 8) {
-            // Single horizontal ScrollView: a nested inner ScrollView previously
-            // made the graph nearly unscrollable, so the canvas scrolls with the
-            // outer scroll area only.
             ScrollView(.horizontal, showsIndicators: false) {
                 canvas
                     .frame(minWidth: 400, minHeight: 240)
             }
-            edgeLegend
+            edgeLegend(override: override)
         }
     }
 
-    private var edgeLegend: some View {
+    private func edgeLegend(override: AppLanguage?) -> some View {
         let presentTypes = Array(Set(edges.map(\.edgeType))).sorted { $0.rawValue < $1.rawValue }
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Spacing.elementNormal) {
                 ForEach(presentTypes, id: \.self) { type in
                     HStack(spacing: 4) {
                         edgeSwatch(for: type)
-                        Text(edgeDisplayName(for: type))
+                        Text(edgeDisplayName(for: type, override: override))
                             .appFont(.caption)
                             .foregroundStyle(Color.secondary)
                     }
@@ -92,24 +89,24 @@ struct RelationshipGraphView: View {
         }
         .stroke(
             edgeColor(for: type),
-            style: StrokeStyle(lineWidth: 0.5, dash: dash)
+            style: StrokeStyle(lineWidth: 1.5, dash: dash)
         )
         .frame(width: 18, height: 8)
         .accessibilityHidden(true)
     }
 
-    private func edgeDisplayName(for type: RelationshipEdgeType) -> String {
+    private func edgeDisplayName(for type: RelationshipEdgeType, override: AppLanguage?) -> String {
         switch type {
-        case .duplicate: return String(localized: "Duplicate")
-        case .generatedFrom: return String(localized: "Generated From")
-        case .sameProject: return String(localized: "Same Project")
-        case .exportOf: return String(localized: "Export Of")
-        case .backupOf: return String(localized: "Backup Of")
-        case .versionOf: return String(localized: "Version Of")
-        case .manifestOf: return String(localized: "Manifest Of")
-        case .temporaryArtifactOf: return String(localized: "Temporary Artifact")
-        case .nearDuplicateOf: return String(localized: "Near Duplicate")
-        case .cloudCopyOf: return String(localized: "Cloud Copy")
+        case .duplicate: L10n.string("Duplicate", language: override)
+        case .generatedFrom: L10n.string("Generated From", language: override)
+        case .sameProject: L10n.string("Same Project", language: override)
+        case .exportOf: L10n.string("Export Of", language: override)
+        case .backupOf: L10n.string("Backup Of", language: override)
+        case .versionOf: L10n.string("Version Of", language: override)
+        case .manifestOf: L10n.string("Manifest Of", language: override)
+        case .temporaryArtifactOf: L10n.string("Temporary Artifact", language: override)
+        case .nearDuplicateOf: L10n.string("Near Duplicate", language: override)
+        case .cloudCopyOf: L10n.string("Cloud Copy", language: override)
         }
     }
 
@@ -117,7 +114,6 @@ struct RelationshipGraphView: View {
         GeometryReader { geometry in
             let nodes = calculateNodePositions(in: geometry.size)
             ZStack {
-                // Draw edges
                 ForEach(edges) { edge in
                     if let fromNode = nodes[edge.fromFileID],
                        let toNode = nodes[edge.toFileID] {
@@ -130,7 +126,6 @@ struct RelationshipGraphView: View {
                     }
                 }
 
-                // Draw nodes
                 ForEach(nodes.keys.sorted(), id: \.self) { fileID in
                     if let position = nodes[fileID],
                        let record = filesByID[fileID] {
@@ -144,8 +139,7 @@ struct RelationshipGraphView: View {
     private func calculateNodePositions(in size: CGSize) -> [String: CGPoint] {
         var positions: [String: CGPoint] = [:]
         let uniqueFiles = Set(edges.flatMap { [$0.fromFileID, $0.toFileID] })
-        let fileList = Array(uniqueFiles)
-
+        let fileList = Array(uniqueFiles).sorted()
         guard !fileList.isEmpty else { return positions }
 
         let safeWidth = max(CGFloat(1), size.width)
@@ -162,7 +156,6 @@ struct RelationshipGraphView: View {
             let y = spacingY * CGFloat(row + 1)
             positions[fileID] = CGPoint(x: x, y: y)
         }
-
         return positions
     }
 
@@ -174,7 +167,7 @@ struct RelationshipGraphView: View {
         .stroke(
             edgeColor(for: type),
             style: StrokeStyle(
-                lineWidth: isHighlighted ? 1 : 0.5,
+                lineWidth: isHighlighted ? 2 : 1,
                 dash: edgeDash(for: type)
             )
         )
@@ -184,24 +177,23 @@ struct RelationshipGraphView: View {
 
     private func edgeColor(for type: RelationshipEdgeType) -> Color {
         switch type {
-        case .duplicate: return SemanticScale.error
-        case .nearDuplicateOf: return SemanticScale.error
-        case .generatedFrom: return Primary.primary
-        case .sameProject: return SemanticScale.success
-        case .exportOf: return SemanticScale.warning
-        case .backupOf: return CategoricalPalette.pink.mid
-        case .versionOf: return CategoricalPalette.purple.mid
-        case .manifestOf: return CategoricalPalette.orange.mid
-        case .temporaryArtifactOf: return CategoricalPalette.yellow.mid
-        case .cloudCopyOf: return CategoricalPalette.teal.mid
+        case .duplicate, .nearDuplicateOf: SemanticScale.error
+        case .generatedFrom: Primary.primary
+        case .sameProject: SemanticScale.success
+        case .exportOf: SemanticScale.warning
+        case .backupOf: CategoricalPalette.pink.mid
+        case .versionOf: CategoricalPalette.purple.mid
+        case .manifestOf: CategoricalPalette.orange.mid
+        case .temporaryArtifactOf: CategoricalPalette.yellow.mid
+        case .cloudCopyOf: CategoricalPalette.teal.mid
         }
     }
 
     private func edgeDash(for type: RelationshipEdgeType) -> [CGFloat] {
         switch type {
-        case .duplicate, .nearDuplicateOf: return []
-        case .generatedFrom, .temporaryArtifactOf: return [5, 3]
-        default: return [8, 4]
+        case .duplicate, .nearDuplicateOf: []
+        case .generatedFrom, .temporaryArtifactOf: [5, 3]
+        default: [8, 4]
         }
     }
 
@@ -220,26 +212,26 @@ struct RelationshipGraphView: View {
         .padding(4)
         .background(
             isHovered ? AnyShapeStyle(Primary.selection) : AnyShapeStyle(.background.secondary),
-            in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
-        
+            in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous)
+        )
         .position(position)
-        .onHover { isHovered in
+        .onHover { hovered in
             withAnimation(reduceMotion ? nil : .appSelection) {
-                hoveredNode = isHovered ? record.id : nil
+                hoveredNode = hovered ? record.id : nil
             }
         }
         .help(record.fileName)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(record.fileName))
-        .accessibilityHint(String(localized: "File relationship node"))
+        .accessibilityHint(L10n.string("File relationship node", language: model.languageStore.activeOverride))
     }
 
     private func nodeIcon(for record: FileRecord) -> String {
         switch record.kind {
-        case .directory: return "folder.fill"
-        case .package: return "folder.badge.gearshape"
-        case .symlink: return "arrow.triangle.turn.up.right.diamond"
-        default: return "doc.fill"
+        case .directory: "folder.fill"
+        case .package: "folder.badge.gearshape"
+        case .symlink: "arrow.triangle.turn.up.right.diamond"
+        default: "doc.fill"
         }
     }
 

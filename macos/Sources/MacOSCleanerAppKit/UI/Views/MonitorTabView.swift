@@ -1,9 +1,8 @@
-import SwiftUI
 import MacOSCleanerCore
+import SwiftUI
 
 /// Monitor tab: read-only storage growth and forecast surface reusing
-/// SpaceForecaster and the stored snapshot timeline. No background work, no
-/// auto-delete — this tab only reports.
+/// SpaceForecaster and the stored snapshot timeline.
 struct MonitorTabView: View {
     @Bindable var model: AppViewModel
 
@@ -20,8 +19,6 @@ struct MonitorTabView: View {
         }
     }
 
-    /// A first visit loads async; until it finishes, neither card may claim
-    /// "not enough history" — that is a conclusion, not a loading state.
     private var isLoading: Bool {
         model.isLoadingSnapshots || model.isLoadingTimeline
     }
@@ -97,7 +94,7 @@ struct MonitorTabView: View {
     private func timelineRow(for snapshot: StorageSnapshot, previous: StorageSnapshot?) -> some View {
         let delta = previous.map { snapshot.totalBytes - $0.totalBytes }
         return HStack {
-            Text(snapshot.createdAt, style: .date)
+            Text(snapshot.createdAt.formatted(date: .abbreviated, time: .shortened))
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)
@@ -106,7 +103,7 @@ struct MonitorTabView: View {
                 Text(signedBytes(delta))
                     .appFont(.labelMedium)
                     .monospacedDigit()
-                    .foregroundStyle(delta > 0 ? SemanticScale.warning : SemanticScale.success)
+                    .foregroundStyle(deltaColor(delta))
             }
             Text(snapshot.totalBytes.formattedByteCount)
                 .appFont(.caption)
@@ -116,7 +113,19 @@ struct MonitorTabView: View {
         .accessibilityElement(children: .combine)
     }
 
+    private func deltaColor(_ delta: Int64) -> Color {
+        if delta == 0 { return Color.secondary }
+        return delta > 0 ? SemanticScale.warning : SemanticScale.success
+    }
+
     private func signedBytes(_ value: Int64) -> String {
-        value >= 0 ? "+\(value.formattedByteCount)" : "−\(abs(value).formattedByteCount)"
+        if value == 0 {
+            return String(localized: "No change", comment: "Zero storage delta between snapshots")
+        }
+        if value > 0 {
+            return "+\(value.formattedByteCount)"
+        }
+        let magnitude = value == Int64.min ? Int64.max : abs(value)
+        return "−\(magnitude.formattedByteCount)"
     }
 }

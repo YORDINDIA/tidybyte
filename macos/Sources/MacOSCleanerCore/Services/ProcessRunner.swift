@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import os
 
@@ -26,6 +27,9 @@ enum ProcessRunner {
     static let truncationNote = "\n[ProcessRunner: output exceeded \(maxCapturedBytesPerStream) bytes; only the first portion is captured]"
 
     static func run(_ command: URL, arguments: [String], timeout: TimeInterval) async -> ProcessResult {
+        if Task.isCancelled {
+            return ProcessResult(exitCode: 1, stdout: "", stderr: "Cancelled.")
+        }
         let process = Process()
         process.executableURL = command
         process.arguments = arguments
@@ -37,68 +41,54 @@ enum ProcessRunner {
         process.standardInput = FileHandle.nullDevice
 
         let handle = ProcessExecutionHandle(process: process, stdoutPipe: stdoutPipe, stderrPipe: stderrPipe)
-
-        var startError: String?
-        var timeoutTask: Task<Void, Never>?
-
-        // Drain stdout and stderr concurrently WHILE the process runs. Reading
-        // the pipes only after the process exits deadlocks the child once a
-        // 64 KB pipe buffer fills, which previously forced a kill via timeout.
-        // Each drain blocks on FileHandle.read until EOF, so they run on a
-        // dedicated GCD queue — parking Swift cooperative-pool threads on
-        // blocking pipe reads starved the timeout task and unrelated scan work.
         let drains = PipeDrains(
             stdout: handle.stdoutPipe.fileHandleForReading,
-            stderr: handle.stderrPipe.fileHandleForReading)
+            stderr: handle.stderrPipe.fileHandleForReading
+        )
         drains.start()
 
-        let exitCode = await withCheckedContinuation { (continuation: CheckedContinuation<Int32, Never>) in
-            process.terminationHandler = { p in
-                continuation.resume(returning: p.terminationStatus)
-            }
+        let startErrorBox = OSAllocatedUnfairLock<String?>(initialState: nil)
+        let exitCode = await withTaskCancellationHandler {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Int32, Never>) in
+                process.terminationHandler = { completedProcess in
+                    continuation.resume(returning: completedProcess.terminationStatus)
+                }
 
-            do {
-                try process.run()
-            } catch {
-                startError = error.localizedDescription
-                continuation.resume(returning: 1)
-                return
-            }
+                guard handle.beginStart() else {
+                    startErrorBox.withLock { $0 = "Cancelled." }
+                    continuation.resume(returning: 1)
+                    return
+                }
 
-            timeoutTask = Task { [handle] in
-                try? await Task.sleep(for: .seconds(timeout))
-                guard handle.process.isRunning else { return }
-                handle.markTimedOut()
-                let pid = handle.process.processIdentifier
-                // Forked workers are not children of the launched process once it
-                // exits, so the tree is captured and killed before the launched process
-                // is signalled. Otherwise a worker can outlive `run`.
-                let workers = Self.descendantPIDs(of: pid)
-                for worker in workers { kill(worker, SIGKILL) }
-                handle.process.terminate()
-                // A child that ignores SIGTERM would keep the continuation parked forever.
-                try? await Task.sleep(for: .seconds(5))
-                if handle.process.isRunning {
-                    kill(pid, SIGKILL)
+                do {
+                    try process.run()
+                    handle.scheduleTimeout(seconds: timeout)
+                } catch {
+                    startErrorBox.withLock { $0 = error.localizedDescription }
+                    handle.markExited()
+                    continuation.resume(returning: 1)
+                    return
                 }
             }
+        } onCancel: {
+            handle.cancelAndTerminate(graceSeconds: 2)
         }
 
-        timeoutTask?.cancel()
+        handle.cancelTimers()
 
-        if let startError {
-            // The process never started, so the pipes will never reach EOF on
-            // their own. Closing BOTH ends unblocks the drain tasks: the read-end
-            // close makes any pending read fail, and dropping the write end
-            // guarantees no reader can block forever waiting for data.
-            try? handle.stdoutPipe.fileHandleForReading.close()
-            try? handle.stderrPipe.fileHandleForReading.close()
-            try? handle.stdoutPipe.fileHandleForWriting.close()
-            try? handle.stderrPipe.fileHandleForWriting.close()
-            drains.wait(seconds: 2)
+        if let startError = startErrorBox.withLock({ $0 }) {
+            closePipes(of: handle)
+            _ = await drains.waitAsync(seconds: 2)
             return ProcessResult(exitCode: 1, stdout: "", stderr: startError)
         }
         return await collectDrains(drains, didTimeOut: handle.didTimeOut, exitCode: exitCode, timeout: timeout)
+    }
+
+    private static func closePipes(of handle: ProcessExecutionHandle) {
+        try? handle.stdoutPipe.fileHandleForReading.close()
+        try? handle.stderrPipe.fileHandleForReading.close()
+        try? handle.stdoutPipe.fileHandleForWriting.close()
+        try? handle.stderrPipe.fileHandleForWriting.close()
     }
 
     /// Text with valid UTF-8 kept intact. Each invalid byte sequence becomes U+FFFD,
@@ -139,7 +129,7 @@ enum ProcessRunner {
     private static func collectDrains(
         _ drains: PipeDrains, didTimeOut: Bool, exitCode: Int32, timeout: TimeInterval
     ) async -> ProcessResult {
-        let finishedInTime = drains.wait(seconds: 5)
+        let finishedInTime = await drains.waitAsync(seconds: 5)
         let drained = drains.results()
         // Lossy decoding: non-UTF-8 output keeps its readable parts instead of becoming "".
         var stdoutStr = Self.readableText(drained.stdout.data)
@@ -186,18 +176,24 @@ private func drain(_ fileHandle: FileHandle) -> DrainedOutput {
     return output
 }
 
-/// Runs both pipe drains on a dedicated GCD queue and bounds how long the
-/// caller waits for them after the process exits.
+/// Wraps DispatchWorkItem for lock-protected Sendable transfer in Swift 6 closures.
+private struct WorkBox: @unchecked Sendable {
+    let item: DispatchWorkItem
+}
+
+/// Runs both pipe drains on a dedicated GCD queue and suspends cleanly without
+/// blocking Swift cooperative-pool threads.
 private final class PipeDrains: @unchecked Sendable {
-    private struct State {
+    private struct State: @unchecked Sendable {
         var stdout: DrainedOutput?
         var stderr: DrainedOutput?
         var finishedCount = 0
+        var waiter: CheckedContinuation<Bool, Never>?
+        var waitTimeoutWork: WorkBox?
     }
 
     private let queue = DispatchQueue(label: AppIdentity.bundleIdentifier + ".process-drain", attributes: .concurrent)
     private let state = OSAllocatedUnfairLock(initialState: State())
-    private let semaphore = DispatchSemaphore(value: 0)
     private let stdoutHandle: FileHandle
     private let stderrHandle: FileHandle
 
@@ -209,39 +205,57 @@ private final class PipeDrains: @unchecked Sendable {
     func start() {
         queue.async { [self] in
             let out = drain(stdoutHandle)
-            state.withLock { $0.stdout = out; $0.finishedCount += 1 }
-            semaphore.signal()
+            publishDrain(stdout: out)
         }
         queue.async { [self] in
             let err = drain(stderrHandle)
-            state.withLock { $0.stderr = err; $0.finishedCount += 1 }
-            semaphore.signal()
+            publishDrain(stderr: err)
         }
     }
 
-    /// Waits up to `seconds` for both drains to reach EOF. Returns false when
-    /// the wait expired with a drain still blocked (grandchild holding the
-    /// pipe): the caller then gets EMPTY output for that stream plus the
-    /// truncation note, because a drain publishes its buffer only at EOF. The
-    /// still-blocked drain keeps running on its GCD thread and finishes
-    /// whenever the last pipe writer exits — it never blocks the caller or
-    /// the cooperative pool. Returning on time beats hanging forever on a
-    /// forked child that inherited the pipe.
-    func wait(seconds: TimeInterval) -> Bool {
-        let deadline = DispatchTime.now() + seconds
-        while state.withLock({ $0.finishedCount }) < 2 {
-            if semaphore.wait(timeout: .now() + 0.05) == .success {
-                continue
-            }
-            if DispatchTime.now() >= deadline {
-                return false
-            }
+    private func publishDrain(stdout: DrainedOutput? = nil, stderr: DrainedOutput? = nil) {
+        let continuationToResume: CheckedContinuation<Bool, Never>? = state.withLock { st in
+            if let stdout { st.stdout = stdout }
+            if let stderr { st.stderr = stderr }
+            st.finishedCount += 1
+            guard st.finishedCount >= 2, let waiter = st.waiter else { return nil }
+            st.waitTimeoutWork?.item.cancel()
+            st.waitTimeoutWork = nil
+            st.waiter = nil
+            return waiter
         }
-        return true
+        continuationToResume?.resume(returning: true)
     }
 
-    /// Published drain outputs (empty for a drain that has not hit EOF yet —
-    /// its bytes are still local to the drain loop until then).
+    /// Suspends up to `seconds` for both drains to reach EOF.
+    func waitAsync(seconds: TimeInterval) async -> Bool {
+        if state.withLock({ $0.finishedCount >= 2 }) {
+            return true
+        }
+        return await withCheckedContinuation { continuation in
+            let timeoutBox = WorkBox(item: DispatchWorkItem { [weak self] in
+                let waiter = self?.state.withLock { st -> CheckedContinuation<Bool, Never>? in
+                    guard let pending = st.waiter else { return nil }
+                    st.waitTimeoutWork = nil
+                    st.waiter = nil
+                    return pending
+                }
+                waiter?.resume(returning: false)
+            })
+            let immediate: CheckedContinuation<Bool, Never>? = state.withLock { st in
+                if st.finishedCount >= 2 {
+                    return continuation
+                }
+                st.waiter = continuation
+                st.waitTimeoutWork = timeoutBox
+                queue.asyncAfter(deadline: .now() + seconds, execute: timeoutBox.item)
+                return nil
+            }
+            immediate?.resume(returning: true)
+        }
+    }
+
+    /// Published drain outputs (empty for a drain that has not hit EOF yet).
     func results() -> (stdout: DrainedOutput, stderr: DrainedOutput) {
         state.withLock { st in
             (st.stdout ?? DrainedOutput(), st.stderr ?? DrainedOutput())
@@ -249,16 +263,25 @@ private final class PipeDrains: @unchecked Sendable {
     }
 }
 
-/// Thread-safe handle for process execution state.
-/// Uses `OSAllocatedUnfairLock` for safe concurrent access to the timeout flag.
-private struct ProcessExecutionHandle: Sendable {
+/// Thread-safe handle coordinating process lifecycle, timeouts, and cooperative cancellation on GCD.
+private final class ProcessExecutionHandle: @unchecked Sendable {
+    private struct LifecycleState: @unchecked Sendable {
+        var didTimeOut = false
+        var cancelled = false
+        var started = false
+        var exited = false
+        var timeoutWork: WorkBox?
+        var killWork: WorkBox?
+    }
+
     let process: Process
     let stdoutPipe: Pipe
     let stderrPipe: Pipe
-    private let stateLock = OSAllocatedUnfairLock(initialState: false)
+    private let queue = DispatchQueue(label: AppIdentity.bundleIdentifier + ".process-control")
+    private let stateLock = OSAllocatedUnfairLock(initialState: LifecycleState())
 
     var didTimeOut: Bool {
-        stateLock.withLock { $0 }
+        stateLock.withLock { $0.didTimeOut }
     }
 
     init(process: Process, stdoutPipe: Pipe, stderrPipe: Pipe) {
@@ -267,7 +290,86 @@ private struct ProcessExecutionHandle: Sendable {
         self.stderrPipe = stderrPipe
     }
 
-    func markTimedOut() {
-        stateLock.withLock { $0 = true }
+    func beginStart() -> Bool {
+        stateLock.withLock { st in
+            if st.cancelled {
+                st.exited = true
+                return false
+            }
+            st.started = true
+            return true
+        }
+    }
+
+    func markExited() {
+        stateLock.withLock { $0.exited = true }
+    }
+
+    func scheduleTimeout(seconds: TimeInterval) {
+        let workBox = WorkBox(item: DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.stateLock.withLock { $0.didTimeOut = true }
+            self.terminateProcessTree(graceSeconds: 5)
+        })
+        let shouldSchedule = stateLock.withLock { st -> Bool in
+            guard !st.exited, !st.cancelled else { return false }
+            st.timeoutWork = workBox
+            return true
+        }
+        if shouldSchedule {
+            queue.asyncAfter(deadline: .now() + seconds, execute: workBox.item)
+        }
+    }
+
+    func cancelAndTerminate(graceSeconds: TimeInterval) {
+        let shouldTerminate = stateLock.withLock { st -> Bool in
+            st.cancelled = true
+            return st.started && !st.exited
+        }
+        if shouldTerminate {
+            terminateProcessTree(graceSeconds: graceSeconds)
+        }
+    }
+
+    func cancelTimers() {
+        let (tWork, kWork) = stateLock.withLock { st -> (WorkBox?, WorkBox?) in
+            st.exited = true
+            let works = (st.timeoutWork, st.killWork)
+            st.timeoutWork = nil
+            st.killWork = nil
+            return works
+        }
+        tWork?.item.cancel()
+        kWork?.item.cancel()
+    }
+
+    private func terminateProcessTree(graceSeconds: TimeInterval) {
+        let pid = process.processIdentifier
+        guard pid > 0, process.isRunning else { return }
+        let workers = ProcessRunner.descendantPIDs(of: pid)
+        for worker in workers where worker > 0 {
+            _ = Darwin.kill(worker, SIGTERM)
+        }
+        process.terminate()
+
+        let killBox = WorkBox(item: DispatchWorkItem { [weak self] in
+            guard let self, self.process.isRunning else { return }
+            let remaining = ProcessRunner.descendantPIDs(of: pid)
+            for worker in remaining where worker > 0 {
+                _ = Darwin.kill(worker, SIGKILL)
+            }
+            if self.process.isRunning {
+                _ = Darwin.kill(pid, SIGKILL)
+            }
+        })
+        let shouldScheduleKill = stateLock.withLock { st -> Bool in
+            guard !st.exited else { return false }
+            st.killWork?.item.cancel()
+            st.killWork = killBox
+            return true
+        }
+        if shouldScheduleKill {
+            queue.asyncAfter(deadline: .now() + graceSeconds, execute: killBox.item)
+        }
     }
 }

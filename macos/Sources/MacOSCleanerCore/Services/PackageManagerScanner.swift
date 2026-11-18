@@ -20,6 +20,9 @@ public actor PackageManagerScanner {
     }
 
     public func scan(sessionID: String) async -> ([Finding], [Recommendation], [PackageCleanupCandidate]) {
+        guard DistributionChannel.supportsAdvanced else {
+            return ([], [], [])
+        }
         // Probe all package managers concurrently: each is a subprocess with an
         // 8 s timeout. The actor runs other probes while one waits on its tool.
         async let brew = homebrewCandidates()
@@ -106,46 +109,93 @@ public actor PackageManagerScanner {
         guard result.exitCode == 0, !result.stdout.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return []
         }
-        return [
-            PackageCleanupCandidate(
+        let reclaimable = Self.dockerReclaimableBytes(result.stdout)
+        var candidates: [PackageCleanupCandidate] = []
+        if reclaimable.buildCache > 0 {
+            candidates.append(PackageCleanupCandidate(
                 id: "docker_builder_prune",
                 title: String(
-                    localized: "Docker build cache can be cleared. Images and containers stay.",
-                    comment: "Docker builder prune finding title"),
+                    localized: """
+                        Docker build cache can be cleared (\(reclaimable.buildCache.formattedByteCount)). \
+                        Images and containers stay.
+                        """,
+                    comment: "Docker builder prune finding title"
+                ),
                 commandPath: docker,
                 arguments: ["builder", "prune", "--force"],
                 dryRunOutput: result.stdout,
                 risk: .low,
-                category: .dockerCleanup
-            ),
-            PackageCleanupCandidate(
+                category: .dockerCleanup,
+                estimatedBytes: reclaimable.buildCache
+            ))
+        }
+        let safeBytes = reclaimable.images + reclaimable.containers + reclaimable.buildCache
+        if safeBytes > 0 {
+            candidates.append(PackageCleanupCandidate(
                 id: "docker_safe_prune",
-                title: String(localized: "Docker safe cleanup can prune stopped containers, dangling images, and build cache.", comment: "Docker safe cleanup finding title"),
+                title: String(
+                    localized: """
+                        Docker safe cleanup can prune \(safeBytes.formattedByteCount) of stopped containers, \
+                        dangling images, and build cache.
+                        """,
+                    comment: "Docker safe cleanup finding title"
+                ),
                 commandPath: docker,
                 arguments: ["system", "prune", "--force"],
                 dryRunOutput: result.stdout,
                 risk: .medium,
-                category: .dockerCleanup
-            ),
-            PackageCleanupCandidate(
+                category: .dockerCleanup,
+                estimatedBytes: safeBytes
+            ))
+        }
+        candidates.append(contentsOf: Self.dockerAggressiveAndVolumeCandidates(
+            docker: docker, reclaimable: reclaimable, safeBytes: safeBytes, dryRunOutput: result.stdout
+        ))
+        return candidates
+    }
+
+    private static func dockerAggressiveAndVolumeCandidates(
+        docker: URL,
+        reclaimable: DockerReclaimableBreakdown,
+        safeBytes: Int64,
+        dryRunOutput: String
+    ) -> [PackageCleanupCandidate] {
+        var candidates: [PackageCleanupCandidate] = []
+        let riskyBytes = safeBytes + reclaimable.volumes
+        if riskyBytes > 0 {
+            candidates.append(PackageCleanupCandidate(
                 id: "docker_risky_prune",
-                title: String(localized: "Docker aggressive cleanup prunes stopped containers, dangling images, build cache, AND unused volumes. Volumes may contain persistent data.", comment: "Docker aggressive cleanup finding title"),
+                title: String(
+                    localized: """
+                        Docker aggressive cleanup prunes \(riskyBytes.formattedByteCount) including unused \
+                        volumes. Volumes may contain persistent data.
+                        """,
+                    comment: "Docker aggressive cleanup finding title"
+                ),
                 commandPath: docker,
                 arguments: ["system", "prune", "--volumes", "--force"],
-                dryRunOutput: result.stdout,
+                dryRunOutput: dryRunOutput,
                 risk: .high,
-                category: .dockerCleanup
-            ),
-            PackageCleanupCandidate(
+                category: .dockerCleanup,
+                estimatedBytes: riskyBytes
+            ))
+        }
+        if reclaimable.volumes > 0 {
+            candidates.append(PackageCleanupCandidate(
                 id: "docker_volume_prune",
-                title: String(localized: "Docker Volume Prune (risky. Removes named volumes)", comment: "Docker volume prune finding title"),
+                title: String(
+                    localized: "Docker Volume Prune (\(reclaimable.volumes.formattedByteCount) reclaimable; removes unused named volumes).",
+                    comment: "Docker volume prune finding title"
+                ),
                 commandPath: docker,
                 arguments: ["volume", "prune", "--force"],
-                dryRunOutput: result.stdout,
+                dryRunOutput: dryRunOutput,
                 risk: .high,
-                category: .dockerCleanup
-            )
-        ]
+                category: .dockerCleanup,
+                estimatedBytes: reclaimable.volumes
+            ))
+        }
+        return candidates
     }
 
     private func npmCandidates() async -> [PackageCleanupCandidate] {
@@ -196,25 +246,44 @@ public actor PackageManagerScanner {
             return []
         }
         let cacheDir = dirResult.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
-        // Run `pip cache list` to show the user what is actually cached.
+        let infoResult = await run(pip, ["cache", "info"], commandTimeout)
+        let estimatedBytes = infoResult.exitCode == 0 ? Self.pipCacheBytes(infoResult.stdout) : nil
         let listResult = await run(pip, ["cache", "list"], commandTimeout)
-        let dryRunText = listResult.exitCode == 0 && !listResult.stdout.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? listResult.stdout
-            : String(localized: "Cache directory: \(cacheDir)", comment: "pip cache fallback dry-run output")
+        let trimmedList = listResult.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasEntries = !trimmedList.isEmpty && !trimmedList.lowercased().contains("no packages found")
+        if let estimatedBytes, estimatedBytes == 0, !hasEntries {
+            return []
+        }
+        if infoResult.exitCode == 0, !hasEntries, (estimatedBytes ?? 0) == 0 {
+            return []
+        }
+        let dryRunText: String = if infoResult.exitCode == 0, !infoResult.stdout.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            infoResult.stdout
+        } else if listResult.exitCode == 0, !trimmedList.isEmpty {
+            listResult.stdout
+        } else {
+            String(localized: "Cache directory: \(cacheDir)", comment: "pip cache fallback dry-run output")
+        }
+        let sizeSuffix = estimatedBytes.map { $0 > 0 ? " (\($0.formattedByteCount))" : "" } ?? ""
         return [
             PackageCleanupCandidate(
-                id: "pip_cache_dir",
-                title: String(localized: "pip cache at \(cacheDir). Review cache contents before purging.", comment: "pip cache finding title"),
+                id: "pip_cache_purge",
+                title: String(
+                    localized: "pip cache at \(cacheDir)\(sizeSuffix) can be purged safely.",
+                    comment: "pip cache finding title"
+                ),
                 commandPath: pip,
-                arguments: ["cache", "list"],
+                arguments: ["cache", "purge"],
                 dryRunOutput: dryRunText,
                 risk: .low,
-                category: .packageManagerCleanup
+                category: .packageManagerCleanup,
+                estimatedBytes: estimatedBytes
             )
         ]
     }
 
     static func defaultExecutable(named name: String) -> URL? {
+        guard DistributionChannel.supportsAdvanced else { return nil }
         // /usr/bin developer tools (pip3, xcrun) are shims: without the Command
         // Line Tools, running one opens the "install the tools" dialog.
         let folders = ["/opt/homebrew/bin", "/usr/local/bin"] + (hasDeveloperTools ? ["/usr/bin"] : []) + ["/bin"]
@@ -224,6 +293,7 @@ public actor PackageManagerScanner {
 
     /// `xcode-select -p` prints an existing developer folder. It never opens the install dialog.
     static let hasDeveloperTools: Bool = {
+        guard DistributionChannel.supportsAdvanced else { return false }
         let process = Process()
         let pipe = Pipe()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/xcode-select")
@@ -271,6 +341,9 @@ public actor PackageManagerScanner {
             blockingProcesses: ["Simulator", "Xcode"])]
     }
 
+}
+
+extension PackageManagerScanner {
     /// "This operation would free approximately 1.2GB of disk space."
     /// Homebrew's `disk_usage_readable` uses powers of 1024.
     static func brewFreedBytes(_ output: String) -> Int64? {
@@ -287,4 +360,73 @@ public actor PackageManagerScanner {
         return devices.values.reduce(0) { $0 + $1.count }
     }
 
+    struct DockerReclaimableBreakdown {
+        let images: Int64
+        let containers: Int64
+        let volumes: Int64
+        let buildCache: Int64
+    }
+
+    static func dockerReclaimableBytes(_ output: String) -> DockerReclaimableBreakdown {
+        var images: Int64 = 0
+        var containers: Int64 = 0
+        var volumes: Int64 = 0
+        var buildCache: Int64 = 0
+        for rawLine in output.split(whereSeparator: \.isNewline) {
+            let trimmed = rawLine.trimmingCharacters(in: .whitespaces)
+            let lowered = trimmed.lowercased()
+            let parsed = parseTrailingStorageToken(trimmed) ?? 0
+            if lowered.hasPrefix("images") {
+                images = parsed
+            } else if lowered.hasPrefix("containers") {
+                containers = parsed
+            } else if lowered.hasPrefix("local volumes") {
+                volumes = parsed
+            } else if lowered.hasPrefix("build cache") {
+                buildCache = parsed
+            }
+        }
+        return DockerReclaimableBreakdown(images: images, containers: containers, volumes: volumes, buildCache: buildCache)
+    }
+
+    static func pipCacheBytes(_ output: String) -> Int64? {
+        var total: Int64 = 0
+        var sawSizeLine = false
+        for rawLine in output.split(whereSeparator: \.isNewline) {
+            let lowered = rawLine.lowercased()
+            guard lowered.contains("size:") else { continue }
+            sawSizeLine = true
+            if let bytes = parseStorageSize(String(rawLine)) {
+                total += bytes
+            }
+        }
+        return sawSizeLine ? total : nil
+    }
+
+    private static func parseTrailingStorageToken(_ line: String) -> Int64? {
+        let withoutPercent = if let parenIndex = line.lastIndex(of: "(") {
+            String(line[..<parenIndex]).trimmingCharacters(in: .whitespaces)
+        } else {
+            line
+        }
+        guard let token = withoutPercent.split(whereSeparator: \.isWhitespace).last else { return nil }
+        return parseStorageSize(String(token))
+    }
+
+    static func parseStorageSize(_ text: String) -> Int64? {
+        guard let match = text.firstMatch(of: /(?i)([0-9]+(?:\.[0-9]+)?)\s*(KiB|MiB|GiB|TiB|KB|MB|GB|TB|bytes|B)/),
+              let value = Double(match.1),
+              let multiplier = storageUnitMultipliers[match.2.lowercased()] else {
+            return nil
+        }
+        let product = value * multiplier
+        guard product.isFinite, product >= 0, product <= Double(Int64.max / 2) else { return nil }
+        return Int64(product.rounded(.towardZero))
+    }
+
+    private static let storageUnitMultipliers: [String: Double] = [
+        "b": 1, "bytes": 1,
+        "kb": 1_000, "mb": 1_000_000, "gb": 1_000_000_000, "tb": 1_000_000_000_000,
+        "kib": 1_024, "mib": 1_048_576, "gib": 1_073_741_824, "tib": 1_099_511_627_776
+    ]
 }

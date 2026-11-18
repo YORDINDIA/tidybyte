@@ -146,12 +146,14 @@ def main():
         canary_before = tree(canary)
 
         db_path = os.path.join(root, "mcp-e2e.sqlite")
+        history_db_path = os.path.join(root, "nonexistent-history.sqlite")
         env = {
             "PATH": os.environ.get("PATH", ""),
             "LANG": os.environ.get("LANG", "en_US.UTF-8"),
             "HOME": home,
             "TMPDIR": tmpdir,
             "TIDYBYTE_DB": db_path,
+            "TIDYBYTE_HISTORY_DB": history_db_path,
         }
         proc = subprocess.Popen(
             [BINARY], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -166,16 +168,113 @@ def main():
 
         tools = client.request("tools/list")["result"]["tools"]
         names = [t["name"] for t in tools]
-        check("tools/list has the full surface",
-              names == ["scan", "list_findings", "show_plan", "check_finding", "execute", "history", "undo",
-                        "monitor_status", "monitor_top", "monitor_ports", "monitor_agents", "monitor_limits"],
-              str(names))
+        expected_tools = [
+            "scan", "list_findings", "show_plan", "check_finding", "execute", "history", "undo",
+            "monitor_status", "monitor_top", "monitor_ports", "monitor_agents", "monitor_limits",
+            "monitor_history", "monitor_inspect", "monitor_hardware",
+        ]
+        check("tools/list has the full 15-tool surface", names == expected_tools, str(names))
+        check(
+            "every tool declares readOnlyHint and destructiveHint annotations",
+            all(
+                isinstance(t.get("annotations"), dict)
+                and isinstance(t["annotations"].get("readOnlyHint"), bool)
+                and isinstance(t["annotations"].get("destructiveHint"), bool)
+                for t in tools
+            ),
+            str(tools),
+        )
+
+        resources = client.request("resources/list")["result"]["resources"]
+        resource_uris = [r["uri"] for r in resources]
+        check(
+            "resources/list exposes scan summary and live monitor",
+            "tidybyte://scan/summary" in resource_uris and "tidybyte://monitor/live" in resource_uris,
+            str(resource_uris),
+        )
+        before_summary_text = client.request(
+            "resources/read", {"uri": "tidybyte://scan/summary"}
+        )["result"]["contents"][0]["text"]
+        check("scan summary before scan reports no_scan", json.loads(before_summary_text).get("status") == "no_scan")
+
+        prompts = client.request("prompts/list")["result"]["prompts"]
+        prompt_names = [p["name"] for p in prompts]
+        check(
+            "prompts/list exposes diagnostic and cleanup prompts",
+            prompt_names == ["diagnose-slowdown", "review-safe-duplicates", "reclaim-dev-bloat"],
+            str(prompt_names),
+        )
+        prompt_get = client.request(
+            "prompts/get", {"name": "review-safe-duplicates", "arguments": {"path": a}}
+        )["result"]
+        prompt_text = prompt_get["messages"][0]["content"]["text"]
+        check("prompts/get renders prompt template with path", a in prompt_text and "check_finding" in prompt_text)
+
+        is_error, status_text = client.call("monitor_status")
+        status_json = json.loads(status_text) if not is_error else {}
+        check(
+            "monitor_status returns CPU and memory telemetry",
+            not is_error and "cpu_percent" in status_json and "memory_total_bytes" in status_json,
+            status_text,
+        )
+
+        is_error, hw_text = client.call("monitor_hardware")
+        hw_json = json.loads(hw_text) if not is_error else {}
+        check(
+            "monitor_hardware returns hardware telemetry",
+            not is_error and "cpu" in hw_json and "memory" in hw_json and "power" in hw_json,
+            hw_text,
+        )
+
+        is_error, hist_text = client.call("monitor_history", {"metric": "cpu", "range": "24h"})
+        hist_json = json.loads(hist_text) if not is_error else {}
+        check(
+            "monitor_history returns structured series JSON",
+            not is_error and hist_json.get("metric") == "cpu" and isinstance(hist_json.get("points"), list),
+            hist_text,
+        )
+
+        is_error, inspect_text = client.call("monitor_inspect", {"pid": proc.pid})
+        inspect_json = json.loads(inspect_text) if not is_error else {}
+        check(
+            "monitor_inspect inspects running MCP server process",
+            not is_error and inspect_json.get("pid") == proc.pid,
+            inspect_text,
+        )
 
         is_error, text = client.call("scan", {"paths": scan_paths})
         check("scan succeeds", not is_error, text)
 
+        after_summary_text = client.request(
+            "resources/read", {"uri": "tidybyte://scan/summary"}
+        )["result"]["contents"][0]["text"]
+        after_summary = json.loads(after_summary_text)
+        check(
+            "scan summary after scan reports ready and findings",
+            after_summary.get("status") == "ready" and after_summary.get("files_count") == 2,
+            after_summary_text,
+        )
+
         is_error, text = client.call("list_findings", {"query": "duplicate"})
         check("list_findings shows a duplicate group", not is_error and "duplicate" in text.lower(), text)
+        finding_match = re.search(r"- \[([0-9a-fA-F-]{8,})\]", text)
+        check("list_findings exposes a finding id", finding_match is not None, text)
+
+        plan_args = {"finding_id": finding_match.group(1)} if finding_match else {}
+        is_error, plan_text = client.call("show_plan", plan_args)
+        check(
+            "show_plan returns proposed actions with target paths",
+            not is_error and "proposed actions" in plan_text and "targets:" in plan_text,
+            plan_text,
+        )
+
+        if finding_match:
+            is_error, check_text = client.call("check_finding", {"finding_id": finding_match.group(1)})
+            check(
+                "check_finding verifies duplicate bytes on disk",
+                not is_error and "byte-identical to the scan" in check_text and "safe to execute" in check_text,
+                check_text,
+            )
 
         is_error, text = client.call("execute")
         check("execute without confirm is a dry run",

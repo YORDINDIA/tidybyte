@@ -1,3 +1,4 @@
+import MacOSCleanerCore
 import SwiftUI
 
 struct NaturalLanguagePlanView: View {
@@ -7,18 +8,26 @@ struct NaturalLanguagePlanView: View {
     @State private var planningTask: Task<Void, Never>?
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         VStack(alignment: .leading, spacing: Spacing.elementSection) {
-            Label(String(localized: "Ask Tidybyte"), systemImage: "sparkle.magnifyingglass").font(.title2.bold())
-            Text(String(localized: "Describe the cleanup you want to review. This changes the plan, not your files."))
-                .foregroundStyle(.secondary)
-            TextField(String(localized: "For example, find old installers"), text: $model.naturalLanguageCommand)
-                .textFieldStyle(.roundedBorder).focused($isFocused)
-                .onSubmit { submit() }
-                .disabled(model.isPlanning)
+            Label(L10n.string("Ask Tidybyte", language: override), systemImage: "sparkle.magnifyingglass")
+                .font(.title2.bold())
+            Text(L10n.string(
+                "Describe the cleanup you want to review. This changes the plan, not your files.",
+                language: override
+            ))
+            .foregroundStyle(.secondary)
+            TextField(
+                L10n.string("For example, find old installers", language: override),
+                text: $model.naturalLanguageCommand
+            )
+            .textFieldStyle(.roundedBorder)
+            .focused($isFocused)
+            .onSubmit { submit() }
+            .disabled(model.isPlanning)
             FlowSuggestions(model: model)
                 .disabled(model.isPlanning)
             if model.isPlanning {
-                // Phase 3: the plan results preview as skeleton rows.
                 VStack(alignment: .leading, spacing: Spacing.elementTight) {
                     ForEach(0..<4, id: \.self) { _ in
                         HStack(spacing: Spacing.elementNormal) {
@@ -28,20 +37,23 @@ struct NaturalLanguagePlanView: View {
                         }
                     }
                 }
-                .accessibilityLabel(Text(String(localized: "Preparing your plan…", comment: "NL planning")))
+                .accessibilityLabel(Text(L10n.string("Preparing your plan…", language: override)))
             }
             if let error = model.errorMessage { Text(error).foregroundStyle(SemanticScale.error) }
             HStack {
-                Button(String(localized: "Cancel")) {
+                Button(L10n.string("Cancel", language: override)) {
                     planningTask?.cancel()
                     dismiss()
-                }.keyboardShortcut(.cancelAction)
+                }
+                .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button(String(localized: "Update Plan")) { submit() }
-                    .buttonStyle(.borderedProminent).keyboardShortcut(.return, modifiers: .command)
+                Button(L10n.string("Update Plan", language: override)) { submit() }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.return, modifiers: .command)
                     .disabled(
                         model.naturalLanguageCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            || model.plan == nil || model.isPlanning || model.isScanning || model.isExecuting)
+                            || model.plan == nil || model.isPlanning || model.isScanning || model.isExecuting
+                    )
             }
         }
         .padding(Spacing.screenEdge)
@@ -53,7 +65,7 @@ struct NaturalLanguagePlanView: View {
 
     private func submit() {
         guard !model.isPlanning, !model.isScanning, !model.isExecuting, model.plan != nil,
-            !model.naturalLanguageCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              !model.naturalLanguageCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         else { return }
         planningTask = Task {
             if await model.applyNaturalLanguageCommand(), !Task.isCancelled {
@@ -68,6 +80,7 @@ struct NaturalLanguagePlanView: View {
 
 private struct FlowSuggestions: View {
     @Bindable var model: AppViewModel
+
     var body: some View {
         ScrollView(.horizontal) {
             HStack {

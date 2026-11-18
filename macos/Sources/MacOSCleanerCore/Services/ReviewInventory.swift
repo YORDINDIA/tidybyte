@@ -1,6 +1,9 @@
+import AppKit
 import CryptoKit
 import Darwin
 import Foundation
+@preconcurrency import os
+import Photos
 import UniformTypeIdentifiers
 
 public enum ReviewSafety {
@@ -93,10 +96,20 @@ public enum ReviewSafety {
         var result = folder.appendingPathComponent(file.lastPathComponent)
         var number = 2
         while (try? identity(at: result)) != nil {
-            result = folder.appendingPathComponent("\(base) \(number)").appendingPathExtension(ext)
+            let candidate = ext.isEmpty ? "\(base) \(number)" : "\(base) \(number).\(ext)"
+            result = folder.appendingPathComponent(candidate)
             number += 1
         }
         return result
+    }
+
+    public static func hasFreeDiskSpace(bytes requiredBytes: Int64, at url: URL = userHome) -> Bool {
+        guard requiredBytes > 0 else { return true }
+        let probe = FileManager.default.fileExists(atPath: url.path) ? url : userHome
+        let values = try? probe.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+        guard let available = values?.volumeAvailableCapacityForImportantUsage else { return true }
+        let needed = requiredBytes > Int64.max / 2 ? Int64.max : requiredBytes * 2
+        return available >= needed
     }
     /// Reserve a new file before passing it to a media writer. Never follow a pre-existing link.
     public static func reserveOutput(in folder: URL, name: String) throws -> URL {
@@ -265,6 +278,8 @@ public actor ReviewInventory {
         item.modifiedAt = identity.modifiedAt
         item.isLink = isLink
         item.isPackage = values.isPackage == true
+        item.isHEIC = ["heic", "heif"].contains(url.pathExtension.lowercased())
+        item.facts.savedFromApp = SavedFromAppMarkers.appName(for: url.lastPathComponent)
         // lstat detects dataless File Provider items without reading their contents.
         var info = stat()
         _ = lstat(url.path, &info)
@@ -287,5 +302,109 @@ public actor ReviewInventory {
             item.linkTarget = try? URL(resolvingAliasFileAt: url, options: [.withoutUI, .withoutMounting])
         }
         return item
+    }
+}
+
+struct UncheckedBox<Value>: @unchecked Sendable { let value: Value }
+
+final class PhotoTransfer: @unchecked Sendable {
+    private struct State {
+        var hash = SHA256()
+        var bytes: Int64 = 0
+        var handle: FileHandle?
+        var failure: Error?
+        var request: PHAssetResourceDataRequestID?
+        var cancelled = false
+    }
+    private let state: OSAllocatedUnfairLock<State>
+
+    init(output: URL?) throws {
+        let handle = try output.map { try FileHandle(forWritingTo: $0) }
+        state = OSAllocatedUnfairLock(initialState: State(handle: handle))
+    }
+
+    func receive(_ data: Data) {
+        state.withLock { state in
+            guard !state.cancelled, state.failure == nil else { return }
+            do {
+                try state.handle?.write(contentsOf: data)
+                state.hash.update(data: data)
+                state.bytes += Int64(data.count)
+            } catch { state.failure = error }
+        }
+    }
+
+    func setRequest(_ id: PHAssetResourceDataRequestID) {
+        let shouldCancel = state.withLock { state -> Bool in
+            state.request = id
+            return state.cancelled
+        }
+        if shouldCancel { PHAssetResourceManager.default().cancelDataRequest(id) }
+    }
+
+    func cancel() {
+        let requestID = state.withLock { state -> PHAssetResourceDataRequestID? in
+            state.cancelled = true
+            return state.request
+        }
+        if let requestID { PHAssetResourceManager.default().cancelDataRequest(requestID) }
+    }
+
+    func finish() throws -> (Int64, String) {
+        try state.withLock { state in
+            try state.handle?.synchronize()
+            try state.handle?.close()
+            state.handle = nil
+            if state.cancelled { throw CancellationError() }
+            if let failure = state.failure { throw failure }
+            return (state.bytes, state.hash.finalize().map { String(format: "%02x", $0) }.joined())
+        }
+    }
+}
+
+final class PendingPreviewRequest: @unchecked Sendable {
+    private struct State {
+        var requestID: PHImageRequestID = PHInvalidImageRequestID
+        var isCancelled = false
+        var continuation: CheckedContinuation<CGImage, Error>?
+    }
+    private let lock = OSAllocatedUnfairLock(initialState: State())
+
+    func store(_ continuation: CheckedContinuation<CGImage, Error>) {
+        if lock.withLock({ state -> Bool in
+            if state.isCancelled { return true }
+            state.continuation = continuation
+            return false
+        }) { continuation.resume(throwing: CancellationError()) }
+    }
+
+    func setRequestID(_ id: PHImageRequestID) {
+        if lock.withLock({ $0.requestID = id; return $0.isCancelled }), id != PHInvalidImageRequestID {
+            PHImageManager.default().cancelImageRequest(id)
+        }
+    }
+
+    func deliver(_ image: CGImage?) {
+        let continuation = lock.withLock { state -> CheckedContinuation<CGImage, Error>? in
+            let pending = state.continuation
+            state.continuation = nil
+            return pending
+        }
+        if let decoded = image {
+            continuation?.resume(returning: decoded)
+        } else {
+            continuation?.resume(throwing: CleanupError.message(String(localized: "Local Photos preview unavailable.")))
+        }
+    }
+
+    func cancelIfPending() {
+        let (requestID, continuation) = lock.withLock { state -> (PHImageRequestID, CheckedContinuation<CGImage, Error>?) in
+            state.isCancelled = true
+            let pending = state.continuation
+            state.continuation = nil
+            return (state.requestID, pending)
+        }
+        if requestID != PHInvalidImageRequestID { PHImageManager.default().cancelImageRequest(requestID) }
+        continuation?.resume(throwing: CancellationError())
     }
 }

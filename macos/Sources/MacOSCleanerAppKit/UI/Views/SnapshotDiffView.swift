@@ -1,5 +1,5 @@
-import SwiftUI
 import MacOSCleanerCore
+import SwiftUI
 
 /// Snapshots tab: pick any two stored scan snapshots and see which folders
 /// grew, ranked by byte delta. Read-only — diffing never modifies data.
@@ -7,8 +7,9 @@ struct SnapshotDiffView: View {
     @Bindable var model: AppViewModel
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         List(selection: $model.selectedSnapshotID) {
-            Section(String(localized: "Saved scans")) {
+            Section(L10n.string("Saved scans", language: override)) {
                 ForEach(model.storageSnapshots.filter {
                     model.searchText.isEmpty || snapshotLabel(for: $0).localizedCaseInsensitiveContains(model.searchText)
                         || $0.bytesByRootPath.keys.contains { $0.localizedCaseInsensitiveContains(model.searchText) }
@@ -17,12 +18,12 @@ struct SnapshotDiffView: View {
                 }
             }
             if model.isLoadingSnapshots {
-                ProgressView(String(localized: "Loading snapshots…"))
+                ProgressView(L10n.string("Loading snapshots…", language: override))
             } else if model.storageSnapshots.count < 2 {
-                emptyState
+                emptyState(override: override)
             } else {
-                pickerCard
-                diffCard
+                pickerCard(override: override)
+                diffCard(override: override)
             }
         }
         .listStyle(.inset)
@@ -30,20 +31,23 @@ struct SnapshotDiffView: View {
         .task { await model.loadSnapshotHistory() }
     }
 
-    private var emptyState: some View {
+    private func emptyState(override: AppLanguage?) -> some View {
         ContentUnavailableView {
-            Label(String(localized: "Need at least two scans to compare."), systemImage: "square.stack.3d.up")
+            Label(
+                L10n.string("Need at least two scans to compare.", language: override),
+                systemImage: "square.stack.3d.up"
+            )
         } description: {
-            Text(String(localized: "Each scan saves a snapshot. Start another scan to compare results."))
+            Text(L10n.string("Each scan saves a snapshot. Start another scan to compare results.", language: override))
         } actions: {
             EmptyStateActionsView(model: model)
         }
     }
 
-    private var pickerCard: some View {
-        Section( String(localized: "Compare Scans")) {
+    private func pickerCard(override: AppLanguage?) -> some View {
+        Section(L10n.string("Compare Scans", language: override)) {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                Picker(String(localized: "Older snapshot"), selection: Binding(
+                Picker(L10n.string("Older snapshot", language: override), selection: Binding(
                     get: { model.olderSnapshotID ?? "" },
                     set: { newValue in
                         model.olderSnapshotID = newValue.isEmpty ? nil : newValue
@@ -55,8 +59,8 @@ struct SnapshotDiffView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .accessibilityLabel(String(localized: "Older snapshot"))
-                Picker(String(localized: "Newer snapshot"), selection: Binding(
+                .accessibilityLabel(L10n.string("Older snapshot", language: override))
+                Picker(L10n.string("Newer snapshot", language: override), selection: Binding(
                     get: { model.newerSnapshotID ?? "" },
                     set: { newValue in
                         model.newerSnapshotID = newValue.isEmpty ? nil : newValue
@@ -68,7 +72,7 @@ struct SnapshotDiffView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .accessibilityLabel(String(localized: "Newer snapshot"))
+                .accessibilityLabel(L10n.string("Newer snapshot", language: override))
             }
         }
     }
@@ -79,41 +83,44 @@ struct SnapshotDiffView: View {
     }
 
     @ViewBuilder
-    private var diffCard: some View {
+    private func diffCard(override: AppLanguage?) -> some View {
         if let error = model.snapshotDiffError {
             Text(error)
                 .appFont(.labelMedium)
                 .foregroundStyle(Primary.label)
                 .padding(Spacing.cardPadding)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(SemanticScale.errorSoft, in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
+                .background(
+                    SemanticScale.errorSoft,
+                    in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous)
+                )
         } else if let diff = model.snapshotDiff {
-            Section( String(localized: "Snapshot Diff")) {
+            Section(L10n.string("Snapshot Diff", language: override)) {
                 VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                    headlineRow(for: diff)
+                    headlineRow(for: diff, override: override)
                     if diff.folderDeltas.isEmpty {
-                        Text(String(localized: "No folder changed between these snapshots."))
+                        Text(L10n.string("No folder changed between these snapshots.", language: override))
                             .appFont(.caption)
                             .foregroundStyle(Color.secondary)
                     } else {
-                        Text(String(localized: "Grown folders"))
+                        Text(L10n.string("Grown folders", language: override))
                             .font(.app(.h3))
-                            
                             .foregroundStyle(Color.secondary)
-                        ForEach(diff.folderDeltas.filter { model.searchText.isEmpty || $0.path.localizedCaseInsensitiveContains(model.searchText) }) { delta in
-                            folderRow(for: delta)
+                        let matching = diff.folderDeltas.filter {
+                            model.searchText.isEmpty || $0.path.localizedCaseInsensitiveContains(model.searchText)
+                        }
+                        ForEach(matching) { delta in
+                            folderRow(for: delta, override: override)
                         }
                     }
                     if !diff.categoryDeltas.isEmpty {
-                        Text(String(localized: "Category shifts"))
+                        Text(L10n.string("Category shifts", language: override))
                             .font(.app(.h3))
-                            
                             .foregroundStyle(Color.secondary)
                         ForEach(diff.categoryDeltas, id: \.category) { entry in
                             HStack {
                                 Text(entry.category.displayName)
                                     .appFont(.labelMedium)
-                                    
                                     .foregroundStyle(Color.secondary)
                                 Spacer()
                                 deltaChip(entry.deltaBytes)
@@ -123,13 +130,13 @@ struct SnapshotDiffView: View {
                 }
             }
             .accessibilityElement(children: .contain)
-            .accessibilityLabel(String(localized: "Snapshot comparison"))
+            .accessibilityLabel(L10n.string("Snapshot comparison", language: override))
         }
     }
 
-    private func headlineRow(for diff: SnapshotDiff) -> some View {
+    private func headlineRow(for diff: SnapshotDiff, override: AppLanguage?) -> some View {
         HStack {
-            Text(String(localized: "Total change"))
+            Text(L10n.string("Total change", language: override))
                 .appFont(.h4)
                 .foregroundStyle(Color.primary)
             Spacer()
@@ -137,7 +144,7 @@ struct SnapshotDiffView: View {
         }
     }
 
-    private func folderRow(for delta: SnapshotFolderDelta) -> some View {
+    private func folderRow(for delta: SnapshotFolderDelta, override: AppLanguage?) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(delta.path)
@@ -154,7 +161,7 @@ struct SnapshotDiffView: View {
             deltaChip(delta.deltaBytes)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "\(delta.path), change \(signedBytes(delta.deltaBytes))"))
+        .accessibilityLabel(L10n.format("%@, change %@", language: override, delta.path, signedBytes(delta.deltaBytes)))
     }
 
     private func deltaChip(_ value: Int64) -> some View {
@@ -172,4 +179,3 @@ struct SnapshotDiffView: View {
         value >= 0 ? "+\(value.formattedByteCount)" : "−\(abs(value).formattedByteCount)"
     }
 }
-

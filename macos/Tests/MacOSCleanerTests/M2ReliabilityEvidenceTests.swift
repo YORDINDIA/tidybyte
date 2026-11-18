@@ -67,7 +67,6 @@ final class M2ReliabilityEvidenceTests: XCTestCase {
         let harness = try makeModel()
         let model = harness.model
         let store = harness.store
-        let undoService = harness.undo
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("M2-mb10-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -97,7 +96,6 @@ final class M2ReliabilityEvidenceTests: XCTestCase {
 
     func testRestoreWithoutReasonRecordsNoRegretRule() async throws {
         let harness = try makeModel()
-        let model = harness.model
         let store = harness.store
         let undoService = harness.undo
         let root = FileManager.default.temporaryDirectory
@@ -284,31 +282,61 @@ final class M2ReliabilityEvidenceTests: XCTestCase {
 
     // MARK: - MON-01: the Battery and Power tiles agree about direction
 
-    /// The Power tile's direction label must come from the same isCharging
-    /// source as the Battery tile — the SMC amperage sign disagrees with IOPS
-    /// on some hardware and showed "Discharging" next to a charging battery.
+    /// The Power tile's direction label and Battery tile context come from the
+    /// real `PowerReading` helpers — `isEffectivelyCharged`, `powerDirectionLabel`,
+    /// and `batteryStatusContext` — so charging, charged at 100%, AC power, and
+    /// discharging states agree across tiles.
     func testPowerTileDirectionFollowsTheBatteryTile() {
-        func tile(for reading: PowerReading) -> (battery: String, power: String?) {
-            var battery = "—"
-            if let level = reading.level {
-                battery = MetricFormatting.percent(level)
-            }
-            let power = reading.wattage.map { _ in
-                reading.isCharging
-                    ? String(localized: "Charging", comment: "Power direction")
-                    : String(localized: "Discharging", comment: "Power direction")
-            }
-            return (battery, power)
-        }
+        // Charging at 24% with +50.2 W draw: must report Charging, never Discharging.
+        var charging = PowerReading(hasBattery: true)
+        charging.level = 0.24
+        charging.isCharging = true
+        charging.isPluggedIn = true
+        charging.wattage = 50.2
+        XCTAssertFalse(charging.isEffectivelyCharged)
+        XCTAssertEqual(charging.powerDirectionLabel, "Charging")
+        XCTAssertEqual(charging.batteryStatusContext, "Charging")
 
-        // The observed contradiction: charging at 24% with +50 W draw.
-        var reading = PowerReading(hasBattery: true)
-        reading.level = 0.24
-        reading.isCharging = true
-        reading.wattage = 50.2
-        let tiles = tile(for: reading)
-        XCTAssertEqual(tiles.power, "Charging", "a charging battery must never read Discharging")
-        XCTAssertTrue(tiles.battery.contains("24"))
+        charging.timeToFullSeconds = 1_800
+        XCTAssertEqual(charging.batteryStatusContext?.hasPrefix("Charging · "), true)
+
+        // Charged at 100% on AC (even when isCharging is false and isCharged wasn't set).
+        var fullOnAC = PowerReading(hasBattery: true)
+        fullOnAC.level = 1.0
+        fullOnAC.isPluggedIn = true
+        fullOnAC.isCharging = false
+        fullOnAC.isCharged = false
+        XCTAssertTrue(fullOnAC.isEffectivelyCharged)
+        XCTAssertEqual(fullOnAC.powerDirectionLabel, "Charged")
+        XCTAssertEqual(fullOnAC.batteryStatusContext, "Charged")
+
+        // Explicit isCharged flag.
+        var explicitCharged = PowerReading(hasBattery: true)
+        explicitCharged.level = 0.99
+        explicitCharged.isCharged = true
+        XCTAssertTrue(explicitCharged.isEffectivelyCharged)
+        XCTAssertEqual(explicitCharged.powerDirectionLabel, "Charged")
+        XCTAssertEqual(explicitCharged.batteryStatusContext, "Charged")
+
+        // Plugged into AC without charging (e.g. battery conservation hold at 80%).
+        var acHold = PowerReading(hasBattery: true)
+        acHold.level = 0.80
+        acHold.isPluggedIn = true
+        acHold.isCharging = false
+        acHold.isCharged = false
+        XCTAssertFalse(acHold.isEffectivelyCharged)
+        XCTAssertEqual(acHold.powerDirectionLabel, "AC power")
+        XCTAssertEqual(acHold.batteryStatusContext, "On AC power")
+
+        // Discharging on battery.
+        var discharging = PowerReading(hasBattery: true)
+        discharging.level = 0.60
+        discharging.isPluggedIn = false
+        discharging.isCharging = false
+        discharging.timeToEmptySeconds = 3_600
+        XCTAssertFalse(discharging.isEffectivelyCharged)
+        XCTAssertEqual(discharging.powerDirectionLabel, "Discharging")
+        XCTAssertNotNil(discharging.batteryStatusContext)
     }
 
     // MARK: - DP-04/05/06: the store-fallback ladder

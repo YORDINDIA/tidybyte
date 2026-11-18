@@ -192,7 +192,7 @@ public actor ApplicationFootprintService {
     /// Every .app bundle directly inside /Applications and ~/Applications,
     /// sorted by name, with bundle sizes measured via allocated-size walks.
     public func enumerateInstalledApplications() async -> [InstalledApplication] {
-        let home = homeDirectoryOverride ?? fileManager.homeDirectoryForCurrentUser
+        let home = homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory
         let roots = [
             URL(fileURLWithPath: "/Applications", isDirectory: true),
             home.appendingPathComponent("Applications", isDirectory: true)
@@ -227,7 +227,7 @@ public actor ApplicationFootprintService {
     /// items start, and app-group containers named in the app's signature.
     /// Nested matches are ignored: a subfolder's name is not evidence.
     public func footprintItems(for app: InstalledApplication) async -> [ApplicationFootprintItem] {
-        let home = homeDirectoryOverride ?? fileManager.homeDirectoryForCurrentUser
+        let home = homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory
         let library = home.appendingPathComponent("Library", isDirectory: true)
         func user(_ name: String) -> URL { library.appendingPathComponent(name, isDirectory: true) }
         func system(_ name: String) -> URL { systemLibrary.appendingPathComponent(name, isDirectory: true) }
@@ -387,9 +387,23 @@ public actor ApplicationFootprintService {
             let bytes = scatteredRecords.reduce(Int64(0)) { $0 + $1.sizeBytes }
             let findingID = UUID().uuidString
             let systemCount = scattered.filter(\.location.isSystemWide).count
-            let scopeNote = systemCount > 0
-                ? String(localized: " \(systemCount) item(s) live in system-wide locations shared with the OS or other users. Review those paths carefully.", comment: "System-wide footprint warning suffix")
-                : ""
+            let scopeNote: String = switch systemCount {
+            case 0:
+                ""
+            case 1:
+                String(
+                    localized: " 1 item lives in a system-wide location shared with the OS or other users. Review that path carefully.",
+                    comment: "System-wide footprint warning suffix (singular)"
+                )
+            default:
+                String(
+                    localized: """
+                         \(systemCount) items live in system-wide locations shared with the OS or other users. \
+                        Review those paths carefully.
+                        """,
+                    comment: "System-wide footprint warning suffix (plural)"
+                )
+            }
             findings.append(Finding(
                 id: findingID,
                 scanSessionID: sessionID,

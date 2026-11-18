@@ -1,8 +1,10 @@
 import Darwin
 import Foundation
+import IOKit
+import SystemConfiguration
 
-/// Host-wide CPU and memory readings from mach statistics. Pure functions so
-/// tests can feed synthetic tick pairs.
+/// Host-wide CPU, memory, and hardware disk readings from mach/IOKit. Pure
+/// functions where possible so tests can feed synthetic tick pairs.
 public enum HostProbes {
     /// Cumulative CPU tick counts across all cores.
     public struct CPUTicks: Sendable, Equatable {
@@ -21,26 +23,36 @@ public enum HostProbes {
         public var total: UInt64 { user + system + idle + nice }
     }
 
+    public static let logicalCoreCount: Int = sysctlInt("hw.logicalcpu") ?? ProcessInfo.processInfo.activeProcessorCount
+    public static let physicalCoreCount: Int? = sysctlInt("hw.physicalcpu")
+    public static let performanceCoreCount: Int? = sysctlInt("hw.perflevel0.physicalcpu")
+    public static let efficiencyCoreCount: Int? = sysctlInt("hw.perflevel1.physicalcpu")
+
+    private static func sysctlInt(_ name: String) -> Int? {
+        var value: Int32 = 0
+        var size = MemoryLayout<Int32>.size
+        guard sysctlbyname(name, &value, &size, nil, 0) == 0, value > 0 else { return nil }
+        return Int(value)
+    }
+
     /// CPU split derived from two tick snapshots. The first ever sample has no
     /// previous tick set to diff against and reports zeros.
     public static func cpuReading(ticks: CPUTicks, previous: CPUTicks?, logicalCores: Int) -> CPUReading {
         let load = ProcessProbe.loadAverage()
-        // Apple silicon: performance and efficiency cores in a 2:1-ish split;
-        // the split is cosmetic context, so the estimate stays simple.
-        let physical = max(1, logicalCores / 2)
+        let physical = physicalCoreCount ?? max(1, logicalCores / 2)
         guard let previous, ticks.total > previous.total else {
             return CPUReading(
                 loadAverage1: load.one, loadAverage5: load.five, loadAverage15: load.fifteen,
                 logicalCoreCount: logicalCores,
-                physicalCoreCount: physical)
+                physicalCoreCount: physical,
+                performanceCoreCount: performanceCoreCount,
+                efficiencyCoreCount: efficiencyCoreCount)
         }
         func delta(_ key: KeyPath<CPUTicks, UInt64>) -> Double {
-            let current = Double(ticks[keyPath: key])
-            let before = Double(previous[keyPath: key])
-            return max(0, current - before)
+            max(0, Double(ticks[keyPath: key]) - Double(previous[keyPath: key]))
         }
         let totalTicks = max(1, Double(ticks.total) - Double(previous.total))
-        let user = delta(\.user) / totalTicks * 100
+        let user = (delta(\.user) + delta(\.nice)) / totalTicks * 100
         let system = delta(\.system) / totalTicks * 100
         let idle = delta(\.idle) / totalTicks * 100
         return CPUReading(
@@ -52,16 +64,20 @@ public enum HostProbes {
             loadAverage5: load.five,
             loadAverage15: load.fifteen,
             logicalCoreCount: logicalCores,
-            physicalCoreCount: physical)
+            physicalCoreCount: physical,
+            performanceCoreCount: performanceCoreCount,
+            efficiencyCoreCount: efficiencyCoreCount)
     }
 
     /// Current cumulative tick counts for every core, summed.
     public static func cpuTicks() -> CPUTicks {
+        let host = mach_host_self()
+        defer { mach_port_deallocate(mach_task_self_, host) }
         var count = mach_msg_type_number_t(MemoryLayout<host_cpu_load_info>.size / MemoryLayout<integer_t>.size)
         var ticks = host_cpu_load_info()
         let result = withUnsafeMutablePointer(to: &ticks) {
             $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &count)
+                host_statistics(host, HOST_CPU_LOAD_INFO, $0, &count)
             }
         }
         guard result == KERN_SUCCESS else { return CPUTicks() }
@@ -71,8 +87,6 @@ public enum HostProbes {
             idle: UInt64(ticks.cpu_ticks.2),
             nice: UInt64(ticks.cpu_ticks.3))
     }
-
-    public static var logicalCoreCount: Int { ProcessInfo.processInfo.activeProcessorCount }
 
     /// Cumulative VM counters between which rates are computed.
     public struct MemoryCounters: Sendable, Equatable {
@@ -88,12 +102,27 @@ public enum HostProbes {
         public var counters: MemoryCounters
     }
 
-    /// Memory figures with Activity Monitor's arithmetic (see SystemStatus)
-    /// plus swap and page activity rates across the sample interval.
+    private static func vmStatistics(host: host_t) -> vm_statistics64? {
+        var stats = vm_statistics64()
+        var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
+        let result = withUnsafeMutablePointer(to: &stats) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                host_statistics64(host, HOST_VM_INFO64, $0, &count)
+            }
+        }
+        return result == KERN_SUCCESS ? stats : nil
+    }
+
+    /// Memory figures with Activity Monitor's arithmetic (app memory excludes
+    /// purgeable pages) plus swap and page activity rates.
     public static func memoryReading(previous: MemoryCounters?, interval: TimeInterval) -> MemorySample {
         let empty = MemorySample(reading: MemoryReading(), counters: MemoryCounters(swapIns: 0, swapOuts: 0, pageIns: 0, pageOuts: 0))
-        guard let stats = SystemStatus.vmStatistics64() else { return empty }
-        let pageSize = Int64(getpagesize())
+        let host = mach_host_self()
+        defer { mach_port_deallocate(mach_task_self_, host) }
+        guard let stats = vmStatistics(host: host) else { return empty }
+        var rawPageSize: vm_size_t = 0
+        let pageSize = (host_page_size(host, &rawPageSize) == KERN_SUCCESS && rawPageSize > 0)
+            ? Int64(rawPageSize) : Int64(getpagesize())
         let page = { (value: UInt32) in Int64(value) * pageSize }
         let counters = MemoryCounters(
             swapIns: Int64(stats.swapins), swapOuts: Int64(stats.swapouts),
@@ -103,15 +132,17 @@ public enum HostProbes {
             let delta = current - before
             return delta > 0 ? Double(delta) / interval : 0
         }
-        let swapUsage = SystemStatus.swapUsed()
+        let appBytes = max(0, page(stats.internal_page_count) - page(stats.purgeable_count))
+        let wiredBytes = page(stats.wire_count)
+        let compressedBytes = page(stats.compressor_page_count)
         let reading = MemoryReading(
             totalBytes: Int64(ProcessInfo.processInfo.physicalMemory),
-            usedBytes: page(stats.internal_page_count) + page(stats.wire_count) + page(stats.compressor_page_count),
-            appBytes: page(stats.internal_page_count),
-            wiredBytes: page(stats.wire_count),
-            compressedBytes: page(stats.compressor_page_count),
+            usedBytes: appBytes + wiredBytes + compressedBytes,
+            appBytes: appBytes,
+            wiredBytes: wiredBytes,
+            compressedBytes: compressedBytes,
             cachedBytes: page(stats.external_page_count) + page(stats.purgeable_count),
-            swapUsedBytes: swapUsage,
+            swapUsedBytes: SystemStatus.swapUsed(),
             swapInPerSecond: rate(counters.swapIns, previous?.swapIns),
             swapOutPerSecond: rate(counters.swapOuts, previous?.swapOuts),
             pageInPerSecond: rate(counters.pageIns, previous?.pageIns),
@@ -120,27 +151,69 @@ public enum HostProbes {
         return MemorySample(reading: reading, counters: counters)
     }
 
-    /// kern.memorystatus_vm_pressure_level is answered by this macOS's kernel:
-    /// `sysctl kern.memorystatus_vm_pressure_level` returned 1 on macOS 26
-    /// (Darwin 25.6.0, arm64), so the sysctl stays the source of truth and the
-    /// failure fallback (1, "normal") only covers kernels that drop the key.
     static func pressureLevel() -> Int32 {
         Int32(SystemStatus.sysctlInt("kern.memorystatus_vm_pressure_level") ?? 1)
     }
 }
 
+/// Hardware block-storage throughput and IOPS from IOKit `IOBlockStorageDriver`.
+public enum DiskProbe {
+    public struct DiskCounters: Sendable, Equatable {
+        public var readBytes: Int64
+        public var writeBytes: Int64
+        public var readOperations: Int64
+        public var writeOperations: Int64
+
+        public init(readBytes: Int64 = 0, writeBytes: Int64 = 0, readOperations: Int64 = 0, writeOperations: Int64 = 0) {
+            self.readBytes = readBytes
+            self.writeBytes = writeBytes
+            self.readOperations = readOperations
+            self.writeOperations = writeOperations
+        }
+    }
+
+    public static func sampleCounters() -> DiskCounters? {
+        guard let iterator = IOKitSupport.Iterator(serviceName: "IOBlockStorageDriver") else { return nil }
+        defer { IOObjectRelease(iterator.object) }
+        var total = DiskCounters()
+        var foundAny = false
+        while let entry = iterator.next() {
+            defer { IOObjectRelease(entry) }
+            guard let stats = IORegistryEntryCreateCFProperty(
+                entry, "Statistics" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? [String: Any] else {
+                continue
+            }
+            foundAny = true
+            total.readBytes += (stats["Bytes (Read)"] as? NSNumber)?.int64Value ?? 0
+            total.writeBytes += (stats["Bytes (Write)"] as? NSNumber)?.int64Value ?? 0
+            total.readOperations += (stats["Operations (Read)"] as? NSNumber)?.int64Value ?? 0
+            total.writeOperations += (stats["Operations (Write)"] as? NSNumber)?.int64Value ?? 0
+        }
+        return foundAny ? total : nil
+    }
+
+    public static func reading(previous: DiskCounters?, current: DiskCounters, interval: TimeInterval) -> DiskIOReading {
+        func rate(_ now: Int64, _ before: Int64?) -> Double {
+            guard let before, interval > 0, now >= before else { return 0 }
+            return Double(now - before) / interval
+        }
+        return DiskIOReading(
+            readBytesPerSecond: rate(current.readBytes, previous?.readBytes),
+            writeBytesPerSecond: rate(current.writeBytes, previous?.writeBytes),
+            readOperationsPerSecond: rate(current.readOperations, previous?.readOperations),
+            writeOperationsPerSecond: rate(current.writeOperations, previous?.writeOperations),
+            totalReadBytes: current.readBytes,
+            totalWriteBytes: current.writeBytes)
+    }
+}
+
 /// Interface throughput from the kernel route table (NET_RT_IF_LIST2).
 public enum NetworkProbe {
-    // Route-table constants that are C preprocessor macros in route.h.
     static let netRTIFList2: Int32 = 6
     static let rtmIfInfo2: UInt8 = 0x12
-    /// A real RTM_IFINFO2 message on Darwin: the 32-byte if_msghdr2 header,
-    /// the if_data64 block, and the link-level sockaddr the kernel appends
-    /// (verified against a live NET_RT_IF_LIST2 dump: every IFINFO2 message
-    /// is 180 bytes). The walk requires this stride before it parses.
     static let ifInfo2Stride = 180
+    private static let virtualOverlayPrefixes = ["utun", "bridge", "ap", "llw", "awdl"]
 
-    /// Cumulative byte/byte counters per interface.
     public struct InterfaceCounters: Sendable, Equatable {
         public var name: String
         public var receivedBytes: Int64
@@ -153,27 +226,29 @@ public enum NetworkProbe {
         }
     }
 
-    /// Reads the route table once, skipping loopback interfaces. The engine
-    /// calls this a single time per tick and diffs the snapshots itself, so
-    /// there is never a second walk.
+    /// Reads the route table once, retrying if the table grows (`ENOMEM`).
     public static func sampleCounters() -> [InterfaceCounters] {
-        // NET_RT_IF_LIST2 sits in the fifth slot of a six-element mib; longer
-        // mibs fail with EINVAL on real kernels.
         var mib: [Int32] = [CTL_NET, PF_ROUTE, 0, 0, netRTIFList2, 0]
         var size = 0
         guard sysctl(&mib, 6, nil, &size, nil, 0) == 0, size > 0 else { return [] }
-        var data = Data(count: size)
-        var readSize = size
-        let result = data.withUnsafeMutableBytes { pointer in
-            sysctl(&mib, 6, pointer.baseAddress, &readSize, nil, 0)
+        for _ in 0..<5 {
+            var data = Data(count: size)
+            var readSize = size
+            let result = data.withUnsafeMutableBytes { pointer in
+                sysctl(&mib, 6, pointer.baseAddress, &readSize, nil, 0)
+            }
+            if result == 0 {
+                return parseInterfaceList(Data(data.prefix(readSize)))
+            }
+            if errno == ENOMEM {
+                size = max(readSize, size * 2)
+                continue
+            }
+            return []
         }
-        guard result == 0 else { return [] }
-        return parseInterfaceList(Data(data.prefix(readSize)))
+        return []
     }
 
-    /// Walks the packed route messages. Pure so the parser is testable.
-    /// Short messages and non-IFINFO2 messages are skipped; the walk stops
-    /// only on a zero length or a message that overruns the buffer.
     static func parseInterfaceList(_ data: Data) -> [InterfaceCounters] {
         var counters: [String: InterfaceCounters] = [:]
         var offset = 0
@@ -193,17 +268,9 @@ public enum NetworkProbe {
     }
 
     private static func parseIfMsghdr2(_ bytes: [UInt8], offset: Int) -> InterfaceCounters? {
-        // Host byte order throughout, verified field by field against
-        // net/if.h's if_msghdr2 and net/if_var.h's if_data64:
-        //   msglen@0(u16) version@2 type@3 ifm_addrs@4(i32) ifm_flags@8(i32)
-        //   ifm_index@12(u16) snd_len@16 … ifm_timer@28,
-        //   ifm_data (if_data64) at +32, whose counters start at +16:
-        //   baudrate@16, ipackets@24, …, ibytes@64, obytes@72 — so on the
-        //   message ibytes sits at +96 and obytes at +104.
         let index = Int(readUInt16(bytes, offset + 12))
         guard index > 0 else { return nil }
         let flags = readUInt32(bytes, offset + 8)
-        // IFF_LOOPBACK.
         guard flags & 0x8 == 0 else { return nil }
         let dataStart = offset + 32
         func counter(_ offsetInData: Int) -> Int64 {
@@ -215,32 +282,58 @@ public enum NetworkProbe {
             sentBytes: counter(72))
     }
 
-    /// The kernel's name for an interface index (en0…), or "if%d" when the
-    /// index has no mapping on this system.
     static func interfaceName(_ index: Int) -> String {
         var buffer = [CChar](repeating: 0, count: Int(IF_NAMESIZE))
         guard if_indextoname(UInt32(index), &buffer) != nil else {
             return String(format: "if%d", index)
         }
         let characters = buffer.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }
-        // Kernel interface names are ASCII; an undecodable one falls back to
-        // the index form rather than guessing.
         return String(bytes: characters, encoding: .utf8) ?? String(format: "if%d", index)
     }
 
-    /// Diffs two counter snapshots into rates plus boot-to-now totals.
-    /// Pure: `current` comes from one `sampleCounters()` call per tick.
+    static func isVirtualOverlayInterface(_ name: String) -> Bool {
+        virtualOverlayPrefixes.contains { name.hasPrefix($0) }
+    }
+
+    static func activePrimaryInterface() -> String? {
+        guard let store = SCDynamicStoreCreate(nil, "com.sakshammittal.tidybyte.network" as CFString, nil, nil) else {
+            return nil
+        }
+        for key in ["State:/Network/Global/IPv4", "State:/Network/Global/IPv6"] {
+            if let dict = SCDynamicStoreCopyValue(store, key as CFString) as? [String: Any],
+               let iface = dict["PrimaryInterface"] as? String, !iface.isEmpty {
+                return iface
+            }
+        }
+        return nil
+    }
+
+    private static func resolvePrimaryInterface(in physical: [InterfaceCounters]) -> String? {
+        if let active = activePrimaryInterface(),
+           !isVirtualOverlayInterface(active),
+           physical.contains(where: { $0.name == active }) {
+            return active
+        }
+        let enInterfaces = physical.filter { $0.name.hasPrefix("en") }
+        let pool = enInterfaces.isEmpty ? physical : enInterfaces
+        return pool.max { ($0.receivedBytes + $0.sentBytes) < ($1.receivedBytes + $1.sentBytes) }?.name
+    }
+
+    /// Diffs two counter snapshots into rates plus boot-to-now totals,
+    /// excluding virtual tunnel/bridge overlays so VPN + Wi-Fi never double-count.
     public static func reading(
         previous: [InterfaceCounters]?, current: [InterfaceCounters], interval: TimeInterval
     ) -> NetworkReading {
-        func total(_ key: KeyPath<InterfaceCounters, Int64>) -> Int64 {
-            current.reduce(0) { $0 + $1[keyPath: key] }
-        }
+        let physical = current.filter { !isVirtualOverlayInterface($0.name) }
+        let totalDown = physical.reduce(Int64(0)) { $0 + $1.receivedBytes }
+        let totalUp = physical.reduce(Int64(0)) { $0 + $1.sentBytes }
         var downloadPerSecond: Double = 0
         var uploadPerSecond: Double = 0
         if let previous, interval > 0 {
-            let before = Dictionary(previous.map { ($0.name, $0) }, uniquingKeysWith: { first, _ in first })
-            for entry in current {
+            let before = Dictionary(
+                previous.filter { !isVirtualOverlayInterface($0.name) }.map { ($0.name, $0) },
+                uniquingKeysWith: { first, _ in first })
+            for entry in physical {
                 guard let old = before[entry.name] else { continue }
                 downloadPerSecond += max(0, Double(entry.receivedBytes - old.receivedBytes) / interval)
                 uploadPerSecond += max(0, Double(entry.sentBytes - old.sentBytes) / interval)
@@ -249,13 +342,13 @@ public enum NetworkProbe {
         return NetworkReading(
             downloadBytesPerSecond: downloadPerSecond,
             uploadBytesPerSecond: uploadPerSecond,
-            totalDownloadBytes: total(\.receivedBytes),
-            totalUploadBytes: total(\.sentBytes))
+            totalDownloadBytes: totalDown,
+            totalUploadBytes: totalUp,
+            primaryInterface: resolvePrimaryInterface(in: physical))
     }
 
     private static func readUInt8(_ bytes: [UInt8], _ offset: Int) -> UInt8 { bytes[offset] }
 
-    // Host (little-endian on Apple hardware) integer reads.
     private static func readUInt16(_ bytes: [UInt8], _ offset: Int) -> UInt16 {
         UInt16(bytes[offset]) | UInt16(bytes[offset + 1]) << 8
     }

@@ -11,7 +11,7 @@ public enum ProcessGroupKind: String, Codable, Sendable {
     /// Kernel-resident work.
     case kernel
     /// Sort rank: the apps a person launched come first.
-    var rank: Int {
+    public var rank: Int {
         switch self {
         case .app: 0
         case .background: 1

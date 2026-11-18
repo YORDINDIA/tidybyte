@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 /// Outcome of asking the policy whether a filesystem location may be used
@@ -82,7 +83,28 @@ public struct PathSafetyPolicy: Sendable {
         appleManagedTempPrefixes.contains { path == $0 || path.hasPrefix($0 + "/") }
     }
 
-    public init() {}
+    private let homeDirectoryOverride: URL?
+
+    public init(homeDirectoryOverride: URL? = nil) {
+        self.homeDirectoryOverride = homeDirectoryOverride
+    }
+
+    /// Real user home directory from passwd (unaffected by App Store sandbox containerization),
+    /// falling back to `FileManager.default.homeDirectoryForCurrentUser`.
+    public static var realHomeDirectory: URL {
+        if let pwDir = getpwuid(getuid())?.pointee.pw_dir {
+            let path = String(cString: pwDir)
+            if !path.isEmpty {
+                return URL(fileURLWithPath: path, isDirectory: true)
+            }
+        }
+        return FileManager.default.homeDirectoryForCurrentUser
+    }
+
+    /// Resolved home directory for this policy instance, honoring any test override.
+    public var homeDirectory: URL {
+        homeDirectoryOverride ?? Self.realHomeDirectory
+    }
 
     public func riskFlags(for url: URL, isDirectory: Bool) -> Set<RiskFlag> {
         var flags = Set<RiskFlag>()
@@ -140,14 +162,12 @@ public struct PathSafetyPolicy: Sendable {
         if components.contains(".trashes") {
             return true
         }
-        let trashPath = Self.homeTrashPath
+        let trashPath = homeDirectory
+            .appendingPathComponent(".Trash", isDirectory: true)
+            .standardizedFileURL.path.lowercased()
         let path = url.standardizedFileURL.path.lowercased()
         return path == trashPath || path.hasPrefix(trashPath + "/")
     }
-
-    private static let homeTrashPath = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent(".Trash", isDirectory: true)
-        .standardizedFileURL.path.lowercased()
 
     public func isProtectedFromCleanup(_ record: FileRecord) -> Bool {
         !record.riskFlags.intersection(Self.allProtectionFlags).isEmpty
@@ -163,7 +183,7 @@ public struct PathSafetyPolicy: Sendable {
     public func allowsCleanupTarget(_ record: FileRecord) -> Bool {
         guard !isProtectedFromCleanup(record) else { return false }
         let folder = record.url.standardizedFileURL.path.lowercased() + "/"
-        return !Self.protectedFolders.contains { $0.hasPrefix(folder) }
+        return !protectedFolders.contains { $0.hasPrefix(folder) }
     }
 
     public func isProtectedFromCleanup(url: URL, isDirectory: Bool) -> Bool {
@@ -202,12 +222,11 @@ public struct PathSafetyPolicy: Sendable {
     /// component appears as "/name/" in the slash-wrapped path, and a
     /// substring of one component never contains "/".
     public func cloudProvider(for url: URL) -> String? {
-        let path = "/" + url.standardizedFileURL.path + "/"
-        if path.contains("/Mobile Documents/") || path.contains("/iCloud Drive/") {
+        let lowered = "/" + url.standardizedFileURL.path.lowercased() + "/"
+        if lowered.contains("/mobile documents/") || lowered.contains("/icloud drive/") {
             return "iCloud"
         }
-        let lowered = path.lowercased()
-        if lowered.contains("google drive") || lowered.contains("/googledrive") {
+        if lowered.contains("/google drive/") || lowered.contains("/googledrive/") {
             return "Google Drive"
         }
         // Case-insensitive like the other providers: Dropbox supports renaming
@@ -215,7 +234,7 @@ public struct PathSafetyPolicy: Sendable {
         if lowered.contains("/dropbox/") {
             return "Dropbox"
         }
-        if lowered.contains("onedrive") {
+        if lowered.contains("/onedrive/") {
             return "OneDrive"
         }
         // File Provider folders (Box, pCloud, and others) live here.
@@ -253,7 +272,7 @@ public struct PathSafetyPolicy: Sendable {
             return .deny(reason: "Protected path: \(resolvedTarget.path)")
         }
         let folder = resolvedTarget.standardizedFileURL.path.lowercased() + "/"
-        if Self.protectedFolders.contains(where: { $0.hasPrefix(folder) }) {
+        if protectedFolders.contains(where: { $0.hasPrefix(folder) }) {
             return .deny(reason: "Contains protected data: \(resolvedTarget.path)")
         }
         if descendants, let blocked = firstProtectedDescendant(of: resolvedTarget) {
@@ -366,13 +385,13 @@ public struct PathSafetyPolicy: Sendable {
 
     /// Never-delete folders in the home folder. Trashing a folder that holds
     /// one (~/Library/Developer/Xcode) would take it along.
-    private static let protectedFolders: [String] = {
-        let home = FileManager.default.homeDirectoryForCurrentUser.resolvingSymlinksInPath().standardizedFileURL.path
+    private var protectedFolders: [String] {
+        let home = homeDirectory.resolvingSymlinksInPath().standardizedFileURL.path
         return [
             "Library/Keychains", "Library/Developer/Xcode/UserData", "Library/Developer/Xcode/Archives",
             "Library/Developer/CoreSimulator/Devices", "Library/Mail", "Library/MobileSync", ".ssh", ".gnupg"
         ].map { (home + "/" + $0).lowercased() }
-    }()
+    }
 
     /// Resolve existing ancestors through symlinks so a path like
     /// ~/mylink → ~/Library/Keychains cannot masquerade as safe. Only the

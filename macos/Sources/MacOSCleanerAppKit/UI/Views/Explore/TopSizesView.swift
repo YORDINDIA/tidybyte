@@ -2,7 +2,6 @@ import MacOSCleanerCore
 import SwiftUI
 
 /// Horizontal ranked bars of the largest groups, biggest first.
-/// Renders entirely from already-scanned `FileRecord` values.
 struct TopSizesView: View {
     @Bindable var model: AppViewModel
     var files: [FileRecord]
@@ -10,66 +9,75 @@ struct TopSizesView: View {
     var maxDepth: Int
     var nameFilter: String
 
-    @State private var memo = ExploreTreeMemo()
     @State private var selectedID: String?
     private let rowLimit = 20
 
-    private var filtered: [FileRecord] {
-        ExploreTreeBuilder.filteredFiles(files, nameFilter: nameFilter)
-    }
-
-    private var groups: [ExploreGroup] {
-        let roots = memo.groups(files: files, grouping: grouping, maxDepth: maxDepth, nameFilter: nameFilter)
-        return Array(roots.sorted { $0.bytes > $1.bytes }.prefix(rowLimit))
-    }
-
-    private var maxBytes: Int64 {
-        groups.first?.bytes ?? 1
+    private var override: AppLanguage? {
+        model.languageStore.activeOverride
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.elementTight) {
+        let filtered = model.exploreFilteredFiles(in: files, nameFilter: nameFilter)
+        let roots = model.exploreGroups(
+            in: files,
+            grouping: grouping,
+            maxDepth: maxDepth,
+            nameFilter: nameFilter
+        )
+        let groups = Array(roots.sorted { $0.bytes > $1.bytes }.prefix(rowLimit))
+        let maxBytes = groups.first?.bytes ?? 1
+
+        return VStack(alignment: .leading, spacing: Spacing.elementTight) {
             if groups.isEmpty {
-                ExploreEmptyState()
+                ExploreEmptyState(language: override)
             } else {
-                ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
-                    row(rank: index + 1, group: group)
+                ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
+                    row(rank: index + 1, group: group, maxBytes: maxBytes, filtered: filtered)
                 }
             }
+        }
+        .focusable()
+        .focusEffectDisabled()
+        .onKeyPress(keys: [.upArrow, .downArrow, .escape, .space]) { press in
+            handleKeyPress(press, groups: groups, filtered: filtered)
         }
         .onChange(of: ExploreFilesToken(files)) { _, _ in
             selectedID = nil
         }
+        .onChange(of: grouping) { _, _ in
+            selectedID = nil
+        }
     }
 
-    private func row(rank: Int, group: ExploreGroup) -> some View {
+    private func row(rank: Int, group: ExploreGroup, maxBytes: Int64, filtered: [FileRecord]) -> some View {
         let palette = ExploreChartPalette.palette(for: group)
         let fraction = maxBytes > 0 ? Double(max(0, group.bytes)) / Double(maxBytes) : 0
         let isSelected = selectedID == group.id
-        return VStack(alignment: .leading, spacing: 4) {
-            // Only the summary is the tap target. Clear and the group actions sit
-            // outside the Button, so VoiceOver and keyboard users can reach them.
+        return VStack(alignment: .leading, spacing: 6) {
             Button {
                 let next = isSelected ? nil : group.id
                 selectedID = next
-                if next != nil, let record = ExploreTreeBuilder.largestMember(of: group, in: filtered) {
-                    model.selectExploreRecord(id: record.id)
-                } else if next == nil {
-                    model.selectExploreRecord(id: nil)
-                }
+                syncSelection(group: next == nil ? nil : group, filtered: filtered)
             } label: {
                 summary(rank: rank, group: group, palette: palette, fraction: fraction)
-                .contentShape(Rectangle())
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(String(localized: "Rank \(rank): \(group.name), \(group.bytes.formattedByteCount)")))
-            .accessibilityHint(String(localized: "Shows group details"))
+            .accessibilityLabel(Text(L10n.format(
+                "Rank %lld: %@, %@",
+                language: override,
+                rank,
+                group.name,
+                group.bytes.formattedByteCount
+            )))
+            .accessibilityHint(L10n.string("Shows group details", language: override))
             .accessibilityAddTraits(isSelected ? .isSelected : [])
+
             if isSelected {
                 HStack {
                     Spacer()
-                    Button(String(localized: "Clear", comment: "Explore clear selection")) {
+                    Button(L10n.string("Clear", language: override)) {
                         selectedID = nil
                         model.selectExploreRecord(id: nil)
                     }
@@ -82,22 +90,17 @@ struct TopSizesView: View {
         }
         .padding(.horizontal, Spacing.cardPadding)
         .padding(.vertical, Spacing.elementTight)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
-        .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous).strokeBorder(.tint, lineWidth: 2)
-            }
-        }
-        .help(String(localized: "\(group.name), \(group.bytes.formattedByteCount)"))
+        .softCardSurface(cornerRadius: Radius.cardCompact, isSelected: isSelected)
+        .help(L10n.format("%@, %@", language: override, group.name, group.bytes.formattedByteCount))
     }
 
     private func summary(rank: Int, group: ExploreGroup, palette: CategoricalPalette, fraction: Double) -> some View {
-        return HStack(spacing: 10) {
-            Text(String(localized: "\(rank)"))
+        HStack(spacing: 10) {
+            Text("\(rank)")
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)
-                .frame(width: 22, alignment: .trailing)
+                .frame(width: 24, alignment: .trailing)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
@@ -124,7 +127,7 @@ struct TopSizesView: View {
                 .frame(height: 8)
                 .accessibilityHidden(true)
                 HStack {
-                    Text(ExploreCopy.fileCount(group.fileCount))
+                    Text(ExploreCopy.fileCount(group.fileCount, language: override))
                         .appFont(.caption)
                         .foregroundStyle(Color.secondary)
                     if let detail = group.detail, detail != group.name {
@@ -137,5 +140,48 @@ struct TopSizesView: View {
                 }
             }
         }
+    }
+
+    private func syncSelection(group: ExploreGroup?, filtered: [FileRecord]) {
+        guard let group, let record = ExploreTreeBuilder.largestMember(of: group, in: filtered) else {
+            model.selectExploreRecord(id: nil)
+            return
+        }
+        model.selectExploreRecord(id: record.id)
+    }
+
+    private func handleKeyPress(_ press: KeyPress, groups: [ExploreGroup], filtered: [FileRecord]) -> KeyPress.Result {
+        guard !groups.isEmpty else { return .ignored }
+        switch press.key {
+        case .upArrow:
+            moveSelection(by: -1, groups: groups, filtered: filtered)
+            return .handled
+        case .downArrow:
+            moveSelection(by: 1, groups: groups, filtered: filtered)
+            return .handled
+        case .escape:
+            guard selectedID != nil else { return .ignored }
+            selectedID = nil
+            model.selectExploreRecord(id: nil)
+            return .handled
+        case .space:
+            guard let group = groups.first(where: { $0.id == selectedID }),
+                  let url = ExploreTreeBuilder.largestMember(of: group, in: filtered)?.url else {
+                return .ignored
+            }
+            QuickLookCoordinator.shared.togglePreview([url])
+            return .handled
+        default:
+            return .ignored
+        }
+    }
+
+    private func moveSelection(by delta: Int, groups: [ExploreGroup], filtered: [FileRecord]) {
+        let index = groups.firstIndex(where: { $0.id == selectedID })
+        let targetIndex = index.map { max(0, min(groups.count - 1, $0 + delta)) }
+            ?? (delta > 0 ? 0 : groups.count - 1)
+        let target = groups[targetIndex]
+        selectedID = target.id
+        syncSelection(group: target, filtered: filtered)
     }
 }

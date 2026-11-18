@@ -1,12 +1,7 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// Focus + Stage actions for an Explore group selection.
-/// Focus drills the Explore list into the group's largest member; Stage routes
-/// that member through the existing Plan approve flow (proposed Trash-first
-/// action, SafetyAuditor review at execution — never a direct delete).
-/// Groups that resolve to no concrete record (e.g. the "Other" rollup) render
-/// nothing so callers can drop this view into any selection footer.
+/// Focus + Quick Look + Stage actions for an Explore group selection.
 struct ExploreGroupActionsView: View {
     @Bindable var model: AppViewModel
     var group: ExploreGroup
@@ -15,6 +10,10 @@ struct ExploreGroupActionsView: View {
     var onFocus: ((FileRecord) -> Void)?
 
     @State private var actionMessage: String?
+
+    private var override: AppLanguage? {
+        model.languageStore.activeOverride
+    }
 
     private var representative: FileRecord? {
         ExploreTreeBuilder.largestMember(of: group, in: files)
@@ -25,7 +24,7 @@ struct ExploreGroupActionsView: View {
             VStack(alignment: .leading, spacing: Spacing.elementTight) {
                 HStack(spacing: Spacing.elementTight) {
                     SecondaryButton(
-                        title: String(localized: "Focus"),
+                        title: L10n.string("Focus", language: override),
                         icon: "scope",
                         action: {
                             if let onFocus {
@@ -34,40 +33,46 @@ struct ExploreGroupActionsView: View {
                                 model.focusExploreRecord(id: record.id)
                                 model.selectExploreRecord(id: record.id)
                             }
-                            actionMessage = String(localized: "Focused \(record.fileName).")
+                            actionMessage = L10n.format("Focused %@.", language: override, record.fileName)
                         }
                     )
-                    if model.stagedExploreAction(matching: record) != nil {
+                    SecondaryButton(
+                        title: L10n.string("Quick Look", language: override),
+                        icon: "eye",
+                        action: {
+                            QuickLookCoordinator.shared.preview(record.url)
+                        }
+                    )
+                    if let staged = model.stagedExploreAction(matching: record) {
                         SecondaryButton(
-                            title: String(localized: "Approve"),
+                            title: L10n.string("Approve", language: override),
                             icon: "checkmark",
                             action: {
-                                guard let staged = model.stagedExploreAction(matching: record) else {
-                                    return
-                                }
                                 model.approve(staged)
-                                actionMessage = String(localized: "Approved. Review it in Proposed Actions.")
+                                actionMessage = L10n.string(
+                                    "Approved. Review it in Proposed Actions.",
+                                    language: override
+                                )
                             }
                         )
                     } else {
                         SecondaryButton(
-                            title: String(localized: "Stage"),
+                            title: L10n.string("Stage", language: override),
                             icon: "plus.circle",
-                            action: {
-                                if model.stageExploreRecordForCleanup(record) != nil {
-                                    actionMessage = String(localized: "Added to the cleanup plan. Review it in Proposed Actions.")
-                                } else {
-                                    actionMessage = String(localized: "Could not stage. A scan, execution, or plan change is in flight — or there is nothing to stage yet.", comment: "Explore group staging refused")
-                                }
-                            }
+                            action: { stageRepresentative(record) }
                         )
                     }
                 }
-                Text(String(localized: "Acts on largest member: \(record.fileName) (\(record.sizeBytes.formattedByteCount))"))
-                    .appFont(.caption)
-                    .foregroundStyle(Color.secondary)
-                    .lineLimit(2)
-                    .truncationMode(.middle)
+                Text(L10n.format(
+                    "Acts on largest member: %@ (%@)",
+                    language: override,
+                    record.fileName,
+                    record.sizeBytes.formattedByteCount
+                ))
+                .appFont(.caption)
+                .foregroundStyle(Color.secondary)
+                .lineLimit(2)
+                .truncationMode(.middle)
                 if let actionMessage {
                     Text(actionMessage)
                         .appFont(.caption)
@@ -75,11 +80,24 @@ struct ExploreGroupActionsView: View {
                 }
             }
             .accessibilityElement(children: .contain)
-            .accessibilityLabel(String(localized: "Group actions for \(group.name)"))
+            .accessibilityLabel(L10n.format("Group actions for %@", language: override, group.name))
             .onChange(of: group.id) { _, _ in
-                // A message about one group must not survive a change of selection.
                 actionMessage = nil
             }
         }
+    }
+
+    private func stageRepresentative(_ record: FileRecord) {
+        if model.stageExploreRecordForCleanup(record) != nil {
+            actionMessage = L10n.string(
+                "Added to the cleanup plan. Review it in Proposed Actions.",
+                language: override
+            )
+            return
+        }
+        actionMessage = L10n.string(
+            "Could not stage. A scan, execution, or plan change is in flight — or there is nothing to stage yet.",
+            language: override
+        )
     }
 }

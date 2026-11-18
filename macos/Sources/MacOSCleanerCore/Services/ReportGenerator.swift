@@ -21,19 +21,24 @@ public enum ReportGeneratorError: Error, LocalizedError, Sendable {
 
 public actor ReportGenerator {
     private let store: SQLiteStore
+    private let policy: PathSafetyPolicy
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "ReportGenerator")
 
-    public init(store: SQLiteStore) {
+    public init(store: SQLiteStore, policy: PathSafetyPolicy = PathSafetyPolicy()) {
         self.store = store
+        self.policy = policy
     }
 
     public func generateCleanupReport(outcome: ScanOutcome, plan: Plan, destination: URL) throws -> URL {
         // Reports are written files, so they follow the same destination rules as any other write.
-        if case .deny(let reason) = PathSafetyPolicy().decide(target: destination, isDirectory: true) {
+        if case .deny(let reason) = policy.decide(target: destination, isDirectory: true) {
             throw ReportGeneratorError.unsafeDestination(reason)
         }
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
         let reportURL = Self.uniqueReportURL(in: destination)
+        if case .deny(let reason) = policy.decide(target: reportURL, isDirectory: false) {
+            throw ReportGeneratorError.unsafeDestination(reason)
+        }
         let text = reportText(outcome: outcome, plan: plan)
         try writePDF(text: text, to: reportURL)
         return reportURL
@@ -125,7 +130,7 @@ public actor ReportGenerator {
         paragraph.lineSpacing = 4
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 12),
-            .foregroundColor: NSColor.labelColor,
+            .foregroundColor: NSColor.black,
             .paragraphStyle: paragraph
         ]
         let attributed = NSAttributedString(string: text, attributes: attributes)
@@ -137,6 +142,8 @@ public actor ReportGenerator {
 
         while currentRange.location < totalStringRange.length {
             context.beginPDFPage(nil)
+            context.setFillColor(CGColor.white)
+            context.fill(mediaBox)
 
             let path = CGPath(rect: CGRect(x: 0, y: 0, width: pageRect.width, height: pageRect.height), transform: nil)
             let frame = CTFramesetterCreateFrame(framesetter, currentRange, path, nil)

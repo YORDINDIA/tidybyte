@@ -1,0 +1,278 @@
+{
+  " %lld items live in system-wide locations shared with the OS or other users. Review those paths carefully.": {
+    "one": " %lld item lives in a system-wide location shared with the OS or other users. Review that path carefully.",
+    "other": " %lld items live in system-wide locations shared with the OS or other users. Review those paths carefully."
+  },
+  "%@: %lld items": {
+    "one": "%@: %lld item",
+    "other": "%@: %lld items"
+  },
+  "%lld actions completed cleanly. Files in Trash can be restored or emptied anytime.": {
+    "one": "%lld action completed cleanly. Files in Trash can be restored or emptied anytime.",
+    "other": "%lld actions completed cleanly. Files in Trash can be restored or emptied anytime."
+  },
+  "%lld approved actions are review-only and were not executed.": {
+    "one": "%lld approved action is review-only and was not executed.",
+    "other": "%lld approved actions are review-only and were not executed."
+  },
+  "%lld apps": {
+    "one": "%lld app",
+    "other": "%lld apps"
+  },
+  "%lld coding agents": {
+    "one": "%lld coding agent",
+    "other": "%lld coding agents"
+  },
+  "%lld connections": {
+    "one": "%lld connection",
+    "other": "%lld connections"
+  },
+  "%lld containers": {
+    "one": "%lld container",
+    "other": "%lld containers"
+  },
+  "%lld cores": {
+    "one": "%lld core",
+    "other": "%lld cores"
+  },
+  "%lld cycles": {
+    "one": "%lld cycle",
+    "other": "%lld cycles"
+  },
+  "%lld dev servers": {
+    "one": "%lld dev server",
+    "other": "%lld dev servers"
+  },
+  "%lld exact duplicate files, confirmed by full SHA-256.": {
+    "one": "%lld exact duplicate file, confirmed by full SHA-256.",
+    "other": "%lld exact duplicate files, confirmed by full SHA-256."
+  },
+  "%lld exact duplicate files, confirmed by full SHA-256. Their space can be reclaimed without deleting anything.": {
+    "one": "%lld exact duplicate file, confirmed by full SHA-256. Its space can be reclaimed without deleting anything.",
+    "other": "%lld exact duplicate files, confirmed by full SHA-256. Their space can be reclaimed without deleting anything."
+  },
+  "%lld files": {
+    "one": "%lld file",
+    "other": "%lld files"
+  },
+  "%lld files match this session": {
+    "one": "%lld file matches this session",
+    "other": "%lld files match this session"
+  },
+  "%lld folders remain selected.": {
+    "one": "%lld folder remains selected.",
+    "other": "%lld folders remain selected."
+  },
+  "%lld folders selected. Ready to scan.": {
+    "one": "%lld folder selected. Ready to scan.",
+    "other": "%lld folders selected. Ready to scan."
+  },
+  "%lld groups": {
+    "one": "%lld group",
+    "other": "%lld groups"
+  },
+  "%lld interrupted operations": {
+    "one": "%lld interrupted operation",
+    "other": "%lld interrupted operations"
+  },
+  "%lld items": {
+    "one": "%lld item",
+    "other": "%lld items"
+  },
+  "%lld items · %@ motion video · %@ stills": {
+    "one": "%lld item · %@ motion video · %@ stills",
+    "other": "%lld items · %@ motion video · %@ stills"
+  },
+  "%lld items · %@ removed. Files are in Trash; Photos assets are in Recently Deleted. Empty them in Finder or Photos to return space.": {
+    "one": "%lld item · %@ removed. Files are in Trash; Photos assets are in Recently Deleted. Empty them in Finder or Photos to return space.",
+    "other": "%lld items · %@ removed. Files are in Trash; Photos assets are in Recently Deleted. Empty them in Finder or Photos to return space."
+  },
+  "%lld items could not be read during the scan and are not included in these results.": {
+    "one": "%lld item could not be read during the scan and is not included in these results.",
+    "other": "%lld items could not be read during the scan and are not included in these results."
+  },
+  "%lld items processed": {
+    "one": "%lld item processed",
+    "other": "%lld items processed"
+  },
+  "%lld levels": {
+    "one": "%lld level",
+    "other": "%lld levels"
+  },
+  "%lld local Time Machine snapshots, oldest %@": {
+    "one": "%lld local Time Machine snapshot, oldest %@",
+    "other": "%lld local Time Machine snapshots, oldest %@"
+  },
+  "%lld locations could not be read during the scan.": {
+    "one": "%lld location could not be read during the scan.",
+    "other": "%lld locations could not be read during the scan."
+  },
+  "%lld older Xcode device support folders (%@)": {
+    "one": "%lld older Xcode device support folder (%@)",
+    "other": "%lld older Xcode device support folders (%@)"
+  },
+  "%lld pages": {
+    "one": "%lld page",
+    "other": "%lld pages"
+  },
+  "%lld processes": {
+    "one": "%lld process",
+    "other": "%lld processes"
+  },
+  "%lld readings": {
+    "one": "%lld reading",
+    "other": "%lld readings"
+  },
+  "%lld screenshots in %@ (%@)": {
+    "one": "%lld screenshot in %@ (%@)",
+    "other": "%lld screenshots in %@ (%@)"
+  },
+  "%lld sensors": {
+    "one": "%lld sensor",
+    "other": "%lld sensors"
+  },
+  "%lld simulators belong to runtimes that are no longer installed.": {
+    "one": "%lld simulator belongs to runtimes that are no longer installed.",
+    "other": "%lld simulators belong to runtimes that are no longer installed."
+  },
+  "%lld visually similar images detected.": {
+    "one": "%lld visually similar image detected.",
+    "other": "%lld visually similar images detected."
+  },
+  "A previous cleanup was interrupted; %lld operations may be incomplete.": {
+    "one": "A previous cleanup was interrupted; %lld operation may be incomplete.",
+    "other": "A previous cleanup was interrupted; %lld operations may be incomplete."
+  },
+  "Always consider %@ in this directory (approved %lld times).": {
+    "one": "Always consider %@ in this directory (approved %lld time).",
+    "other": "Always consider %@ in this directory (approved %lld times)."
+  },
+  "At your current growth rate, your disk could reach 80%% full in approximately %lld days.": {
+    "one": "At your current growth rate, your disk could reach 80%% full in approximately %lld day.",
+    "other": "At your current growth rate, your disk could reach 80%% full in approximately %lld days."
+  },
+  "At your current growth rate, your disk could reach 90%% full in approximately %lld days.": {
+    "one": "At your current growth rate, your disk could reach 90%% full in approximately %lld day.",
+    "other": "At your current growth rate, your disk could reach 90%% full in approximately %lld days."
+  },
+  "At your current growth rate, your disk could reach 95%% full in approximately %lld days.": {
+    "one": "At your current growth rate, your disk could reach 95%% full in approximately %lld day.",
+    "other": "At your current growth rate, your disk could reach 95%% full in approximately %lld days."
+  },
+  "Command '%@' converted into %lld actions.": {
+    "one": "Command '%@' converted into %lld action.",
+    "other": "Command '%@' converted into %lld actions."
+  },
+  "Complete uninstall: %@ scattered data (%lld locations, %@)": {
+    "one": "Complete uninstall: %@ scattered data (%lld location, %@)",
+    "other": "Complete uninstall: %@ scattered data (%lld locations, %@)"
+  },
+  "Compress %lld Items…": {
+    "one": "Compress %lld Item…",
+    "other": "Compress %lld Items…"
+  },
+  "Convert %lld Live Photos": {
+    "one": "Convert %lld Live Photo",
+    "other": "Convert %lld Live Photos"
+  },
+  "Converted %lld Live Photos to stills (%@ reclaimed).": {
+    "one": "Converted %lld Live Photo to a still (%@ reclaimed).",
+    "other": "Converted %lld Live Photos to stills (%@ reclaimed)."
+  },
+  "Crawling… %lld items": {
+    "one": "Crawling… %lld item",
+    "other": "Crawling… %lld items"
+  },
+  "Crawling… %lld items · %@": {
+    "one": "Crawling… %lld item · %@",
+    "other": "Crawling… %lld items · %@"
+  },
+  "Creates verified still photos and moves %lld original Live Photos to Recently Deleted, reclaiming about %@.": {
+    "one": "Creates verified still photos and moves %lld original Live Photo to Recently Deleted, reclaiming about %@.",
+    "other": "Creates verified still photos and moves %lld original Live Photos to Recently Deleted, reclaiming about %@."
+  },
+  "Dismissed %lld interrupted operations.": {
+    "one": "Dismissed %lld interrupted operation.",
+    "other": "Dismissed %lld interrupted operations."
+  },
+  "Est. %lld days until the next threshold": {
+    "one": "Est. %lld day until the next threshold",
+    "other": "Est. %lld days until the next threshold"
+  },
+  "Execution cancelled; %lld remaining actions were not run.": {
+    "one": "Execution cancelled; %lld remaining action was not run.",
+    "other": "Execution cancelled; %lld remaining actions were not run."
+  },
+  "Grew by %@ in %lld days": {
+    "one": "Grew by %@ in %lld day",
+    "other": "Grew by %@ in %lld days"
+  },
+  "Included Actions (%lld)": {
+    "one": "Included Action (%lld)",
+    "other": "Included Actions (%lld)"
+  },
+  "Leftovers of a removed app: %@ (%lld items, %@)": {
+    "one": "Leftovers of a removed app: %@ (%lld item, %@)",
+    "other": "Leftovers of a removed app: %@ (%lld items, %@)"
+  },
+  "Locations that could not be read: %lld": {
+    "one": "Location that could not be read: %lld",
+    "other": "Locations that could not be read: %lld"
+  },
+  "Missing records: %lld. Rescan to include these items.": {
+    "one": "Missing record: %lld. Rescan to include this item.",
+    "other": "Missing records: %lld. Rescan to include these items."
+  },
+  "Move %lld leftover data locations for %@ (caches, preferences, logs) to Trash. Rebuildable or regenerable data; preferences are lost unless restored from Trash.%@": {
+    "one": "Move %lld leftover data location for %@ (caches, preferences, logs) to Trash. Rebuildable or regenerable data; preferences are lost unless restored from Trash.%@",
+    "other": "Move %lld leftover data locations for %@ (caches, preferences, logs) to Trash. Rebuildable or regenerable data; preferences are lost unless restored from Trash.%@"
+  },
+  "Never suggest %@ in this directory (rejected %lld times).": {
+    "one": "Never suggest %@ in this directory (rejected %lld time).",
+    "other": "Never suggest %@ in this directory (rejected %lld times)."
+  },
+  "No change in %lld days": {
+    "one": "No change in %lld day",
+    "other": "No change in %lld days"
+  },
+  "Review only: %lld more items that may belong to %@": {
+    "one": "Review only: %lld more item that may belong to %@",
+    "other": "Review only: %lld more items that may belong to %@"
+  },
+  "Saves still copies for %lld Live Photos and keeps originals.": {
+    "one": "Saves still copies for %lld Live Photo and keeps originals.",
+    "other": "Saves still copies for %lld Live Photos and keeps originals."
+  },
+  "Showing 50 of %lld connections.": {
+    "one": "Showing 50 of %lld connection.",
+    "other": "Showing 50 of %lld connections."
+  },
+  "Shrank by %@ in %lld days": {
+    "one": "Shrank by %@ in %lld day",
+    "other": "Shrank by %@ in %lld days"
+  },
+  "Similar files: %lld seconds": {
+    "one": "Similar files: %lld second",
+    "other": "Similar files: %lld seconds"
+  },
+  "Started %lld processes": {
+    "one": "Started %lld process",
+    "other": "Started %lld processes"
+  },
+  "Sustained for %lld minutes": {
+    "one": "Sustained for %lld minute",
+    "other": "Sustained for %lld minutes"
+  },
+  "Total %@ in %lld groups": {
+    "one": "Total %@ in %lld group",
+    "other": "Total %@ in %lld groups"
+  },
+  "Update decisions for %lld actions. No files change.": {
+    "one": "Update decisions for %lld action. No files change.",
+    "other": "Update decisions for %lld actions. No files change."
+  },
+  "files older than %lld days": {
+    "one": "files older than %lld day",
+    "other": "files older than %lld days"
+  }
+}

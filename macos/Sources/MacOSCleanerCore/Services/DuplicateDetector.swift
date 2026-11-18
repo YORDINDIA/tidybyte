@@ -58,18 +58,15 @@ public actor DuplicateDetector {
 
     /// App and system state under ~/Library (containers, simulators, device
     /// support) is never a duplicate target: other software owns those bytes.
-    static func isInsideUserLibrary(_ url: URL) -> Bool {
-        let library = userLibraryPath
+    static func isInsideUserLibrary(_ url: URL, homeDirectory: URL = PathSafetyPolicy.realHomeDirectory) -> Bool {
+        let library = homeDirectory.appendingPathComponent("Library", isDirectory: true).standardizedFileURL.path.lowercased()
         let path = url.standardizedFileURL.path.lowercased()
         return path == library || path.hasPrefix(library + "/")
     }
 
-    private static let userLibraryPath = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library", isDirectory: true).standardizedFileURL.path.lowercased()
-
     private func isDuplicateCandidate(_ file: FileRecord, maxSize: Int64) -> Bool {
         guard file.kind == .regularFile, file.sizeBytes > 0, file.sizeBytes <= maxSize,
-              !Self.isCloudPlaceholder(file), !Self.isInsideUserLibrary(file.url) else {
+              !Self.isCloudPlaceholder(file), !Self.isInsideUserLibrary(file.url, homeDirectory: policy.homeDirectory) else {
             return false
         }
         if case .allow = policy.decide(target: file.url, isDirectory: false) {
@@ -164,31 +161,50 @@ public actor DuplicateDetector {
             // survivor is sent to full hashing.
             try Task.checkCancellation()
             if !quickHashFailures.isEmpty {
-                logger.warning("Quick hash failed for \(quickHashFailures.count) files; they fall through to full hashing.")
+                logger.warning("Quick hash failed for \(quickHashFailures.count) files; marking failed instead of full hashing.")
+                for failed in quickHashFailures {
+                    fingerprints.append(FileFingerprint(
+                        fileID: failed.id,
+                        sizeBytes: failed.sizeBytes,
+                        quickHash: nil,
+                        fullHash: nil,
+                        imagePerceptualHash: nil,
+                        videoKeyframeHashes: [],
+                        hashStatus: .failed
+                    ))
+                }
             }
             // Quick hashing is cheap (≤3 chunks); only files sharing a quick
             // hash proceed to expensive full hashing.
-            let fullHashCandidates = quickGroups.values.filter { $0.count > 1 }.flatMap { $0 } + quickHashFailures
+            let fullHashCandidates = quickGroups.values.filter { $0.count > 1 }.flatMap { $0 }
 
-            // Cache pass: a cached full hash is reused only when size AND
-            // mtime both match, so unchanged files skip the disk entirely.
+            // Cache pass: batch query avoids N+1 SQLite reads; a cached full hash
+            // is reused only when size, mtime, inode, and ctime all match.
             var resolvedHashes: [String: String] = [:]
             var pendingHash: [String: FileRecord] = [:]
-            // Only a file whose identity can be read is cached. Without a stamp the
-            // cache cannot tell a replaced file from the old one, so it is hashed fresh.
             var stamps: [String: (inode: UInt64, changedAtNanoseconds: Int64)] = [:]
             for file in fullHashCandidates {
-                let stamp = Self.changeStamp(of: file.url)
-                if let stamp { stamps[file.id] = stamp }
-                if let hashCache, let stamp,
-                   let cached = try? await hashCache.cachedFullHash(
-                        forPath: file.url.path,
+                if let stamp = Self.changeStamp(of: file.url) {
+                    stamps[file.id] = stamp
+                }
+            }
+            let cachedByPath: [String: FileHashCacheEntry]
+            if let hashCache, !stamps.isEmpty {
+                let paths = Array(Set(fullHashCandidates.compactMap { stamps[$0.id] != nil ? $0.url.path : nil }))
+                cachedByPath = (try? await hashCache.cachedFullHashes(forPaths: paths)) ?? [:]
+            } else {
+                cachedByPath = [:]
+            }
+            for file in fullHashCandidates {
+                if let stamp = stamps[file.id],
+                   let cached = cachedByPath[file.url.path],
+                   cached.matches(
                         sizeBytes: file.sizeBytes,
                         modifiedAt: file.modifiedAt,
                         inode: stamp.inode,
                         changedAtNanoseconds: stamp.changedAtNanoseconds
                    ) {
-                    resolvedHashes[file.id] = cached
+                    resolvedHashes[file.id] = cached.fullHash
                 } else {
                     pendingHash[file.id] = file
                 }
@@ -257,12 +273,16 @@ public actor DuplicateDetector {
         }
 
         // Emit one finding per exact-duplicate group (full SHA-256 match).
+        var exactNonKeeperIDs = Set<String>()
         for (hash, members) in fullGroups where members.count > 1 {
             let files = members.map(\.file).sorted { lhs, rhs in
                 (lhs.modifiedAt ?? .distantPast) > (rhs.modifiedAt ?? .distantPast)
             }
             guard let keep = files.first else { continue }
             let duplicates = Array(files.dropFirst())
+            if let (_, resolvedDuplicates) = Self.selectKeeper(sortedNewestFirst: [keep] + duplicates) {
+                exactNonKeeperIDs.formUnion(resolvedDuplicates.map(\.id))
+            }
             emitExactDuplicateGroup(
                 keep: keep,
                 duplicates: duplicates,
@@ -288,12 +308,12 @@ public actor DuplicateDetector {
         }
 
         // Near-duplicate phase: group IMAGES by pairwise Vision feature-print
-        // distance. The previous implementation hashed each print's raw bytes and
-        // grouped by equality — bit-identical encodings only, which is exact-match
-        // in disguise and never fired for genuinely similar-but-different files.
+        // distance. Exact-duplicate non-keepers are excluded so a file queued
+        // for APFS clone folding is never also proposed for Trash.
         try await detectNearDuplicates(
             files: uniqueStorage,
             existingFindings: findings,
+            exactNonKeeperIDs: exactNonKeeperIDs,
             sessionID: sessionID,
             into: &findings,
             recommendationsOut: &recommendations,
@@ -371,8 +391,16 @@ public actor DuplicateDetector {
                   keepDevice == duplicateDevice else {
                 return false
             }
-            return duplicate.cloudProvider == nil
-                && APFSCloneService.volumeSupportsClones(at: duplicate.url)
+            guard duplicate.cloudProvider == nil,
+                  APFSCloneService.volumeSupportsClones(at: duplicate.url) else {
+                return false
+            }
+            // Skip files whose blocks are already shared with an APFS clone so
+            // re-scans never report full sizeBytes as newly reclaimable.
+            if let privateBytes = ReclaimableBytes.privateSize(of: duplicate.url), privateBytes == 0 {
+                return false
+            }
+            return true
         }
     }
 
@@ -386,20 +414,63 @@ public actor DuplicateDetector {
         recommendationsOut: inout [Recommendation],
         edgesOut: inout [RelationshipEdge]
     ) {
-        let risk = duplicates.contains(where: { $0.cloudProvider != nil }) ? RiskLevel.high : RiskLevel.low
-        let findingID = UUID().uuidString
-        let bytes = duplicates.reduce(Int64(0)) { $0 + $1.sizeBytes }
         // Re-resolve the keeper with the shared rule: a cloud-synced copy
         // never keeps while a local copy exists.
         guard let (resolvedKeeper, resolvedDuplicates) = Self.selectKeeper(sortedNewestFirst: [keep] + duplicates) else {
             return
         }
+        let foldEligible = strategy == .apfsClone
+            ? Self.foldEligibleDuplicates(duplicates: resolvedDuplicates, keep: resolvedKeeper) : []
+        let eligibleIDs = Set(foldEligible.map(\.id))
+        let alreadyClonedIDs: Set<String> = strategy == .apfsClone
+            ? Set(resolvedDuplicates.compactMap { dup in
+                guard !eligibleIDs.contains(dup.id),
+                      dup.cloudProvider == nil,
+                      dup.identity.deviceIdentifier == resolvedKeeper.identity.deviceIdentifier,
+                      APFSCloneService.volumeSupportsClones(at: dup.url),
+                      let priv = ReclaimableBytes.privateSize(of: dup.url), priv == 0 else { return nil }
+                return dup.id
+            })
+            : []
+        // Members that cannot be folded (cloud-synced, other volume, or a
+        // trash-strategy scan) keep the classic trash recommendation; already-
+        // folded APFS clones stay untouched.
+        let trashTargets = strategy == .moveToTrash
+            ? resolvedDuplicates
+            : resolvedDuplicates.filter { !eligibleIDs.contains($0.id) && !alreadyClonedIDs.contains($0.id) }
+        if strategy == .apfsClone && foldEligible.isEmpty && trashTargets.isEmpty {
+            return
+        }
+        let unsharedBytes: (FileRecord) -> Int64 = { record in
+            if let priv = ReclaimableBytes.privateSize(of: record.url) {
+                return min(record.sizeBytes, max(0, priv))
+            }
+            return record.sizeBytes
+        }
+        let foldBytes = foldEligible.reduce(Int64(0)) { $0 + unsharedBytes($1) }
+        let trashBytes = strategy == .apfsClone
+            ? trashTargets.reduce(Int64(0)) { $0 + unsharedBytes($1) }
+            : trashTargets.reduce(Int64(0)) { $0 + $1.sizeBytes }
+        let bytes = foldBytes + trashBytes
+        let risk = (strategy == .moveToTrash ? resolvedDuplicates : trashTargets).contains(where: { $0.cloudProvider != nil })
+            ? RiskLevel.high : RiskLevel.low
+        let findingID = UUID().uuidString
+        let groupCount = groupSize(keep: resolvedKeeper, duplicates: resolvedDuplicates)
         let summary: String
         switch strategy {
         case .apfsClone:
-            summary = String(localized: "\(groupSize(keep: resolvedKeeper, duplicates: resolvedDuplicates)) exact duplicate files, confirmed by full SHA-256. Their space can be reclaimed without deleting anything.", comment: "Exact duplicate finding summary")
+            summary = String(
+                localized: """
+                    \(groupCount) exact duplicate files, confirmed by full SHA-256. \
+                    Their space can be reclaimed without deleting anything.
+                    """,
+                comment: "Exact duplicate finding summary"
+            )
         case .moveToTrash:
-            summary = String(localized: "\(groupSize(keep: resolvedKeeper, duplicates: resolvedDuplicates)) exact duplicate files, confirmed by full SHA-256.", comment: "Exact duplicate finding summary")
+            summary = String(
+                localized: "\(groupCount) exact duplicate files, confirmed by full SHA-256.",
+                comment: "Exact duplicate finding summary"
+            )
         }
         findings.append(Finding(
             id: findingID,
@@ -413,8 +484,6 @@ public actor DuplicateDetector {
             targetFileIDs: ([resolvedKeeper] + resolvedDuplicates).map(\.id)
         ))
 
-        let foldEligible = strategy == .apfsClone
-            ? Self.foldEligibleDuplicates(duplicates: resolvedDuplicates, keep: resolvedKeeper) : []
         if !foldEligible.isEmpty {
             recommendationsOut.append(Recommendation(
                 id: UUID().uuidString,
@@ -423,18 +492,21 @@ public actor DuplicateDetector {
                 targetFileIDs: foldEligible.map(\.id),
                 confidence: 0.99,
                 risk: .low,
-                reason: String(localized: "Fold each copy onto the newest file as an APFS clone. Every file keeps its name, contents and metadata. Nothing is deleted, the space is reclaimed immediately, and this can be undone.", comment: "Exact duplicate clone-fold recommendation reason"),
-                expectedBytesReclaimed: foldEligible.reduce(Int64(0)) { $0 + $1.sizeBytes },
+                reason: String(
+                    localized: """
+                        Fold each copy onto the newest file as an APFS clone. Every file keeps its name, \
+                        contents and metadata. Nothing is deleted, the space is reclaimed immediately, \
+                        and this can be undone.
+                        """,
+                    comment: "Exact duplicate clone-fold recommendation reason"
+                ),
+                expectedBytesReclaimed: foldBytes,
                 requiresConfirmation: true,
                 llmTraceID: nil,
                 policyTraceID: "duplicate_apfs_clone",
                 destination: resolvedKeeper.url
             ))
         }
-        // Members that cannot be folded (cloud-synced, other volume, or a
-        // trash-strategy scan) keep the classic trash recommendation.
-        let eligibleIDs = Set(foldEligible.map(\.id))
-        let trashTargets = strategy == .moveToTrash ? resolvedDuplicates : resolvedDuplicates.filter { !eligibleIDs.contains($0.id) }
         if !trashTargets.isEmpty {
             recommendationsOut.append(Recommendation(
                 id: UUID().uuidString,
@@ -443,8 +515,14 @@ public actor DuplicateDetector {
                 targetFileIDs: trashTargets.map(\.id),
                 confidence: 0.99,
                 risk: risk,
-                reason: String(localized: "These files have the same size and full content hash. Keep the newest copy and move duplicate copies to Trash.", comment: "Exact duplicate recommendation reason"),
-                expectedBytesReclaimed: trashTargets.reduce(Int64(0)) { $0 + $1.sizeBytes },
+                reason: String(
+                    localized: """
+                        These files have the same size and full content hash. Keep the newest copy \
+                        and move duplicate copies to Trash.
+                        """,
+                    comment: "Exact duplicate recommendation reason"
+                ),
+                expectedBytesReclaimed: trashBytes,
                 requiresConfirmation: true,
                 llmTraceID: nil,
                 policyTraceID: "duplicate_full_sha256"
@@ -457,7 +535,7 @@ public actor DuplicateDetector {
                 toFileID: duplicate.id,
                 edgeType: .duplicate,
                 confidence: 0.99,
-                evidence: "Full SHA-256 hash matched."
+                evidence: String(localized: "Full SHA-256 hash matched.", comment: "Exact duplicate edge evidence")
             ))
         }
     }
@@ -472,6 +550,7 @@ public actor DuplicateDetector {
     private func detectNearDuplicates(
         files: [FileRecord],
         existingFindings: [Finding],
+        exactNonKeeperIDs: Set<String>,
         sessionID: String,
         into findings: inout [Finding],
         recommendationsOut: inout [Recommendation],
@@ -481,7 +560,9 @@ public actor DuplicateDetector {
         // One Set per exact-match finding, built once for the whole pass.
         let existingTargetSets = existingFindings.map { Set($0.targetFileIDs) }
         let images = files.filter { file in
-            guard let ext = file.fileExtension?.lowercased(), imageExtensions.contains(ext) else {
+            guard !exactNonKeeperIDs.contains(file.id),
+                  let ext = file.fileExtension?.lowercased(),
+                  imageExtensions.contains(ext) else {
                 return false
             }
             return true
@@ -568,6 +649,7 @@ public actor DuplicateDetector {
                 llmTraceID: nil,
                 policyTraceID: "duplicate_feature_print_distance"
             ))
+            let thresholdText = String(format: "%.1f", Self.nearDuplicateDistanceThreshold)
             for dup in nearDuplicates {
                 edgesOut.append(RelationshipEdge(
                     id: "\(keep.id)-\(dup.id)-nearDuplicate",
@@ -575,7 +657,7 @@ public actor DuplicateDetector {
                     toFileID: dup.id,
                     edgeType: .nearDuplicateOf,
                     confidence: 0.85,
-                    evidence: "Feature-print distance < \(String(format: "%.1f", Self.nearDuplicateDistanceThreshold))."
+                    evidence: String(localized: "Feature-print distance < \(thresholdText).", comment: "Near-duplicate edge evidence")
                 ))
             }
         }

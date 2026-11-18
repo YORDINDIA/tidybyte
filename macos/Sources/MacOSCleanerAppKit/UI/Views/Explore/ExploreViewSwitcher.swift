@@ -3,22 +3,25 @@ import SwiftUI
 
 /// Shared empty state for the Explore visualizations.
 struct ExploreEmptyState: View {
+    var language: AppLanguage?
 
     var body: some View {
         VStack(spacing: Spacing.elementTight) {
             Image(systemName: "folder")
                 .appFont(.h3, color: Color.secondary)
-            Text(String(localized: "Nothing to visualize yet.", comment: "Explore empty state title"))
+            Text(L10n.string("Nothing to visualize yet.", language: language))
                 .appFont(.bodyMedium)
                 .foregroundStyle(Color.secondary)
-            Text(String(localized: "Run a scan or clear the name filter to fill this view.", comment: "Explore empty state hint"))
+            Text(L10n.string("Run a scan or clear the name filter to fill this view.", language: language))
                 .appFont(.caption)
                 .foregroundStyle(Color.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 140)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Nothing to visualize yet. Run a scan or clear the name filter."))
+        .accessibilityLabel(
+            L10n.string("Nothing to visualize yet. Run a scan or clear the name filter.", language: language)
+        )
     }
 }
 
@@ -37,64 +40,59 @@ enum ExploreViewKind: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
 
     var title: String {
+        localizedTitle(language: nil)
+    }
+
+    func localizedTitle(language: AppLanguage?) -> String {
         switch self {
-        case .list:
-            String(localized: "List")
-        case .folders:
-            String(localized: "Folders", comment: "Explore view title")
-        case .sunburst:
-            String(localized: "Sunburst", comment: "Explore view title")
-        case .flame:
-            String(localized: "Flame", comment: "Explore view title")
-        case .bubbles:
-            String(localized: "Bubbles", comment: "Explore view title")
-        case .mindMap:
-            String(localized: "Mind Map", comment: "Explore view title")
-        case .topSizes:
-            String(localized: "Top Sizes", comment: "Explore view title")
-        case .ageMap:
-            String(localized: "Age Map", comment: "Explore view title")
-        case .treemap:
-            String(localized: "Treemap", comment: "Explore view title")
+        case .list: L10n.string("List", language: language)
+        case .folders: L10n.string("Folders", language: language)
+        case .sunburst: L10n.string("Sunburst", language: language)
+        case .flame: L10n.string("Flame", language: language)
+        case .bubbles: L10n.string("Bubbles", language: language)
+        case .mindMap: L10n.string("Mind Map", language: language)
+        case .topSizes: L10n.string("Top Sizes", language: language)
+        case .ageMap: L10n.string("Age Map", language: language)
+        case .treemap: L10n.string("Treemap", language: language)
         }
     }
 
-    /// DiskBuddy-style one-line explainer shown under the picker.
     var tagline: String {
+        localizedTagline(language: nil)
+    }
+
+    func localizedTagline(language: AppLanguage?) -> String {
         switch self {
         case .list:
-            String(localized: "Browse scanned files.")
+            L10n.string("Browse scanned files.", language: language)
         case .folders:
-            String(localized: "Browse groups as cards, then drill in.", comment: "Explore view tagline")
+            L10n.string("Browse groups as cards, then drill in.", language: language)
         case .sunburst:
-            String(localized: "The whole scan as concentric rings.", comment: "Explore view tagline")
+            L10n.string("The whole scan as concentric rings.", language: language)
         case .flame:
-            String(localized: "Depth as stacked bars, top group first.", comment: "Explore view tagline")
+            L10n.string("Depth as stacked bars, top group first.", language: language)
         case .bubbles:
-            String(localized: "Every group as a bubble, sized by bytes.", comment: "Explore view tagline")
+            L10n.string("Every group as a bubble, sized by bytes.", language: language)
         case .mindMap:
-            String(localized: "Branches fanning out from your scan.", comment: "Explore view tagline")
+            L10n.string("Branches fanning out from your scan.", language: language)
         case .topSizes:
-            String(localized: "Biggest groups first, ranked.", comment: "Explore view tagline")
+            L10n.string("Biggest groups first, ranked.", language: language)
         case .ageMap:
-            String(localized: "When files were touched, plus big untouched ones.", comment: "Explore view tagline")
+            L10n.string("When files were touched, plus big untouched ones.", language: language)
         case .treemap:
-            String(localized: "Every file as a rectangle, sized by bytes.", comment: "Explore view tagline")
+            L10n.string("Every group as a proportional rectangle.", language: language)
         }
     }
 }
 
 /// Segmented switcher hosting all Explore visualizations.
-/// View/grouping/depth persist across launches via AppViewModel (backed by
-/// UserDefaults SettingsKeys); name-filter stays transient. Child views render
-/// from the already-scanned `outcome.files` — no new scanning logic.
 struct ExploreViewSwitcher: View {
     @Bindable var model: AppViewModel
     var files: [FileRecord]
     var categorySections: [(FindingCategory, Int64)]
 
     private var nameFilter: String { model.searchText }
-    @FocusState private var isFilterFocused: Bool
+    private var override: AppLanguage? { model.languageStore.activeOverride }
 
     private var selectedView: ExploreViewKind {
         ExploreViewKind(rawValue: model.exploreViewKindRaw) ?? .folders
@@ -118,7 +116,7 @@ struct ExploreViewSwitcher: View {
             activeView
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(selectedView.title)
+        .accessibilityLabel(selectedView.localizedTitle(language: override))
         .skeletonLoading(model.isScanning)
     }
 
@@ -137,7 +135,7 @@ struct ExploreViewSwitcher: View {
 
     private var groupingPicker: some View {
         Picker(
-            String(localized: "Group", comment: "Explore grouping picker label"),
+            L10n.string("Group", language: override),
             selection: Binding(
                 get: { grouping },
                 set: {
@@ -147,18 +145,18 @@ struct ExploreViewSwitcher: View {
             )
         ) {
             ForEach(ExploreGrouping.allCases) { option in
-                Text(option.title).tag(option)
+                Text(option.localizedTitle(language: override)).tag(option)
             }
         }
         .pickerStyle(.segmented)
         .frame(maxWidth: 300)
-        .accessibilityLabel(String(localized: "Group files by"))
+        .accessibilityLabel(L10n.string("Group files by", language: override))
         .disabled(selectedView == .ageMap)
     }
 
     private var depthControl: some View {
         HStack(spacing: Spacing.elementTight) {
-            Text(String(localized: "Depth", comment: "Explore depth slider label"))
+            Text(L10n.string("Depth", language: override))
                 .appFont(.caption)
                 .foregroundStyle(Color.secondary)
             Slider(
@@ -172,18 +170,17 @@ struct ExploreViewSwitcher: View {
                 in: 1...10,
                 step: 1
             )
-                .frame(maxWidth: 140)
-                .accessibilityLabel(String(localized: "Folder depth"))
-                .accessibilityValue(String(localized: "\(depthInt) levels"))
-            Text(String(localized: "\(depthInt)"))
+            .frame(maxWidth: 140)
+            .accessibilityLabel(L10n.string("Folder depth", language: override))
+            .accessibilityValue(L10n.format("%lld levels", language: override, depthInt))
+            Text("\(depthInt)")
                 .appFont(.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color.secondary)
                 .frame(width: 16)
                 .accessibilityHidden(true)
         }
-        // These views draw only top-level groups, so depth changes nothing on them.
-        .disabled([.topSizes, .ageMap, .treemap, .bubbles, .mindMap].contains(selectedView))
+        .disabled([.topSizes, .ageMap, .bubbles, .mindMap].contains(selectedView))
     }
 
     @ViewBuilder
@@ -192,22 +189,65 @@ struct ExploreViewSwitcher: View {
         case .list:
             EmptyView()
         case .folders:
-            FoldersGridView(model: model, files: files, grouping: grouping, maxDepth: depthInt, nameFilter: nameFilter)
+            FoldersGridView(
+                model: model,
+                files: files,
+                grouping: grouping,
+                maxDepth: depthInt,
+                nameFilter: nameFilter
+            )
         case .sunburst:
-            SunburstView(model: model, files: files, grouping: grouping, maxDepth: depthInt, nameFilter: nameFilter)
+            SunburstView(
+                model: model,
+                files: files,
+                grouping: grouping,
+                maxDepth: depthInt,
+                nameFilter: nameFilter
+            )
         case .flame:
-            FlameView(model: model, files: files, grouping: grouping, maxDepth: depthInt, nameFilter: nameFilter)
+            FlameView(
+                model: model,
+                files: files,
+                grouping: grouping,
+                maxDepth: depthInt,
+                nameFilter: nameFilter
+            )
         case .bubbles:
-            BubblesView(model: model, files: files, grouping: grouping, maxDepth: depthInt, nameFilter: nameFilter)
+            BubblesView(
+                model: model,
+                files: files,
+                grouping: grouping,
+                maxDepth: depthInt,
+                nameFilter: nameFilter
+            )
         case .mindMap:
-            MindMapView(model: model, files: files, grouping: grouping, maxDepth: depthInt, nameFilter: nameFilter)
+            MindMapView(
+                model: model,
+                files: files,
+                grouping: grouping,
+                maxDepth: depthInt,
+                nameFilter: nameFilter
+            )
         case .topSizes:
-            TopSizesView(model: model, files: files, grouping: grouping, maxDepth: depthInt, nameFilter: nameFilter)
+            TopSizesView(
+                model: model,
+                files: files,
+                grouping: grouping,
+                maxDepth: depthInt,
+                nameFilter: nameFilter
+            )
         case .ageMap:
             AgeMapView(model: model, files: files, nameFilter: nameFilter)
         case .treemap:
-            TreemapView(sections: categorySections)
-                .frame(height: 170)
+            TreemapView(
+                sections: categorySections,
+                model: model,
+                files: files,
+                grouping: grouping,
+                maxDepth: depthInt,
+                nameFilter: nameFilter
+            )
+            .frame(minHeight: 300)
         }
     }
 }

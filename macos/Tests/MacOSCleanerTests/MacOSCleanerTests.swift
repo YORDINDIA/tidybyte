@@ -252,18 +252,18 @@ final class MacOSCleanerTests: XCTestCase {
     }
 
     func testApprovedHighRiskPackageCleanupExecutesAfterExplicitReview() async throws {
-        // Wave 2D: a user-approved high-risk package cleanup is the explicit review;
-        // audit no longer dead-ends needsManualReview actions approved by the user.
+        // Wave 2D + allowlist: high-risk package cleanup requires an allowlisted
+        // command AND explicit confirmation (`requiresExplicitConfirmation: true`).
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
-        let marker = root.appendingPathComponent("should-not-run", isDirectory: false)
+        let marker = root.appendingPathComponent("should-run", isDirectory: false)
         let store = try SQLiteStore(databaseURL: root.appendingPathComponent("package.sqlite", isDirectory: false))
         let executor = TestFixtures.makeExecutor(store: store)
         let candidate = PackageCleanupCandidate(
             id: "dangerous",
             title: "Dangerous cleanup",
-            commandPath: URL(fileURLWithPath: "/bin/sh"),
-            arguments: ["-c", "touch '\(marker.path)'"],
+            commandPath: try TestFileFixtures.makeStub("npm", in: root, body: "touch '\(marker.path)'"),
+            arguments: ["cache", "clean", "--force"],
             dryRunOutput: "would remove state",
             risk: .high,
             category: .packageManagerCleanup
@@ -280,11 +280,11 @@ final class MacOSCleanerTests: XCTestCase {
             reason: "test package",
             userDecision: .approved,
             executedAt: nil,
-            findingID: nil
+            findingID: nil, requiresExplicitConfirmation: true
         )
 
         let summary = await executor.execute(actions: [action], filesByID: [:], packageCandidates: [candidate])
-        XCTAssertEqual(summary.logs.count, 1, "Approved package cleanup should execute")
+        XCTAssertEqual(summary.logs.count, 1, "Explicitly confirmed allowlisted package cleanup should execute")
         XCTAssertEqual(summary.failures.count, 0)
         XCTAssertTrue(FileManager.default.fileExists(atPath: marker.path), "Executed package cleanup should have run")
     }
@@ -3415,14 +3415,14 @@ final class MacOSCleanerTests: XCTestCase {
         let executor = TestFixtures.makeExecutor(store: store)
         // A candidate that always fails (exit 1).
         let failingCandidate = PackageCleanupCandidate(
-            id: "fail", title: "Failing", commandPath: URL(fileURLWithPath: "/bin/false"),
-            arguments: [], dryRunOutput: "", risk: .low, category: .packageManagerCleanup
+            id: "fail", title: "Failing", commandPath: try TestFileFixtures.makeStub("brew", in: root, body: "exit 1"),
+            arguments: ["autoremove"], dryRunOutput: "", risk: .low, category: .packageManagerCleanup
         )
         // A candidate that succeeds (exit 0) and writes a marker.
         let marker = root.appendingPathComponent("ran.txt", isDirectory: false)
         let okCandidate = PackageCleanupCandidate(
-            id: "ok", title: "OK", commandPath: URL(fileURLWithPath: "/bin/sh"),
-            arguments: ["-c", "echo done > '\(marker.path)'"], dryRunOutput: "", risk: .low, category: .packageManagerCleanup
+            id: "ok", title: "OK", commandPath: try TestFileFixtures.makeStub("npm", in: root, body: "touch '\(marker.path)'"),
+            arguments: ["cache", "ls"], dryRunOutput: "", risk: .low, category: .packageManagerCleanup
         )
         let action = PlannedAction(
             id: "pkg-partial", planID: "plan", actionType: .runPackageManagerCleanup,

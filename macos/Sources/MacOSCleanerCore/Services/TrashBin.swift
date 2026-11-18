@@ -26,7 +26,7 @@ public enum TrashBinError: Error, LocalizedError, Sendable {
 /// irreversible command in the app; callers confirm it explicitly first.
 public enum TrashBin {
     public static var userTrash: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".Trash", isDirectory: true)
+        PathSafetyPolicy.realHomeDirectory.appendingPathComponent(".Trash", isDirectory: true)
     }
 
     /// Removes every item inside `trashURL`, never the folder itself.
@@ -39,14 +39,20 @@ public enum TrashBin {
     /// - Returns: the number of items removed.
     @discardableResult
     public static func empty(trashURL: URL = userTrash) throws -> Int {
-        let values = try? trashURL.resourceValues(forKeys: [.isSymbolicLinkKey, .isDirectoryKey])
-        guard trashURL.lastPathComponent == ".Trash", values?.isSymbolicLink == false, values?.isDirectory == true else {
+        var trashStat = stat()
+        if lstat(trashURL.path, &trashStat) != 0 {
+            if errno == ENOENT { return 0 }
+            throw TrashBinError.unreadable
+        }
+        guard trashURL.lastPathComponent == ".Trash", (trashStat.st_mode & S_IFMT) == S_IFDIR else {
             throw TrashBinError.notATrashFolder(trashURL)
         }
         let fd = open(trashURL.path, O_RDONLY | O_NOFOLLOW | O_DIRECTORY)
-        guard fd >= 0 else { throw TrashBinError.unreadable }
-        // fdopendir adopts the descriptor on success; it stays open (for the
-        // unlinkat calls) until closedir and must be closed here on failure.
+        guard fd >= 0 else {
+            if errno == ENOENT { return 0 }
+            throw TrashBinError.unreadable
+        }
+        // fdopendir adopts the descriptor on success; it stays open until closedir.
         guard let dir = fdopendir(fd) else {
             close(fd)
             throw TrashBinError.unreadable
@@ -56,7 +62,29 @@ public enum TrashBin {
         guard fstat(fd, &stats) == 0, (stats.st_mode & S_IFMT) == S_IFDIR else {
             throw TrashBinError.notATrashFolder(trashURL)
         }
-        let dirFD = dirfd(dir)
+        return try removeEntries(in: dirfd(dir), names: collectEntryNames(from: dir))
+    }
+
+    private static func removeEntries(in directoryFD: Int32, names: [String]) throws -> Int {
+        var removedCount = 0
+        var failedNames: [String] = []
+        for name in names {
+            do {
+                try removeEntry(named: name, directoryFD: directoryFD)
+                removedCount += 1
+            } catch TrashBinError.removalFailed(let failed) {
+                failedNames.append(failed)
+            } catch {
+                failedNames.append(name)
+            }
+        }
+        if !failedNames.isEmpty {
+            throw TrashBinError.removalFailed(failedNames.joined(separator: ", "))
+        }
+        return removedCount
+    }
+
+    private static func collectEntryNames(from dir: UnsafeMutablePointer<DIR>) -> [String] {
         // Collect first, then delete: mutating the directory while readdir
         // iterates it is undefined behavior.
         var names: [String] = []
@@ -64,10 +92,7 @@ public enum TrashBin {
             let name = entryName(entry)
             if name != "." && name != ".." { names.append(name) }
         }
-        for name in names {
-            try removeEntry(named: name, directoryFD: dirFD)
-        }
-        return names.count
+        return names
     }
 
     /// Deletes one entry relative to an open directory descriptor, recursing
@@ -89,15 +114,7 @@ public enum TrashBin {
                 // Closed on every exit path, including a failed recursion.
                 defer { closedir(childDir) }
                 let childDirFD = dirfd(childDir)
-                var childNames: [String] = []
-                while let entry = readdir(childDir) {
-                    let childName = entryName(entry)
-                    if childName != "." && childName != ".." { childNames.append(childName) }
-                }
-                // childDirFD stays valid until the defer above closes childDir.
-                for childName in childNames {
-                    try removeEntry(named: childName, directoryFD: childDirFD)
-                }
+                _ = try removeEntries(in: childDirFD, names: collectEntryNames(from: childDir))
                 guard unlinkat(directoryFD, cName, AT_REMOVEDIR) == 0 else {
                     throw TrashBinError.removalFailed(name)
                 }

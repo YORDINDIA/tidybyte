@@ -6,23 +6,12 @@ public struct MacOSCleanerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppViewModel.bootstrap()
     @AppStorage(AppDelegate.menuBarExtraKey) private var showsMenuBarExtra = false
-    // The monitor's own keys are read inside their scenes (MonitorMenuBarExtras),
-    // never here: a second @AppStorage on the App struct makes SwiftUI's menu bar
-    // extra round-trip its isInserted binding through UserDefaults every update
-    // pass, spinning one core at 100% (KVO on the status item -> binding write ->
-    // preference invalidation -> scene update, forever).
 
-    /// Insertion binding for the status item, guarded against SwiftUI's update
-    /// pass: the menu bar controller round-trips this binding on every pass
-    /// (status item KVO writes the same value back through it), and the raw
-    /// @AppStorage binding turned each round-trip into a UserDefaults write
-    /// whose notification re-queued the update — the same 100% CPU loop. The
-    /// Settings toggle writes the key through its own binding; this side only
-    /// reads, and writes on a real change only.
     private var menuBarExtraInserted: Binding<Bool> {
         Binding(
             get: { showsMenuBarExtra },
-            set: { if showsMenuBarExtra != $0 { showsMenuBarExtra = $0 } })
+            set: { if showsMenuBarExtra != $0 { showsMenuBarExtra = $0 } }
+        )
     }
 
     /// Set by the executable when Sparkle is linked (direct builds only).
@@ -34,31 +23,17 @@ public struct MacOSCleanerApp: App {
         Window(AppIdentity.displayName, id: "main") {
             ContentView(model: model)
                 .frame(minWidth: Spacing.windowMinWidth, minHeight: Spacing.windowMinHeight)
+                .environment(model.languageStore)
+                .environment(\.locale, model.languageStore.locale)
+                .environment(\.layoutDirection, model.languageStore.layoutDirection)
                 .task {
-                    // App-scope startup: the menu bar extras need live samples
-                    // even when the Monitor pane was never opened. With no
-                    // surface attached the loop self-throttles to a 30 s
-                    // heartbeat, so this stays cheap. start() is idempotent,
-                    // so MonitorView's own call is a no-op here.
-                    if DistributionChannel.supportsAdvanced {
-                        model.monitor.start()
-                    }
+                    startMonitorIfMenuBarEnabled()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
+                    startMonitorIfMenuBarEnabled()
                 }
                 .onOpenURL { url in
-                    // tidybyte://<destination>, plus tidybyte://swipe for Swipe Review.
-                    guard url.scheme == AppIdentity.urlScheme, let host = url.host else { return }
-                    if host == "swipe" {
-                        model.destination = .media
-                        model.cleanup.selectedTool = .swipe
-                    } else if host == "monitor" {
-                        // The monitor reads system-wide state; the sandboxed
-                        // build has no monitor to open.
-                        guard DistributionChannel.supportsAdvanced else { return }
-                        model.destination = .monitor
-                    } else if let destination = AppDestination(rawValue: host),
-                        AppDestination.available.contains(destination) {
-                        model.destination = destination
-                    }
+                    handleOpenURL(url)
                 }
                 .modifier(MainWindowRegistration(model: model, delegate: appDelegate))
         }
@@ -67,11 +42,8 @@ public struct MacOSCleanerApp: App {
         .windowResizability(.contentMinSize)
         .commands {
             CleanerCommands(model: model)
-            // O-01: the system Quit item calls NSApplication.terminate:,
-            // which is a silent no-op while a sheet's modal session is
-            // active on macOS 26. Route Quit through the sheet-aware path.
             CommandGroup(replacing: .appTermination) {
-                Button(String(localized: "Quit Tidybyte", comment: "App menu Quit")) {
+                Button(L10n.string("Quit Tidybyte", language: model.languageStore.activeOverride)) {
                     AppDelegate.shared?.requestQuit()
                 }
                 .keyboardShortcut("q", modifiers: .command)
@@ -80,15 +52,59 @@ public struct MacOSCleanerApp: App {
 
         Settings {
             SettingsView(model: model)
+                .environment(model.languageStore)
+                .environment(\.locale, model.languageStore.locale)
+                .environment(\.layoutDirection, model.languageStore.layoutDirection)
         }
 
         MenuBarExtra(AppIdentity.displayName, systemImage: "internaldrive", isInserted: menuBarExtraInserted) {
-            MenuBarView()
+            MenuBarView(model: model)
+                .environment(model.languageStore)
+                .environment(\.locale, model.languageStore.locale)
+                .environment(\.layoutDirection, model.languageStore.layoutDirection)
         }
 
         #if MONITOR_SCENES
         MonitorMenuBarExtras(model: model.monitor)
         #endif
+    }
+
+    @MainActor
+    private func startMonitorIfMenuBarEnabled() {
+        guard DistributionChannel.supportsAdvanced else { return }
+        if model.monitor.settings.isMenuBarPanelEnabled || model.monitor.settings.hasEnabledMenuBarMetric {
+            model.monitor.start()
+        }
+    }
+
+    @MainActor
+    private func handleOpenURL(_ url: URL) {
+        guard url.scheme == AppIdentity.urlScheme, let host = url.host else { return }
+        switch host {
+        case "swipe":
+            model.destination = .media
+            model.cleanup.selectedTool = .swipe
+        case "cleanup":
+            model.destination = .media
+            model.cleanup.selectedTool = nil
+        case "activity":
+            model.historyShowsMedia = true
+            model.destination = .history
+        case "monitor":
+            guard DistributionChannel.supportsAdvanced else { return }
+            let tabName = url.pathComponents.dropFirst().first
+            let tab = tabName.flatMap(MonitorTab.init(rawValue:))
+            if let tab, MonitorTab.visibleTabs.contains(tab) {
+                model.monitor.selectedTab = tab
+            }
+            model.monitor.start()
+            model.destination = .monitor
+        default:
+            if let destination = AppDestination(rawValue: host),
+               AppDestination.available.contains(destination) {
+                model.destination = destination
+            }
+        }
     }
 }
 
@@ -100,41 +116,42 @@ private struct MainWindowRegistration: ViewModifier {
     func body(content: Content) -> some View {
         content.onAppear {
             delegate.setModel(model, openMainWindow: { openWindow(id: "main") })
-            model.setRemovalWatching(UserDefaults.standard.object(forKey: AppDelegate.removalWatchKey) as? Bool ?? true)
+            model.setRemovalWatching(
+                UserDefaults.standard.object(forKey: AppDelegate.removalWatchKey) as? Bool ?? true
+            )
         }
     }
 }
 
 // MARK: - Menu Bar
 
-/// The menu bar extra is a native menu: two status lines, then short commands
-/// (each label stays under 30 characters).
+/// The menu bar extra is a native menu: two status lines, then short commands.
 struct MenuBarView: View {
+    @Bindable var model: AppViewModel
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        let override = model.languageStore.activeOverride
         let disk = DiskGaugeData.currentHomeVolume()
         if let free = disk.freeBytes {
-            Text(String(localized: "\(free.formattedByteCount) free on disk", comment: "Menu bar disk status"))
+            Text(L10n.format("%@ free on disk", language: override, free.formattedByteCount))
         }
         if let memory = SystemStatus.memory() {
-            Text(memoryLine(memory))
+            Text(memoryLine(memory, override: override))
         }
         Divider()
-        Button(String(localized: "Open Tidybyte", comment: "Menu bar: open main window")) { showMainWindow() }
+        Button(L10n.string("Open Tidybyte", language: override)) { showMainWindow() }
             .keyboardShortcut("o", modifiers: [.command])
-        Button(String(localized: "Scan Now", comment: "Menu bar: scan")) {
+        Button(L10n.string("Scan Now", language: override)) {
             showMainWindow()
             AppDelegate.shared?.scanNow()
         }
-        Button(String(localized: "Undo Last Cleanup", comment: "Menu bar: undo last cleanup action")) {
+        Button(L10n.string("Undo Last Cleanup", language: override)) {
             Task { @MainActor in await AppDelegate.shared?.undoLastAction() }
         }
         Divider()
-        SettingsLink { Text(String(localized: "Settings…")) }
-        Button(String(localized: "Quit Tidybyte", comment: "Menu bar: quit application")) {
-            // Same sheet-aware path as the app menu (O-01); terminate(nil) is a
-            // silent no-op while a sheet is open.
+        SettingsLink { Text(L10n.string("Settings…", language: override)) }
+        Button(L10n.string("Quit Tidybyte", language: override)) {
             AppDelegate.shared?.requestQuit()
         }
         .keyboardShortcut("q", modifiers: [.command])
@@ -142,18 +159,16 @@ struct MenuBarView: View {
 
     private func showMainWindow() {
         openWindow(id: "main")
-        // MB-F1: a status-item interaction confers no activation rights,
-        // and the macOS 14+ no-argument activate() does not steal focus.
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    private func memoryLine(_ memory: MemorySnapshot) -> String {
+    private func memoryLine(_ memory: MemorySnapshot, override: AppLanguage?) -> String {
         let used = memory.usedBytes.formattedByteCount
         let total = memory.totalBytes.formattedByteCount
         return switch memory.pressure {
-        case .normal: String(localized: "Memory \(used) of \(total)", comment: "Menu bar memory, normal pressure")
-        case .warning: String(localized: "Memory pressure is high", comment: "Menu bar memory warning")
-        case .critical: String(localized: "Memory pressure is critical", comment: "Menu bar memory critical")
+        case .normal: L10n.format("Memory %@ of %@", language: override, used, total)
+        case .warning: L10n.string("Memory pressure is high", language: override)
+        case .critical: L10n.string("Memory pressure is critical", language: override)
         }
     }
 }
@@ -165,56 +180,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     static var shared: AppDelegate?
     private var model: AppViewModel?
     private var openMainWindow: (() -> Void)?
-    /// A notification tap that arrived before the window existed (it launched the app).
     private var pendingRoute: [AnyHashable: Any]?
 
-    /// The delegate must be set before launch finishes, or a tap that launches
-    /// the app is lost.
     func applicationWillFinishLaunching(_ notification: Notification) {
         Self.shared = self
-        // UNUserNotificationCenter traps outside an .app bundle (`swift run`).
         if Bundle.main.bundleURL.pathExtension == "app" {
             UNUserNotificationCenter.current().delegate = self
         }
-        // O-01: SwiftUI sheets run as modal sessions on macOS 26, and a modal
-        // session answers the quit Apple event with userCancelled before
-        // applicationShouldTerminate is ever consulted. Intercept the quit
-        // event itself: end the sheets, then run the normal terminate path.
         NSAppleEventManager.shared().setEventHandler(
             self,
             andSelector: #selector(handleQuitAppleEvent(_:withReplyEvent:)),
             forEventClass: AEEventClass(kCoreEventClass),
-            andEventID: AEEventID(kAEQuitApplication))
+            andEventID: AEEventID(kAEQuitApplication)
+        )
     }
 
-    /// The one quit entry point: ⌘Q, the menu item, Dock, `quit app`, and
-    /// system shutdown all end here (O-01).
     @MainActor func requestQuit() {
         endSheetsAndQuit()
     }
 
-    /// Intercepts the quit Apple event (Dock, `quit app`, system shutdown).
     @objc func handleQuitAppleEvent(_ event: NSAppleEventDescriptor, withReplyEvent reply: NSAppleEventDescriptor) {
         MainActor.assumeIsolated { self.endSheetsAndQuit() }
     }
 
-    /// O-01: SwiftUI sheets run as modal sessions on macOS 26 and answer the
-    /// quit Apple event with userCancelled before any delegate hook runs —
-    /// and `NSApplication.terminate:` never reaches
-    /// `applicationShouldTerminate` under SwiftUI's delegate wrapper at all.
-    /// The handler therefore owns the quit sequence: end every presented
-    /// sheet, run the will-terminate cleanup, and exit.
     private func endSheetsAndQuit() {
-        // End presented sheets for visual cleanup. Their isPresented bindings
-        // may still read true (onboarding is step-driven), so SwiftUI can
-        // re-present them — irrelevant: the process exits below, and the
-        // untouched step means onboarding resumes on the next launch (ON-09).
-        for sheet in NSApp.windows where sheet.sheetParent != nil {
+        let sheets = NSApp.windows.filter { $0.sheetParent != nil }
+        for sheet in sheets {
             sheet.sheetParent?.endSheet(sheet)
         }
-        NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: NSApp)
-        applicationWillTerminate(Notification(name: NSApplication.willTerminateNotification, object: NSApp))
-        exit(0)
+        model?.prepareForTermination()
+        if sheets.isEmpty {
+            NSApp.terminate(nil)
+        } else {
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(150))
+                NSApp.terminate(nil)
+            }
+        }
     }
 
     func setModel(_ model: AppViewModel, openMainWindow: @escaping () -> Void) {
@@ -227,9 +229,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
     }
 
-    /// Last-chance cleanup: restore any fan minimums the monitor changed.
     func applicationWillTerminate(_ notification: Notification) {
-        model?.monitor.stop()
+        model?.prepareForTermination()
+    }
+
+    @MainActor
+    func openDestination(_ destination: AppDestination) {
+        guard let model, AppDestination.available.contains(destination) else { return }
+        model.destination = destination
+        bringMainWindowForward()
+    }
+
+    @MainActor
+    func openMonitor(tab: MonitorTab? = nil, selectAppGroup groupID: String? = nil) {
+        guard DistributionChannel.supportsAdvanced, let model else { return }
+        model.monitor.start()
+        if let tab, MonitorTab.visibleTabs.contains(tab) {
+            model.monitor.selectedTab = tab
+        }
+        if let groupID,
+           let group = model.monitor.snapshot?.groups.first(where: { $0.id == groupID }) {
+            model.monitor.select(group: group)
+            model.showsInspector = true
+        }
+        openDestination(.monitor)
+    }
+
+    private func bringMainWindowForward() {
+        openMainWindow?()
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.windows.first(where: \.canBecomeKey)?.makeKeyAndOrderFront(nil)
     }
 
     private func route(_ info: [AnyHashable: Any]) async {
@@ -239,37 +268,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         let routeKind = info[NotificationScheduler.routeKey] as? String
         if routeKind == "leftovers",
-            let bundleID = info[NotificationScheduler.bundleIDKey] as? String {
+           let bundleID = info[NotificationScheduler.bundleIDKey] as? String {
             await model.reviewLeftovers(
                 ofRemovedApp: bundleID,
                 name: info[NotificationScheduler.appNameKey] as? String ?? bundleID,
-                bundlePath: info[NotificationScheduler.bundlePathKey] as? String ?? "")
+                bundlePath: info[NotificationScheduler.bundlePathKey] as? String ?? ""
+            )
+            bringMainWindowForward()
         } else if routeKind == "monitor", DistributionChannel.supportsAdvanced {
-            // A misbehaving-app alert: open the monitor, not the media tools.
-            model.destination = .monitor
+            let tab = (info[NotificationScheduler.metricKey] as? String).flatMap(MonitorTab.init(rawValue:))
+            let bundleID = info[NotificationScheduler.bundleIDKey] as? String
+            let appName = info[NotificationScheduler.appNameKey] as? String
+            let matchedGroup = model.monitor.snapshot?.groups.first { group in
+                if let bundleID, !bundleID.isEmpty, group.id == bundleID { return true }
+                if let appName, !appName.isEmpty, group.name == appName { return true }
+                return false
+            }
+            openMonitor(tab: tab, selectAppGroup: matchedGroup?.id)
         } else if routeKind == "activity" {
-            // Scan-complete (and any future tally notifications): open the
-            // ledger that records what was reclaimed (PRD 9.5).
-            model.destination = .history
+            model.historyShowsMedia = true
+            openDestination(.history)
+        } else if routeKind == "cleanup" {
+            model.cleanup.selectedTool = nil
+            openDestination(.media)
         } else {
-            model.destination = .media
+            openDestination(.media)
         }
     }
 
-    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        // userInfo holds only property-list strings; copy them out before hopping actors.
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
         let info = response.notification.request.content.userInfo
         let strings = info.reduce(into: [String: String]()) { result, pair in
             if let key = pair.key as? String, let value = pair.value as? String { result[key] = value }
         }
         Task { @MainActor in
             await route(strings)
-            openMainWindow?()
-            // MB-F1: a status-item interaction confers no activation rights,
-            // and the macOS 14+ no-argument activate() does not steal focus.
-            NSApp.activate(ignoringOtherApps: true)
-            NSApp.windows.first(where: \.canBecomeKey)?.makeKeyAndOrderFront(nil)
         }
         completionHandler()
     }
@@ -278,20 +315,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     static let removalWatchKey = "watchesAppRemovals"
     static let monitorExtrasKey = MonitoringKeys.menuBarPanelEnabled
 
-    /// Quit with the last window unless a menu bar extra keeps the app useful.
-    /// The monitor extras default to on, so an unset key counts as enabled —
-    /// matching the @AppStorage default in the app scene.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         let defaults = UserDefaults.standard
-        let monitorExtrasEnabled = defaults.object(forKey: Self.monitorExtrasKey) as? Bool ?? true
-        return !(defaults.bool(forKey: Self.menuBarExtraKey) || monitorExtrasEnabled)
+        if defaults.bool(forKey: Self.menuBarExtraKey) {
+            return false
+        }
+        #if MONITOR_SCENES
+        if DistributionChannel.supportsAdvanced {
+            let monitorPanelEnabled = defaults.object(forKey: Self.monitorExtrasKey) as? Bool
+                ?? MonitoringDefaults.menuBarPanelEnabled
+            let anyMetricEnabled = MonitoringKeys.menuBarMetrics.contains { metric in
+                defaults.object(forKey: metric.key) as? Bool ?? metric.defaultEnabled
+            }
+            if monitorPanelEnabled || anyMetricEnabled {
+                return false
+            }
+        }
+        #endif
+        return true
     }
 
-    /// O-01: SwiftUI sheets run as modal sessions on macOS 26, and a presented
-    /// sheet vetoes the quit Apple event — ⌘Q and the menu-bar Quit silently
-    /// no-op whenever a sheet is up (first-run onboarding was force-quit-only).
-    /// End any open sheets, then terminate once the dismissal has landed.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        model?.prepareForTermination()
         let sheets = sender.windows.flatMap(\.sheets)
         guard !sheets.isEmpty else { return .terminateNow }
         for sheet in sheets { sheet.sheetParent?.endSheet(sheet) }
@@ -306,15 +351,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         model?.scanAll()
     }
 
-    /// Restores the newest change, whichever history it is in.
     func undoLastAction() async {
         guard let model else { return }
+        let override = model.languageStore.activeOverride
         guard !model.isScanning, !model.isExecuting, !model.cleanup.isBusy else {
             model.setStatusMessage(
-                String(
-                    localized: "Undo skipped. A scan or cleanup is already running.",
-                    comment: "Menu-bar undo during busy state"
-                ))
+                L10n.string("Undo skipped. A scan or cleanup is already running.", language: override)
+            )
             return
         }
         let mediaEvent = model.cleanup.activity
@@ -329,8 +372,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 systemDate = log.timestamp
             }
         }
-        // MB-10: route through the same regret prompt as a History restore —
-        // nothing is restored until the user answers (or skips) on the window.
         if let mediaEvent, systemRecord == nil || mediaEvent.date >= systemDate {
             openMainWindow?()
             model.pendingUndoRestore = .mediaEvent(mediaEvent)
@@ -339,10 +380,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             model.pendingUndoRestore = .systemRecord(systemRecord)
         } else {
             model.setStatusMessage(
-                String(
-                    localized: "Nothing to undo. No completed cleanup operations yet.",
-                    comment: "Menu-bar undo with empty history"
-                ))
+                L10n.string("Nothing to undo. No completed cleanup operations yet.", language: override)
+            )
         }
     }
 }

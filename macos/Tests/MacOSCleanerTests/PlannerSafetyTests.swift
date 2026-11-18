@@ -123,10 +123,16 @@ final class PlannerSafetyTests: XCTestCase {
     // MARK: - Bug 3: needsManualReview is not an execute-able dead-end
 
     func testHighRiskPackageCleanupApprovalIsTheReviewAndNotADeadEnd() async throws {
+        let root = try makeTemporaryDirectory(named: "PkgAllowlist")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let brewStub = root.appendingPathComponent("brew", isDirectory: false)
+        try Data("#!/bin/sh\nexit 0\n".utf8).write(to: brewStub)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: brewStub.path)
+
         let candidate = PackageCleanupCandidate(
             id: "brew-cleanup", title: "brew cleanup",
-            commandPath: URL(fileURLWithPath: "/usr/bin/true"),
-            arguments: [], dryRunOutput: "", risk: .high, category: .packageManagerCleanup
+            commandPath: brewStub,
+            arguments: ["autoremove"], dryRunOutput: "", risk: .high, category: .packageManagerCleanup
         )
         let rec = Recommendation(
             id: "r1", findingID: "finding-1", actionType: .runPackageManagerCleanup,
@@ -142,13 +148,23 @@ final class PlannerSafetyTests: XCTestCase {
         XCTAssertEqual(action.userDecision, .undecided)
         XCTAssertEqual(action.status, .proposed)
 
-        // Once approved, the audit must not dead-end into .needsManualReview.
+        // High-risk package cleanups require the explicit confirmation flag before auditing as allowed.
         var approved = action
         approved.userDecision = .approved
         approved.status = .approved
         let auditor = SafetyAuditor()
+        do {
+            _ = try await auditor.audit(action: approved, filesByID: [:])
+            XCTFail("High-risk package cleanup without explicit confirmation must be rejected")
+        } catch let error as SafetyAuditError {
+            guard case .highRiskDestructiveAction = error else {
+                return XCTFail("Expected highRiskDestructiveAction, got \(error)")
+            }
+        }
+
+        approved.requiresExplicitConfirmation = true
         let audit = try await auditor.audit(action: approved, filesByID: [:])
-        XCTAssertEqual(audit.decision, .allowed, "Approval is the required review for provider cleanups")
+        XCTAssertEqual(audit.decision, .allowed, "Explicitly confirmed allowlisted cleanup must audit as allowed")
 
         // Execution must not mark the action failed.
         let store = try SQLiteStore.inMemory()

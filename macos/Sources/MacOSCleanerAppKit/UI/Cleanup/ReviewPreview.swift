@@ -21,39 +21,101 @@ struct ReviewPreview: View {
 
     var body: some View {
         VStack(spacing: Spacing.elementTight) {
-            Group {
-                if item.isLink {
-                    ContentUnavailableView(
-                        String(localized: "Link"), systemImage: "link",
-                        description: Text(item.linkTarget?.path ?? String(localized: "Target unavailable")))
-                } else if !item.isDownloaded {
-                    ContentUnavailableView(String(localized: "Not downloaded"), systemImage: "icloud.slash")
-                } else if let error {
-                    ContentUnavailableView(
-                        String(localized: "Preview unavailable"), systemImage: "doc.questionmark",
-                        description: Text(error))
-                } else if thumbnail, let image {
-                    Image(nsImage: image).resizable().scaledToFit()
-                } else if let url {
-                    media(url)
-                } else {
-                    RoundedRectangle(cornerRadius: Radius.card)
-                        .fill(.quaternary).overlay {
-                            ProgressView().accessibilityLabel(String(localized: "Loading preview"))
-                        }
-                }
-            }
+            previewContent
             if !thumbnail {
-                Text(metadata).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                Text(metadata)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .textSelection(.enabled)
                     .accessibilityLabel(String(localized: "File information: \(metadata)"))
+                MediaIntelligencePills(item: item, showReviewReason: true)
             }
         }
-        .task(id: item.reviewKey + (item.url?.path ?? "") + "\(thumbnail)") { await load() }
-        .onDisappear {
-            requestID = UUID()
-            player?.pause()
-            grant?.stopAccessingSecurityScopedResource()
-            grant = nil
+        .task(id: item.reviewKey + (item.url?.path ?? "") + "\(thumbnail)\(item.isDownloaded)") {
+            await load()
+        }
+        .onDisappear { tearDown() }
+    }
+
+    @ViewBuilder private var previewContent: some View {
+        if item.isLink {
+            ContentUnavailableView(
+                String(localized: "Link"), systemImage: "link",
+                description: Text(item.linkTarget?.path ?? String(localized: "Target unavailable")))
+        } else if !item.isDownloaded {
+            iCloudPlaceholder
+        } else if !thumbnail && MediaAnalysisService.isLivePhoto(item) && item.photoID != nil {
+            LivePhotoPlayerCard(item: item)
+        } else if let error {
+            ContentUnavailableView(
+                String(localized: "Preview unavailable"), systemImage: "doc.questionmark",
+                description: Text(error))
+        } else if thumbnail, let image {
+            Image(nsImage: image).resizable().scaledToFit()
+        } else if let url {
+            media(url)
+        } else {
+            RoundedRectangle(cornerRadius: Radius.card)
+                .fill(.quaternary)
+                .overlay {
+                    ProgressView().accessibilityLabel(String(localized: "Loading preview"))
+                }
+        }
+    }
+
+    @ViewBuilder private var iCloudPlaceholder: some View {
+        if thumbnail {
+            RoundedRectangle(cornerRadius: Radius.cardCompact)
+                .fill(.quaternary)
+                .overlay {
+                    VStack(spacing: 6) {
+                        Image(systemName: "icloud.and.arrow.down")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                        if let progress = model.downloadingItemIDs[item.id] {
+                            ProgressView(value: min(max(progress, 0), 1))
+                                .frame(maxWidth: 96)
+                        } else {
+                            Text(String(localized: "iCloud Only"))
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+        } else if item.photoID != nil {
+            VStack(spacing: Spacing.elementNormal) {
+                ContentUnavailableView(
+                    String(localized: "Stored in iCloud"),
+                    systemImage: "icloud.and.arrow.down",
+                    description: Text(
+                        String(
+                            localized: """
+                                Download this item from iCloud to preview, compress, or convert it. \
+                                You can still move it to Recently Deleted without downloading.
+                                """
+                        )))
+                if let progress = model.downloadingItemIDs[item.id] {
+                    VStack(spacing: 4) {
+                        ProgressView(value: min(max(progress, 0), 1))
+                            .frame(maxWidth: 220)
+                        Text(String(localized: "Downloading \(Int((progress * 100).rounded()))%"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                } else {
+                    Button(String(localized: "Download from iCloud")) {
+                        Task { await model.downloadFromICloud(item) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+        } else {
+            ContentUnavailableView(
+                String(localized: "Not downloaded"),
+                systemImage: "icloud.slash",
+                description: Text(String(localized: "Download this file in Finder before previewing.")))
         }
     }
 
@@ -81,6 +143,7 @@ struct ReviewPreview: View {
                 HStack {
                     Button(String(localized: "Previous page")) { page = max(0, page - 1) }.disabled(page == 0)
                     Text(String(localized: "Page \(page + 1) of \(item.facts.pageCount ?? 1)"))
+                        .monospacedDigit()
                     Button(String(localized: "Next page")) { page += 1 }.disabled(
                         page + 1 >= (item.facts.pageCount ?? 1))
                 }
@@ -96,13 +159,27 @@ struct ReviewPreview: View {
             parts.append(Duration.seconds(seconds).formatted(.time(pattern: .minuteSecond)))
         }
         if let pages = item.facts.pageCount { parts.append(String(localized: "\(pages) pages")) }
-        if let date = item.modifiedAt { parts.append(date.formatted(date: .abbreviated, time: .omitted)) }
+        if let date = item.facts.capturedAt ?? item.modifiedAt {
+            parts.append(date.formatted(date: .abbreviated, time: .omitted))
+        }
         return parts.joined(separator: " · ")
     }
 
-    private func load() async {
+    private func tearDownPlayback() {
         player?.pause()
+        player?.replaceCurrentItem(with: nil)
         player = nil
+    }
+
+    private func tearDown() {
+        requestID = UUID()
+        tearDownPlayback()
+        grant?.stopAccessingSecurityScopedResource()
+        grant = nil
+    }
+
+    private func load() async {
+        tearDownPlayback()
         image = nil
         url = nil
         error = nil
@@ -112,11 +189,8 @@ struct ReviewPreview: View {
         grant = nil
         let request = UUID()
         requestID = request
-        guard !item.isLink else { return }
-        guard item.isDownloaded else {
-            error = String(localized: "Not downloaded. Download this item in its source app to preview it.")
-            return
-        }
+        guard !item.isLink, item.isDownloaded else { return }
+        if !thumbnail && MediaAnalysisService.isLivePhoto(item) && item.photoID != nil { return }
         var acquiredGrant: URL?
         var keepsGrant = false
         defer { if !keepsGrant { acquiredGrant?.stopAccessingSecurityScopedResource() } }
@@ -124,12 +198,9 @@ struct ReviewPreview: View {
             if let root = item.root { acquiredGrant = try await model.access.acquire(root) }
             try Task.checkCancellation()
             let temporaryPreview = item.photoID != nil && (thumbnail || item.kind == .image)
-            let local: URL
-            if temporaryPreview {
-                local = try await model.photos.analysisPreview(item, size: thumbnail ? 512 : 1600)
-            } else {
-                local = try await model.localURL(item)
-            }
+            let local = temporaryPreview
+                ? try await model.photos.analysisPreview(item, size: thumbnail ? 512 : 1600)
+                : try await model.localURL(item)
             defer {
                 if temporaryPreview { Task { await model.photos.releaseAnalysisPreview(local) } }
             }
@@ -146,6 +217,7 @@ struct ReviewPreview: View {
             if requestID == request { self.error = error.localizedDescription }
         }
     }
+
     private func loadContent(_ local: URL) async throws -> NSImage? {
         if thumbnail || item.kind == .image {
             return try await PreviewThumbnailCache.image(
@@ -164,7 +236,6 @@ struct ReviewPreview: View {
             throw CleanupError.message(String(localized: "This media file cannot be played."))
         }
     }
-
 }
 
 @MainActor private enum PreviewThumbnailCache {

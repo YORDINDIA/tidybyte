@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import os
 
@@ -30,7 +31,18 @@ private struct PostureThresholds {
 
 public actor CleanerRuleEngine {
     private let policy: PathSafetyPolicy
+    private let homeDirectoryOverride: URL?
     private let logger = Logger(subsystem: AppIdentity.bundleIdentifier, category: "CleanerRuleEngine")
+
+    private var homeDirectory: URL {
+        homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory
+    }
+
+    private var desktopAndDocumentsPrefixes: [String] {
+        ["Desktop", "Documents"].map {
+            homeDirectory.appendingPathComponent($0).standardizedFileURL.path + "/"
+        }
+    }
 
     private static let lowRiskDeveloperArtifacts = ProjectArtifactFolders.lowRisk
 
@@ -48,8 +60,9 @@ public actor CleanerRuleEngine {
 
     private static let mediumRiskDeveloperArtifacts: Set<String> = projectBoundBuildOutputs.union(globalBuildCacheDirectories)
 
-    public init(policy: PathSafetyPolicy = PathSafetyPolicy()) {
+    public init(policy: PathSafetyPolicy = PathSafetyPolicy(), homeDirectoryOverride: URL? = nil) {
         self.policy = policy
+        self.homeDirectoryOverride = homeDirectoryOverride
     }
 
     /// True when the policy permits `record` as a cleanup candidate. Uses the
@@ -118,6 +131,10 @@ public actor CleanerRuleEngine {
         findings.append(contentsOf: packageCacheResults.map(\.finding))
         recommendations.append(contentsOf: packageCacheResults.map(\.recommendation))
 
+        let previewResults = xcodePreviewsFindings(in: files, sessionID: sessionID, directorySizes: directorySizes)
+        findings.append(contentsOf: previewResults.map(\.finding))
+        recommendations.append(contentsOf: previewResults.map(\.recommendation))
+
         let largeFiles = largeFileFindings(files: allowedFiles, sessionID: sessionID, thresholds: thresholds)
         findings.append(contentsOf: largeFiles.map(\.finding))
         recommendations.append(contentsOf: largeFiles.map(\.recommendation))
@@ -142,27 +159,34 @@ public actor CleanerRuleEngine {
         guard Self.lowRiskDeveloperArtifacts.contains(loweredName) || Self.mediumRiskDeveloperArtifacts.contains(loweredName) else {
             return nil
         }
-        let size = directorySizes[record.displayPath] ?? record.sizeBytes
-        guard size > 0 else {
-            return nil
-        }
         let project = projects.first { record.displayPath.hasPrefix($0.rootURL.path + "/") }
         // Build outputs (node_modules, dist, build, target, ...) are only proposed
-        // when they sit inside a detected project root. Outside a project their
-        // names are ambiguous, and deleting them could remove unrelated folders.
+        // when they sit inside a detected project root.
         if Self.projectBoundBuildOutputs.contains(loweredName) && project == nil {
             return nil
         }
-        let isLowRisk = Self.lowRiskDeveloperArtifacts.contains(loweredName)
+        var size = directorySizes[record.displayPath] ?? record.sizeBytes
+        // node_modules/.cache emits its own cache finding inside project roots, so
+        // subtract its bytes here to avoid double-counting reclaimable space.
+        if loweredName == "node_modules", project != nil {
+            let cacheSubtreeBytes = directorySizes[record.displayPath + "/.cache"] ?? 0
+            if cacheSubtreeBytes > 1024 * 1024 {
+                size = max(0, size - cacheSubtreeBytes)
+            }
+        }
+        guard size > 0 else {
+            return nil
+        }
+        return buildDeveloperArtifactPair(record: record, project: project, size: size, sessionID: sessionID)
+    }
+
+    private func buildDeveloperArtifactPair(
+        record: FileRecord, project: ProjectUnit?, size: Int64, sessionID: String
+    ) -> (finding: Finding, recommendation: Recommendation) {
+        let isLowRisk = Self.lowRiskDeveloperArtifacts.contains(record.fileName.lowercased())
         let risk: RiskLevel = isLowRisk ? .low : .medium
-        let confidence = project == nil && loweredName == "node_modules" ? 0.66 : (isLowRisk ? 0.94 : 0.84)
+        let confidence = project == nil && record.fileName.lowercased() == "node_modules" ? 0.66 : (isLowRisk ? 0.94 : 0.84)
         let findingID = UUID().uuidString
-        let evidence = [
-            "folder_name": record.fileName,
-            "project": project?.name ?? "unknown",
-            "project_status": project?.status.rawValue ?? "unknown",
-            "bytes": String(size)
-        ]
         let finding = Finding(
             id: findingID,
             scanSessionID: sessionID,
@@ -171,7 +195,12 @@ public actor CleanerRuleEngine {
             confidence: confidence,
             bytesReclaimable: size,
             summary: String(localized: "\(record.fileName) appears to be a rebuildable developer artifact.", comment: "Finding summary for developer artifact"),
-            evidence: evidence,
+            evidence: [
+                "folder_name": record.fileName,
+                "project": project?.name ?? "unknown",
+                "project_status": project?.status.rawValue ?? "unknown",
+                "bytes": String(size)
+            ],
             targetFileIDs: [record.id]
         )
         let recommendation = Recommendation(
@@ -233,10 +262,14 @@ public actor CleanerRuleEngine {
         projects: [ProjectUnit]
     ) -> (finding: Finding, recommendation: Recommendation)? {
         let components = record.url.pathComponents
+        guard !isDedicatedLocalAIDevCacheDescendant(record.url.standardizedFileURL.path) else {
+            return nil
+        }
         // Case-insensitive cache detection to catch "cache", "Cache", "CACHE" variants
         let isCache = components.contains(where: { $0.lowercased() == "caches" || $0.lowercased() == ".cache" || $0.lowercased() == "cache" })
         // A "Logs" folder in Documents can hold user files: only the macOS log folders and .log files count.
-        let isLog = record.fileExtension == "log" || Self.isMacOSLog(record.url)
+        let isLog = record.fileExtension == "log"
+            || Self.isMacOSLogPath(record.url.standardizedFileURL.path, home: homeDirectory.standardizedFileURL.path)
         guard isCache || isLog else {
             return nil
         }
@@ -282,9 +315,6 @@ public actor CleanerRuleEngine {
     /// Installer archive extensions. Internal so the natural-language planner
     /// can apply the same set to "old installers" commands.
     static let installerExtensions: Set<String> = ["dmg", "pkg", "mpkg", "xip", "iso"]
-    private static let desktopAndDocuments = ["Desktop", "Documents"].map {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent($0).standardizedFileURL.path + "/"
-    }
 
     private func oldDownloadFinding(
         _ record: FileRecord, sessionID: String, thresholds: PostureThresholds
@@ -295,7 +325,7 @@ public actor CleanerRuleEngine {
         // Archives count in Downloads only; installers also in ~/Desktop and ~/Documents.
         let path = record.url.standardizedFileURL.path
         guard record.kind == .regularFile || (record.kind == .package && isInstaller),
-              inDownloads || (isInstaller && Self.desktopAndDocuments.contains { path.hasPrefix($0) }),
+              inDownloads || (isInstaller && desktopAndDocumentsPrefixes.contains { path.hasPrefix($0) }),
               let modifiedAt = record.modifiedAt,
               let cutoff = Calendar.current.date(byAdding: .day, value: -thresholds.oldDownloadDays, to: Date()),
               modifiedAt < cutoff else {
@@ -426,7 +456,8 @@ public actor CleanerRuleEngine {
     private func largeFileFindings(
         files: [FileRecord], sessionID: String, thresholds: PostureThresholds
     ) -> [(finding: Finding, recommendation: Recommendation)] {
-        files
+        let thresholdLabel = thresholds.largeFileBytes.formattedByteCount
+        return files
             .filter { $0.kind == .regularFile && $0.sizeBytes >= thresholds.largeFileBytes }
             .map { record in
                 let findingID = UUID().uuidString
@@ -448,7 +479,10 @@ public actor CleanerRuleEngine {
                     targetFileIDs: [record.id],
                     confidence: 0.7,
                     risk: .high,
-                    reason: String(localized: "This file is over 1 GB. Review whether it can be moved or deleted.", comment: "Recommendation reason for large file"),
+                    reason: String(
+                        localized: "This file is over \(thresholdLabel). Review whether it can be moved or deleted.",
+                        comment: "Recommendation reason for large file"
+                    ),
                     expectedBytesReclaimed: record.sizeBytes,
                     requiresConfirmation: true,
                     llmTraceID: nil,
@@ -458,23 +492,47 @@ public actor CleanerRuleEngine {
             }
     }
 
+    private static let appleProtectedSupportFolders: Set<String> = [
+        "dock", "addressbook", "clouddocs", "syncservices", "crashreporter",
+        "mobilesync", "callhistorydb", "callhistorytransactions", "icloud",
+        "icloudmailagent", "differentialprivacy", "facedatastore", "knowledge",
+        "animoji", "coredata", "spotlight", "fileprovider", "apple"
+    ]
+
+    private static let appFolderVendorAliases: [String: (appNames: Set<String>, bundlePrefixes: [String])] = [
+        "code": (["visualstudiocode", "vscode"], ["com.microsoft.vscode"]),
+        "vscode": (["visualstudiocode"], ["com.microsoft.vscode"]),
+        "mozilla": (["firefox", "thunderbird"], ["org.mozilla."]),
+        "google": (["googlechrome", "googleearth", "googledrive"], ["com.google."]),
+        "adobe": (["adobe"], ["com.adobe."]),
+        "jetbrains": (
+            ["intellijidea", "pycharm", "webstorm", "goland", "clion", "datagrip", "rider", "rubymine", "phpstorm", "fleet"],
+            ["com.jetbrains."]
+        ),
+        "slack": (["slack"], ["com.tinyspeck.slackmacgap"]),
+        "steam": (["steam"], ["com.valvesoftware.steam"]),
+        "discord": (["discord"], ["com.hnc.discord"]),
+        "spotify": (["spotify"], ["com.spotify.client"]),
+        "notion": (["notion"], ["notion.id"])
+    ]
+
     private func appLeftoverFindings(
         files: [FileRecord],
         sessionID: String,
         directorySizes: [String: Int64]
     ) -> [(finding: Finding, recommendation: Recommendation)] {
-        let installedApps = installedApplicationNames()
-        // Only flag DIRECT children of "Application Support" — nested subdirectories
-        // (e.g. AppName/Caches, AppName/Data) would cause false positives if flagged
-        // individually because their names won't match any installed app.
-        // `files` arrives pre-filtered by the engine's one policy pass.
+        let inventory = installedApplicationInventory()
         let supportDirectories = files.filter { record in
             record.kind == .directory
                 && record.url.deletingLastPathComponent().lastPathComponent == "Application Support"
         }
         return supportDirectories.compactMap { record in
-            let normalizedName = normalizeAppName(record.fileName)
-            guard !installedApps.contains(normalizedName) else {
+            let lowered = record.fileName.lowercased()
+            guard !Self.appleProtectedSupportFolders.contains(lowered),
+                  !lowered.hasPrefix("com.apple.") else {
+                return nil
+            }
+            guard !isInstalledApplicationFolder(record.fileName, inventory: inventory) else {
                 return nil
             }
             let size = directorySizes[record.displayPath] ?? record.sizeBytes
@@ -527,12 +585,241 @@ public actor CleanerRuleEngine {
     ) -> (finding: Finding, recommendation: Recommendation)? {
         // The caller loops over the engine's one policy pass, so `record` is
         // already policy-allowed.
-        return developerArtifactFinding(record, sessionID: sessionID, directorySizes: directorySizes, projects: projects)
+        return danglingSymlinkFinding(record, sessionID: sessionID)
+            ?? developerArtifactFinding(record, sessionID: sessionID, directorySizes: directorySizes, projects: projects)
             ?? xcarchiveFinding(record, sessionID: sessionID, directorySizes: directorySizes)
+            ?? localAIDevCacheFinding(record, sessionID: sessionID, directorySizes: directorySizes)
             ?? cacheOrLogFinding(record, sessionID: sessionID, directorySizes: directorySizes, projects: projects)
             ?? oldDownloadFinding(record, sessionID: sessionID, thresholds: thresholds)
             ?? codingAgentFinding(record, sessionID: sessionID, directorySizes: directorySizes)
             ?? organizationFinding(record, sessionID: sessionID, thresholds: thresholds)
+    }
+
+    private func danglingSymlinkFinding(
+        _ record: FileRecord,
+        sessionID: String
+    ) -> (finding: Finding, recommendation: Recommendation)? {
+        guard record.kind == .symlink else { return nil }
+        guard let rawTarget = try? FileManager.default.destinationOfSymbolicLink(atPath: record.url.path) else {
+            return nil
+        }
+        let targetURL = rawTarget.hasPrefix("/")
+            ? URL(fileURLWithPath: rawTarget)
+            : record.url.deletingLastPathComponent().appendingPathComponent(rawTarget)
+        let resolvedTarget = targetURL.standardizedFileURL
+        guard !resolvedTarget.path.hasPrefix("/Volumes/") else { return nil }
+        guard Darwin.access(resolvedTarget.path, F_OK) != 0,
+              errno == ENOENT || errno == ENOTDIR || errno == ELOOP else {
+            return nil
+        }
+        let findingID = UUID().uuidString
+        let finding = Finding(
+            id: findingID,
+            scanSessionID: sessionID,
+            category: .organization,
+            severity: .low,
+            confidence: 0.9,
+            bytesReclaimable: 0,
+            summary: String(localized: "Broken symbolic link.", comment: "Finding summary for dangling symlink"),
+            evidence: ["path": record.displayPath, "target": resolvedTarget.path],
+            targetFileIDs: [record.id]
+        )
+        let recommendation = Recommendation(
+            id: UUID().uuidString,
+            findingID: findingID,
+            actionType: .inspectOnly,
+            targetFileIDs: [record.id],
+            confidence: 0.9,
+            risk: .low,
+            reason: String(
+                localized: "This symbolic link points to \(resolvedTarget.path), which does not exist. Inspect before removing manually.",
+                comment: "Recommendation reason for dangling symlink"
+            ),
+            expectedBytesReclaimed: 0,
+            requiresConfirmation: true,
+            llmTraceID: nil,
+            policyTraceID: "dangling_symlink_rule"
+        )
+        return (finding, recommendation)
+    }
+
+    private struct DedicatedCacheDescriptor {
+        let path: String
+        let isInspectOnly: Bool
+        let category: FindingCategory
+        let title: String
+        let reason: String
+    }
+
+    private struct CachePairSpec {
+        let category: FindingCategory
+        let actionType: ActionType
+        let risk: RiskLevel
+        let policyTraceID: String
+        let summary: String
+        let reason: String
+    }
+
+    private var dedicatedCacheDescriptors: [DedicatedCacheDescriptor] {
+        let home = homeDirectory.standardizedFileURL.path
+        return [
+            DedicatedCacheDescriptor(
+                path: home + "/.cache/huggingface", isInspectOnly: true, category: .cache,
+                title: String(localized: "Hugging Face model cache.", comment: "Finding summary for Hugging Face cache"),
+                reason: String(
+                    localized: "Downloaded AI model weights can be large and slow to re-download. Inspect before deleting.",
+                    comment: "Inspect reason for Hugging Face cache"
+                )
+            ),
+            DedicatedCacheDescriptor(
+                path: home + "/.ollama/models", isInspectOnly: true, category: .cache,
+                title: String(localized: "Ollama local AI models.", comment: "Finding summary for Ollama models"),
+                reason: String(
+                    localized: "Local LLM weights are large and slow to re-download. Inspect with `ollama rm` before removing.",
+                    comment: "Inspect reason for Ollama models"
+                )
+            ),
+            DedicatedCacheDescriptor(
+                path: home + "/.cargo/registry/cache", isInspectOnly: false, category: .cache,
+                title: String(localized: "Cargo package archive cache.", comment: "Finding summary for Cargo cache"),
+                reason: String(
+                    localized: "Downloaded Rust crate archives are rebuildable on next build. Review before moving to Trash.",
+                    comment: "Reason for Cargo cache"
+                )
+            ),
+            DedicatedCacheDescriptor(
+                path: home + "/.cache/uv", isInspectOnly: false, category: .cache,
+                title: String(localized: "uv Python package cache.", comment: "Finding summary for uv cache"),
+                reason: String(
+                    localized: "uv package cache files can be re-downloaded when needed. Review before moving to Trash.",
+                    comment: "Reason for uv cache"
+                )
+            ),
+            DedicatedCacheDescriptor(
+                path: home + "/.bun/install/cache", isInspectOnly: false, category: .cache,
+                title: String(localized: "Bun package cache.", comment: "Finding summary for Bun cache"),
+                reason: String(
+                    localized: "Bun install cache files are rebuildable. Review before moving to Trash.",
+                    comment: "Reason for Bun cache"
+                )
+            )
+        ]
+    }
+
+    private func isDedicatedLocalAIDevCacheDescendant(_ standardizedPath: String) -> Bool {
+        if dedicatedCacheDescriptors.contains(where: {
+            standardizedPath == $0.path || standardizedPath.hasPrefix($0.path + "/")
+        }) {
+            return true
+        }
+        let components = standardizedPath.split(separator: "/")
+        return components.contains { $0.lowercased() == "modulecache.noindex" }
+    }
+
+    private func localAIDevCacheFinding(
+        _ record: FileRecord,
+        sessionID: String,
+        directorySizes: [String: Int64]
+    ) -> (finding: Finding, recommendation: Recommendation)? {
+        guard record.kind == .directory else { return nil }
+        let standardized = record.url.standardizedFileURL.path
+        let size = directorySizes[record.displayPath] ?? record.sizeBytes
+        guard size > 1_048_576 else { return nil }
+
+        if record.fileName.lowercased() == "modulecache.noindex" {
+            return makeCachePair(
+                record: record, sessionID: sessionID, size: size,
+                spec: CachePairSpec(
+                    category: .developerArtifact, actionType: .moveToTrash, risk: .low,
+                    policyTraceID: "dev_cache_rule",
+                    summary: String(
+                        localized: "Xcode Clang module cache (ModuleCache.noindex).",
+                        comment: "Finding summary for ModuleCache"
+                    ),
+                    reason: String(
+                        localized: "Xcode rebuilds ModuleCache.noindex automatically on the next build.",
+                        comment: "Reason for ModuleCache cleanup"
+                    )
+                )
+            )
+        }
+        guard let descriptor = dedicatedCacheDescriptors.first(where: { standardized == $0.path }) else {
+            return nil
+        }
+        return makeCachePair(
+            record: record, sessionID: sessionID, size: size,
+            spec: CachePairSpec(
+                category: descriptor.category,
+                actionType: descriptor.isInspectOnly ? .inspectOnly : .moveToTrash,
+                risk: descriptor.isInspectOnly ? .medium : .low,
+                policyTraceID: descriptor.isInspectOnly ? "local_ai_dev_cache_rule" : "dev_cache_rule",
+                summary: descriptor.title,
+                reason: descriptor.reason
+            )
+        )
+    }
+
+    private func xcodePreviewsFindings(
+        in files: [FileRecord],
+        sessionID: String,
+        directorySizes: [String: Int64]
+    ) -> [(finding: Finding, recommendation: Recommendation)] {
+        let previewsPath = homeDirectory.standardizedFileURL.path + "/Library/Developer/Xcode/UserData/Previews"
+        return files.compactMap { record in
+            guard record.kind == .directory,
+                  record.url.standardizedFileURL.path == previewsPath else { return nil }
+            let size = directorySizes[record.displayPath] ?? record.sizeBytes
+            guard size > 1_048_576 else { return nil }
+            return makeCachePair(
+                record: record, sessionID: sessionID, size: size,
+                spec: CachePairSpec(
+                    category: .developerArtifact, actionType: .inspectOnly, risk: .medium,
+                    policyTraceID: "local_ai_dev_cache_rule",
+                    summary: String(localized: "Xcode SwiftUI Previews cache.", comment: "Finding summary for Xcode Previews cache"),
+                    reason: String(
+                        localized: """
+                            Xcode Previews caches simulator state and takes significant space. Prune safely with \
+                            `xcrun simctl --set previews`.
+                            """,
+                        comment: "Inspect reason for Xcode Previews cache"
+                    )
+                )
+            )
+        }
+    }
+
+    private func makeCachePair(
+        record: FileRecord,
+        sessionID: String,
+        size: Int64,
+        spec: CachePairSpec
+    ) -> (finding: Finding, recommendation: Recommendation) {
+        let findingID = UUID().uuidString
+        let finding = Finding(
+            id: findingID,
+            scanSessionID: sessionID,
+            category: spec.category,
+            severity: spec.risk,
+            confidence: 0.9,
+            bytesReclaimable: size,
+            summary: spec.summary,
+            evidence: ["path": record.displayPath, "bytes": String(size)],
+            targetFileIDs: [record.id]
+        )
+        let recommendation = Recommendation(
+            id: UUID().uuidString,
+            findingID: findingID,
+            actionType: spec.actionType,
+            targetFileIDs: [record.id],
+            confidence: 0.9,
+            risk: spec.risk,
+            reason: spec.reason,
+            expectedBytesReclaimed: size,
+            requiresConfirmation: true,
+            llmTraceID: nil,
+            policyTraceID: spec.policyTraceID
+        )
+        return (finding, recommendation)
     }
 
     private func subtreeSizes(for files: [FileRecord]) -> [String: Int64] {
@@ -559,21 +846,87 @@ public actor CleanerRuleEngine {
 
 
 
-    private func installedApplicationNames() -> Set<String> {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let roots = [
-            URL(fileURLWithPath: "/Applications"),
+    private struct InstalledAppInventory {
+        let names: Set<String>
+        let index: InstalledAppIndex
+    }
+
+    private func installedApplicationInventory() -> InstalledAppInventory {
+        let home = homeDirectory
+        var bundleURLs = InstalledAppIndex.standardBundles(home: home)
+        let nestedSearchRoots = [
+            URL(fileURLWithPath: "/Applications", isDirectory: true),
             home.appendingPathComponent("Applications", isDirectory: true),
-            // Homebrew Caskroom — apps installed via `brew install --cask`
-            home.appendingPathComponent("Applications/Caskroom", isDirectory: true),
+            home.appendingPathComponent("Applications/Caskroom", isDirectory: true)
         ]
-        let names = roots.flatMap { root -> [String] in
-            guard let urls = try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil) else {
-                return []
-            }
-            return urls.filter { $0.pathExtension == "app" }.map { normalizeAppName($0.deletingPathExtension().lastPathComponent) }
+        for root in nestedSearchRoots {
+            bundleURLs.append(contentsOf: Self.nestedAppBundleURLs(in: root))
         }
-        return Set(names)
+        var names: Set<String> = []
+        var bundleIDs: Set<String> = []
+        for url in bundleURLs {
+            collectBundleMetadata(from: url, names: &names, bundleIDs: &bundleIDs)
+        }
+        return InstalledAppInventory(names: names, index: InstalledAppIndex(bundleIDs: bundleIDs))
+    }
+
+    private static func nestedAppBundleURLs(in root: URL) -> [URL] {
+        guard let children = try? FileManager.default.contentsOfDirectory(
+            at: root, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+        ) else { return [] }
+        var urls: [URL] = []
+        for child in children {
+            if child.pathExtension == "app" {
+                urls.append(child)
+            } else if let grandChildren = try? FileManager.default.contentsOfDirectory(
+                at: child, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+            ) {
+                urls.append(contentsOf: grandChildren.filter { $0.pathExtension == "app" })
+            }
+        }
+        return urls
+    }
+
+    private func collectBundleMetadata(from url: URL, names: inout Set<String>, bundleIDs: inout Set<String>) {
+        names.insert(normalizeAppName(url.deletingPathExtension().lastPathComponent))
+        guard let bundle = Bundle(url: url) else { return }
+        if let bundleID = bundle.bundleIdentifier {
+            bundleIDs.insert(bundleID)
+        }
+        if let info = bundle.infoDictionary {
+            if let name = info["CFBundleName"] as? String { names.insert(normalizeAppName(name)) }
+            if let display = info["CFBundleDisplayName"] as? String { names.insert(normalizeAppName(display)) }
+        }
+    }
+
+    private func isInstalledApplicationFolder(_ folderName: String, inventory: InstalledAppInventory) -> Bool {
+        let normalized = normalizeAppName(folderName)
+        if inventory.names.contains(normalized) {
+            return true
+        }
+        if InstalledAppIndex.isThirdPartyBundleID(folderName), inventory.index.isInstalled(folderName) {
+            return true
+        }
+        if let alias = Self.appFolderVendorAliases[normalized] {
+            if !alias.appNames.isDisjoint(with: inventory.names) {
+                return true
+            }
+            if alias.bundlePrefixes.contains(where: { prefix in
+                inventory.index.bundleIDs.contains { $0.hasPrefix(prefix) }
+            }) {
+                return true
+            }
+        }
+        if normalized.count >= 4 {
+            let vendorMatch = inventory.index.bundleIDs.contains { bundleID in
+                let parts = bundleID.split(separator: ".")
+                return parts.count >= 2 && normalizeAppName(String(parts[1])) == normalized
+            }
+            if vendorMatch {
+                return true
+            }
+        }
+        return false
     }
 
     private func normalizeAppName(_ value: String) -> String {
@@ -587,15 +940,47 @@ public actor CleanerRuleEngine {
             .replacingOccurrences(of: ")", with: "")
     }
 
+    private static let localizedScreenshotPrefixes: [String] = [
+        "screen shot ", "screenshot ", "screenshot_", "screenshot-", "screen recording ",
+        "bildschirmfoto ", "bildschirmaufnahme ",
+        "capture d’écran ", "capture d'écran ", "enregistrement de l’écran ", "enregistrement de l'écran ",
+        "captura de pantalla ", "grabación de pantalla ",
+        "istantanea ", "schermata ", "captura de tela ", "schermafbeelding ",
+        "スクリーンショット", "截屏", "屏幕截图", "스크린샷", "снимок экрана "
+    ]
+
+    nonisolated private static func hasScreenCaptureXattr(at url: URL) -> Bool {
+        let key = "com.apple.metadata:kMDItemIsScreenCapture"
+        let size = Darwin.getxattr(url.path, key, nil, 0, 0, XATTR_NOFOLLOW)
+        guard size > 0, size <= 1024 else { return false }
+        var buffer = [UInt8](repeating: 0, count: size)
+        let bytesRead = Darwin.getxattr(url.path, key, &buffer, size, 0, XATTR_NOFOLLOW)
+        guard bytesRead > 0 else { return false }
+        guard let plist = try? PropertyListSerialization.propertyList(
+            from: Data(buffer.prefix(bytesRead)), format: nil
+        ) else {
+            return false
+        }
+        if let flag = plist as? Bool { return flag }
+        if let num = plist as? NSNumber { return num.boolValue }
+        return false
+    }
+
     func screenshotFindings(in files: [FileRecord], sessionID: String) -> [Finding] {
         let screenshotExtensions: Set<String> = ["png", "jpg", "jpeg", "tiff", "heic", "mov", "mp4"]
         let screenshotFiles = files.filter { file in
             guard let ext = file.fileExtension?.lowercased(), screenshotExtensions.contains(ext) else { return false }
+            if let meta = file.spotlightMetadata["kMDItemIsScreenCapture"]?.lowercased(),
+               meta == "1" || meta == "true" || meta == "yes" {
+                return true
+            }
+            if Self.hasScreenCaptureXattr(at: file.url) {
+                return true
+            }
             let name = file.fileName.lowercased()
-            return name.hasPrefix("screen shot ") || name.hasPrefix("screenshot ") || name.hasPrefix("screen recording ")
+            return Self.localizedScreenshotPrefixes.contains { name.hasPrefix($0) }
         }
         guard !screenshotFiles.isEmpty else { return [] }
-        // Group by parent directory for granular approve/reject control
         let grouped = Dictionary(grouping: screenshotFiles) { $0.url.deletingLastPathComponent().lastPathComponent }
         return grouped.compactMap { (folderName, groupFiles) in
             let totalBytes = groupFiles.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) }
@@ -617,7 +1002,7 @@ public actor CleanerRuleEngine {
     }
 
     private func packageManagerCacheFindings(files: [FileRecord], sessionID: String, directorySizes: [String: Int64]) -> [(finding: Finding, recommendation: Recommendation)] {
-        let home = FileManager.default.homeDirectoryForCurrentUser
+        let home = homeDirectory
         let cachePaths: [(path: String, name: String)] = [
             (home.appendingPathComponent(".npm").path, ".npm"),
             (home.appendingPathComponent(".cache/pip").path, "pip cache"),
@@ -699,7 +1084,7 @@ extension CleanerRuleEngine {
     }
 
     static func isMacOSLog(_ url: URL) -> Bool {
-        let home = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path
+        let home = PathSafetyPolicy.realHomeDirectory.standardizedFileURL.path
         return isMacOSLogPath(url.standardizedFileURL.path, home: home)
     }
 }

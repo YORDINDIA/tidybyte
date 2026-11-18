@@ -13,7 +13,7 @@
           <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.46 2.23-1.21 3.05-.81.87-2.14 1.55-3.23 1.46-.14-1.1.4-2.25 1.16-3.04.85-.89 2.29-1.55 3.28-1.47Zm3.61 16.04c-.6 1.39-1.31 2.62-2.18 3.66-1.13 1.39-2.46 3.05-4.25 3.07-1.7.02-2.14-.99-4.46-.99-2.32 0-2.8 1.01-4.5.99-1.79-.02-3.15-1.6-4.28-2.99-2.6-3.2-4.59-9.05-1.92-12.99 1.32-1.95 3.69-3.18 6.25-3.22 1.78-.04 3.46 1.05 4.55 1.05 1.08 0 3.13-1.3 5.28-1.11.9.04 3.43.36 5.05 2.71-.13.08-3.02 1.76-2.99 5.25.04 4.17 3.66 5.55 3.45 5.57Z"/></svg>
           Download for Mac
         </a>
-        <p class="text-sm text-muted">Free &middot; macOS 26 or later &middot; Apple silicon &middot; Version {{MAC_VERSION}}</p>
+        <p class="text-sm text-muted">Free &middot; 21 languages &middot; macOS 26 or later &middot; Apple silicon &middot; Version {{MAC_VERSION}}</p>
       </div>
     </header>
 
@@ -66,7 +66,7 @@
           </div>
           <div>
             <dt class="font-semibold text-ink">Photos &amp; Media</dt>
-            <dd class="muted mt-1">Similar shots, blurry photos, bursts, screenshots, and large videos in your folders and your Photos library. Review them one at a time with Swipe Review. Compress photos and videos &mdash; the originals stay.</dd>
+            <dd class="muted mt-1">Similar shots, blurry photos, bursts, screenshots, screen recordings, downloads &amp; chat media, and large videos in your folders and your Photos library. Review one at a time with Swipe Review, convert Live Photos to still images, and compress photos (with HEIC, Max File Size targets, and &ldquo;Check Result Sizes&rdquo;) or videos (with HEVC). Choose Replace &amp; Trash Original (sending the original to Trash or Photos&rsquo; Recently Deleted so it stays undoable) or Keep Both.</dd>
           </div>
         </dl>
       </div>
@@ -76,11 +76,11 @@
         <dl class="mt-5 space-y-6">
           <div>
             <dt class="font-semibold text-ink">Applications</dt>
-            <dd class="muted mt-1">Remove an app with its settings, caches, containers, launch agents, and helpers.</dd>
+            <dd class="muted mt-1">Remove an app with its settings, caches, containers, launch agents, and helpers &mdash; matched by bundle ID, app groups, and code signature, with running-app protection.</dd>
           </div>
           <div>
             <dt class="font-semibold text-ink">Leftovers</dt>
-            <dd class="muted mt-1">Data from apps you already deleted. An item counts only if no installed app from the same developer owns it and nothing in it changed for 30 days.</dd>
+            <dd class="muted mt-1">Data from apps you already deleted. Matched by bundle ID and full installed-app footprint (including helpers, vendor prefixes, and upgrade-safe bundle resolution &mdash; never naive name matching), with running-app protection, Spotlight inventory checks, and a 30-day unchanged rule.</dd>
           </div>
           <div>
             <dt class="font-semibold text-ink">Login Items</dt>
@@ -94,7 +94,7 @@
         <dl class="mt-5 space-y-6">
           <div>
             <dt class="font-semibold text-ink">Space Explorer</dt>
-            <dd class="muted mt-1">Nine views of your files: list, folders, sunburst, flame, bubbles, mind map, top sizes, age map, and treemap.</dd>
+            <dd class="muted mt-1">Eight visualization modes alongside the file list: folders grid, treemap, sunburst, bubbles, flame, mind map, top sizes, and age map.</dd>
           </div>
           <div>
             <dt class="font-semibold text-ink">Changes</dt>
@@ -122,7 +122,7 @@
         </div>
         <div>
           <dt class="font-display text-lg font-medium text-clay-cream">The Trash comes first.</dt>
-          <dd class="mt-1.5 text-clay-cream/75">Files go to the Trash, and Photos items go to Recently Deleted. Empty Trash is the only permanent command, and it asks first.</dd>
+          <dd class="mt-1.5 text-clay-cream/75">Files go to the Trash, and Photos items (including replaced originals) go to Recently Deleted for ~30 days. Empty Trash is the only permanent command, and it asks first.</dd>
         </div>
         <div>
           <dt class="font-display text-lg font-medium text-clay-cream">Each file is checked twice.</dt>
@@ -142,7 +142,7 @@
         </div>
         <div>
           <dt class="font-display text-lg font-medium text-clay-cream">Unattended runs never delete.</dt>
-          <dd class="mt-1.5 text-clay-cream/75">Automatic maintenance only merges exact duplicates into clones.</dd>
+          <dd class="mt-1.5 text-clay-cream/75">Automatic maintenance (Direct builds) only merges exact duplicates into APFS clones.</dd>
         </div>
       </dl>
     </div>
@@ -171,7 +171,7 @@
           </tr>
           <tr class="border-b border-hairline">
             <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Photos</th>
-            <td class="py-4 pe-6 align-top">Find similar, blurry, and large items in the Photos library.</td>
+            <td class="py-4 pe-6 align-top">Find similar, blurry, burst, Live Photo, screenshot, and large items in your Photos library. TidyByte identifies iCloud-only items, can download full-resolution copies before editing or compressing, and moves removed items to Photos&rsquo; Recently Deleted (reversible for ~30 days).</td>
             <td class="py-4 align-top">Photos &amp; Media covers your folders only.</td>
           </tr>
           <tr>
@@ -211,6 +211,28 @@
   </div>
 </section>
 
+<!-- CLI, MCP & Distribution -->
+<section class="section pt-0" aria-labelledby="mac-cli-mcp">
+  <div class="container-prose">
+    <h2 id="mac-cli-mcp" class="h-section max-w-2xl">Terminal tools, MCP boundaries, and builds.</h2>
+    <p class="lede mt-4 max-w-2xl">Direct builds include terminal and assistant tooling alongside the app, while the sandboxed App Store edition stays strictly scoped to your folders and Photos library.</p>
+    <div class="mt-12 grid gap-12 lg:grid-cols-3 lg:gap-10">
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">CLI inside the app</h3>
+        <p class="muted mt-3">In Direct builds, the <code>tidybyte</code> CLI and <code>tidybyte-mcp</code> binaries live inside <code>Tidybyte.app/Contents/MacOS/</code> and can be symlinked into <code>PATH</code> from Settings or Terminal. Run <code>tidybyte monitor status|top|ports|agents|limits|history</code> as a table or JSON.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">Preview-first MCP server</h3>
+        <p class="muted mt-3"><code>tidybyte-mcp</code> is read-only and preview-first by default (<code>scan</code>, <code>list_findings</code>, <code>show_plan</code>, <code>check_finding</code>, <code>history</code>, and live <code>monitor_*</code> tools). <code>execute</code> and <code>undo</code> only run when explicitly invoked with <code>confirm: true</code>: <code>execute</code> is restricted to non-deleting APFS clone folding, destructive cleanups stay in the Mac app, and undo history persists in SQLite.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-xl font-medium text-ink">Direct vs. App Store</h3>
+        <p class="muted mt-3">The signed, notarized Direct DMG includes system-wide Monitor dashboards, Sparkle auto-updates, CLI and MCP access, and optional LaunchAgent clone-folding. The sandboxed App Store build omits system-wide Monitor, Sparkle, CLI/MCP automation, and external AI gateway calls, focusing safely on user-selected folders and Photos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- FAQ -->
 <section id="questions" class="section scroll-mt-24 pt-0" aria-labelledby="mac-faq">
   <div class="container-prose">
@@ -221,14 +243,35 @@
           <span>Is TidyByte for Mac free?</span>
           <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
-        <p class="muted mt-4">Yes. It is free and open source under the MIT license, with no ads, accounts, or subscriptions.</p>
+        <p class="muted mt-4">Yes. It is free and open source under the MIT license, translated into 21 languages (including right-to-left Arabic and Hebrew), with no ads, accounts, or subscriptions.</p>
       </details>
       <details class="clay-card group p-5 sm:p-6">
         <summary class="faq-summary">
           <span>Is anything sent over the network?</span>
           <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
-        <p class="muted mt-4">No, unless you turn on an AI provider in Settings, under AI &amp; Privacy. The default is local only. Update checks contact the update feed.</p>
+        <p class="muted mt-4">No, unless you opt into an external AI provider in Direct builds under AI &amp; Privacy. The default is local only, and Direct builds check the Sparkle update feed for new releases.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Will compressing photos or videos delete my originals?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">You choose before compressing: Keep Both saves a new compressed copy alongside the original, while Replace &amp; Trash Original reclaims space by sending the original to Trash or Photos&#39; Recently Deleted for ~30 days. You can also set Max File Size targets, pick HEIC or HEVC, enable Check Result Sizes, and convert Live Photos to stills.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>How does TidyByte handle iCloud Photos and app leftovers?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">TidyByte identifies iCloud-only Photos items, can download full-resolution copies before reviewing or compressing, and sends deleted Photos items to Recently Deleted (~30 days). Leftovers matching uses bundle IDs, helper prefixes, code-signature app groups, and launch jobs — protecting running apps and upgrades instead of guessing by name.</p>
+      </details>
+      <details class="clay-card group p-5 sm:p-6">
+        <summary class="faq-summary">
+          <span>Can an AI assistant delete files through tidybyte-mcp?</span>
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p class="muted mt-4">No. In Direct builds, <code>tidybyte-mcp</code> defaults to read-only and preview-only tools (<code>scan</code>, <code>show_plan</code>, <code>check_finding</code>, <code>history</code>, and <code>monitor_*</code>). <code>execute</code> and <code>undo</code> only run with explicit <code>confirm: true</code>, <code>execute</code> is restricted to APFS clone folding (never Trash or package removal), and undo records are saved to local SQLite.</p>
       </details>
       <details class="clay-card group p-5 sm:p-6">
         <summary class="faq-summary">
@@ -249,7 +292,7 @@
           <span>How do I install and update it?</span>
           <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
-        <p class="muted mt-4">Open the disk image and drag TidyByte to Applications. The app is signed and notarized by Apple. It updates itself, and Check for Updates in the app menu checks now.</p>
+        <p class="muted mt-4">For the Direct release, open the signed and notarized disk image and drag TidyByte to Applications; Sparkle handles updates automatically or via Check for Updates. The sandboxed App Store build updates via the App Store and focuses strictly on user-selected folders and your Photos library.</p>
       </details>
     </div>
   </div>

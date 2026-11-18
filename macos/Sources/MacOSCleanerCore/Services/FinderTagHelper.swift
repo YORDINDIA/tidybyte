@@ -2,6 +2,35 @@ import Darwin
 import Foundation
 
 struct FinderTagHelper {
+    private static let tagXattrKey = "com.apple.metadata:_kMDItemUserTags"
+
+    /// Reads raw Finder tag strings (including color suffixes such as `Red\n6`)
+    /// from the file's extended attribute without following symlinks.
+    static func read(from url: URL) throws -> [String] {
+        try rejectSymlinkedParents(of: url.path)
+        var info = stat()
+        guard lstat(url.path, &info) == 0 else { throw failure(Darwin.errno) }
+        if (info.st_mode & S_IFMT) == S_IFLNK { throw failure(ELOOP) }
+        let size = getxattr(url.path, tagXattrKey, nil, 0, 0, XATTR_NOFOLLOW)
+        if size < 0 {
+            if Darwin.errno == ENOATTR { return [] }
+            throw failure(Darwin.errno)
+        }
+        guard size > 0 else { return [] }
+        var buffer = [UInt8](repeating: 0, count: size)
+        let bytesRead = getxattr(url.path, tagXattrKey, &buffer, size, 0, XATTR_NOFOLLOW)
+        guard bytesRead >= 0 else {
+            if Darwin.errno == ENOATTR { return [] }
+            throw failure(Darwin.errno)
+        }
+        guard let plist = try PropertyListSerialization.propertyList(
+            from: Data(buffer.prefix(bytesRead)), format: nil
+        ) as? [String] else {
+            return []
+        }
+        return plist
+    }
+
     /// Writes the Finder tags of `url`. A symlink in a parent folder or as the file itself
     /// fails with ELOOP instead of redirecting the write. The xattr is set on the open descriptor.
     static func write(_ tags: [String], to url: URL) throws {
@@ -16,7 +45,7 @@ struct FinderTagHelper {
             guard let baseAddress = buffer.baseAddress else {
                 return -1
             }
-            return fsetxattr(descriptor, "com.apple.metadata:_kMDItemUserTags", baseAddress, buffer.count, 0, 0)
+            return fsetxattr(descriptor, tagXattrKey, baseAddress, buffer.count, 0, 0)
         }
         if result != 0 {
             throw failure(Darwin.errno)
@@ -47,7 +76,15 @@ struct FinderTagHelper {
         case ENOSPC:
             return CocoaError(.fileWriteOutOfSpace)
         case ELOOP:
-            return CocoaError(.fileWriteUnknown, userInfo: [NSLocalizedDescriptionKey: "The item is a symbolic link and was not tagged."])
+            return CocoaError(
+                .fileWriteUnknown,
+                userInfo: [
+                    NSLocalizedDescriptionKey: String(
+                        localized: "The item is a symbolic link and was not tagged.",
+                        comment: "Finder tag symlink error"
+                    )
+                ]
+            )
         default:
             let message = "setxattr failed with errno \(err): \(String(cString: strerror(err)))"
             return CocoaError(.fileWriteUnknown, userInfo: [NSLocalizedDescriptionKey: message])

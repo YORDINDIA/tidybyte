@@ -20,7 +20,7 @@ public actor SpaceForecaster {
 
     /// Volume-based forecast: reads actual capacity and available space from the
     /// volume's resource values and delegates to `forecast(capacity:availableBytes:)`.
-    public func forecast(volumeURL: URL) async throws -> Forecast? {
+    public func forecast(volumeURL: URL, rootPath: String? = nil) async throws -> Forecast? {
         let keys: Set<URLResourceKey> = [
             .volumeTotalCapacityKey,
             .volumeAvailableCapacityForImportantUsageKey,
@@ -32,30 +32,37 @@ public actor SpaceForecaster {
                 ?? values.volumeAvailableCapacity.map(Int64.init) else {
             return nil
         }
-        return try await forecast(capacity: Int64(capacity), availableBytes: availableBytes)
+        return try await forecast(capacity: Int64(capacity), availableBytes: availableBytes, rootPath: rootPath)
     }
 
     /// Core forecast: growth rate from historical storage snapshots, days-until-full
     /// projected from ACTUAL volume usage (capacity minus available), never from the
     /// scanned-bytes total in the snapshots. Capacity/available are injectable so
     /// tests can simulate any volume state.
-    public func forecast(capacity: Int64, availableBytes: Int64) async throws -> Forecast? {
+    public func forecast(
+        capacity: Int64,
+        availableBytes: Int64,
+        rootPath: String? = nil
+    ) async throws -> Forecast? {
         guard capacity > 0, availableBytes >= 0, availableBytes <= capacity else {
             return nil
         }
-        let snapshots = try await store.recentSnapshots(limit: 14)
-        guard snapshots.count >= 2 else { return nil }
+        let allSnapshots = try await store.recentSnapshots(limit: 14).sorted { $0.createdAt < $1.createdAt }
+        guard !allSnapshots.isEmpty else { return nil }
 
-        let sorted = snapshots.sorted { $0.createdAt < $1.createdAt }
-        guard let oldest = sorted.first, let newest = sorted.last else { return nil }
+        let comparable = Self.comparableSnapshots(from: allSnapshots, rootPath: rootPath)
+        guard comparable.count >= 2, let oldest = comparable.first, let newest = comparable.last else {
+            return nil
+        }
 
-        // Growth rate uses the real elapsed time normalized to days. The previous
-        // calendar-day difference clamped to 1 turned a 30-minute +5GB jump into
-        // "+5 GB/day", producing false disk-filling alarms.
+        // Growth rate uses the real elapsed time normalized to days across matching scan roots.
         let elapsed = newest.createdAt.timeIntervalSince(oldest.createdAt)
         let daySpan = max(1.0 / 24.0, elapsed / 86_400)
-        let totalGrowth = newest.totalBytes - oldest.totalBytes
-        let dailyGrowthRate = Int64(Double(totalGrowth) / daySpan)
+        let totalGrowth = newest.bytes - oldest.bytes
+        let rawRate = Double(totalGrowth) / daySpan
+        let dailyGrowthRate: Int64 = (rawRate.isFinite && !rawRate.isNaN)
+            ? Int64(min(rawRate, Double(Int64.max / 2)).rounded(.towardZero))
+            : 0
 
         guard dailyGrowthRate > 0 else {
             return Forecast(
@@ -67,6 +74,23 @@ public actor SpaceForecaster {
             )
         }
 
+        return buildGrowthForecast(capacity: capacity, availableBytes: availableBytes, dailyGrowthRate: dailyGrowthRate)
+    }
+
+    private static func comparableSnapshots(from allSnapshots: [StorageSnapshot], rootPath: String?) -> [(createdAt: Date, bytes: Int64)] {
+        if let rootPath {
+            return allSnapshots.compactMap { snapshot in
+                snapshot.bytesByRootPath[rootPath].map { (snapshot.createdAt, $0) }
+            }
+        }
+        guard let latest = allSnapshots.last else { return [] }
+        let latestRoots = Set(latest.bytesByRootPath.keys)
+        return allSnapshots
+            .filter { Set($0.bytesByRootPath.keys) == latestRoots }
+            .map { ($0.createdAt, $0.totalBytes) }
+    }
+
+    private func buildGrowthForecast(capacity: Int64, availableBytes: Int64, dailyGrowthRate: Int64) -> Forecast {
         // Forecast against ACTUAL volume usage (capacity minus available), not the
         // scanned-bytes total: partial scans must not distort the days-until-full math.
         let usedBytes = capacity - availableBytes
@@ -88,10 +112,10 @@ public actor SpaceForecaster {
             let targetBytes = Int64(Double(capacity) * threshold.percent)
             let remainingBytes = targetBytes - usedBytes
             if remainingBytes > 0 {
-                // Round up so a sub-day remainder reports "1 day" rather than
-                // the misleading "0 days" produced by integer truncation.
-                let days = Int((remainingBytes + dailyGrowthRate - 1) / dailyGrowthRate)
-                forecast[keyPath: threshold.keyPath] = days
+                // Round up cleanly with overflow protection so sub-day remainders report "1 day".
+                let (numerator, overflow) = remainingBytes.addingReportingOverflow(dailyGrowthRate - 1)
+                let rawDays = overflow ? Int64.max : numerator / dailyGrowthRate
+                forecast[keyPath: threshold.keyPath] = Int(min(rawDays, Int64(Int.max)))
             }
         }
 

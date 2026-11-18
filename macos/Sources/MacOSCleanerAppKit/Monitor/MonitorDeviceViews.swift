@@ -5,8 +5,6 @@ import SwiftUI
 
 struct SoundTabView: View {
     let model: MonitorModel
-    /// Bridges the slider between ticks so dragging does not snap back until
-    /// the next probe reading confirms the hardware value.
     @State private var volumeOverride: Double?
 
     var body: some View {
@@ -36,8 +34,6 @@ struct SoundTabView: View {
         }
     }
 
-    /// The one volume control macOS gives apps: the default output device.
-    /// Controls disable themselves while the probe cannot read the device.
     private func outputControls(_ audio: AudioReading) -> some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             Text(String(localized: "Output volume", comment: "Sound control heading"))
@@ -89,9 +85,6 @@ struct SoundTabView: View {
             tint: MonitorTab.sound.tint)
     }
 
-    /// Which apps are audible or recording right now. macOS does not let one
-    /// app set another's volume, so the list reports activity and links to the
-    /// app rather than promising sliders it cannot honor.
     private func appActivityList(_ audio: AudioReading) -> some View {
         VStack(alignment: .leading, spacing: Spacing.elementTight) {
             Text(String(localized: "Playing or recording now", comment: "Audio apps heading"))
@@ -112,15 +105,13 @@ struct SoundTabView: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
                         Spacer()
-                        if app.isMuted {
-                            Label(String(localized: "Silent", comment: "Inaudible app"), systemImage: "speaker.slash")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Label(String(localized: "Audible", comment: "Audible app"), systemImage: "speaker.wave.2")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        Label(
+                            app.isMuted
+                                ? String(localized: "Silent", comment: "Inaudible app")
+                                : String(localized: "Audible", comment: "Audible app"),
+                            systemImage: app.isMuted ? "speaker.slash" : "speaker.wave.2")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 Text(String(
@@ -144,46 +135,50 @@ struct BluetoothTabView: View {
         let devices = model.snapshot?.bluetooth ?? []
         if devices.isEmpty {
             ContentUnavailableView(
-                    String(localized: "No Bluetooth accessories"),
-                    systemImage: "dot.radiowaves.left.and.right",
-                    description: Text(String(
-                        localized: "Paired devices show up here with their battery levels.",
-                        comment: "Bluetooth empty state")))
+                String(localized: "No Bluetooth accessories"),
+                systemImage: "dot.radiowaves.left.and.right",
+                description: Text(String(
+                    localized: "Paired devices show up here with their battery levels.",
+                    comment: "Bluetooth empty state")))
         } else {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: Spacing.elementNormal)], spacing: Spacing.elementNormal) {
                 ForEach(devices) { device in
-                    VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                        Label(device.name, systemImage: "dot.radiowaves.left.and.right")
-                            .font(.callout.weight(.medium))
-                            .lineLimit(1)
-                        if device.isConnected {
-                            if device.batteryLevels.isEmpty {
-                                Text(String(localized: "Connected", comment: "Bluetooth connected, no battery"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            } else {
-                                ForEach(device.batteryLevels.sorted(by: { $0.key < $1.key }), id: \.key) { label, level in
-                                    HStack {
-                                        Text(label).font(.caption).foregroundStyle(.secondary)
-                                        ProgressBarView(fraction: level, tint: level > 0.2 ? SemanticScale.success : SemanticScale.error)
-                                            .frame(maxWidth: .infinity)
-                                        Text(MetricFormatting.percent(level))
-                                            .font(.caption.monospacedDigit())
-                                    }
-                                }
-                            }
-                        } else {
-                            Text(String(localized: "Not connected", comment: "Bluetooth disconnected"))
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                    .padding(Spacing.cardInternal)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .monitorCard()
+                    bluetoothCard(device)
                 }
             }
         }
+    }
+
+    private func bluetoothCard(_ device: BluetoothDeviceReading) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.elementTight) {
+            Label(device.name, systemImage: "dot.radiowaves.left.and.right")
+                .font(.callout.weight(.medium))
+                .lineLimit(1)
+            if device.isConnected {
+                if device.batteryLevels.isEmpty {
+                    Text(String(localized: "Connected", comment: "Bluetooth connected, no battery"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(device.batteryLevels.sorted(by: { $0.key < $1.key }), id: \.key) { label, level in
+                        HStack {
+                            Text(label).font(.caption).foregroundStyle(.secondary)
+                            ProgressBarView(fraction: level, tint: level > 0.2 ? SemanticScale.success : SemanticScale.error)
+                                .frame(maxWidth: .infinity)
+                            Text(MetricFormatting.percent(level))
+                                .font(.caption.monospacedDigit())
+                        }
+                    }
+                }
+            } else {
+                Text(String(localized: "Not connected", comment: "Bluetooth disconnected"))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(Spacing.cardInternal)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .monitorCard()
     }
 }
 
@@ -196,47 +191,60 @@ struct ProjectsTabView: View {
         let servers = model.snapshot?.devServers ?? []
         if servers.isEmpty {
             ContentUnavailableView(
-                    String(localized: "No dev servers"),
-                    systemImage: "curlybraces.square",
-                    description: Text(String(
-                        localized: "Listening servers on your projects show up here, idle ones pointed out.",
-                        comment: "Projects empty state")))
+                String(localized: "No dev servers"),
+                systemImage: "curlybraces.square",
+                description: Text(String(
+                    localized: "Listening servers on your projects show up here, idle ones pointed out.",
+                    comment: "Projects empty state")))
         } else {
             let grouped = Dictionary(grouping: servers, by: { $0.project })
             VStack(alignment: .leading, spacing: Spacing.elementNormal) {
                 ForEach(grouped.keys.sorted(), id: \.self) { project in
-                    VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                        Label(project, systemImage: "curlybraces.square")
-                            .font(.callout.weight(.medium))
-                        ForEach(grouped[project] ?? []) { server in
-                            HStack {
-                                if server.isIdle {
-                                    Text(String(localized: "Idle", comment: "Idle server badge"))
-                                        .font(.caption.weight(.semibold))
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 1)
-                                        .background(Capsule().fill(SemanticScale.warningSoft))
-                                        .foregroundStyle(SemanticScale.warning)
-                                }
-                                Text("\(server.processName) · :\(server.port.formatted(.number.grouping(.never)))")
-                                    .font(.callout.monospacedDigit())
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                Spacer()
-                                Text(MetricFormatting.value(server.cpuPercent, metric: .cpu))
-                                    .font(.callout.monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                    .padding(Spacing.cardInternal)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .monitorCard()
+                    projectCard(project: project, servers: grouped[project] ?? [])
                 }
             }
         }
     }
 
+    private func projectCard(project: String, servers: [DevServerReading]) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.elementTight) {
+            Label(project, systemImage: "curlybraces.square")
+                .font(.callout.weight(.medium))
+            ForEach(servers) { server in
+                Button {
+                    if let group = model.snapshot?.groups.first(where: {
+                        $0.members.contains(where: { $0.pid == server.pid })
+                    }) {
+                        model.select(group: group)
+                    }
+                } label: {
+                    HStack {
+                        if server.isIdle {
+                            Text(String(localized: "Idle", comment: "Idle server badge"))
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 1)
+                                .background(Capsule().fill(SemanticScale.warningSoft))
+                                .foregroundStyle(SemanticScale.warning)
+                        }
+                        Text("\(server.processName) · \(server.address):\(server.port.formatted(.number.grouping(.never)))")
+                            .font(.callout.monospacedDigit())
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        Spacer()
+                        Text(MetricFormatting.value(server.cpuPercent, metric: .cpu))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(Spacing.cardInternal)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .monitorCard()
+    }
 }
 
 // MARK: - Agents
@@ -248,52 +256,65 @@ struct AgentsTabView: View {
         let agents = model.snapshot?.agents ?? []
         if agents.isEmpty {
             ContentUnavailableView(
-                    String(localized: "No coding agents running"),
-                    systemImage: "sparkles",
-                    description: Text(String(
-                        localized: "Agent CLIs appear here with their project, what they started, and any local plan usage.",
-                        comment: "Agents empty state")))
+                String(localized: "No coding agents running"),
+                systemImage: "sparkles",
+                description: Text(String(
+                    localized: "Agent CLIs appear here with their project, what they started, and any local plan usage.",
+                    comment: "Agents empty state")))
         } else {
             VStack(alignment: .leading, spacing: Spacing.elementNormal) {
                 ForEach(agents) { agent in
-                    VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                        HStack {
-                            Label(agent.kind.displayName, systemImage: "sparkles")
-                                .font(.callout.weight(.medium))
-                            Spacer()
-                            Text(MetricFormatting.value(agent.cpuPercent, metric: .cpu))
-                                .font(.callout.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                        if let root = agent.projectRoot {
-                            Text(root)
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .truncationMode(.head)
-                        }
-                        if !agent.children.isEmpty {
-                            Text(String(localized: "Started \(agent.children.count) processes", comment: "Agent children count"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(agent.children.prefix(6).map(\.name).joined(separator: ", "))
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                                .lineLimit(1)
-                        }
-                        if let usage = agent.usage {
-                            usageRow(usage)
-                        }
-                    }
-                    .padding(Spacing.cardInternal)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .monitorCard()
+                    agentCard(agent)
                 }
             }
         }
     }
 
-    @ViewBuilder
+    private func agentCard(_ agent: AgentSessionReading) -> some View {
+        Button {
+            if let group = model.snapshot?.groups.first(where: { $0.members.contains(where: { $0.pid == agent.id }) }) {
+                model.select(group: group)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: Spacing.elementTight) {
+                HStack {
+                    Label(agent.kind.displayName, systemImage: "sparkles")
+                        .font(.callout.weight(.medium))
+                    Spacer()
+                    Text(MetricFormatting.value(agent.cpuPercent, metric: .cpu))
+                        .font(.callout.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                if let root = agent.projectRoot {
+                    Text(root)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.head)
+                }
+                if !agent.children.isEmpty {
+                    Text(agent.children.count == 1
+                        ? String(localized: "Started 1 process", comment: "Agent child count, singular")
+                        : String(localized: "Started \(agent.children.count) processes", comment: "Agent children count"))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    Text(agent.children.prefix(6).map(\.name).joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+                if let usage = agent.usage {
+                    usageRow(usage)
+                }
+            }
+            .padding(Spacing.cardInternal)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .monitorCard()
+        }
+        .buttonStyle(.plain)
+    }
+
     private func usageRow(_ usage: AgentUsageReading) -> some View {
         HStack {
             Text(usage.planName).font(.caption.weight(.medium)).lineLimit(1)
@@ -306,7 +327,7 @@ struct AgentsTabView: View {
             Spacer()
             if let resetsAt = usage.resetsAt {
                 Text(String(localized: "Resets \(resetsAt.formatted(date: .abbreviated, time: .shortened))", comment: "Usage reset time"))
-                    .font(.caption)
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
         }
@@ -335,63 +356,78 @@ struct ContainersTabView: View {
         let containers = sortedContainers
         if containers.isEmpty {
             ContentUnavailableView(
-                    String(localized: "No containers"),
-                    systemImage: "shippingbox",
-                    description: Text(String(
-                        localized: "Running containers appear here with memory, CPU, and ports. Docker Desktop must be running.",
-                        comment: "Containers empty state")))
+                String(localized: "No containers"),
+                systemImage: "shippingbox",
+                description: Text(String(
+                    localized: "Running containers appear here with memory, CPU, and ports. Docker Desktop must be running.",
+                    comment: "Containers empty state")))
         } else {
+            VStack(alignment: .leading, spacing: Spacing.elementNormal) {
+                HStack {
+                    Menu {
+                        Picker(String(localized: "Sort", comment: "Sort menu title"), selection: $sort) {
+                            ForEach(ContainerSort.allCases) { option in
+                                Text(option.label).tag(option)
+                            }
+                        }
+                        .pickerStyle(.inline)
+                    } label: {
+                        Label(String(localized: "Sort", comment: "Sort menu title"), systemImage: "arrow.up.arrow.down")
+                    }
+                    .help(String(localized: "Order containers by a metric", comment: "Container sort help"))
+                    Spacer()
+                }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: Spacing.elementNormal)], spacing: Spacing.elementNormal) {
+                    ForEach(containers) { container in
+                        containerCard(container)
+                    }
+                }
+            }
+        }
+    }
+
+    private func containerCard(_ container: ContainerReading) -> some View {
+        let tint = stateColor(container.state)
+        return VStack(alignment: .leading, spacing: Spacing.elementTight) {
             HStack {
-                Menu {
-                    Picker(String(localized: "Sort", comment: "Sort menu title"), selection: $sort) {
-                        ForEach(ContainerSort.allCases) { option in
-                            Text(option.label).tag(option)
-                        }
-                    }
-                    .pickerStyle(.inline)
-                } label: {
-                    Label(String(localized: "Sort", comment: "Sort menu title"), systemImage: "arrow.up.arrow.down")
-                }
-                .help(String(localized: "Order containers by a metric", comment: "Container sort help"))
+                Text(container.name)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
                 Spacer()
+                Text(container.state)
+                    .font(.caption)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 1)
+                    .background(Capsule().fill(tint.opacity(0.14)))
+                    .foregroundStyle(tint)
             }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: Spacing.elementNormal)], spacing: Spacing.elementNormal) {
-                ForEach(containers) { container in
-                    VStack(alignment: .leading, spacing: Spacing.elementTight) {
-                        HStack {
-                            Text(container.name)
-                                .font(.callout.weight(.medium))
-                                .lineLimit(1)
-                            Spacer()
-                            Text(container.state)
-                                .font(.caption)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 1)
-                                .background(Capsule().fill(SemanticScale.successSoft))
-                                .foregroundStyle(SemanticScale.success)
-                        }
-                        Text(container.image)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                        HStack {
-                            Label(MetricFormatting.byteCount(container.memoryBytes), systemImage: "memorychip")
-                            Spacer()
-                            Label(MetricFormatting.value(container.cpuPercent, metric: .cpu), systemImage: "cpu")
-                        }
-                        .font(.caption.monospacedDigit())
-                        if !container.ports.isEmpty {
-                            Text(container.ports.joined(separator: "  "))
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.tertiary)
-                                .lineLimit(1)
-                        }
-                    }
-                    .padding(Spacing.cardInternal)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .monitorCard()
-                }
+            Text(container.image)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            HStack {
+                Label(MetricFormatting.byteCount(container.memoryBytes), systemImage: "memorychip")
+                Spacer()
+                Label(MetricFormatting.value(container.cpuPercent, metric: .cpu), systemImage: "cpu")
             }
+            .font(.caption.monospacedDigit())
+            if !container.ports.isEmpty {
+                Text(container.ports.joined(separator: "  "))
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(Spacing.cardInternal)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .monitorCard()
+    }
+
+    private func stateColor(_ state: String) -> Color {
+        switch state.lowercased() {
+        case "running": return SemanticScale.success
+        case "paused", "restarting": return SemanticScale.warning
+        default: return .secondary
         }
     }
 

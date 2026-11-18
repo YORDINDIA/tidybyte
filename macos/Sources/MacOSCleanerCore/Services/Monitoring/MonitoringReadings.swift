@@ -1,7 +1,23 @@
 import Foundation
 
 // Readings for the developer-facing surfaces: dev servers, coding agents,
-// and containers. Split out of SystemSnapshot.swift to keep both files small.
+// containers, and thermal pressure. Split out of SystemSnapshot.swift to keep
+// both files small.
+
+/// Thermal pressure level reported by ProcessInfo.thermalState.
+public enum ThermalPressure: String, Codable, Sendable, Equatable {
+    case nominal, fair, serious, critical
+}
+
+public extension MemoryReading {
+    var pressureLabel: String {
+        switch pressure {
+        case .normal: "normal"
+        case .warning: "warning"
+        case .critical: "critical"
+        }
+    }
+}
 
 // MARK: - Dev servers
 

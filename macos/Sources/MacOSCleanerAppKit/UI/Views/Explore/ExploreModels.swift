@@ -7,6 +7,15 @@ import MacOSCleanerCore
 /// Mirrors the prefix-based approach in CleanerRuleEngine without duplicating
 /// its actor state; all members are static so views can call them directly.
 enum ExploreSubtreeIndex {
+    /// Lexical path normalization without resolving disk symlinks.
+    static func normalizedPath(_ rawPath: String) -> String {
+        guard !rawPath.isEmpty else { return rawPath }
+        let expanded = rawPath.hasPrefix("~")
+            ? (rawPath as NSString).expandingTildeInPath
+            : rawPath
+        return URL(fileURLWithPath: expanded).standardizedFileURL.path
+    }
+
     /// Total reclaimable bytes under every ancestor path. Only non-container
     /// records contribute, so directory records never double-count their own
     /// allocation size on top of their children. A summarized folder has no
@@ -25,7 +34,10 @@ enum ExploreSubtreeIndex {
             var depth = 0
             while depth < 64 {
                 totals[current, default: 0] += bytes
-                let parent = URL(fileURLWithPath: current).deletingLastPathComponent().path
+                if current == "/" || current.isEmpty {
+                    break
+                }
+                let parent = URL(fileURLWithPath: current).deletingLastPathComponent().standardizedFileURL.path
                 if parent == current {
                     break
                 }
@@ -40,24 +52,43 @@ enum ExploreSubtreeIndex {
     /// containers, the scanned size for files.
     static func subtreeBytes(for record: FileRecord, totals: [String: Int64]) -> Int64 {
         if record.kind == .directory || record.kind == .package {
-            return totals[record.displayPath] ?? max(0, record.sizeBytes)
+            let urlPath = record.url.standardizedFileURL.path
+            if let hit = totals[urlPath] {
+                return hit
+            }
+            let normalizedDisplay = normalizedPath(record.displayPath)
+            if let hit = totals[normalizedDisplay] ?? totals[record.displayPath] {
+                return hit
+            }
+            return max(0, record.sizeBytes)
         }
         return max(0, record.sizeBytes)
     }
 
     static func parentPath(of displayPath: String) -> String {
-        (displayPath as NSString).deletingLastPathComponent
+        let normalized = normalizedPath(displayPath)
+        guard !normalized.isEmpty, normalized != "/" else { return normalized }
+        return URL(fileURLWithPath: normalized).deletingLastPathComponent().standardizedFileURL.path
     }
 
     /// Every scanned record strictly below the given directory path.
     static func descendants(ofParentPath parentPath: String, in files: [FileRecord]) -> [FileRecord] {
-        let prefix = parentPath.hasSuffix("/") ? parentPath : parentPath + "/"
-        return files.filter { $0.displayPath.hasPrefix(prefix) }
+        let normalizedParent = normalizedPath(parentPath)
+        let prefix = normalizedParent == "/" ? "/" : normalizedParent + "/"
+        return files.filter { file in
+            let filePath = normalizedPath(file.displayPath)
+            return filePath != normalizedParent && filePath.hasPrefix(prefix)
+        }
     }
 
     /// Scanned records whose direct parent is the given directory path.
     static func directChildren(ofParentPath parentPath: String, in files: [FileRecord]) -> [FileRecord] {
-        files.filter { ($0.displayPath as NSString).deletingLastPathComponent == parentPath }
+        let normalizedParent = normalizedPath(parentPath)
+        return files.filter { file in
+            let filePath = normalizedPath(file.displayPath)
+            guard filePath != normalizedParent else { return false }
+            return self.parentPath(of: filePath) == normalizedParent
+        }
     }
 }
 
@@ -159,9 +190,9 @@ final class ExploreTreeMemo {
 
 /// File-count copy for Explore labels: "1 file" or "N files".
 enum ExploreCopy {
-    static func fileCount(_ count: Int) -> String {
+    static func fileCount(_ count: Int, language: AppLanguage? = nil) -> String {
         count == 1
-            ? String(localized: "1 file", comment: "Explore file count, singular")
-            : String(localized: "\(count) files", comment: "Explore file count, plural")
+            ? L10n.string("1 file", language: language)
+            : L10n.format("%lld files", language: language, count)
     }
 }

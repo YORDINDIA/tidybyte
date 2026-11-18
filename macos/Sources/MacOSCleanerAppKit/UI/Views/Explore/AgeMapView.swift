@@ -1,99 +1,65 @@
 import MacOSCleanerCore
 import SwiftUI
 
-/// Timeline of when files were last touched: per-month heat grid plus a
-/// spotlight list of big files untouched for a long time.
-/// Renders entirely from already-scanned `FileRecord` values.
+/// Timeline of when files were last touched: per-month heat grid, drilled-in
+/// month file list, and spotlight list of large untouched files.
 struct AgeMapView: View {
     @Bindable var model: AppViewModel
     var files: [FileRecord]
     var nameFilter: String
 
     @State private var selectedMonthKey: String?
-    private let monthCount = 12
-    private let untouchedLimit = 10
+    private let drilledDisplayLimit = 25
 
-    private struct MonthBucket: Identifiable, Sendable {
-        var id: String
-        var label: String
-        var bytes: Int64
-        var fileCount: Int
-    }
-
-    private var filtered: [FileRecord] {
-        ExploreTreeBuilder.filteredFiles(files, nameFilter: nameFilter)
-    }
-
-    /// One formatter for every render: creating a DateFormatter per call was costly.
-    private static let monthFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("MMM yy")
-        return formatter
-    }()
-
-    /// Built once per render from the body, then passed down to the views that need it.
-    private var monthBuckets: [MonthBucket] {
-        let calendar = Calendar.current
-        let now = Date()
-        var buckets: [MonthBucket] = []
-        for offset in stride(from: monthCount - 1, through: 0, by: -1) {
-            guard let monthStart = calendar.date(
-                byAdding: .month,
-                value: -offset,
-                to: calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
-            ) else {
-                continue
-            }
-            let rangeStart = calendar.startOfDay(for: monthStart)
-            guard let rangeEnd = calendar.date(byAdding: .month, value: 1, to: rangeStart) else {
-                continue
-            }
-            let members = filtered.filter { file in
-                guard let touched = ExploreTreeBuilder.lastTouchedDate(for: file) else {
-                    return false
-                }
-                return touched >= rangeStart && touched < rangeEnd
-            }
-            let key = "\(calendar.component(.year, from: rangeStart))-\(calendar.component(.month, from: rangeStart))"
-            buckets.append(MonthBucket(
-                id: key,
-                label: Self.monthFormatter.string(from: rangeStart),
-                bytes: members.reduce(Int64(0)) { $0 + max(0, $1.sizeBytes) },
-                fileCount: members.count
-            ))
-        }
-        return buckets
-    }
-
-    private var undatedCount: Int {
-        filtered.filter { ExploreTreeBuilder.lastTouchedDate(for: $0) == nil }.count
+    private var override: AppLanguage? {
+        model.languageStore.activeOverride
     }
 
     var body: some View {
-        // Each derived value is computed once per render.
-        let buckets = monthBuckets
-        let undated = undatedCount
-        let spotlight = ExploreTreeBuilder.bigUntouchedFiles(in: filtered, limit: untouchedLimit)
+        let filtered = model.exploreFilteredFiles(in: files, nameFilter: nameFilter)
+        let snapshot = model.exploreAgeSnapshot(in: files, nameFilter: nameFilter)
+        let byID = Dictionary(uniqueKeysWithValues: filtered.map { ($0.id, $0) })
         return VStack(alignment: .leading, spacing: Spacing.elementNormal) {
             if filtered.isEmpty {
-                ExploreEmptyState()
+                ExploreEmptyState(language: override)
             } else {
-                heatGrid(buckets: buckets, undated: undated)
-                if let selected = buckets.first(where: { $0.id == selectedMonthKey }) {
-                    selectedFooter(for: selected)
+                heatGrid(buckets: snapshot.buckets, undated: snapshot.undatedCount)
+                if let selected = snapshot.buckets.first(where: { $0.id == selectedMonthKey }) {
+                    monthDetailSection(for: selected, byID: byID)
                 }
-                spotlightSection(spotlight)
+                spotlightSection(snapshot.spotlight)
             }
+        }
+        .focusable()
+        .focusEffectDisabled()
+        .onKeyPress(.space) {
+            guard let url = model.selectedExploreRecord?.url ?? selectedFallbackURL(in: filtered) else {
+                return .ignored
+            }
+            QuickLookCoordinator.shared.togglePreview([url])
+            return .handled
+        }
+        .onKeyPress(.escape) {
+            if selectedMonthKey != nil {
+                selectedMonthKey = nil
+                return .handled
+            }
+            return .ignored
         }
         .onChange(of: ExploreFilesToken(files)) { _, _ in
             selectedMonthKey = nil
         }
     }
 
-    private func heatGrid(buckets: [MonthBucket], undated: Int) -> some View {
+    private func selectedFallbackURL(in filtered: [FileRecord]) -> URL? {
+        guard let selectedID = model.selectedExploreRecordID else { return nil }
+        return filtered.first(where: { $0.id == selectedID })?.url
+    }
+
+    private func heatGrid(buckets: [ExploreSnapshotCache.AgeMonthBucket], undated: Int) -> some View {
         let maxBucketBytes = buckets.map(\.bytes).max() ?? 1
         return VStack(alignment: .leading, spacing: Spacing.elementTight) {
-            Text(String(localized: "Touched per month", comment: "Age Map heat grid title"))
+            Text(L10n.string("Touched per month", language: override))
                 .appFont(.labelMedium)
                 .foregroundStyle(Color.secondary)
             LazyVGrid(
@@ -105,78 +71,137 @@ struct AgeMapView: View {
                 }
             }
             if undated > 0 {
-                Text(String(localized: "\(ExploreCopy.fileCount(undated)) have no known date", comment: "Age Map undated files note"))
+                Text(L10n.format("%@ have no known date", language: override, ExploreCopy.fileCount(undated, language: override)))
                     .appFont(.caption)
                     .foregroundStyle(Color.secondary)
             }
         }
     }
 
-    private func monthCell(for bucket: MonthBucket, maxBucketBytes: Int64) -> some View {
-        let intensity = maxBucketBytes > 0
-            ? Double(max(0, bucket.bytes)) / Double(maxBucketBytes)
-            : 0
+    private func monthCell(for bucket: ExploreSnapshotCache.AgeMonthBucket, maxBucketBytes: Int64) -> some View {
+        let intensity = maxBucketBytes > 0 ? Double(max(0, bucket.bytes)) / Double(maxBucketBytes) : 0
         let isSelected = selectedMonthKey == bucket.id
         return Button {
             selectedMonthKey = isSelected ? nil : bucket.id
         } label: {
-            VStack(spacing: 2) {
-                Text(bucket.label)
-                    .appFont(.caption)
-                    .foregroundStyle(Color.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                Text(bucket.bytes.formattedByteCount)
-                    .appFont(.caption)
-                    .monospacedDigit()
-                    .foregroundStyle(Color.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .padding(4)
-            .background(
-                bucket.bytes > 0
-                    ? AnyShapeStyle(SemanticScale.warningSoft.opacity(0.25 + 0.75 * intensity))
-                    : AnyShapeStyle(.quaternary),
-                in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous)
+            monthCellLabel(for: bucket, intensity: intensity, isSelected: isSelected)
+        }
+        .buttonStyle(.plain)
+        .help(L10n.format(
+            "%@, %@, %@",
+            language: override,
+            bucket.label,
+            bucket.bytes.formattedByteCount,
+            ExploreCopy.fileCount(bucket.fileCount, language: override)
+        ))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(L10n.format(
+            "%@: %@, %@",
+            language: override,
+            bucket.label,
+            bucket.bytes.formattedByteCount,
+            ExploreCopy.fileCount(bucket.fileCount, language: override)
+        )))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityHint(L10n.string("Shows month files", language: override))
+    }
+
+    private func monthCellLabel(
+        for bucket: ExploreSnapshotCache.AgeMonthBucket,
+        intensity: Double,
+        isSelected: Bool
+    ) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous)
+        return VStack(spacing: 2) {
+            Text(bucket.label)
+                .appFont(.caption)
+                .foregroundStyle(bucket.bytes > 0 ? Color.primary : Color.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Text(bucket.bytes.formattedByteCount)
+                .appFont(.caption)
+                .monospacedDigit()
+                .foregroundStyle(bucket.bytes > 0 ? Color.primary.opacity(0.85) : Color.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, minHeight: 54)
+        .padding(6)
+        .background(
+            bucket.bytes > 0
+                ? AnyShapeStyle(SemanticScale.warning.opacity(0.18 + 0.54 * intensity))
+                : AnyShapeStyle(.quaternary),
+            in: shape
+        )
+        .overlay {
+            shape.strokeBorder(
+                isSelected ? Color.accentColor : SemanticScale.subtleBorder,
+                lineWidth: isSelected ? 2 : 1
             )
-            .overlay {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous).strokeBorder(.tint, lineWidth: 2)
+        }
+    }
+
+    private func monthDetailSection(
+        for bucket: ExploreSnapshotCache.AgeMonthBucket,
+        byID: [String: FileRecord]
+    ) -> some View {
+        let members = bucket.memberIDs.compactMap { byID[$0] }
+        let displayed = Array(members.prefix(drilledDisplayLimit))
+        return VStack(alignment: .leading, spacing: Spacing.elementTight) {
+            monthDetailHeader(for: bucket)
+            if displayed.isEmpty {
+                Text(L10n.string("No files touched during this month.", language: override))
+                    .appFont(.caption)
+                    .foregroundStyle(Color.secondary)
+            } else {
+                ForEach(displayed) { file in
+                    fileRow(file)
+                }
+                if members.count > displayed.count {
+                    Text(L10n.format(
+                        "Showing largest %lld of %lld files in this month.",
+                        language: override,
+                        displayed.count,
+                        members.count
+                    ))
+                    .appFont(.caption)
+                    .foregroundStyle(Color.secondary)
                 }
             }
         }
-        .buttonStyle(.plain)
-        .help(String(localized: "\(bucket.label), \(bucket.bytes.formattedByteCount), \(ExploreCopy.fileCount(bucket.fileCount))"))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(String(
-            localized: "\(bucket.label): \(bucket.bytes.formattedByteCount), \(ExploreCopy.fileCount(bucket.fileCount))")))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityHint(String(localized: "Shows month details"))
+        .padding(Spacing.cardPadding)
+        .softCardSurface(cornerRadius: Radius.cardCompact)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(L10n.format(
+            "Selected month: %@, %@",
+            language: override,
+            bucket.label,
+            bucket.bytes.formattedByteCount
+        ))
     }
 
-    private func selectedFooter(for bucket: MonthBucket) -> some View {
+    private func monthDetailHeader(for bucket: ExploreSnapshotCache.AgeMonthBucket) -> some View {
         HStack {
             Text(bucket.label)
-                .appFont(.caption)
-                .foregroundStyle(Color.secondary)
+                .appFont(.labelMedium)
+                .foregroundStyle(Color.primary)
             Spacer()
-            Text(String(localized: "\(bucket.bytes.formattedByteCount) · \(ExploreCopy.fileCount(bucket.fileCount))"))
-                .appFont(.caption)
-                .monospacedDigit()
-                .foregroundStyle(Color.secondary)
-            Button(String(localized: "Clear", comment: "Explore clear selection")) {
+            Text(L10n.format(
+                "%@ · %@",
+                language: override,
+                bucket.bytes.formattedByteCount,
+                ExploreCopy.fileCount(bucket.fileCount, language: override)
+            ))
+            .appFont(.caption)
+            .monospacedDigit()
+            .foregroundStyle(Color.secondary)
+            Button(L10n.string("Clear", language: override)) {
                 selectedMonthKey = nil
             }
             .buttonStyle(.plain)
             .appFont(.caption)
             .foregroundStyle(Color.secondary)
         }
-        .padding(.horizontal, Spacing.cardPadding)
-        .padding(.vertical, Spacing.elementTight)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Selected month: \(bucket.label), \(bucket.bytes.formattedByteCount)"))
     }
 
     private func spotlightSection(_ spotlight: [FileRecord]) -> some View {
@@ -184,95 +209,98 @@ struct AgeMapView: View {
             HStack {
                 Image(systemName: "moon.zzz")
                     .foregroundStyle(SemanticScale.warning)
-                Text(String(localized: "Big and untouched (180+ days)", comment: "Age Map spotlight title"))
+                Text(L10n.string("Big and untouched (180+ days)", language: override))
                     .appFont(.labelMedium)
                     .foregroundStyle(Color.secondary)
                 Spacer()
             }
             if spotlight.isEmpty {
-                Text(String(localized: "No large untouched files found. Everything big was opened recently.", comment: "Age Map spotlight empty"))
+                Text(L10n.string("No large untouched files found. Everything big was opened recently.", language: override))
                     .appFont(.caption)
                     .foregroundStyle(Color.secondary)
             } else {
                 ForEach(spotlight) { file in
-                    spotlightRow(file)
+                    fileRow(file)
                 }
             }
         }
     }
 
-    private func spotlightRow(_ file: FileRecord) -> some View {
-        return VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Text(file.fileName)
-                    .appFont(.bodyMedium)
-                    .foregroundStyle(Color.primary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                Spacer(minLength: 8)
-                if let touched = ExploreTreeBuilder.lastTouchedDate(for: file) {
-                    Text(touched.formatted(date: .abbreviated, time: .omitted))
-                        .appFont(.caption)
+    private func fileRow(_ file: FileRecord) -> some View {
+        let isSelected = model.selectedExploreRecordID == file.id
+        return VStack(alignment: .leading, spacing: 6) {
+            Button {
+                model.selectExploreRecord(id: isSelected ? nil : file.id)
+            } label: {
+                HStack(spacing: 8) {
+                    Text(file.fileName)
+                        .appFont(.bodyMedium)
+                        .foregroundStyle(Color.primary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer(minLength: 8)
+                    if let touched = ExploreTreeBuilder.lastTouchedDate(for: file) {
+                        Text(touched.formatted(date: .abbreviated, time: .omitted))
+                            .appFont(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    Text(file.sizeBytes.formattedByteCount)
+                        .appFont(.labelMedium)
+                        .monospacedDigit()
                         .foregroundStyle(Color.secondary)
                 }
-                Text(file.sizeBytes.formattedByteCount)
-                    .appFont(.labelMedium)
-                    .monospacedDigit()
-                    .foregroundStyle(Color.secondary)
+                .contentShape(Rectangle())
             }
-            spotlightActions(file)
+            .buttonStyle(.plain)
+
+            fileRowActions(file)
         }
         .padding(.horizontal, Spacing.cardPadding)
-        .padding(.vertical, 6)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous))
-        .overlay {
-            if model.selectedExploreRecordID == file.id {
-                RoundedRectangle(cornerRadius: Radius.cardCompact, style: .continuous).strokeBorder(.tint, lineWidth: 2)
-            }
-        }
-        .help(String(localized: "\(file.fileName), \(file.sizeBytes.formattedByteCount)"))
+        .padding(.vertical, 8)
+        .softCardSurface(cornerRadius: Radius.cardCompact, isSelected: isSelected)
+        .help(L10n.format("%@, %@", language: override, file.fileName, file.sizeBytes.formattedByteCount))
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(String(localized: "\(file.fileName), \(file.sizeBytes.formattedByteCount)")))
+        .accessibilityLabel(Text(L10n.format("%@, %@", language: override, file.fileName, file.sizeBytes.formattedByteCount)))
     }
 
-    private func spotlightActions(_ file: FileRecord) -> some View {
-        return HStack(spacing: Spacing.elementTight) {
-    SecondaryButton(
-        title: String(localized: "Focus"),
-        icon: "scope",
-        action: {
-            model.focusExploreRecord(id: file.id)
-            model.selectExploreRecord(id: file.id)
+    private func fileRowActions(_ file: FileRecord) -> some View {
+        HStack(spacing: Spacing.elementTight) {
+            SecondaryButton(
+                title: L10n.string("Focus", language: override),
+                icon: "scope",
+                action: {
+                    model.focusExploreRecord(id: file.id)
+                    model.selectExploreRecord(id: file.id)
+                }
+            )
+            SecondaryButton(
+                title: L10n.string("Quick Look", language: override),
+                icon: "eye",
+                action: { QuickLookCoordinator.shared.preview(file.url) }
+            )
+            if let staged = model.stagedExploreAction(matching: file) {
+                SecondaryButton(
+                    title: L10n.string("Approve", language: override),
+                    icon: "checkmark",
+                    action: { model.approve(staged) }
+                )
+            } else {
+                SecondaryButton(
+                    title: L10n.string("Stage", language: override),
+                    icon: "plus.circle",
+                    action: {
+                        if model.stageExploreRecordForCleanup(file) != nil {
+                            model.setStatusMessage(
+                                L10n.string("Added to the cleanup plan. Review it in Proposed Actions.", language: override)
+                            )
+                        } else {
+                            model.setStatusMessage(
+                                L10n.string("Could not stage. A scan, execution, or plan change is in flight.", language: override)
+                            )
+                        }
+                    }
+                )
+            }
         }
-    )
-    if model.stagedExploreAction(matching: file) != nil {
-        SecondaryButton(
-            title: String(localized: "Approve"),
-            icon: "checkmark",
-            action: {
-                guard let staged = model.stagedExploreAction(matching: file) else {
-                    return
-                }
-                model.approve(staged)
-            }
-        )
-    } else {
-        SecondaryButton(
-            title: String(localized: "Stage"),
-            icon: "plus.circle",
-            action: {
-                if model.stageExploreRecordForCleanup(file) != nil {
-                    model.setStatusMessage(String(
-                        localized: "Added to the cleanup plan. Review it in Proposed Actions.",
-                        comment: "Explore staging accepted"))
-                } else {
-                    model.setStatusMessage(String(
-                        localized: "Could not stage. A scan, execution, or plan change is in flight.",
-                        comment: "Explore staging refused"))
-                }
-            }
-        )
-    }
-}
     }
 }

@@ -14,19 +14,28 @@ public enum InboxManagerError: Error, LocalizedError, Sendable {
 
 public actor InboxManager {
     private let fileManager: FileManager
+    private let homeDirectoryOverride: URL?
+    private let policy: PathSafetyPolicy
 
-    public init(fileManager: FileManager = .default) {
+    public init(
+        fileManager: FileManager = .default,
+        homeDirectoryOverride: URL? = nil,
+        policy: PathSafetyPolicy = PathSafetyPolicy()
+    ) {
         self.fileManager = fileManager
+        self.homeDirectoryOverride = homeDirectoryOverride
+        self.policy = policy
     }
 
     public func defaultInboxURL() -> URL {
-        fileManager.homeDirectoryForCurrentUser.appendingPathComponent(AppIdentity.inboxFolderName, isDirectory: true)
+        let home = homeDirectoryOverride ?? PathSafetyPolicy.realHomeDirectory
+        return home.appendingPathComponent(AppIdentity.inboxFolderName, isDirectory: true)
     }
 
     public func ensureInboxExists(at url: URL? = nil) throws -> URL {
         let resolved = url ?? defaultInboxURL()
         // Creating a folder is a write, so the same destination rules apply as to every other write.
-        if case .deny(let reason) = PathSafetyPolicy().decide(target: resolved, isDirectory: true) {
+        if case .deny(let reason) = policy.decide(target: resolved, isDirectory: true) {
             throw InboxManagerError.unsafeDestination(reason)
         }
         try fileManager.createDirectory(at: resolved, withIntermediateDirectories: true)
