@@ -1169,6 +1169,9 @@ const INTENTIONAL_LITERALS = new Set([
   // `beginBackgroundTask(withName:)` debug name for the compression batch. It
   // appears only in system diagnostics, never in the UI.
   'TidyByte compression',
+  // `beginBackgroundTask(withName:)` debug name for the background save of the
+  // library resource cache (RootView). System diagnostics only, never the UI.
+  'TidyByte library cache',
 
   // An `NSPredicate` format string. The `%@` is substituted with a set of asset
   // identifiers and `localIdentifier` is a PhotoKit key path, so both halves are

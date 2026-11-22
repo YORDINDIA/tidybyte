@@ -31,7 +31,7 @@ TidyByte is a native iOS app (Swift/SwiftUI, iOS 17+) that helps users clean up 
 
 ### Services (all Swift `actor` types)
 Services are instantiated on-demand and injected via initializers, except a few intentional shared instances (`ImageCache.shared`, `PhotoLibraryService.shared`, `CleanupLedger.shared`, `PendingRoute.shared`). Dependencies are injected via initializers:
-- `PhotoLibraryService` — wraps all PhotoKit operations (fetching, mutations, change observation, image loading). Uses `withCheckedContinuation` to bridge PHImageManager callbacks to async/await. Accesses undocumented KVC properties (`fileSize`, `locallyAvailable`) with `responds(to:)` guards.
+- `PhotoLibraryService` — wraps all PhotoKit operations (fetching, mutations, change observation, image loading). Uses `withCancellableContinuation` (`Shared/Utilities/ContinuationResumer.swift`) to bridge PHImageManager callbacks to async/await, so a cancelled task also cancels its PhotoKit request. Accesses undocumented KVC properties (`fileSize`, `locallyAvailable`) with `responds(to:)` guards. Library-wide summary builds run on its private `SummaryBuilder` actor and reuse resource reads from `ResourceCache`, which is kept on disk. **Read `docs/large-library-performance.md` before you change any of these.**
 - `DuplicateDetectionService(photoService:, visionService:)` — exact (SHA-256) and near-duplicate (Vision feature prints) detection
 - `VisionAnalysisService` — blur detection, exposure analysis, feature print generation. Works with CGImage inputs, no library access.
 - `VideoCompressionService(photoService:)` — AVAssetExportSession-based compression with progress polling
@@ -47,12 +47,22 @@ One `@Observable @MainActor` ViewModel per major screen. Progress reporting from
 ### Design System
 `Color+Theme.swift` defines the design system: `Spacing` enum (xs=4 to xxxl=32), `CornerRadius` enum, semantic colors (`appBackground`, `destructive`, `success`), category colors, gradients, and shadow view modifiers.
 
+## Large libraries
+
+Some users have 25,000 or more photos and videos. Reading one asset's resources (file size, filename, iCloud state) is one Photos database round trip, so a full read of such a library takes 1–2 minutes. Version 1.2.0 shipped a change that cleared the resource cache on most library changes, and on those libraries Storage and Cleanup stopped loading. The rules that prevent this are in `docs/large-library-performance.md`. The short form:
+
+- No library change clears `ResourceCache`. Only a change that lists assets drops those entries (`LibraryChangeEffect`, `ResourceCache.apply`).
+- Pull-to-refresh marks entries for refresh (`refreshCachedResources`); only a permission change clears them.
+- Old entries are used and refreshed a slice per build, oldest first. Do not add a hard expiry.
+- Library-wide passes run off the main actor; PhotoKit requests stop when their task is cancelled.
+- A pull request that changes library loading gives `Summary build` numbers from a simulator seeded with `npm run perf:seed -- --count 27000`.
+
 ## Key Conventions
 
 - **Actors for all services** — no locks, no dispatch queues
 - **`@Observable` macro** throughout — not `ObservableObject`/`@StateObject`
 - **`Sendable` on all value types** passed across actor boundaries
-- **Long-running operations yield periodically**: `if index % 20 == 0 { await Task.yield() }`
+- **Long-running operations yield periodically**: `if index % 20 == 0 { await Task.yield() }`, and report progress at most once per percent (`ProgressStep`)
 - **Error enums** conform to `LocalizedError` (`PhotoServiceError`, `CompressionError`)
 - **Non-critical failures** use `try?` (e.g., temp file cleanup, notification scheduling)
 - **Tab structure**: `TabView` with independent `NavigationStack` per tab in `RootView`

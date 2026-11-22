@@ -50,6 +50,10 @@ struct AssetSummary: Identifiable, Sendable, Hashable {
     var isScreenRecording = false
     var isCinematic = false
     var isSpatial = false
+    /// Bytes of the one resource the exact-duplicate hash reads (the edited
+    /// render when there is one, else the original). 0 when unknown or not
+    /// yet read; deck listings never read it.
+    var primaryResourceSize: Int64 = 0
 
     /// The original file is HEIC/HEIF (already an efficient format).
     var isHEIC: Bool {

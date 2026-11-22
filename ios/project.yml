@@ -12,11 +12,11 @@ settings:
     SWIFT_VERSION: "5.9"
     TARGETED_DEVICE_FAMILY: "1,2"
     # Single version source (A10): every target inherits these; bump once here.
-    # 1.2.0 / build 11: delete-prompt fixes (#24), whole-photo swipe cards,
-    # compression and accessibility fixes (#27). 1.1.3 (build 10) is live.
+    # 1.2.1 / build 12: large-library loading fix (the #27 resource-cache
+    # regression; see docs/large-library-performance.md). 1.2.0 (build 11) is live.
     # Build numbers only go up (see the version table in docs/APP_STORE_LISTING.md).
-    CURRENT_PROJECT_VERSION: 11
-    MARKETING_VERSION: "1.2.0"
+    CURRENT_PROJECT_VERSION: 12
+    MARKETING_VERSION: "1.2.1"
     # Google Photos source (optional). The iOS OAuth client ID from Google
     # Cloud, e.g. 1234-abc.apps.googleusercontent.com. Empty (or not a
     # *.apps.googleusercontent.com ID) hides the source in every build. Setup: ios/docs/google-photos-oauth-setup.md.

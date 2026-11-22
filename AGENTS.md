@@ -48,6 +48,9 @@ Run these from inside each folder:
   are not interchangeable.
 - Layout reads the window or view size, never the device — enforced on iOS by
   `npm run check:duo`.
+- iOS library loading must stay fast on 25,000+ item libraries. Read
+  `ios/docs/large-library-performance.md` before you change
+  `PhotoLibraryService` or anything that loads the whole library.
 - Squash merges; the PR title becomes the commit message.
 
 ## Links between folders

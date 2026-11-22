@@ -45,6 +45,87 @@ final class ContinuationResumer<T>: @unchecked Sendable {
     }
 }
 
+/// Carries a task's cancellation to a request whose resumer is made inside
+/// `withCheckedContinuation`'s closure. The cancel can arrive before the
+/// action is installed; `install` then runs the action at once.
+final class CancelRelay: @unchecked Sendable {
+    private let lock = NSLock()
+    private var cancelled = false
+    private var action: (() -> Void)?
+
+    var isCancelled: Bool { lock.withLock { cancelled } }
+
+    func install(_ action: @escaping () -> Void) {
+        lock.lock()
+        guard !cancelled else {
+            lock.unlock()
+            action()
+            return
+        }
+        self.action = action
+        lock.unlock()
+    }
+
+    func cancel() {
+        lock.lock()
+        cancelled = true
+        let action = self.action
+        self.action = nil
+        lock.unlock()
+        action?()
+    }
+}
+
+/// `withCheckedContinuation` that also answers task cancellation: when the
+/// calling task is cancelled, the action given to `relay.install` runs once.
+/// Without this, a card swiped away or a cell scrolled off kept its PhotoKit
+/// request (and any iCloud download) running to the end.
+/// Runs on the caller's actor, like `withCheckedContinuation`, so `body` never
+/// crosses an isolation boundary.
+@discardableResult
+func withCancellableContinuation<T>(
+    isolation: isolated (any Actor)? = #isolation,
+    _ body: (CheckedContinuation<T, Never>, CancelRelay) -> Void
+) async -> T {
+    let relay = CancelRelay()
+    return await withTaskCancellationHandler {
+        await withCheckedContinuation { body($0, relay) }
+    } onCancel: {
+        relay.cancel()
+    }
+}
+
+/// The id of a PhotoKit request that another thread can cancel before the call
+/// that starts it has returned. A cancel that comes first is applied as soon
+/// as `started` records the id, so the request never runs on unobserved.
+final class PendingRequest: @unchecked Sendable {
+    private let lock = NSLock()
+    private var id: Int32?
+    private var cancelled = false
+    private let cancelRequest: (Int32) -> Void
+
+    /// `cancelRequest` calls PhotoKit, so it never runs while `lock` is held.
+    init(cancel cancelRequest: @escaping (Int32) -> Void) {
+        self.cancelRequest = cancelRequest
+    }
+
+    func started(_ id: Int32) {
+        let cancelNow = lock.withLock {
+            self.id = id
+            return cancelled
+        }
+        if cancelNow { cancelRequest(id) }
+    }
+
+    func cancel() {
+        let id = lock.withLock {
+            cancelled = true
+            return self.id
+        }
+        if let id { cancelRequest(id) }
+    }
+}
+
 /// Throwing counterpart of `ContinuationResumer`, for `withCheckedThrowingContinuation`.
 final class ThrowingContinuationResumer<T>: @unchecked Sendable {
     private let lock = NSLock()

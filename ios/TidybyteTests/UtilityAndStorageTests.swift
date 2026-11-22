@@ -197,6 +197,213 @@ final class UtilityAndStorageTests: XCTestCase {
         XCTAssertEqual(reads, 1)
     }
 
+    // MARK: Large-library report (27,000 items): no change may force a full re-read
+
+    private func readAll(_ cache: ResourceCache, _ ids: [String]) -> [String] {
+        let stamp = cache.stamp()
+        defer { cache.release(stamp) }
+        var reads: [String] = []
+        for id in ids {
+            _ = cache.resources(id: id, modifiedAt: nil, stamp: stamp) { reads.append(id); return facts() }
+        }
+        return reads
+    }
+
+    /// PR #27 cleared the cache on every change without per-asset detail, and
+    /// on every change that did not touch the library list at all (an album
+    /// edit). On an iCloud library those arrive every few seconds, so every
+    /// scan read the whole library again and never finished.
+    func testLibraryChangesWithoutAssetDetailKeepEveryRead() {
+        let cache = ResourceCache()
+        XCTAssertEqual(readAll(cache, ["a", "b", "c"]), ["a", "b", "c"])
+        cache.apply(.unknown)
+        cache.apply(.unaffected)
+        XCTAssertEqual(readAll(cache, ["a", "b", "c"]), [])
+        cache.apply(.assets(removedOrChanged: ["b"]))
+        XCTAssertEqual(readAll(cache, ["a", "b", "c"]), ["b"])
+    }
+
+    /// One build with a stale-refresh budget of `limit`. Returns the ids read.
+    private func refreshBuild(_ cache: ResourceCache, _ ids: [String], limit: Int) -> [String] {
+        var budget = cache.staleRefreshBudget(limit)
+        let stamp = cache.stamp()
+        defer { cache.release(stamp) }
+        var reads: [String] = []
+        for id in ids {
+            _ = cache.resources(id: id, modifiedAt: nil, stamp: stamp, staleRefreshes: &budget) { reads.append(id); return facts() }
+        }
+        return reads
+    }
+
+    /// A launch the next day finds every entry past `maxAge`. A build reuses
+    /// them and re-reads only as many as its budget allows.
+    func testStaleEntriesAreRefreshedWithinTheBudgetOnly() {
+        let clock = TestClock()
+        let cache = ResourceCache(now: { clock.now })
+        _ = readAll(cache, ["a", "b", "c"])
+        clock.now += ResourceCache.maxAge + 1
+        XCTAssertEqual(refreshBuild(cache, ["a", "b", "c"], limit: 2), ["a", "b"])
+        // The next build refreshes the one still stale; fresh ones cost nothing.
+        XCTAssertEqual(refreshBuild(cache, ["a", "b", "c"], limit: 2), ["c"])
+        XCTAssertEqual(refreshBuild(cache, ["a", "b", "c"], limit: 2), [])
+    }
+
+    /// The budget goes to the oldest reads. Taken in fetch order, the first
+    /// assets would take it after every expiry and the rest would never refresh.
+    func testStaleRefreshGoesOldestFirstAcrossExpiries() {
+        let clock = TestClock()
+        let cache = ResourceCache(now: { clock.now })
+        _ = readAll(cache, ["a", "b", "c"])
+        clock.now += ResourceCache.maxAge + 1
+        XCTAssertEqual(refreshBuild(cache, ["a", "b", "c"], limit: 1), ["a"])
+        clock.now += ResourceCache.maxAge + 1
+        XCTAssertEqual(refreshBuild(cache, ["a", "b", "c"], limit: 1), ["b"])
+        XCTAssertEqual(refreshBuild(cache, ["a", "b", "c"], limit: 1), ["c"])
+    }
+
+    /// A new or edited asset is always read, whatever the budget.
+    func testBudgetNeverHoldsBackAMissingRead() {
+        let cache = ResourceCache()
+        var budget = ResourceCache.StaleRefreshBudget(remaining: 0, readAtOrBefore: .distantPast)
+        var reads = 0
+        _ = cache.resources(id: "new", modifiedAt: nil, stamp: cache.stamp(), staleRefreshes: &budget) { reads += 1; return facts() }
+        XCTAssertEqual(reads, 1)
+        let edited = Date(timeIntervalSince1970: 1)
+        _ = cache.resources(id: "new", modifiedAt: edited, stamp: cache.stamp(), staleRefreshes: &budget) { reads += 1; return facts() }
+        XCTAssertEqual(reads, 2)
+    }
+
+    /// Pull-to-refresh makes entries due, without a full re-read, and each
+    /// pull refreshes entries the last one did not reach.
+    func testRepeatedPullsRefreshNewEntries() {
+        let clock = TestClock()
+        let cache = ResourceCache(now: { clock.now })
+        _ = readAll(cache, ["a", "b"])
+        clock.now += 10
+        cache.markAllStale()
+        XCTAssertEqual(refreshBuild(cache, ["a", "b"], limit: 1), ["a"])
+        clock.now += 10
+        cache.markAllStale()
+        XCTAssertEqual(refreshBuild(cache, ["a", "b"], limit: 1), ["b"])
+    }
+
+    /// Nil change details mean "nothing changed" only for a whole-library
+    /// baseline. With a narrow one (the first fetch was the screenshots), an
+    /// edit elsewhere also gives nil, and its old thumbnail must go.
+    func testNilDetailsAreUnaffectedOnlyForAWholeLibraryBaseline() {
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: true, details: nil), .unaffected)
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: false, details: nil), .unknown)
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: nil, details: nil), .unknown)
+        let incremental = LibraryChangeEffect.Details(isIncremental: true, removedOrChanged: ["a"])
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: true, details: incremental), .assets(removedOrChanged: ["a"]))
+        // A narrow baseline's details list only its own assets: no complete diff.
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: false, details: incremental), .unknown)
+        let whole = LibraryChangeEffect.Details(isIncremental: false, removedOrChanged: [])
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: true, details: whole), .unknown)
+    }
+
+    /// A build that saw as many ids as the cache holds can still leave an
+    /// entry for a deleted asset: its own read of another asset was not kept.
+    func testRetainOnlyDropsADeadEntryWhenTheCountsMatch() {
+        let cache = ResourceCache()
+        _ = readAll(cache, ["dead", "a"])
+        cache.retainOnly(["a", "b"])
+        XCTAssertEqual(cache.count, 1)
+        XCTAssertEqual(readAll(cache, ["a"]), [])
+    }
+
+    func testRetainOnlyDropsDeletedAssets() {
+        let cache = ResourceCache()
+        _ = readAll(cache, ["a", "b"])
+        cache.retainOnly(["a"])
+        XCTAssertEqual(cache.count, 1)
+        XCTAssertEqual(readAll(cache, ["a", "b"]), ["b"])
+    }
+
+    // MARK: Cache file
+
+    private func temporaryCacheURL() -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ResourceCacheTest-\(UUID().uuidString).plist")
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        return url
+    }
+
+    /// A cold launch reuses what the last launch read.
+    func testCacheFileCarriesReadsToTheNextLaunch() {
+        let url = temporaryCacheURL()
+        let date = Date(timeIntervalSince1970: 1_234.5678)
+        let first = ResourceCache(fileURL: url)
+        first.loadIfNeeded()
+        let stamp = first.stamp()
+        let stored = ResourceFacts(fileSize: 42, filename: "IMG_1.HEIC", isLocallyAvailable: false,
+                                   hasScreenRecordingFilename: false, primaryFileSize: 40)
+        _ = first.resources(id: "a", modifiedAt: date, stamp: stamp) { stored }
+        first.saveIfDirty()
+
+        let next = ResourceCache(fileURL: url)
+        next.loadIfNeeded()
+        var reads = 0
+        let loaded = next.resources(id: "a", modifiedAt: date, stamp: next.stamp()) { reads += 1; return facts() }
+        XCTAssertEqual(reads, 0)
+        XCTAssertEqual(loaded, stored)
+    }
+
+    /// Permission changes clear the file too, so a later launch cannot load it.
+    func testRemoveAllDeletesTheFile() {
+        let url = temporaryCacheURL()
+        let cache = ResourceCache(fileURL: url)
+        cache.loadIfNeeded()
+        _ = readAll(cache, ["a"])
+        cache.saveIfDirty()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+        cache.removeAll()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    /// A change that lands before the first build loads the file must not be
+    /// undone by the load.
+    func testRemovalBeforeLoadIsNotBroughtBackByTheFile() {
+        let url = temporaryCacheURL()
+        let first = ResourceCache(fileURL: url)
+        first.loadIfNeeded()
+        _ = readAll(first, ["a", "b"])
+        first.saveIfDirty()
+
+        let next = ResourceCache(fileURL: url)
+        next.apply(.assets(removedOrChanged: ["a"]))
+        next.loadIfNeeded()
+        XCTAssertEqual(readAll(next, ["a", "b"]), ["a"])
+    }
+
+    /// A file from another format version has valid items; only the version
+    /// keeps them out.
+    func testFileWithAnotherVersionIsIgnored() throws {
+        let url = temporaryCacheURL()
+        let first = ResourceCache(fileURL: url)
+        first.loadIfNeeded()
+        _ = readAll(first, ["a"])
+        first.saveIfDirty()
+        let data = try Data(contentsOf: url)
+        var stored = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+        XCTAssertEqual(stored["version"] as? Int, ResourceCache.fileVersion)
+        stored["version"] = ResourceCache.fileVersion + 1
+        try PropertyListSerialization.data(fromPropertyList: stored, format: .binary, options: 0).write(to: url)
+
+        let next = ResourceCache(fileURL: url)
+        next.loadIfNeeded()
+        XCTAssertEqual(next.count, 0)
+    }
+
+    func testUnreadableFileIsIgnored() throws {
+        let url = temporaryCacheURL()
+        try Data("not a property list".utf8).write(to: url)
+        let cache = ResourceCache(fileURL: url)
+        cache.loadIfNeeded()
+        XCTAssertEqual(cache.count, 0)
+        XCTAssertEqual(readAll(cache, ["a"]), ["a"])
+    }
+
     private final class TestClock: @unchecked Sendable {
         var now = Date(timeIntervalSince1970: 0)
     }

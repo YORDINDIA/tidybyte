@@ -36,6 +36,32 @@
 
         <article>
           <header class="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 class="h-section text-2xl sm:text-3xl">v1.2.1 &mdash; Fast again on large libraries</h2>
+            <time class="muted text-sm" datetime="2026-11-22">November 22, 2026</time>
+          </header>
+          <p class="muted mt-2 inline-flex items-center gap-2 text-sm">
+            <span class="badge">iPhone &middot; Unreleased</span>
+            <span>Fixes slow and stuck loading on libraries with tens of thousands of photos and videos.</span>
+          </p>
+
+          <h3 class="mt-6 text-base font-semibold text-ink">Highlights</h3>
+          <ul class="muted mt-3 space-y-2 text-base">
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-pink" aria-hidden="true"></span><span><strong class="text-ink">Storage and Cleanup open in about a second.</strong> TidyByte now remembers what it has measured, so after the first scan it does not read the whole library again on every launch.</span></li>
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-pink" aria-hidden="true"></span><span><strong class="text-ink">No more stuck loading.</strong> A change in iCloud or in an album no longer makes Storage and Cleanup start over. In 1.2.0, on large iCloud libraries, they could stay on loading.</span></li>
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-pink" aria-hidden="true"></span><span><strong class="text-ink">Less iCloud traffic.</strong> A photo you swipe past stops downloading from iCloud at once.</span></li>
+            <li class="flex gap-3"><span class="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-pink" aria-hidden="true"></span><span><strong class="text-ink">Faster duplicate scan.</strong> The exact duplicate scan reads far fewer files, and it no longer slows the next screen you open.</span></li>
+          </ul>
+
+          <h3 class="mt-8 text-base font-semibold text-ink">Release notes</h3>
+          <p class="muted mt-3 text-base leading-relaxed">
+            Much faster with large photo libraries. TidyByte now remembers what it has measured, so after the first scan, Storage and Cleanup open in about a second, even with tens of thousands of photos and videos. They no longer get stuck loading when iCloud or an album changes. A photo you swipe past stops downloading from iCloud at once, and the exact duplicate scan reads far fewer files. Everything still runs on your device: no account, no ads, no subscription.
+          </p>
+        </article>
+
+        <hr class="my-12 border-hairline">
+
+        <article>
+          <header class="flex flex-wrap items-baseline justify-between gap-3">
             <h2 class="h-section text-2xl sm:text-3xl">v1.2.0 &mdash; Safer deletes and compression</h2>
             <time class="muted text-sm" datetime="2026-11-17">November 17, 2026</time>
           </header>

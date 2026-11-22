@@ -141,7 +141,7 @@ final class StorageDashboardViewModel {
     /// pull-to-refresh can never enumerate the library concurrently with a
     /// generation-driven reload.
     func refresh(modelContext: ModelContext) async {
-        await photoService.discardCachedResources()
+        await photoService.refreshCachedResources()
         await enqueue { await self.reload(modelContext: modelContext) }
     }
 
@@ -150,11 +150,20 @@ final class StorageDashboardViewModel {
         // A single library enumeration feeds the category breakdown, iCloud status,
         // reclaimable wins, and by‑year / by‑source breakdowns.
         let assets = await photoService.fetchAssets(filter: .allMedia)
-        cameraFormats = CameraFormatInsight.build(from: assets)
-        buildCategories(from: assets)
-        buildICloudStatus(from: assets)
-        buildWins(from: assets)
-        buildBreakdowns(from: assets)
+        let threshold = AppPreferences.largeFileThresholdBytes()
+        // The passes walk every asset. On a large library they held the main
+        // thread at each library change, so they run off it (as APP-09 does).
+        let totals = await Task.detached(priority: Task.currentPriority) {
+            StorageLibraryTotals(assets: assets, largeFileThresholdBytes: threshold)
+        }.value
+        cameraFormats = totals.cameraFormats
+        categories = Self.makeCategories(from: totals.stats)
+        iCloudOnlyCount = totals.iCloudOnlyCount
+        iCloudOnlySize = totals.iCloudOnlySize
+        localCount = assets.count - totals.iCloudOnlyCount
+        wins = Self.makeWins(buckets: totals.buckets)
+        byYear = totals.byYear
+        bySource = totals.bySource
 
         fetchDeviceStorage()
         fetchSnapshots(modelContext: modelContext)
@@ -170,14 +179,6 @@ final class StorageDashboardViewModel {
         lifetimeItemCount = summary.lifetimeItemCount
     }
 
-    private func buildCategories(from assets: [AssetSummary]) {
-        let stats = MediaLibraryStats.build(
-            from: assets,
-            largeFileThresholdBytes: AppPreferences.largeFileThresholdBytes()
-        )
-        categories = Self.makeCategories(from: stats)
-    }
-
     /// Pure mapping from shared stats → dashboard categories (testable without
     /// PhotoKit; the widget/scan use the same `MediaLibraryStats` builder).
     nonisolated static func makeCategories(from stats: MediaLibraryStats) -> [StorageCategory] {
@@ -190,28 +191,12 @@ final class StorageDashboardViewModel {
         ].filter { $0.bytes > 0 }
     }
 
-    private func buildICloudStatus(from assets: [AssetSummary]) {
-        let iCloudOnly = assets.filter { !$0.isLocallyAvailable }
-        iCloudOnlyCount = iCloudOnly.count
-        iCloudOnlySize = iCloudOnly.reduce(0) { $0 + $1.fileSize }
-        localCount = assets.count - iCloudOnly.count
-    }
-
-    /// Build reclaimable wins using the SHARED disjoint priority bucketing
+    /// Pure mapping from disjoint reclaim buckets → wins (testable without
+    /// PhotoKit). The buckets come from the SHARED disjoint priority bucketing
     /// (`ReclaimBucketer`) — the same buckets that drive the widget's
     /// reclaimable figure, so the two surfaces can never disagree (APP-04).
     /// Each asset contributes to at most one bucket, so the segmented bar and
-    /// hero total are coherent.
-    private func buildWins(from assets: [AssetSummary]) {
-        let buckets = ReclaimBucketer.buckets(
-            from: assets,
-            largeFileThresholdBytes: AppPreferences.largeFileThresholdBytes()
-        )
-        wins = Self.makeWins(buckets: buckets)
-    }
-
-    /// Pure mapping from disjoint reclaim buckets → wins (testable without
-    /// PhotoKit). `compactMap` drops any key the switch doesn't recognize
+    /// hero total are coherent. `compactMap` drops any key the switch doesn't recognize
     /// rather than crashing.
     nonisolated static func makeWins(buckets: [ReclaimBucketer.Bucket]) -> [ReclaimWin] {
         buckets.compactMap { bucket -> ReclaimWin? in
@@ -268,7 +253,9 @@ final class StorageDashboardViewModel {
     /// roughly one library's worth of ID strings across these two maps (plus the
     /// `savedFromApps` win); acceptable for a transient screen. `AppNavigation.showSwipeSession`
     /// logs the routed payload size so a stall on a very large bucket is diagnosable.
-    private func buildBreakdowns(from assets: [AssetSummary]) {
+    nonisolated static func breakdowns(
+        from assets: [AssetSummary]
+    ) -> (byYear: [StorageBreakdownBucket], bySource: [StorageBreakdownBucket]) {
         var byYearMap: [Int: (bytes: Int64, count: Int, ids: [String])] = [:]
         var bySourceMap: [AssetOrigin: (bytes: Int64, count: Int, ids: [String])] = [:]
         let calendar = Calendar.current
@@ -298,7 +285,7 @@ final class StorageDashboardViewModel {
         // Convert by‑year to buckets, sorted most recent first (descending year),
         // with "Unknown" (year 0) last. Sort on the Int key directly rather than
         // round-tripping through the label string, so there's no parse + `?? 0` fallback.
-        byYear = byYearMap.sorted { lhs, rhs in
+        let byYear = byYearMap.sorted { lhs, rhs in
             if lhs.key == 0 { return false }  // "Unknown" sorts after everything
             if rhs.key == 0 { return true }
             return lhs.key > rhs.key
@@ -313,7 +300,7 @@ final class StorageDashboardViewModel {
             )
         }
 
-        bySource = bySourceMap.map { origin, value in
+        let bySource = bySourceMap.map { origin, value in
             let label: String
             switch origin {
             case .camera:
@@ -333,6 +320,7 @@ final class StorageDashboardViewModel {
                 assetIds: value.ids
             )
         }.sorted { $0.bytes > $1.bytes }
+        return (byYear, bySource)
     }
 
     private func fetchDeviceStorage() {
@@ -359,6 +347,28 @@ final class StorageDashboardViewModel {
         snapshots = ((try? modelContext.fetch(descriptor)) ?? [])
             .filter { $0.capturedAt >= thirtyDaysAgo }
             .sorted { $0.capturedAt < $1.capturedAt }
+    }
+}
+
+/// The whole-library passes behind one dashboard load, computed off the main
+/// actor. Only the small mapping to UI rows stays on it.
+struct StorageLibraryTotals: Sendable {
+    let cameraFormats: [CameraFormatInsight]
+    let stats: MediaLibraryStats
+    let iCloudOnlyCount: Int
+    let iCloudOnlySize: Int64
+    let buckets: [ReclaimBucketer.Bucket]
+    let byYear: [StorageBreakdownBucket]
+    let bySource: [StorageBreakdownBucket]
+
+    init(assets: [AssetSummary], largeFileThresholdBytes: Int64) {
+        cameraFormats = CameraFormatInsight.build(from: assets)
+        stats = MediaLibraryStats.build(from: assets, largeFileThresholdBytes: largeFileThresholdBytes)
+        let iCloudOnly = assets.filter { !$0.isLocallyAvailable }
+        iCloudOnlyCount = iCloudOnly.count
+        iCloudOnlySize = iCloudOnly.reduce(0) { $0 + $1.fileSize }
+        buckets = ReclaimBucketer.buckets(from: assets, largeFileThresholdBytes: largeFileThresholdBytes)
+        (byYear, bySource) = StorageDashboardViewModel.breakdowns(from: assets)
     }
 }
 

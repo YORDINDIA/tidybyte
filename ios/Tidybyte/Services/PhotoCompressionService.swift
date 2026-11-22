@@ -85,6 +85,8 @@ actor PhotoCompressionService {
         }
 
         guard let imageData = await photoService.loadFullImageData(for: phAsset) else {
+            // A cancelled load returns nil too; report it as a cancel, not a failure.
+            try Task.checkCancellation()
             throw PhotoCompressionError.imageDataLoadFailed
         }
         await onProgress(0.4)
@@ -180,6 +182,8 @@ actor PhotoCompressionService {
             throw PhotoCompressionError.assetNotFound
         }
         guard let imageData = await photoService.loadFullImageData(for: phAsset) else {
+            // A cancelled load returns nil too; report it as a cancel, not a failure.
+            try Task.checkCancellation()
             throw PhotoCompressionError.imageDataLoadFailed
         }
         let tempURL = FileManager.default.temporaryDirectory

@@ -19,5 +19,6 @@
 - [ ] New user-facing text goes through a String Catalog, and the CI localization checks pass.
 - [ ] No new third-party dependency, network call, or analytics.
 - [ ] iOS: layout changes checked on iPad, or on iPhone Duo if the change touches window size.
+- [ ] iOS: changes to library loading follow `ios/docs/large-library-performance.md` and give `Summary build` numbers from a 25,000+ item library.
 - [ ] Mac: `swift test` and `swiftlint lint --strict --baseline .swiftlint-baseline.json` pass in `macos/`.
 - [ ] Tests added or updated for logic changes.

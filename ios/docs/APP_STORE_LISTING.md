@@ -1,7 +1,10 @@
 # App Store Connect Listing — TidyByte
 
-> **Status (2026-11-17):** 1.1.3 (build 10) is live. 1.2.0 (build 11) is the
+> **Status (2026-11-22):** 1.2.0 (build 11) is live. 1.2.1 (build 12) is the
 > next release; its copy is below and in `docs/appstore/listings.json`.
+> When App Review approves 1.2.1, set `IOS_VERSION` and `IOS_BUILD` in
+> `website/src/data/releases.ts`, and move the "Latest iPhone release" badge
+> to the 1.2.1 entry in `website/src/content/pages/changelog.html`.
 > The site's `/changelog` is the canonical version history.
 
 Paste-ready copy for App Store Connect. Char-count annotations are inline. Anything marked **TODO** needs a human decision before submission.
@@ -301,7 +304,14 @@ Both are fixed sizes — the 1179-vs-1206 slack the iPhone row allows does not a
 
 ---
 
-## 12. What's New (v1.2.0 release notes)
+## 12. What's New (v1.2.1 release notes)
+
+```
+Much faster with large photo libraries. TidyByte now remembers what it has measured, so after the first scan, Storage and Cleanup open in about a second, even with tens of thousands of photos and videos. They no longer get stuck loading when iCloud or an album changes. A photo you swipe past stops downloading from iCloud at once, and the exact duplicate scan reads far fewer files. Everything still runs on your device: no account, no ads, no subscription.
+```
+Length: 458 chars. Translated into all 21 storefront locales by `scripts/localization/translations/_notes-1.2.1.mjs`. The fix behind it is described in `docs/large-library-performance.md`.
+
+### v1.2.0 release notes, for the record
 
 ```
 Swipe cards now show the whole photo, so wide shots are no longer cropped. Video and photo compression is more reliable, and when an item cannot be compressed, the full reason now shows under it. Deletes are safer: if you cancel the iOS delete prompt, nothing is counted as freed. Cleanup screens now fit large text sizes without cutting off words. Plus many small fixes and better translations. Everything still runs on your device: no account, no ads, no subscription.
@@ -346,6 +356,7 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 
 | Version | Build | Release notes source |
 |---|---|---|
+| 1.2.1 | 12 | §12 above. Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
 | 1.2.0 | 11 | §12 above. Delete-prompt fixes (#24), whole-photo swipe cards, compression, accessibility-layout and data-safety fixes (#27). Google Photos stays hidden (no OAuth client ID). |
 | 1.1.3 | 10 | §12 above. The photo-access recovery (#11), the large-library speed fixes (#6-#8), the Storage first-load fix (#9) and the Recently Deleted notice fix (#10). |
 | 1.1.2 | 9 | Never shipped. Withdrawn from review and renamed to 1.1.3; build 9 is unused. |

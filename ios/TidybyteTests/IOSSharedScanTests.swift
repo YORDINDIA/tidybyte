@@ -158,6 +158,69 @@ final class ContinuationResumerTests: XCTestCase {
         }
         XCTAssertEqual(value, 7)
     }
+
+    // MARK: Cancellation reaches the PhotoKit request
+
+    /// A card swiped away cancels its task. The waiting caller must get the
+    /// fallback at once, and the request (an iCloud download) must be cancelled.
+    func testTaskCancelResumesWithFallbackAndCancelsRequest() async {
+        let cancelledIds = LockedValue<[Int32]>([])
+        let task = Task { () -> Int in
+            await withCancellableContinuation { continuation, relay in
+                let resumer = ContinuationResumer<Int>(continuation)
+                let request = PendingRequest { id in cancelledIds.withValue { $0.append(id) } }
+                resumer.onResume = { request.cancel() }
+                relay.install { resumer.resume(-1) }
+                // A request that never answers, like a stalled download.
+                request.started(42)
+            }
+        }
+        task.cancel()
+        let value = await task.value
+        XCTAssertEqual(value, -1)
+        XCTAssertEqual(cancelledIds.withValue { $0 }, [42])
+    }
+
+    /// The cancel can land before the resumer exists (the task was cancelled
+    /// while it waited for the actor). Installing the action then runs it.
+    func testRelayRunsActionInstalledAfterCancel() {
+        let relay = CancelRelay()
+        let runs = LockedValue(0)
+        relay.cancel()
+        XCTAssertTrue(relay.isCancelled)
+        relay.install { runs.withValue { $0 += 1 } }
+        XCTAssertEqual(runs.withValue { $0 }, 1)
+    }
+
+    func testRelayRunsInstalledActionOnce() {
+        let relay = CancelRelay()
+        let runs = LockedValue(0)
+        relay.install { runs.withValue { $0 += 1 } }
+        XCTAssertEqual(runs.withValue { $0 }, 0)
+        relay.cancel()
+        relay.cancel()
+        XCTAssertEqual(runs.withValue { $0 }, 1)
+    }
+
+    /// PhotoKit returns the request id only after the call that starts the
+    /// request. A cancel that comes before it must still cancel that id.
+    func testPendingRequestCancelBeforeStartCancelsOnStart() {
+        let cancelledIds = LockedValue<[Int32]>([])
+        let request = PendingRequest { id in cancelledIds.withValue { $0.append(id) } }
+        request.cancel()
+        XCTAssertEqual(cancelledIds.withValue { $0 }, [])
+        request.started(7)
+        XCTAssertEqual(cancelledIds.withValue { $0 }, [7])
+    }
+
+    func testPendingRequestCancelAfterStart() {
+        let cancelledIds = LockedValue<[Int32]>([])
+        let request = PendingRequest { id in cancelledIds.withValue { $0.append(id) } }
+        request.started(9)
+        XCTAssertEqual(cancelledIds.withValue { $0 }, [])
+        request.cancel()
+        XCTAssertEqual(cancelledIds.withValue { $0 }, [9])
+    }
 }
 
 // MARK: - models, formatting, selection
