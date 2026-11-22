@@ -268,6 +268,9 @@ final class UtilityAndStorageTests: XCTestCase {
         var reads = 0
         _ = cache.resources(id: "new", modifiedAt: nil, stamp: cache.stamp(), staleRefreshes: &budget) { reads += 1; return facts() }
         XCTAssertEqual(reads, 1)
+        let edited = Date(timeIntervalSince1970: 1)
+        _ = cache.resources(id: "new", modifiedAt: edited, stamp: cache.stamp(), staleRefreshes: &budget) { reads += 1; return facts() }
+        XCTAssertEqual(reads, 2)
     }
 
     /// Pull-to-refresh makes entries due, without a full re-read, and each
@@ -292,7 +295,9 @@ final class UtilityAndStorageTests: XCTestCase {
         XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: false, details: nil), .unknown)
         XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: nil, details: nil), .unknown)
         let incremental = LibraryChangeEffect.Details(isIncremental: true, removedOrChanged: ["a"])
-        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: false, details: incremental), .assets(removedOrChanged: ["a"]))
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: true, details: incremental), .assets(removedOrChanged: ["a"]))
+        // A narrow baseline's details list only its own assets: no complete diff.
+        XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: false, details: incremental), .unknown)
         let whole = LibraryChangeEffect.Details(isIncremental: false, removedOrChanged: [])
         XCTAssertEqual(LibraryChangeEffect(baselineIsFullLibrary: true, details: whole), .unknown)
     }
@@ -371,13 +376,32 @@ final class UtilityAndStorageTests: XCTestCase {
         XCTAssertEqual(readAll(next, ["a", "b"]), ["a"])
     }
 
-    func testUnreadableOrOtherVersionFileIsIgnored() throws {
+    /// A file from another format version has valid items; only the version
+    /// keeps them out.
+    func testFileWithAnotherVersionIsIgnored() throws {
         let url = temporaryCacheURL()
-        struct Other: Codable { var version: Int; var items: [String] }
-        try PropertyListEncoder().encode(Other(version: ResourceCache.fileVersion + 1, items: ["x"])).write(to: url)
+        let first = ResourceCache(fileURL: url)
+        first.loadIfNeeded()
+        _ = readAll(first, ["a"])
+        first.saveIfDirty()
+        let data = try Data(contentsOf: url)
+        var stored = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+        XCTAssertEqual(stored["version"] as? Int, ResourceCache.fileVersion)
+        stored["version"] = ResourceCache.fileVersion + 1
+        try PropertyListSerialization.data(fromPropertyList: stored, format: .binary, options: 0).write(to: url)
+
+        let next = ResourceCache(fileURL: url)
+        next.loadIfNeeded()
+        XCTAssertEqual(next.count, 0)
+    }
+
+    func testUnreadableFileIsIgnored() throws {
+        let url = temporaryCacheURL()
+        try Data("not a property list".utf8).write(to: url)
         let cache = ResourceCache(fileURL: url)
         cache.loadIfNeeded()
         XCTAssertEqual(cache.count, 0)
+        XCTAssertEqual(readAll(cache, ["a"]), ["a"])
     }
 
     private final class TestClock: @unchecked Sendable {

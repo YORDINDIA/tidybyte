@@ -39,7 +39,7 @@ function chunk(type, data) {
 }
 
 /** A 16x16 RGB PNG whose last pixel holds `index`, so no two files are equal. */
-export function png(index) {
+function png(index) {
   const side = 16;
   const rows = [];
   for (let y = 0; y < side; y += 1) {

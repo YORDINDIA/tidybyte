@@ -70,11 +70,12 @@ far, and a whole-library fetch always wins:
 |---|---|---|---|
 | `changeDetails(for:)` is `nil`, and the baseline is the whole library (an album, collection or other metadata changed) | `.unaffected` | keep all | keep all |
 | `changeDetails(for:)` is `nil`, and the baseline is narrow (screenshots, one album) | `.unknown` | keep all | drop all |
-| Incremental details | `.assets(removedOrChanged:)` | drop the listed ids | drop the listed ids |
+| Incremental details, and the baseline is the whole library | `.assets(removedOrChanged:)` | drop the listed ids | drop the listed ids |
+| Incremental details, and the baseline is narrow | `.unknown` | keep all | drop all |
 | Details that are not incremental, or no baseline fetch yet | `.unknown` | keep all | drop all |
 
-A narrow baseline cannot prove that an asset outside it was not edited, so its
-thumbnails go. Thumbnails are cached by id alone, with no modification date.
+A narrow baseline lists changes to its own assets only. It cannot show an edit
+to an asset outside it, so every answer from it drops the thumbnails. Thumbnails are cached by id alone, with no modification date.
 
 This is safe because an asset's resources change in two ways only:
 
@@ -94,8 +95,11 @@ Tests: `testLibraryChangesWithoutAssetDetailKeepEveryRead`,
 - After the first build of each launch, after a build that read 1,000 or more
   assets, and after a build 30 s or more after the last write. The file is not
   written after every small change.
-- When the app moves to the background (`RootView`), because iOS can end it
-  there.
+- When the app moves to the background (`RootView`), off the main thread and
+  under a background-task assertion, because iOS can end the app there. A build
+  that is still running keeps saving every 10 s and at its end.
+- A save that finds a removal or clear made during its encode takes a new
+  snapshot and tries again, so a dropped entry cannot come back from the file.
 
 The first build of a launch loads the file. If you change `ResourceFacts` or the
 stored format, increase `ResourceCache.fileVersion`. A file with another version
@@ -103,7 +107,7 @@ is ignored, which costs one full read.
 
 Tests: `testCacheFileCarriesReadsToTheNextLaunch`,
 `testRemovalBeforeLoadIsNotBroughtBackByTheFile`,
-`testUnreadableOrOtherVersionFileIsIgnored`.
+`testFileWithAnotherVersionIsIgnored`, `testUnreadableFileIsIgnored`.
 
 ### 3. Old entries are used, and refreshed a slice at a time
 
@@ -128,7 +132,7 @@ Tests: `testStaleEntriesAreRefreshedWithinTheBudgetOnly`,
 
 | Action | Call | Effect |
 |---|---|---|
-| Pull-to-refresh on Storage or Cleanup | `refreshCachedResources()` | Marks every entry due. The next build refreshes up to 5,000 of them, oldest first, for at most 3 s. A small library is refreshed in full; a large one continues on later builds. |
+| Pull-to-refresh on Storage or Cleanup | `refreshCachedResources()` | Marks every entry due. The next build refreshes up to 5,000 of them, oldest first, and stops starting new reads after 3 s (the limit is checked before each read). A small library is refreshed in full; a large one continues on later builds. |
 | Photo permission changes | `discardCachedResources()` | Deletes the entries and the file. One full read follows. |
 
 Tests: `testRepeatedPullsRefreshNewEntries`, `testRemoveAllDeletesTheFile`.
@@ -138,9 +142,10 @@ Tests: `testRepeatedPullsRefreshNewEntries`, `testRemoveAllDeletesTheFile`.
 Reading an original with network access can download it, which changes its
 iCloud state. `loadFullImageData` and the share export call `forgetResources`
 for that reason. The exact-duplicate hash runs with network access off, so it
-cannot download, and it keeps the entry. A hash that fails (usually an original
-that iOS offloaded after the cached read) is counted in the scan's "iCloud-only
-skipped" total. Do not add `forgetResources` to a path
+cannot download, and it keeps the entry. When a hash fails, the scan reads that
+asset's resources again (`isOnDevice`). If the original is no longer on the
+device, the asset is counted in the "iCloud-only skipped" total, and its
+cached read is replaced. Other failures are not counted. Do not add `forgetResources` to a path
 that cannot download: after a duplicate scan it made the next Storage load read
 every hashed asset again.
 

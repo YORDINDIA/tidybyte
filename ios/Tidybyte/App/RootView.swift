@@ -136,10 +136,7 @@ struct RootView: View {
                 applyPendingWidgetRoute()
                 Task { await offerLimitedLibraryPickerIfNeeded() }
             } else if newPhase == .background {
-                // iOS can end the app while it is in the background. Write the
-                // cached library reads first, so the next launch does not read
-                // every asset again (docs/large-library-performance.md).
-                PhotoLibraryService.shared.saveCachedResources()
+                saveCachedLibraryReads()
             }
         }
         .onChange(of: hasCompletedOnboarding) { _, _ in
@@ -286,6 +283,19 @@ struct RootView: View {
         PhotoPermissionHandler.presentLimitedLibraryPicker()
     }
 
+    /// iOS can end the app while it is in the background. Write the cached
+    /// library reads first, so the next launch does not read every asset again
+    /// (docs/large-library-performance.md). The write runs off the main
+    /// thread, under a background-task assertion so iOS lets it finish.
+    private func saveCachedLibraryReads() {
+        let task = BackgroundTaskAssertion()
+        task.id = UIApplication.shared.beginBackgroundTask(withName: "TidyByte library cache") { task.end() }
+        Task.detached(priority: .utility) {
+            PhotoLibraryService.shared.saveCachedResources()
+            await task.end()
+        }
+    }
+
     /// Applies a destination queued by an interactive-widget button. The widget
     /// target's intents can't reference `DeepLink`, so they write a
     /// `WidgetRoute` into the shared App Group instead; this is the only place
@@ -406,5 +416,18 @@ private extension View {
         } else {
             self
         }
+    }
+}
+
+/// One `beginBackgroundTask` assertion, ended once: by the work, or by iOS
+/// when the background time runs out.
+@MainActor
+private final class BackgroundTaskAssertion {
+    var id = UIBackgroundTaskIdentifier.invalid
+
+    func end() {
+        guard id != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(id)
+        id = .invalid
     }
 }

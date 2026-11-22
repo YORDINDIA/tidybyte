@@ -1009,6 +1009,14 @@ actor PhotoLibraryService {
         return hash
     }
 
+    /// Reads the asset's resources again and drops its cached read, so the next
+    /// build sees its current iCloud state. True when every resource is on the
+    /// device. For an exact-duplicate hash that failed with the network off.
+    func isOnDevice(_ asset: PHAsset) -> Bool {
+        forgetResources(of: asset.localIdentifier)
+        return Self.readResources(of: asset).isLocallyAvailable
+    }
+
     nonisolated func getPHAsset(for identifier: String) -> PHAsset? {
         PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: allAssetsFetchOptions()).firstObject
     }
@@ -1613,14 +1621,16 @@ enum LibraryChangeEffect: Equatable, Sendable {
     }
 
     /// `baselineIsFullLibrary` is nil when there is no baseline fetch yet;
-    /// `details` is nil when `changeDetails(for:)` returned nil. Nil details
-    /// prove that no asset changed only when the baseline holds every asset:
-    /// a narrow baseline (screenshots, one album) says nothing about an edit
-    /// elsewhere, so its thumbnails could be stale.
+    /// `details` is nil when `changeDetails(for:)` returned nil. Only a
+    /// whole-library baseline answers for every asset: a narrow baseline
+    /// (screenshots, one album) says nothing about an edit elsewhere, so any
+    /// answer from it drops every thumbnail.
     init(baselineIsFullLibrary: Bool?, details: Details?) {
         guard let baselineIsFullLibrary else { self = .unknown; return }
         guard let details else { self = baselineIsFullLibrary ? .unaffected : .unknown; return }
-        self = details.isIncremental ? .assets(removedOrChanged: details.removedOrChanged) : .unknown
+        // Incremental details of a narrow baseline list only its own assets,
+        // not an edit elsewhere, so they are no complete diff either.
+        self = details.isIncremental && baselineIsFullLibrary ? .assets(removedOrChanged: details.removedOrChanged) : .unknown
     }
 
     var logName: String {
@@ -1881,14 +1891,29 @@ final class ResourceCache: @unchecked Sendable {
         fileLock.withLock { save(to: fileURL) }
     }
 
-    /// Call with `fileLock` held.
+    /// Call with `fileLock` held. A removal or clear while the entries are
+    /// encoded would be undone by writing them, so the save takes a new
+    /// snapshot and tries again; after three tries it leaves the cache dirty
+    /// for the next save.
     private func save(to fileURL: URL) {
-        let taken: (entries: [String: Entry], clearedAt: Int)? = lock.withLock {
+        for _ in 0..<3 {
+            switch saveOnce(to: fileURL) {
+            case .done: return
+            case .changedDuringEncode: continue
+            }
+        }
+        lock.withLock { isDirty = true }
+    }
+
+    private enum SaveOutcome { case done, changedDuringEncode }
+
+    private func saveOnce(to fileURL: URL) -> SaveOutcome {
+        let taken: (entries: [String: Entry], tick: Int)? = lock.withLock {
             guard isDirty, isLoaded else { return nil }
             isDirty = false
-            return (entries, clearedAt)
+            return (entries, tick)
         }
-        guard let (snapshot, snapshotClearedAt) = taken else { return }
+        guard let (snapshot, snapshotTick) = taken else { return .done }
         let items = snapshot.map { id, entry in
             Stored.Item(
                 id: id,
@@ -1905,13 +1930,22 @@ final class ResourceCache: @unchecked Sendable {
         encoder.outputFormat = .binary
         do {
             let data = try encoder.encode(Stored(version: Self.fileVersion, items: items))
-            // A clear during the encode wins: these entries must not come back.
-            guard lock.withLock({ clearedAt }) == snapshotClearedAt else { return }
+            // `tick` moves on every removal and clear. Entries added during the
+            // encode are not lost: they set `isDirty` again for the next save.
+            let unchanged = lock.withLock {
+                guard tick == snapshotTick else {
+                    isDirty = true
+                    return false
+                }
+                return true
+            }
+            guard unchanged else { return .changedDuringEncode }
             try data.write(to: fileURL, options: .atomic)
         } catch {
             lock.withLock { isDirty = true }
             AppLog.photo.error("Resource cache save failed: \(error.localizedDescription, privacy: .public)")
         }
+        return .done
     }
 
     /// Call with `lock` held.

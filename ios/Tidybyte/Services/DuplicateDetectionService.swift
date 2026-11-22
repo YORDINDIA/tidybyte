@@ -299,10 +299,11 @@ actor DuplicateDetectionService {
                 if let phAsset = phById[asset.id] {
                     if let hashString = await photoService.sha256ForPrimaryResource(of: phAsset) {
                         hashGroups[hashString, default: []].append(asset)
-                    } else if !Task.isCancelled {
-                        // The hash runs with the network off, so the usual cause
-                        // is an original iOS offloaded after the cached
-                        // "on device" read. Say so instead of dropping it silently.
+                    } else if !Task.isCancelled, await !photoService.isOnDevice(phAsset) {
+                        // The hash runs with the network off. When the original
+                        // left the device after the cached "on device" read,
+                        // count it with the other iCloud-only assets instead of
+                        // dropping it silently. Other failures are not counted.
                         skipped += 1
                     }
                 }

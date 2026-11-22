@@ -16,7 +16,7 @@
  *
  * Machine-drafted, like the rest of the store copy: not a native review pass.
  *
- * Run from the repo root: node scripts/localization/translations/_notes-1.2.1.mjs
+ * Run from ios/: node scripts/localization/translations/_notes-1.2.1.mjs
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
