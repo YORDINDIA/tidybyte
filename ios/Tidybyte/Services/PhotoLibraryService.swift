@@ -1,5 +1,6 @@
 import AVFoundation
 import CryptoKit
+import os
 import Photos
 import UIKit
 
@@ -32,6 +33,9 @@ actor PhotoLibraryService {
     /// removed/changed asset ids instead of purging the whole image cache.
     /// `PHFetchResult` is a lazy snapshot — retaining it is cheap.
     private var changeBaselineFetch: PHFetchResult<PHAsset>?
+    /// True when `changeBaselineFetch` is a whole-library fetch. Only then
+    /// does nil change details mean that no asset changed.
+    private var changeBaselineIsFullLibrary = false
 
     // Called when the photo library changes — consumers can listen via this callback
     private var onLibraryChange: (@Sendable () -> Void)?
@@ -62,45 +66,69 @@ actor PhotoLibraryService {
         PHPhotoLibrary.shared().register(helper)
     }
 
-    /// Keeps `ImageCache` coherent with the library (SHARED-08): evicts
-    /// exactly the assets PhotoKit reports as removed or changed, so an
-    /// in-app delete of N photos no longer re-decodes the other ~200 cached
-    /// thumbnails. Falls back to a full purge when incremental details are
-    /// unavailable (fetch result released, non-incremental change) — stale
-    /// thumbnails are worse than re-decode churn.
+    /// Keeps `ImageCache` and the resource reads coherent with the library
+    /// (SHARED-08): evicts exactly the assets PhotoKit reports as removed or
+    /// changed, so an in-app delete of N photos no longer re-decodes the other
+    /// ~200 cached thumbnails. Without incremental details (no baseline yet, a
+    /// non-incremental change) the thumbnails go, because stale thumbnails are
+    /// worse than re-decode churn; the resource reads stay (see
+    /// `ResourceCache.apply`). A change that does not touch the library list
+    /// (nil details, such as an album edit) evicts nothing.
     private func handleLibraryChange(_ change: PHChange) async {
-        var incremental: PHFetchResultChangeDetails<PHAsset>?
+        var answer: LibraryChangeEffect.Details?
+        var detail = ""
         if let baseline = changeBaselineFetch, let details = change.changeDetails(for: baseline) {
             // Advance the baseline on every answered change, incremental or not, so
             // the NEXT change diffs against current state. Left stale after a
             // non-incremental change, every later change diffed against an old
             // snapshot and purged the whole image cache.
             changeBaselineFetch = details.fetchResultAfterChanges
-            if details.hasIncrementalChanges { incremental = details }
-        }
-        if let details = incremental {
-            let removedIds = details.removedObjects.map(\.localIdentifier)
-            let changedIds = details.changedObjects.map(\.localIdentifier)
-            summaryBuilder.resources.remove(removedIds + changedIds)
-            for id in removedIds + changedIds {
-                await ImageCache.shared.removeAllVariants(of: id)
+            answer = LibraryChangeEffect.Details(
+                isIncremental: details.hasIncrementalChanges,
+                removedOrChanged: (details.removedObjects + details.changedObjects).map(\.localIdentifier)
+            )
+            if details.hasIncrementalChanges {
+                detail = " removed=\(details.removedObjects.count) changed=\(details.changedObjects.count) inserted=\(details.insertedObjects.count)"
             }
-        } else {
-            // A change with no per-asset detail can touch any asset's resources
-            // (size, iCloud state), and the next incremental change no longer
-            // reports it, since the baseline moved on. Drop every cached read.
-            // The cost is one library re-read after such a change.
-            summaryBuilder.resources.removeAll()
+        }
+        let effect = LibraryChangeEffect(
+            baselineIsFullLibrary: changeBaselineFetch == nil ? nil : changeBaselineIsFullLibrary,
+            details: answer
+        )
+        AppLog.photo.info("Library change: \(effect.logName, privacy: .public)\(detail, privacy: .public)")
+        summaryBuilder.resources.apply(effect)
+        switch effect {
+        case .unaffected:
+            break
+        case .assets(let ids):
+            for id in ids { await ImageCache.shared.removeAllVariants(of: id) }
+        case .unknown:
+            // Thumbnails are cached by id alone, with no modification date to
+            // tell an edited asset apart, so these do go.
             await ImageCache.shared.removeAll()
         }
         onLibraryChange?()
     }
 
     /// Drops every cached resource read, so the next library build reads
-    /// every asset again. For pull-to-refresh and permission changes.
+    /// every asset again. For permission changes.
     /// Isolated so it can't fall between a fetch and its stamp.
     func discardCachedResources() {
         summaryBuilder.resources.removeAll()
+    }
+
+    /// Pull-to-refresh: every cached read is due again, and builds refresh
+    /// them a slice at a time. Dropping them instead made each pull read the
+    /// whole library again, about a minute and a half for 27,000 items.
+    func refreshCachedResources() async {
+        summaryBuilder.resources.markAllStale()
+        await summaryBuilder.requestRefresh()
+    }
+
+    /// Writes the cached reads now. For the move to the background, where iOS
+    /// may end the app before the next build saves them.
+    nonisolated func saveCachedResources() {
+        summaryBuilder.resources.saveIfDirty()
     }
 
     /// Reading an original can download it from iCloud, which changes its
@@ -116,9 +144,11 @@ actor PhotoLibraryService {
     /// snapshot, or deletions outside their membership would go unreported
     /// and leave stale thumbnails behind. Called from the `extractSummaries`
     /// funnel so every census-style fetch participates.
-    private func retainChangeBaseline(_ fetchResult: PHFetchResult<PHAsset>) {
-        if let current = changeBaselineFetch, current.count > fetchResult.count { return }
+    private func retainChangeBaseline(_ fetchResult: PHFetchResult<PHAsset>, isFullLibrary: Bool) {
+        if changeBaselineIsFullLibrary, !isFullLibrary { return }
+        if !isFullLibrary, let current = changeBaselineFetch, current.count > fetchResult.count { return }
         changeBaselineFetch = fetchResult
+        changeBaselineIsFullLibrary = isFullLibrary
     }
 
     /// The ids from `ids` that still exist in the library. Lists use it to drop
@@ -230,7 +260,7 @@ actor PhotoLibraryService {
 
     func fetchAssets(filter: SwipeFilter) async -> [AssetSummary] {
         guard let query = query(for: filter) else { return [] }
-        return await extractSummaries(from: query.assets, excluding: query.excluding)
+        return await extractSummaries(from: query.assets, excluding: query.excluding, isFullLibrary: filter == .allMedia)
     }
 
     /// The PhotoKit fetch behind each filter, plus the ids the filter drops
@@ -521,7 +551,8 @@ actor PhotoLibraryService {
     }
 
     private func requestPlayerItem(for asset: PHAsset) async -> UncheckedSendableBox<AVPlayerItem>? {
-        await withCheckedContinuation { continuation in
+        guard !Task.isCancelled else { return nil }
+        return await withCancellableContinuation { continuation, relay in
             let resumer = ContinuationResumer<UncheckedSendableBox<AVPlayerItem>?>(continuation)
 
             let options = PHVideoRequestOptions()
@@ -531,23 +562,24 @@ actor PhotoLibraryService {
             // The stall watch fires only after LoadStall.limit with no progress. Wired
             // before the request, so a synchronous callback still stops it.
             let manager = imageManager
-            var requestID: PHImageRequestID = PHInvalidImageRequestID
+            let request = PendingRequest { manager.cancelImageRequest($0) }
             let watch = StallWatch()
             let stall = watchForStall(watch) { resumer.resume(nil) }
             options.progressHandler = { _, _, _, _ in
                 Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
-                manager.cancelImageRequest(requestID)
+                request.cancel()
                 stall.cancel()
             }
+            relay.install { resumer.resume(nil) }
 
-            requestID = imageManager.requestPlayerItem(forVideo: asset, options: options) { item, info in
+            request.started(manager.requestPlayerItem(forVideo: asset, options: options) { item, info in
                 if let error = info?[PHImageErrorKey] {
                     AppLog.photo.error("Player item request failed: \(String(describing: error), privacy: .public)")
                 }
                 resumer.resume(item.map(UncheckedSendableBox.init))
-            }
+            })
         }
     }
 
@@ -555,8 +587,9 @@ actor PhotoLibraryService {
         for asset: PHAsset,
         targetSize: CGSize
     ) async -> PHLivePhoto? {
-        await withCheckedContinuation { continuation in
-            let resumer = ContinuationResumer(continuation)
+        guard !Task.isCancelled else { return nil }
+        return await withCancellableContinuation { continuation, relay in
+            let resumer = ContinuationResumer<PHLivePhoto?>(continuation)
 
             let options = PHLivePhotoRequestOptions()
             options.deliveryMode = .highQualityFormat
@@ -565,18 +598,19 @@ actor PhotoLibraryService {
             // The stall watch fires only after LoadStall.limit with no progress. Wired
             // before the request, so a synchronous callback still stops it.
             let manager = imageManager
-            var requestID: PHImageRequestID = PHInvalidImageRequestID
+            let request = PendingRequest { manager.cancelImageRequest($0) }
             let watch = StallWatch()
             let stall = watchForStall(watch) { resumer.resume(nil) }
             options.progressHandler = { _, _, _, _ in
                 Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
-                manager.cancelImageRequest(requestID)
+                request.cancel()
                 stall.cancel()
             }
+            relay.install { resumer.resume(nil) }
 
-            requestID = imageManager.requestLivePhoto(
+            request.started(manager.requestLivePhoto(
                 for: asset,
                 targetSize: targetSize,
                 contentMode: .aspectFill,
@@ -600,7 +634,7 @@ actor PhotoLibraryService {
                 // stalled iCloud download. Do NOT copy `requestImage`'s
                 // `isInCloud && !allowsNetworkAccess` give-up branch — it can
                 // never fire on this path and would be dead code.
-            }
+            })
         }
     }
 
@@ -640,9 +674,10 @@ actor PhotoLibraryService {
         resizeMode: PHImageRequestOptionsResizeMode,
         allowsNetworkAccess: Bool
     ) async -> (image: UIImage?, isDegraded: Bool) {
+        guard !Task.isCancelled else { return (nil, false) }
         let box = QualityResultBox()
 
-        await withCheckedContinuation { continuation in
+        await withCancellableContinuation { continuation, relay in
             let resumer = ContinuationResumer<Bool>(continuation)
 
             let options = PHImageRequestOptions()
@@ -654,18 +689,24 @@ actor PhotoLibraryService {
             // The stall watch fires only after LoadStall.limit with no progress. Wired
             // before the request, so a synchronous callback still stops it.
             let manager = imageManager
-            var requestID: PHImageRequestID = PHInvalidImageRequestID
+            let request = PendingRequest { manager.cancelImageRequest($0) }
             let watch = StallWatch()
             let stall = watchForStall(watch) { resumer.resume(false) }
             options.progressHandler = { _, _, _, _ in
                 Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
-                manager.cancelImageRequest(requestID)
+                request.cancel()
                 stall.cancel()
             }
+            // A cancelled caller gets nothing, not a placeholder that arrived
+            // before the cancel: a scan would score it as a sharp image.
+            relay.install {
+                box.dropImage()
+                resumer.resume(false)
+            }
 
-            requestID = imageManager.requestImage(
+            request.started(manager.requestImage(
                 for: asset,
                 targetSize: targetSize,
                 contentMode: contentMode,
@@ -699,7 +740,7 @@ actor PhotoLibraryService {
                 }
                 // A degraded placeholder without an error (and reachable) means
                 // the full-quality result is still coming — keep waiting for it.
-            }
+            })
         }
 
         return box.result
@@ -712,16 +753,22 @@ actor PhotoLibraryService {
         private let lock = NSLock()
         private var image: UIImage?
         private var isDegraded = false
+        private var isClosed = false
 
         func record(_ image: UIImage?, degraded: Bool) {
             lock.withLock {
+                guard !isClosed else { return }
                 if degraded { isDegraded = true }
                 if let image { self.image = image }
             }
         }
 
+        /// Drops the image and ignores any callback that arrives later.
         func dropImage() {
-            lock.withLock { image = nil }
+            lock.withLock {
+                image = nil
+                isClosed = true
+            }
         }
 
         var result: (image: UIImage?, isDegraded: Bool) {
@@ -915,28 +962,32 @@ actor PhotoLibraryService {
     /// one `phAssetsById` fetch instead of one identifier lookup per asset.
     func sha256ForPrimaryResource(of asset: PHAsset) async -> String? {
         let resources = PHAssetResource.assetResources(for: asset)
-        guard let resource = preferredPrimaryResource(from: resources) else {
+        guard let resource = Self.preferredPrimaryResource(from: resources), !Task.isCancelled else {
             return nil
         }
-        let hash: String? = await withCheckedContinuation { continuation in
+        let hash: String? = await withCancellableContinuation { continuation, relay in
             let resumer = ContinuationResumer<String?>(continuation)
             var hasher = SHA256()
             let options = PHAssetResourceRequestOptions()
-            options.isNetworkAccessAllowed = true
+            // Only on-device assets are hashed (DUP-03), and the flag that says
+            // so can be an old cached read. With the network off, an asset iOS
+            // has since offloaded fails at once instead of downloading.
+            options.isNetworkAccessAllowed = false
 
             // Stall-bounded: the hash keeps going while bytes arrive and fails only
             // after LoadStall.limit with none. Wired before the request, so a stalled
             // iCloud resource cannot hang the duplicate scan.
             let resourceManager = PHAssetResourceManager.default()
-            var requestID: PHAssetResourceDataRequestID = 0
+            let request = PendingRequest { resourceManager.cancelDataRequest($0) }
             let watch = StallWatch()
             let stall = watchForStall(watch) { resumer.resume(nil) }
             resumer.onResume = {
-                resourceManager.cancelDataRequest(requestID)
+                request.cancel()
                 stall.cancel()
             }
+            relay.install { resumer.resume(nil) }
 
-            requestID = resourceManager.requestData(
+            request.started(resourceManager.requestData(
                 for: resource,
                 options: options
             ) { chunk in
@@ -950,9 +1001,11 @@ actor PhotoLibraryService {
                     let hex = hasher.finalize().map { String(format: "%02x", $0) }.joined()
                     resumer.resume(hex)
                 }
-            }
+            })
         }
-        forgetResources(of: asset.localIdentifier)
+        // No `forgetResources`: with the network off, hashing cannot download
+        // the original, so the cached read is still right. Dropping it made
+        // the next Storage or Cleanup load read every hashed asset again.
         return hash
     }
 
@@ -990,7 +1043,8 @@ actor PhotoLibraryService {
     /// `PHAsset` overload so compression batches can resolve a whole batch
     /// with one `phAssetsById` fetch instead of one identifier lookup per item.
     func loadFullImageData(for asset: PHAsset) async -> Data? {
-        let data: Data? = await withCheckedContinuation { continuation in
+        guard !Task.isCancelled else { return nil }
+        let data: Data? = await withCancellableContinuation { continuation, relay in
             let resumer = ContinuationResumer<Data?>(continuation)
 
             let options = PHImageRequestOptions()
@@ -1001,18 +1055,19 @@ actor PhotoLibraryService {
             // The stall watch fires only after LoadStall.limit with no progress. Wired
             // before the request, so a synchronous callback still stops it.
             let manager = imageManager
-            var requestID: PHImageRequestID = PHInvalidImageRequestID
+            let request = PendingRequest { manager.cancelImageRequest($0) }
             let watch = StallWatch()
             let stall = watchForStall(watch) { resumer.resume(nil) }
             options.progressHandler = { _, _, _, _ in
                 Task { await watch.recordProgress(at: LoadStall.now()) }
             }
             resumer.onResume = {
-                manager.cancelImageRequest(requestID)
+                request.cancel()
                 stall.cancel()
             }
+            relay.install { resumer.resume(nil) }
 
-            requestID = imageManager.requestImageDataAndOrientation(
+            request.started(manager.requestImageDataAndOrientation(
                 for: asset,
                 options: options
             ) { data, _, _, info in
@@ -1022,7 +1077,7 @@ actor PhotoLibraryService {
                 } else {
                     resumer.resume(data)
                 }
-            }
+            })
         }
         forgetResources(of: asset.localIdentifier)
         return data
@@ -1064,7 +1119,7 @@ actor PhotoLibraryService {
 
     private func writeResourceToTemp(asset: PHAsset, in folder: URL) async -> URL? {
         let resources = PHAssetResource.assetResources(for: asset)
-        guard let resource = preferredPrimaryResource(from: resources) else { return nil }
+        guard let resource = Self.preferredPrimaryResource(from: resources), !Task.isCancelled else { return nil }
 
         let fileURL = uniqueURL(for: resource.originalFilename, in: folder)
         guard let sink = ExportFileSink(url: fileURL) else { return nil }
@@ -1072,25 +1127,29 @@ actor PhotoLibraryService {
         options.isNetworkAccessAllowed = true
 
         let assetId = asset.localIdentifier
-        return await withCheckedContinuation { continuation in
+        return await withCancellableContinuation { continuation, relay in
             let resumer = ContinuationResumer<URL?>(continuation)
 
             // Streams the bytes into the file, so the request can be cancelled and
             // its partial file removed (SHARED-07). Stall-bounded like the others.
             let resourceManager = PHAssetResourceManager.default()
-            var requestID: PHAssetResourceDataRequestID = 0
+            let request = PendingRequest { resourceManager.cancelDataRequest($0) }
             let watch = StallWatch()
+            // No bytes for LoadStall.limit, or the export was cancelled. Only the
+            // call that resumes the continuation may discard the file, so a late
+            // success cannot race it.
             let stall = watchForStall(watch) {
-                // No bytes for LoadStall.limit. Only the call that resumes the
-                // continuation may discard the file, so a late success cannot race it.
                 if resumer.resume(nil) { sink.discard() }
             }
             resumer.onResume = {
-                resourceManager.cancelDataRequest(requestID)
+                request.cancel()
                 stall.cancel()
             }
+            relay.install {
+                if resumer.resume(nil) { sink.discard() }
+            }
 
-            requestID = resourceManager.requestData(for: resource, options: options) { chunk in
+            request.started(resourceManager.requestData(for: resource, options: options) { chunk in
                 sink.append(chunk)
                 Task { await watch.recordProgress(at: LoadStall.now()) }
             } completionHandler: { error in
@@ -1110,10 +1169,10 @@ actor PhotoLibraryService {
                     // Here rather than after the await: the original is now local.
                     Task { await self.forgetResources(of: assetId) }
                 } else {
-                    // The stall already answered nil. Its file is gone; drop this copy too.
+                    // A stall or cancel already answered nil. Its file is gone; drop this copy too.
                     sink.discard()
                 }
-            }
+            })
         }
     }
 
@@ -1162,7 +1221,8 @@ actor PhotoLibraryService {
                 guard resource.responds(to: NSSelectorFromString("locallyAvailable")) else { return true }
                 return (resource.value(forKey: "locallyAvailable") as? Bool) ?? true
             },
-            hasScreenRecordingFilename: resources.contains { Self.isScreenRecordingFilename($0.originalFilename) }
+            hasScreenRecordingFilename: resources.contains { Self.isScreenRecordingFilename($0.originalFilename) },
+            primaryFileSize: Self.preferredPrimaryResource(from: resources).map(Self.safeFileSize) ?? 0
         )
     }
 
@@ -1205,7 +1265,8 @@ actor PhotoLibraryService {
                 || resources.hasScreenRecordingFilename
             ),
             isCinematic: asset.mediaSubtypes.contains(.videoCinematic),
-            isSpatial: asset.mediaSubtypes.contains(.spatialMedia)
+            isSpatial: asset.mediaSubtypes.contains(.spatialMedia),
+            primaryResourceSize: resources.primaryFileSize
         )
     }
 
@@ -1246,13 +1307,24 @@ actor PhotoLibraryService {
     /// Builds the summaries on `summaryBuilder`, not on this actor. Reading
     /// every asset's resources takes minutes on a large library, and while
     /// that ran here, every thumbnail and card image request queued behind it.
-    private func extractSummaries(from fetchResult: PHFetchResult<PHAsset>, excluding: Set<String> = [], sort: Bool = true) async -> [AssetSummary] {
-        retainChangeBaseline(fetchResult)
+    private func extractSummaries(
+        from fetchResult: PHFetchResult<PHAsset>,
+        excluding: Set<String> = [],
+        sort: Bool = true,
+        isFullLibrary: Bool = false
+    ) async -> [AssetSummary] {
+        retainChangeBaseline(fetchResult, isFullLibrary: isFullLibrary)
         // Stamp in the same actor turn as the fetch: the fetch keeps its
         // assets as they were when it was made, however long it waits for
         // the builder.
         let stamp = summaryBuilder.resources.stamp()
-        return await summaryBuilder.build(from: UncheckedSendableBox(fetchResult), excluding: excluding, sort: sort, stamp: stamp)
+        return await summaryBuilder.build(
+            from: UncheckedSendableBox(fetchResult),
+            excluding: excluding,
+            sort: sort,
+            stamp: stamp,
+            isFullLibrary: isFullLibrary
+        )
     }
 
     nonisolated fileprivate static func buildSummaries(
@@ -1287,7 +1359,9 @@ actor PhotoLibraryService {
         return inAlbum
     }
 
-    nonisolated private func preferredPrimaryResource(from resources: [PHAssetResource]) -> PHAssetResource? {
+    /// The resource the exact-duplicate hash reads. `readResources` records
+    /// its size, so the scan can skip assets whose size no other asset shares.
+    nonisolated private static func preferredPrimaryResource(from resources: [PHAssetResource]) -> PHAssetResource? {
         resources.first { $0.type == .fullSizePhoto }
         ?? resources.first { $0.type == .photo }
         ?? resources.first { $0.type == .fullSizeVideo }
@@ -1413,15 +1487,94 @@ private actor SummaryBuilder {
     /// The launch scan, Storage and Cleanup each build the whole library.
     /// Reading every asset's resources is what takes minutes, so only the
     /// first build does it; later builds reuse what it read.
-    nonisolated let resources = ResourceCache()
+    nonisolated let resources = ResourceCache(fileURL: ResourceCache.defaultFileURL)
 
-    func build(from fetchResult: UncheckedSendableBox<PHFetchResult<PHAsset>>, excluding: Set<String>, sort: Bool, stamp: Int) -> [AssetSummary] {
+    /// Reads past `ResourceCache.maxAge` that one build may repeat. A build of
+    /// cached entries takes well under a second; this keeps a build that finds
+    /// every entry aged out (a launch the next day) near that, while the iCloud
+    /// state still gets refreshed a slice per build.
+    static let staleRefreshesPerBuild = 500
+
+    /// Pull-to-refresh: the next build refreshes up to this many old entries,
+    /// oldest first, but stops after `refreshTimeBox`. A small library is
+    /// refreshed in full; a large one stays fast and continues on later builds.
+    static let staleRefreshesOnRequest = 5_000
+    static let refreshTimeBox: Duration = .seconds(3)
+    private var isRefreshRequested = false
+
+    func requestRefresh() {
+        isRefreshRequested = true
+    }
+
+    /// A long first read is saved this often, so the next launch continues it
+    /// if iOS ends the app before the read is done.
+    static let saveInterval: Duration = .seconds(10)
+
+    /// A build that read only a few assets (one library change) leaves them
+    /// for a later save: the file holds every asset, and rewriting it after
+    /// each change on a busy iCloud library costs more than reading a few
+    /// assets again after a crash.
+    static let quietSaveInterval: Duration = .seconds(30)
+    static let readsWorthASave = 1_000
+    /// Nil until the first save of this launch, so the first build always saves.
+    private var lastSave: ContinuousClock.Instant?
+
+    /// `isFullLibrary`: the fetch holds every asset, so entries for any other
+    /// id belong to deleted assets and are dropped.
+    func build(
+        from fetchResult: UncheckedSendableBox<PHFetchResult<PHAsset>>,
+        excluding: Set<String>,
+        sort: Bool,
+        stamp: Int,
+        isFullLibrary: Bool
+    ) -> [AssetSummary] {
         defer { resources.release(stamp) }
-        return PhotoLibraryService.buildSummaries(from: fetchResult.value, excluding: excluding, sort: sort) { [resources] asset in
-            resources.resources(id: asset.localIdentifier, modifiedAt: asset.modificationDate, stamp: stamp) {
-                PhotoLibraryService.readResources(of: asset)
+        resources.loadIfNeeded()
+        let start = ContinuousClock.now
+        var lastLoopSave = start
+        var reads = 0
+        let isRefresh = isRefreshRequested
+        isRefreshRequested = false
+        let limit = isRefresh ? Self.staleRefreshesOnRequest : Self.staleRefreshesPerBuild
+        // A whole-library build takes the oldest entries first. A narrower build
+        // (screenshots, one album) takes its own old entries in fetch order:
+        // the oldest entries in the cache are usually not in its fetch.
+        var staleRefreshes = isFullLibrary
+            ? resources.staleRefreshBudget(limit)
+            : ResourceCache.StaleRefreshBudget(remaining: limit, readAtOrBefore: .distantFuture)
+        var seen = Set<String>()
+        let summaries = PhotoLibraryService.buildSummaries(from: fetchResult.value, excluding: excluding, sort: sort) { [resources] asset in
+            if isFullLibrary { seen.insert(asset.localIdentifier) }
+            if isRefresh, staleRefreshes.remaining > 0, ContinuousClock.now - start > Self.refreshTimeBox {
+                staleRefreshes.remaining = 0
+            }
+            return resources.resources(
+                id: asset.localIdentifier,
+                modifiedAt: asset.modificationDate,
+                stamp: stamp,
+                staleRefreshes: &staleRefreshes
+            ) {
+                reads += 1
+                if ContinuousClock.now - lastLoopSave > Self.saveInterval {
+                    resources.saveIfDirty()
+                    lastLoopSave = ContinuousClock.now
+                }
+                return PhotoLibraryService.readResources(of: asset)
             }
         }
+        if isFullLibrary, excluding.isEmpty { resources.retainOnly(seen) }
+        if reads >= Self.readsWorthASave || lastSave.map({ ContinuousClock.now - $0 > Self.quietSaveInterval }) ?? true {
+            resources.saveIfDirty()
+            lastSave = ContinuousClock.now
+        }
+        // The resource reads are what makes a build slow on a large library.
+        // A slow or read-heavy build is logged at notice, so a user's device
+        // log still holds it (info lines are not kept).
+        let elapsed = ContinuousClock.now - start
+        let milliseconds = elapsed.components.seconds * 1000 + elapsed.components.attoseconds / 1_000_000_000_000_000
+        let level: OSLogType = reads >= Self.readsWorthASave || elapsed > .seconds(2) ? .default : .info
+        AppLog.photo.log(level: level, "Summary build: \(summaries.count, privacy: .public) assets, \(reads, privacy: .public) resource reads, \(milliseconds, privacy: .public) ms")
+        return summaries
     }
 }
 
@@ -1431,25 +1584,84 @@ struct ResourceFacts: Sendable, Equatable {
     var filename: String?
     var isLocallyAvailable: Bool
     var hasScreenRecordingFilename: Bool
+    /// Size of the resource `sha256ForPrimaryResource` hashes. 0 when unknown.
+    var primaryFileSize: Int64 = 0
 
     /// For a deck listing, which skips the resource read: no file size, no
     /// filename, locally available.
     static let unread = ResourceFacts(fileSize: 0, filename: nil, isLocallyAvailable: true, hasScreenRecordingFilename: false)
 }
 
+/// What one photo library change means for the cached reads. Pure, so the
+/// rule is pinned by tests: PR #8 stopped clearing the cache on changes
+/// without per-asset detail, and PR #27 brought the clear back, because the
+/// rule lived only in a comment.
+enum LibraryChangeEffect: Equatable, Sendable {
+    /// The full-library fetch did not change: an album, a collection or
+    /// other metadata changed. No cached read or thumbnail is affected.
+    case unaffected
+    /// PhotoKit listed the assets that changed or left the library.
+    case assets(removedOrChanged: [String])
+    /// No per-asset detail: no baseline fetch yet, or a change that is not
+    /// incremental.
+    case unknown
+
+    /// What PhotoKit answered for the baseline fetch.
+    struct Details: Equatable, Sendable {
+        var isIncremental: Bool
+        var removedOrChanged: [String]
+    }
+
+    /// `baselineIsFullLibrary` is nil when there is no baseline fetch yet;
+    /// `details` is nil when `changeDetails(for:)` returned nil. Nil details
+    /// prove that no asset changed only when the baseline holds every asset:
+    /// a narrow baseline (screenshots, one album) says nothing about an edit
+    /// elsewhere, so its thumbnails could be stale.
+    init(baselineIsFullLibrary: Bool?, details: Details?) {
+        guard let baselineIsFullLibrary else { self = .unknown; return }
+        guard let details else { self = baselineIsFullLibrary ? .unaffected : .unknown; return }
+        self = details.isIncremental ? .assets(removedOrChanged: details.removedOrChanged) : .unknown
+    }
+
+    var logName: String {
+        switch self {
+        case .unaffected: "unaffected"
+        case .assets: "assets"
+        case .unknown: "unknown"
+        }
+    }
+}
+
 /// Resource reads from earlier builds, by asset id, reused while the asset's
 /// modification date is unchanged. `handleLibraryChange` drops the assets a
 /// change touched. A lock rather than an actor, so a change takes effect at
 /// once instead of waiting for a running build to finish.
+///
+/// Kept on disk between launches: reading every asset's resources is one
+/// Photos database round trip per asset, minutes on a large library, and the
+/// in-memory cache made every cold launch pay it again.
 final class ResourceCache: @unchecked Sendable {
     /// Downloading or offloading an iCloud original changes
-    /// `isLocallyAvailable` without always producing a library change, so no
-    /// read is reused for longer than this.
+    /// `isLocallyAvailable` without always producing a library change. A read
+    /// older than this is still used, but a build reads it again when its
+    /// refresh budget allows (see `StaleRefreshBudget`).
     static let maxAge: TimeInterval = 30 * 60
 
+    /// Bump when `Stored` changes; a file with another version is ignored.
+    static let fileVersion = 1
+
+    private struct Entry {
+        var facts: ResourceFacts
+        var modifiedAt: Date?
+        var readAt: Date
+    }
+
     private let lock = NSLock()
+    /// Serializes file writes and deletes. Never taken inside `lock`.
+    private let fileLock = NSLock()
     private let now: @Sendable () -> Date
-    private var entries: [String: (facts: ResourceFacts, modifiedAt: Date?, readAt: Date)] = [:]
+    private let fileURL: URL?
+    private var entries: [String: Entry] = [:]
     /// Ticks on every removal; `removedAt` and `clearedAt` record the tick. A
     /// build keeps nothing it read for an asset removed after its fetch was
     /// made: the fetch may hold that asset as it was before the change.
@@ -1460,9 +1672,24 @@ final class ResourceCache: @unchecked Sendable {
     /// matters to fetches stamped before it, so `removedAt` keeps only what
     /// the oldest open stamp still needs.
     private var openStamps: [Int: Int] = [:]
+    /// The file is read once, by the first build. Removals before that are
+    /// kept here so the file cannot bring those entries back.
+    private var isLoaded: Bool
+    private var removedBeforeLoad = Set<String>()
+    private var isDirty = false
 
-    init(now: @escaping @Sendable () -> Date = { Date() }) {
+    /// `fileURL` nil keeps the reads in memory only (tests).
+    init(now: @escaping @Sendable () -> Date = { Date() }, fileURL: URL? = nil) {
         self.now = now
+        self.fileURL = fileURL
+        self.isLoaded = fileURL == nil
+    }
+
+    /// The app's cache file. In Caches: iOS may purge it, which only costs
+    /// one full read.
+    static var defaultFileURL: URL? {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("ResourceCache.plist")
     }
 
     /// Take when making the fetch a build will enumerate, pass to
@@ -1486,17 +1713,57 @@ final class ResourceCache: @unchecked Sendable {
         }
     }
 
+    /// How many entries past `maxAge` one build may read again, and which:
+    /// the oldest reads first, so every entry gets its turn instead of the
+    /// first ones in fetch order taking the budget each time.
+    struct StaleRefreshBudget {
+        var remaining: Int
+        /// Only entries read at or before this are refreshed.
+        let readAtOrBefore: Date
+
+        static let unlimited = StaleRefreshBudget(remaining: .max, readAtOrBefore: .distantFuture)
+    }
+
+    /// A budget for `limit` refreshes that picks the `limit` oldest stale entries.
+    func staleRefreshBudget(_ limit: Int) -> StaleRefreshBudget {
+        let staleBefore = now().addingTimeInterval(-Self.maxAge)
+        let staleReads = lock.withLock { entries.values.compactMap { $0.readAt <= staleBefore ? $0.readAt : nil } }
+        guard limit > 0, staleReads.count > limit else {
+            return StaleRefreshBudget(remaining: limit, readAtOrBefore: .distantFuture)
+        }
+        return StaleRefreshBudget(remaining: limit, readAtOrBefore: staleReads.sorted()[limit - 1])
+    }
+
+    /// Reads every entry past `maxAge` again (the behaviour before the budget).
     func resources(id: String, modifiedAt modificationDate: Date?, stamp: Int, orRead read: () -> ResourceFacts) -> ResourceFacts {
+        var unlimited = StaleRefreshBudget.unlimited
+        return resources(id: id, modifiedAt: modificationDate, stamp: stamp, staleRefreshes: &unlimited, orRead: read)
+    }
+
+    /// An entry past `maxAge` is read again only while the budget lasts and
+    /// only if it is among the oldest reads the budget picked; otherwise the
+    /// old read is returned. A build passes a small budget, so a launch after
+    /// the entries aged out refreshes them a slice at a time instead of
+    /// reading the whole library.
+    func resources(
+        id: String,
+        modifiedAt modificationDate: Date?,
+        stamp: Int,
+        staleRefreshes budget: inout StaleRefreshBudget,
+        orRead read: () -> ResourceFacts
+    ) -> ResourceFacts {
         let cached = lock.withLock { entries[id] }
-        if let cached, cached.modifiedAt == modificationDate,
-           now().timeIntervalSince(cached.readAt) < Self.maxAge {
-            return cached.facts
+        if let cached, cached.modifiedAt == modificationDate {
+            let isFresh = now().timeIntervalSince(cached.readAt) < Self.maxAge
+            guard !isFresh, budget.remaining > 0, cached.readAt <= budget.readAtOrBefore else { return cached.facts }
+            budget.remaining -= 1
         }
         let readAt = now()
         let facts = read()
         lock.withLock {
             if clearedAt <= stamp, removedAt[id, default: 0] <= stamp {
-                entries[id] = (facts, modificationDate, readAt)
+                entries[id] = Entry(facts: facts, modifiedAt: modificationDate, readAt: readAt)
+                isDirty = true
             }
         }
         return facts
@@ -1508,17 +1775,142 @@ final class ResourceCache: @unchecked Sendable {
             for id in ids {
                 entries[id] = nil
                 removedAt[id] = tick
+                if !isLoaded { removedBeforeLoad.insert(id) }
             }
+            isDirty = true
             pruneRemovals()
         }
     }
 
+    /// Drops every entry, and the file, so a later launch cannot load them.
     func removeAll() {
         lock.withLock {
             tick += 1
             entries.removeAll()
             removedAt.removeAll()
             clearedAt = tick
+            isLoaded = true
+            removedBeforeLoad.removeAll()
+            isDirty = false
+        }
+        if let fileURL { fileLock.withLock { try? FileManager.default.removeItem(at: fileURL) } }
+    }
+
+    /// Applies one library change. Only a change that lists assets drops
+    /// entries. A change without per-asset detail keeps them all: an asset's
+    /// resources change only through an edit, which moves the modification
+    /// date every entry is checked against, or through an iCloud download or
+    /// offload, which the `maxAge` refresh covers. PR #27 dropped every entry
+    /// here; on an iCloud library such changes arrive every few seconds, so
+    /// every scan read the whole library again and, on a large one, never
+    /// finished.
+    func apply(_ effect: LibraryChangeEffect) {
+        if case .assets(let ids) = effect, !ids.isEmpty { remove(ids) }
+    }
+
+    /// Makes every entry due for a refresh without dropping it.
+    /// Capped at `now - maxAge` rather than set to one date, so the oldest
+    /// reads still go first: repeated pulls refresh new entries each time.
+    func markAllStale() {
+        let staleAt = now().addingTimeInterval(-Self.maxAge)
+        lock.withLock {
+            for (id, entry) in entries where entry.readAt > staleAt { entries[id]?.readAt = staleAt }
+            isDirty = true
+        }
+    }
+
+    /// Drops entries for assets that are no longer in the library. A build of
+    /// the whole library calls it with the ids it saw.
+    func retainOnly(_ ids: Set<String>) {
+        lock.withLock {
+            // Usually nothing is gone: skip the 27,000-entry copy then.
+            guard entries.keys.contains(where: { !ids.contains($0) }) else { return }
+            entries = entries.filter { ids.contains($0.key) }
+            isDirty = true
+        }
+    }
+
+    var count: Int { lock.withLock { entries.count } }
+
+    // MARK: File
+
+    private struct Stored: Codable {
+        struct Item: Codable {
+            var id: String
+            var modifiedAt: Date?
+            var readAt: Date
+            var fileSize: Int64
+            var filename: String?
+            var isLocallyAvailable: Bool
+            var hasScreenRecordingFilename: Bool
+            var primaryFileSize: Int64
+        }
+        var version: Int
+        var items: [Item]
+    }
+
+    /// Reads the file once. An entry read in this launch wins over the file.
+    func loadIfNeeded() {
+        guard let fileURL, !lock.withLock({ isLoaded }) else { return }
+        let items = (try? Data(contentsOf: fileURL))
+            .flatMap { try? PropertyListDecoder().decode(Stored.self, from: $0) }
+            .flatMap { $0.version == Self.fileVersion ? $0.items : nil } ?? []
+        lock.withLock {
+            guard !isLoaded else { return }
+            isLoaded = true
+            for item in items where entries[item.id] == nil && !removedBeforeLoad.contains(item.id) {
+                entries[item.id] = Entry(
+                    facts: ResourceFacts(
+                        fileSize: item.fileSize,
+                        filename: item.filename,
+                        isLocallyAvailable: item.isLocallyAvailable,
+                        hasScreenRecordingFilename: item.hasScreenRecordingFilename,
+                        primaryFileSize: item.primaryFileSize
+                    ),
+                    modifiedAt: item.modifiedAt,
+                    readAt: item.readAt
+                )
+            }
+            removedBeforeLoad.removeAll()
+        }
+    }
+
+    /// Writes the entries when anything changed since the last write.
+    func saveIfDirty() {
+        guard let fileURL else { return }
+        fileLock.withLock { save(to: fileURL) }
+    }
+
+    /// Call with `fileLock` held.
+    private func save(to fileURL: URL) {
+        let taken: (entries: [String: Entry], clearedAt: Int)? = lock.withLock {
+            guard isDirty, isLoaded else { return nil }
+            isDirty = false
+            return (entries, clearedAt)
+        }
+        guard let (snapshot, snapshotClearedAt) = taken else { return }
+        let items = snapshot.map { id, entry in
+            Stored.Item(
+                id: id,
+                modifiedAt: entry.modifiedAt,
+                readAt: entry.readAt,
+                fileSize: entry.facts.fileSize,
+                filename: entry.facts.filename,
+                isLocallyAvailable: entry.facts.isLocallyAvailable,
+                hasScreenRecordingFilename: entry.facts.hasScreenRecordingFilename,
+                primaryFileSize: entry.facts.primaryFileSize
+            )
+        }
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .binary
+        do {
+            let data = try encoder.encode(Stored(version: Self.fileVersion, items: items))
+            // A clear during the encode wins: these entries must not come back.
+            guard lock.withLock({ clearedAt }) == snapshotClearedAt else { return }
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            lock.withLock { isDirty = true }
+            AppLog.photo.error("Resource cache save failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

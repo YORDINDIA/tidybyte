@@ -131,7 +131,7 @@ final class CleanupHomeViewModel {
 
     /// Pull-to-refresh. Serialized through the same chain as `sync(to:)` (A4).
     func refreshCounts(excludingCompressedCopies: Set<String> = []) async {
-        await photoService.discardCachedResources()
+        await photoService.refreshCachedResources()
         await enqueue {
             await self.loadCounts(excludingCompressedCopies: excludingCompressedCopies)
         }
@@ -143,26 +143,47 @@ final class CleanupHomeViewModel {
         // each materializing AssetSummary arrays with per-asset resource I/O
         // just to call `.count`).
         let allAssets = await photoService.fetchAssets(filter: .allMedia)
+        let albums = await photoService.fetchUserAlbums().filter { $0.type == .userAlbum }
+        let chatMemberIDs = await photoService.assetIDs(inAlbums: ChatAlbumSelection.selectedIDs(in: albums))
 
         let threshold = AppPreferences.largeFileThresholdBytes()
-        let rollup = CleanupLibraryRollup.compute(from: allAssets, thresholdBytes: threshold, excludingCompressedCopies: excludingCompressedCopies)
+        // The passes walk every asset. On a large library they held the main
+        // thread at each library change, so they run off it (as APP-09 does).
+        let counts = await Task.detached(priority: Task.currentPriority) {
+            Self.libraryCounts(
+                from: allAssets,
+                thresholdBytes: threshold,
+                excludingCompressedCopies: excludingCompressedCopies,
+                chatMemberIDs: chatMemberIDs
+            )
+        }.value
+        let rollup = counts.rollup
 
         reclaimableBytes = rollup.reclaimableBytes
         reclaimableItemCount = rollup.reclaimableItemCount
 
         updateTool(.screenshots, count: rollup.screenshots)
-        ScanResults.record(.screenRecordings, count: allAssets.filter(\.isScreenRecording).count)
-        let albums = await photoService.fetchUserAlbums().filter { $0.type == .userAlbum }
-        let chatIDs = ChatAlbumSelection.selectedIDs(in: albums)
-        let chatMemberIDs = await photoService.assetIDs(inAlbums: chatIDs)
-        let chatCount = allAssets.filter {
-            ($0.mediaType == .photo || $0.mediaType == .video) && chatMemberIDs.contains($0.id)
-        }.count
-        ScanResults.record(.chatMedia, count: chatCount)
+        ScanResults.record(.screenRecordings, count: counts.screenRecordings)
+        ScanResults.record(.chatMedia, count: counts.chatMedia)
         updateTool(.livePhotos, count: rollup.livePhotos)
         updateTool(.videoCompression, count: rollup.largeVideos)
         updateTool(.largeFiles, count: rollup.largeFiles)
         updateTool(.photoCompression, count: rollup.photoCompressionCandidates)
+        updateTool(.bursts, count: counts.removableBurstFrames)
+
+        applyScanResults()
+    }
+
+    nonisolated static func libraryCounts(
+        from allAssets: [AssetSummary],
+        thresholdBytes: Int64,
+        excludingCompressedCopies: Set<String>,
+        chatMemberIDs: Set<String>
+    ) -> (rollup: CleanupLibraryRollup, screenRecordings: Int, chatMedia: Int, removableBurstFrames: Int) {
+        let rollup = CleanupLibraryRollup.compute(from: allAssets, thresholdBytes: thresholdBytes, excludingCompressedCopies: excludingCompressedCopies)
+        let chatMedia = allAssets.filter {
+            ($0.mediaType == .photo || $0.mediaType == .video) && chatMemberIDs.contains($0.id)
+        }.count
 
         // Bursts: `.allMedia` already includes every burst frame. The badge
         // counts removable frames (all but one per burst), like the tool.
@@ -172,9 +193,7 @@ final class CleanupHomeViewModel {
         // favorite.
         let removableFrames = BurstSelectionPolicy.rebuildGroups(from: burstGroups)
             .reduce(0) { $0 + BurstSelectionPolicy.suggestedIds(in: $1).count }
-        updateTool(.bursts, count: removableFrames)
-
-        applyScanResults()
+        return (rollup, allAssets.filter(\.isScreenRecording).count, chatMedia, removableFrames)
     }
 
     /// Duplicates, similar, blurry and smart categories cost a full scan to

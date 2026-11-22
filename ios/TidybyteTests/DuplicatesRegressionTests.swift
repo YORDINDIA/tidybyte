@@ -216,6 +216,51 @@ final class DuplicatesRegressionTests: XCTestCase {
         XCTAssertEqual(Set(candidates.map(\.id)), ["a", "b"])
     }
 
+    // MARK: Exact scan hashes only assets that share a size
+
+    private func sized(_ id: String, _ primarySize: Int64, width: Int = 4032) -> AssetSummary {
+        var asset = makeAsset(id: id, pixelWidth: width)
+        asset.primaryResourceSize = primarySize
+        return asset
+    }
+
+    private func idSets(_ groups: [[AssetSummary]]) -> Set<Set<String>> {
+        Set(groups.map { Set($0.map(\.id)) })
+    }
+
+    /// Same pixel size is the norm on a large library. Only assets whose
+    /// hashed resource has the same byte count can be identical.
+    func testExactCandidatesSplitDimensionBucketBySize() {
+        let groups = DuplicateDetectionService.exactHashCandidates([
+            sized("a", 100), sized("b", 100), sized("c", 200), sized("d", 300), sized("e", 300)
+        ])
+        XCTAssertEqual(idSets(groups), [["a", "b"], ["d", "e"]])
+    }
+
+    /// An asset of unknown size could match any other asset of its pixel
+    /// size, so its whole dimension bucket is still hashed.
+    func testExactCandidatesKeepBucketWithUnknownSize() {
+        let groups = DuplicateDetectionService.exactHashCandidates([
+            sized("a", 100), sized("b", 200), sized("unknown", 0), sized("other", 100, width: 1000)
+        ])
+        XCTAssertEqual(idSets(groups), [["a", "b", "unknown"]])
+    }
+
+    func testExactCandidatesNeedSamePixelSize() {
+        let groups = DuplicateDetectionService.exactHashCandidates([
+            sized("a", 100), sized("b", 100, width: 1000)
+        ])
+        XCTAssertTrue(groups.isEmpty)
+    }
+
+    func testProgressStepReportsEachPercentOnce() {
+        var step = ProgressStep()
+        let reported = (0...1000).map { Float($0) / 1000 }.filter { step.advances(to: $0) }
+        XCTAssertEqual(reported.count, 101)
+        XCTAssertEqual(reported.first, 0)
+        XCTAssertEqual(reported.last, 1)
+    }
+
     // MARK: DUP-04: group-scoped delete and select-all
 
     func testNonBestAssetIdsTargetsGroupSelection() {

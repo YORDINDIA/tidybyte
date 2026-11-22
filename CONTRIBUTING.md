@@ -69,7 +69,9 @@ xcodebuild test -project Tidybyte.xcodeproj -scheme Tidybyte \
 ```
 
 The simulator has a small sample photo library. Work that reads or changes
-photos (PhotoKit, iCloud originals, large libraries) needs a physical device.
+photos (PhotoKit, iCloud originals) needs a physical device. For large-library
+performance, add photos to the simulator with `npm run perf:seed -- --count
+27000` and follow [`ios/docs/large-library-performance.md`](ios/docs/large-library-performance.md).
 
 ### Mac app (from `macos/`)
 

@@ -135,6 +135,11 @@ struct RootView: View {
                 // its route in the App Group; apply it on the way back up.
                 applyPendingWidgetRoute()
                 Task { await offerLimitedLibraryPickerIfNeeded() }
+            } else if newPhase == .background {
+                // iOS can end the app while it is in the background. Write the
+                // cached library reads first, so the next launch does not read
+                // every asset again (docs/large-library-performance.md).
+                PhotoLibraryService.shared.saveCachedResources()
             }
         }
         .onChange(of: hasCompletedOnboarding) { _, _ in

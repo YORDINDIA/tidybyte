@@ -201,6 +201,21 @@ enum VisualPreFilter {
     }
 }
 
+/// Lets a scan report progress only when it moves by a whole percent. The view
+/// model starts one main-actor task per report, so a per-asset report on a
+/// large library queued tens of thousands of them.
+struct ProgressStep {
+    private var last = -1
+
+    /// True when `value` is in a new whole percent.
+    mutating func advances(to value: Float) -> Bool {
+        let step = Int(value * 100)
+        guard step != last else { return false }
+        last = step
+        return true
+    }
+}
+
 actor DuplicateDetectionService {
     private let photoService: PhotoLibraryService
     private let visionService: VisionAnalysisService
@@ -230,37 +245,43 @@ actor DuplicateDetectionService {
         return (candidates, skipped)
     }
 
+    /// The assets that could be byte-identical to another asset, in groups;
+    /// only these are hashed. Identical bytes mean the same pixel size, media
+    /// type and primary resource size. Most photos on a large library share a
+    /// pixel size, so without the size key the scan read almost every original.
+    /// A dimension bucket that holds any asset of unknown size (0) stays whole,
+    /// as before: that asset could match any other in it.
+    static func exactHashCandidates(_ assets: [AssetSummary]) -> [[AssetSummary]] {
+        let byDimension = Dictionary(grouping: assets) { "\($0.pixelWidth)x\($0.pixelHeight)_\($0.mediaType)" }
+        var groups: [[AssetSummary]] = []
+        for bucket in byDimension.values where bucket.count > 1 {
+            if bucket.contains(where: { $0.primaryResourceSize <= 0 }) {
+                groups.append(bucket)
+            } else {
+                groups += Dictionary(grouping: bucket, by: \.primaryResourceSize).values.filter { $0.count > 1 }
+            }
+        }
+        return groups
+    }
+
     func findExactDuplicates(
         assets: [AssetSummary],
         progress: @Sendable (Float) -> Void
     ) async -> ExactDuplicateResult {
-        // Pre-filter pass (reports 0 → 0.1 so the bar moves during this phase;
-        // DUP-12): bucket by (width, height, mediaType) to reduce comparisons.
         // Assets that aren't on this device are skipped — hashing them would
         // download the full resource from iCloud (DUP-03) — and counted so the
         // UI can surface "N iCloud-only photos skipped".
         let (localAssets, skippedCount) = Self.splitByLocalAvailability(assets)
-        // One batched PhotoKit resolve for the whole scan — the hash loop
-        // below would otherwise do one identifier lookup per asset.
-        let phById = photoService.phAssetsById(localAssets.map(\.id))
-        var candidates: [String: [AssetSummary]] = [:]
-        let total = assets.count
-        for (index, asset) in localAssets.enumerated() {
-            if Task.isCancelled {
-                return ExactDuplicateResult(groups: [], skippedCount: skippedCount)
-            }
-            if index % 20 == 0 {
-                await Task.yield()
-            }
-            let key = "\(asset.pixelWidth)x\(asset.pixelHeight)_\(asset.mediaType)"
-            candidates[key, default: []].append(asset)
-            progress(Float(index + 1) / Float(max(total, 1)) * 0.1)
-        }
-
-        // Only keep groups with potential duplicates
-        let potentialGroups = candidates.values.filter { $0.count > 1 }
+        var skipped = skippedCount
+        let potentialGroups = Self.exactHashCandidates(localAssets)
+        progress(0.1)
+        // One batched PhotoKit resolve, for the assets that are hashed only.
+        // The hash loop below would otherwise do one identifier lookup per asset.
+        let phById = photoService.phAssetsById(potentialGroups.flatMap { $0.map(\.id) })
         let totalAssets = potentialGroups.reduce(0) { $0 + $1.count }
+        AppLog.photo.info("Exact duplicate scan hashes \(totalAssets, privacy: .public) of \(localAssets.count, privacy: .public) local assets")
         var processed = 0
+        var step = ProgressStep()
 
         var hashGroups: [String: [AssetSummary]] = [:]
 
@@ -275,12 +296,19 @@ actor DuplicateDetectionService {
                 // Stream the hash so large videos aren't loaded fully into memory.
                 // `phById` was resolved once up front — no per-asset fetch.
                 // (Missing = deleted externally mid-scan; skip like a nil hash.)
-                if let phAsset = phById[asset.id],
-                   let hashString = await photoService.sha256ForPrimaryResource(of: phAsset) {
-                    hashGroups[hashString, default: []].append(asset)
+                if let phAsset = phById[asset.id] {
+                    if let hashString = await photoService.sha256ForPrimaryResource(of: phAsset) {
+                        hashGroups[hashString, default: []].append(asset)
+                    } else if !Task.isCancelled {
+                        // The hash runs with the network off, so the usual cause
+                        // is an original iOS offloaded after the cached
+                        // "on device" read. Say so instead of dropping it silently.
+                        skipped += 1
+                    }
                 }
                 processed += 1
-                progress(0.1 + Float(processed) / Float(max(totalAssets, 1)) * 0.9)
+                let value = 0.1 + Float(processed) / Float(max(totalAssets, 1)) * 0.9
+                if step.advances(to: value) { progress(value) }
             }
         }
 
@@ -297,7 +325,7 @@ actor DuplicateDetectionService {
             }
             .sorted { $0.assets.count > $1.assets.count }
 
-        return ExactDuplicateResult(groups: groups, skippedCount: skippedCount)
+        return ExactDuplicateResult(groups: groups, skippedCount: skipped)
     }
 
     // MARK: - Visual Duplicate Detection
@@ -323,6 +351,7 @@ actor DuplicateDetectionService {
         // (Missing = deleted externally mid-scan; skip like a nil image.)
         let phById = photoService.phAssetsById(photoAssets.map(\.id))
         var featurePrints: [(asset: AssetSummary, print: FeaturePrint, hash: UInt64)] = []
+        var step = ProgressStep()
         for (index, asset) in photoAssets.enumerated() {
             if Task.isCancelled { return [] }
             if index % 20 == 0 {
@@ -337,7 +366,8 @@ actor DuplicateDetectionService {
                     featurePrints.append((asset, fp, hash))
                 }
             }
-            progress(generationWeight * Float(index + 1) / Float(max(total, 1)))
+            let value = generationWeight * Float(index + 1) / Float(max(total, 1))
+            if step.advances(to: value) { progress(value) }
         }
 
         // DUP-01: pre-filter the comparison set — only pairs whose perceptual
@@ -430,7 +460,8 @@ actor DuplicateDetectionService {
                 ))
             }
 
-            progress(min(generationWeight + comparisonWeight * Float(attemptedPairs) / Float(comparisonTotal), 1.0))
+            let value = min(generationWeight + comparisonWeight * Float(attemptedPairs) / Float(comparisonTotal), 1.0)
+            if step.advances(to: value) { progress(value) }
         }
 
         return groups.sorted { $0.assets.count > $1.assets.count }
