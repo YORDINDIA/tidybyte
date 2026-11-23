@@ -794,6 +794,7 @@
     "You Could Free": "削減できる容量",
     "You can free up to %@ on this iPhone. Review %@ in TidyByte.": "このiPhoneでは最大%@を空けられます。TidyByteで%@を確認してください。",
     "You can keep or skip it. Delete is off until it shows.": "残してもスキップしてもかまいません。表示されるまで「削除」はオフです。",
+    "You can skip it. Convert is off until it shows.": "スキップできます。表示されるまで変換はオフです。",
     "You could free up to %@ on this device, from %@": "このデバイスでは最大%@を空けられます。内訳: %@",
     "You don't have any Live Photos in your library.": "ライブラリにLive Photoはありません。",
     "You don't have any burst photo groups.": "バースト写真のグループはありません。",

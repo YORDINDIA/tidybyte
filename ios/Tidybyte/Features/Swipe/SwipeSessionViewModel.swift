@@ -264,7 +264,10 @@ final class SwipeSessionViewModel {
         // and belong to the Bursts tool. An explicit id list is left alone.
         let deck: [AssetSummary]
         switch filter {
-        case .customAssetIds, .notSwipedYet, .largestFirst: // the last two are collapsed above
+        case .customAssetIds(let ids):
+            // The tool's on-screen order, not PhotoKit's.
+            deck = Self.ordered(fetched, by: ids)
+        case .notSwipedYet, .largestFirst: // collapsed above
             deck = fetched
         default:
             deck = Self.collapsingBursts(fetched)
@@ -411,6 +414,12 @@ final class SwipeSessionViewModel {
         return collapsed.filter {
             !swipedIds.contains($0.id) && ($0.burstIdentifier.map { !swipedBurstIds.contains($0) } ?? true)
         }
+    }
+
+    /// `assets` in the order of `ids`. Ids PhotoKit no longer has are skipped.
+    nonisolated static func ordered(_ assets: [AssetSummary], by ids: [String]) -> [AssetSummary] {
+        let rank = Dictionary(ids.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
+        return assets.sorted { (rank[$0.id] ?? .max) < (rank[$1.id] ?? .max) }
     }
 
     /// The Largest First deck: unswiped items, biggest file first. An unknown

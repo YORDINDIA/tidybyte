@@ -21,6 +21,18 @@ final class LocaleFormattingTests: XCTestCase {
     private let jp = Locale.Region("JP")
     private let eg = Locale.Region("EG")
 
+    // MARK: - Month and year
+
+    func testMonthYearHasNoDayInGerman() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 3, day: 9, hour: 12))!
+        let german = Formatters.monthYear(date, language: .german, region: de)
+        XCTAssertTrue(german.contains("2026"), german)
+        XCTAssertTrue(german.contains("Mär"), german)
+        XCTAssertFalse(german.contains("9"), "Month and year only: \(german)")
+    }
+
     // MARK: - File sizes
 
     func testSizeUsesLocaleDecimalSeparator() {

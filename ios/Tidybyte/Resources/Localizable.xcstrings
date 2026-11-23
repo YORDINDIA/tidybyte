@@ -75400,7 +75400,7 @@
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਇੰਨੀਆਂ ਪੁਰਾਣੀਆਂ ਲਿਖਤ ਨਾਲ ਭਰੀਆਂ ਕੋਈ ਫ਼ੋਟੋਆਂ ਨਹੀਂ ਹਨ।"
+            "value": "ਇੰਨੀਆਂ ਪੁਰਾਣੀਆਂ ਲਿਖਤ ਨਾਲ ਭਰੀਆਂ ਫ਼ੋਟੋਆਂ ਨਹੀਂ ਹਨ।"
           }
         },
         "es": {
@@ -125337,6 +125337,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "אפשר לשמור או לדלג. המחיקה כבויה עד שזה יופיע."
+          }
+        }
+      }
+    },
+    "You can skip it. Convert is off until it shows.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can skip it. Convert is off until it shows."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप इसे छोड़ सकते हैं। यह दिखने तक कन्वर्ट बंद है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি এটি এড়িয়ে যেতে পারেন। এটি না দেখা পর্যন্ত রূপান্তর বন্ধ থাকবে।"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இதைத் தவிர்க்கலாம். இது தெரியும் வரை மாற்றுதல் முடக்கப்பட்டுள்ளது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "దీన్ని దాటవేయవచ్చు. ఇది కనిపించే వరకు మార్చడం ఆఫ్‌లో ఉంటుంది."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तुम्ही हे वगळू शकता. हे दिसेपर्यंत रूपांतर बंद आहे."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "તમે તેને છોડી શકો છો. તે દેખાય ત્યાં સુધી કન્વર્ટ બંધ છે."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನೀವು ಇದನ್ನು ಬಿಟ್ಟುಬಿಡಬಹುದು. ಇದು ಕಾಣುವವರೆಗೆ ಪರಿವರ್ತನೆ ಆಫ್ ಆಗಿದೆ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "നിങ്ങൾക്ക് ഇത് ഒഴിവാക്കാം. ഇത് കാണുന്നതുവരെ കൺവേർട്ട് ഓഫാണ്."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਤੁਸੀਂ ਇਸ ਨੂੰ ਛੱਡ ਸਕਦੇ ਹੋ। ਇਹ ਦਿਸਣ ਤੱਕ ਕਨਵਰਟ ਬੰਦ ਹੈ।"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes omitirla. Convertir está desactivado hasta que se muestre."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pouvez l’ignorer. La conversion est désactivée tant qu’elle ne s’affiche pas."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst es überspringen. Konvertieren ist aus, bis es angezeigt wird."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você pode pulá-la. Converter fica desativado até ela aparecer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi saltarla. La conversione è disattivata finché non viene mostrata."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スキップできます。表示されるまで変換はオフです。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "건너뛸 수 있습니다. 표시될 때까지 변환은 꺼져 있습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你可以跳过它。显示之前无法转换。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Можно пропустить. Преобразование недоступно, пока фото не покажется."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكنك تخطيها. التحويل معطّل حتى تظهر."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אפשר לדלג עליה. ההמרה כבויה עד שהיא תוצג."
           }
         }
       }

@@ -859,7 +859,7 @@ struct StorageDashboardView: View {
                         let maxBytes = max(1, buckets.map(\.bytes).max() ?? 1)
                         ForEach(Array(buckets.enumerated()), id: \.element.id) { index, bucket in
                             Button {
-                                handle(.swipe(.customAssetIds(Set(bucket.assetIds))))
+                                handle(.swipe(.customAssetIds(bucket.assetIds)))
                             } label: {
                                 breakdownRow(label: bucket.label, count: bucket.count, bytes: bucket.bytes, maxBytes: maxBytes)
                             }

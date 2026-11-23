@@ -15,7 +15,8 @@ enum SwipeFilter: Sendable, Hashable {
     /// Unreviewed items, biggest file first. Needs every file size, so on a
     /// cold cache it waits for a full library read.
     case largestFirst
-    case customAssetIds(Set<String>)
+    /// An explicit list, in the order the deck shows it (a tool's sort).
+    case customAssetIds([String])
 }
 
 actor PhotoLibraryService {
@@ -261,9 +262,12 @@ actor PhotoLibraryService {
         return count
     }
 
+    /// Fetch order only: `SwipeSessionViewModel` applies the Largest First
+    /// size order and the custom-list order.
     func fetchAssets(filter: SwipeFilter) async -> [AssetSummary] {
         guard let query = query(for: filter) else { return [] }
-        return await extractSummaries(from: query.assets, excluding: query.excluding, isFullLibrary: filter == .allMedia)
+        let isFullLibrary = filter == .allMedia || filter == .largestFirst
+        return await extractSummaries(from: query.assets, excluding: query.excluding, isFullLibrary: isFullLibrary)
     }
 
     /// The PhotoKit fetch behind each filter, plus the ids the filter drops
@@ -309,7 +313,7 @@ actor PhotoLibraryService {
             return (PHAsset.fetchAssets(with: options), [])
 
         case .customAssetIds(let ids):
-            return (PHAsset.fetchAssets(withLocalIdentifiers: Array(ids), options: allAssetsFetchOptions()), [])
+            return (PHAsset.fetchAssets(withLocalIdentifiers: ids, options: allAssetsFetchOptions()), [])
         }
     }
 

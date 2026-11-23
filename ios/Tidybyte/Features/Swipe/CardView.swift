@@ -572,12 +572,12 @@ struct CardView: View {
             Text(loadFailureMessage)
                 .font(.headline)
                 .multilineTextAlignment(.center)
-            if stamps.backwardDeletes {
-                Text("You can keep or skip it. Delete is off until it shows.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
+            Text(stamps.backwardDeletes
+                 ? "You can keep or skip it. Delete is off until it shows."
+                 : "You can skip it. Convert is off until it shows.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             Button("Try Again", action: retryLoad)
             .buttonStyle(.bordered)
         }
@@ -772,7 +772,7 @@ struct SwipeStamps {
     /// The stamp for a backward drag.
     let backward: Stamp
     /// The backward swipe deletes: the card tints under its stamp, and a card
-    /// that failed to load says Delete is off until it shows.
+    /// that failed to load says Delete (not Convert) is off until it shows.
     let backwardDeletes: Bool
     /// Shows ALBUM on an up-drag.
     let showsAlbum: Bool

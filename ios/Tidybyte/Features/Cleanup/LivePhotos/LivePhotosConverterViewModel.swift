@@ -103,7 +103,8 @@ final class LivePhotosConverterViewModel {
 
     /// D2: starts Convert All on a VM-owned task so leaving the screen cancels
     /// it. Idempotent while running. `ids` limits the batch to the photos the
-    /// swipe review marked; nil converts every idle row.
+    /// swipe review marked; nil converts every row `eligibleIds` accepts
+    /// (idle, or failed and retried).
     func startConvertAll(ids: Set<String>? = nil, modelContext: ModelContext) {
         guard batchTask == nil else { return }
         batchTask = Task { [weak self] in

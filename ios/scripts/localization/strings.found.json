@@ -2704,10 +2704,6 @@
       "file": "Tidybyte/Shared/Components/ReplaceOriginalsNotice.swift"
     },
     {
-      "key": "You can keep or skip it. Delete is off until it shows.",
-      "file": "Tidybyte/Features/Swipe/CardView.swift"
-    },
-    {
       "key": "You Could Free",
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     },
@@ -2760,5 +2756,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 680
+  "total": 679
 }

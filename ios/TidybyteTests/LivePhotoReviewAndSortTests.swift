@@ -97,6 +97,22 @@ final class LivePhotoReviewAndSortTests: XCTestCase {
         XCTAssertEqual(MediaAssetFilter.apply(from: items, mediaFilter: .videos, sortOrder: .largest).map(\.id), ["c", "a"])
     }
 
+    func testFilenameSortPutsMissingNamesFirst() {
+        let named = [
+            AssetSummary(id: "b", mediaType: .photo, creationDate: nil, modificationDate: nil, pixelWidth: 1, pixelHeight: 1,
+                         duration: 0, fileSize: 1, filename: "b.JPG", isFavorite: false, isBurst: false, burstIdentifier: nil,
+                         isLivePhoto: false, isScreenshot: false, isLocallyAvailable: true),
+            AssetSummary(id: "none", mediaType: .photo, creationDate: nil, modificationDate: nil, pixelWidth: 1, pixelHeight: 1,
+                         duration: 0, fileSize: 1, filename: nil, isFavorite: false, isBurst: false, burstIdentifier: nil,
+                         isLivePhoto: false, isScreenshot: false, isLocallyAvailable: true),
+            AssetSummary(id: "a", mediaType: .photo, creationDate: nil, modificationDate: nil, pixelWidth: 1, pixelHeight: 1,
+                         duration: 0, fileSize: 1, filename: "A.jpg", isFavorite: false, isBurst: false, burstIdentifier: nil,
+                         isLivePhoto: false, isScreenshot: false, isLocallyAvailable: true),
+        ]
+        XCTAssertEqual(MediaSortOrder.filename.sorted(named) { $0 }.map(\.id), ["none", "a", "b"],
+                       "Case-insensitive; a missing name sorts as empty")
+    }
+
     // MARK: - Group sort
 
     func testGroupSortOrders() {
@@ -141,6 +157,11 @@ final class LivePhotoReviewAndSortTests: XCTestCase {
     }
 
     // MARK: - Swipe tab: Largest First
+
+    func testCustomDeckFollowsTheToolOrder() {
+        let fetched = [asset("x"), asset("y"), asset("z")]
+        XCTAssertEqual(SwipeSessionViewModel.ordered(fetched, by: ["z", "gone", "x", "y"]).map(\.id), ["z", "x", "y"])
+    }
 
     func testLargestFirstDeckDropsSwipedItemsAndCollapsesBursts() {
         let all = [

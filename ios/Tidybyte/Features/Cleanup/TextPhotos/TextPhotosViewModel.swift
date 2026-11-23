@@ -191,10 +191,10 @@ final class TextPhotosViewModel {
             return
         }
         guard scanState == .completed, !photos.isEmpty, !isDeleting else { return }
-        let scannedIds = photos.map(\.id)
-        let present = await photoService.existingIds(scannedIds)
-        guard present.count < scannedIds.count, scanState == .completed, !isDeleting else { return }
-        let goneIds = Set(scannedIds.filter { !present.contains($0) })
+        // Empty when the library cannot be read, so results never vanish
+        // because access changed.
+        let goneIds = await CleanupDeletion.vanishedIds(among: Set(photos.map(\.id)))
+        guard !goneIds.isEmpty, scanState == .completed, !isDeleting else { return }
         photos.removeAll { goneIds.contains($0.id) }
     }
 

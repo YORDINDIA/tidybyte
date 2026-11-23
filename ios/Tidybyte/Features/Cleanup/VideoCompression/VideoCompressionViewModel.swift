@@ -334,7 +334,8 @@ final class VideoCompressionViewModel {
         await CompressionJournal.reconcile(modelContext: modelContext)
 
         // COMP-12: deterministic batch order (descending file size, id tiebreak)
-        // matching the on-screen list instead of nondeterministic Set iteration.
+        // instead of nondeterministic Set iteration. Fixed by size: it does not
+        // follow the on-screen sort, which the user can change.
         // Owned by CompressionBatchRunner.run; the VM only builds the inputs.
         // Idempotent overwrite: PhotoKit identifiers are unique, so a
         // repeated id (shouldn't happen) just re-records the same size

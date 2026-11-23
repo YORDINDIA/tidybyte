@@ -365,7 +365,7 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 | Version | Build | Release notes source |
 |---|---|---|
 | 1.3.0 | 13 | §12 above. Live Photo swipe review (marked photos convert in one batch, one iOS delete prompt), the Text Photos tool, sort options in every Cleanup tool, and the Largest First swipe deck. |
-| 1.2.1 | 12 | §12 above. Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
+| 1.2.1 | 12 | §12, "v1.2.1 release notes, for the record". Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
 | 1.2.0 | 11 | §12 above. Delete-prompt fixes (#24), whole-photo swipe cards, compression, accessibility-layout and data-safety fixes (#27). Google Photos stays hidden (no OAuth client ID). |
 | 1.1.3 | 10 | §12 above. The photo-access recovery (#11), the large-library speed fixes (#6-#8), the Storage first-load fix (#9) and the Recently Deleted notice fix (#10). |
 | 1.1.2 | 9 | Never shipped. Withdrawn from review and renamed to 1.1.3; build 9 is unused. |

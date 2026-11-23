@@ -68,6 +68,12 @@ struct LivePhotoSwipeReviewView: View {
     @State private var deckSize: CGSize = .zero
     @State private var playRequest = 0
     @State private var confirmDiscard = false
+    /// Photos the review grid has listed, kept across Resume so an unchecked
+    /// photo stays there to check again.
+    @State private var listedInReview: [String] = []
+    /// Cards whose image is on screen. Convert stays off for a card that never
+    /// showed its photo, as Delete does in the swipe session.
+    @State private var shownIds: Set<String> = []
 
     init(
         items: [LivePhotoItem],
@@ -150,7 +156,13 @@ struct LivePhotoSwipeReviewView: View {
     private func openReview() {
         motion.isDragging = false
         motion.offset = .zero
-        reviewIds = deck.markedIds
+        listedInReview += deck.markedIds.filter { !listedInReview.contains($0) }
+        // An undone photo has no decision to show until it is swiped again.
+        reviewIds = listedInReview.filter { deck.decisions[$0] != nil }
+    }
+
+    private var canConvertTopCard: Bool {
+        deck.current.map(shownIds.contains) ?? false
     }
 
     // MARK: - Deck
@@ -213,7 +225,8 @@ struct LivePhotoSwipeReviewView: View {
                         stamps: .livePhotoReview,
                         playRequest: isTop ? playRequest : 0,
                         onSwipeDragChanged: handleDragChanged,
-                        onSwipeDragEnded: handleDragEnded
+                        onSwipeDragEnded: handleDragEnded,
+                        onImageShown: { shownIds.insert($0) }
                     )
                     .animation(.reduceMotionAware(.smooth(duration: 0.3), reduceMotion: reduceMotion)) {
                         $0.scaleEffect(1.0 - depth * 0.05)
@@ -282,6 +295,12 @@ struct LivePhotoSwipeReviewView: View {
     private func commit(convert: Bool, velocity: CGSize = .zero) {
         guard let id = deck.current, let asset = assets[id] else { return }
         motion.isDragging = false
+        if convert, !canConvertTopCard {
+            // The photo never showed: refuse, as the session deck refuses Delete.
+            HapticHelper.notification(.warning)
+            snapBack()
+            return
+        }
         HapticHelper.impact(convert ? .heavy : .light)
         // Forward (right in LTR) converts, the same side the stamp shows.
         let direction: SwipeDirection = convert ? .keep : .delete
@@ -359,7 +378,8 @@ struct LivePhotoSwipeReviewView: View {
                             font: .title2.bold(), fill: Color.successFill)
             }
             .keyboardShortcut(.rightArrow, modifiers: [])
-            .disabled(deck.isFinished)
+            .disabled(deck.isFinished || !canConvertTopCard)
+            .opacity(canConvertTopCard ? 1 : 0.4)
             .accessibilityLabel("Convert")
         }
     }
