@@ -4,13 +4,22 @@ import SwiftUI
 @MainActor
 final class BurstCleanerViewModel {
     var groups: [BurstGroup] = [] {
-        didSet { updateDerivedTotals() }
+        didSet {
+            updateDerivedTotals()
+            refreshSortedGroups()
+        }
     }
     /// Display order. The sort is stable, so Most Items keeps the stored
     /// order between equal groups, and a group a delete shrank moves down.
-    var groupSortOrder: GroupSortOrder = .mostItems
-    var sortedGroups: [BurstGroup] {
-        groupSortOrder.sorted(groups) { $0.assets }
+    var groupSortOrder: GroupSortOrder = .mostItems {
+        didSet { refreshSortedGroups() }
+    }
+    /// Cached: the list reads it on every render, and only a change to the
+    /// groups or the order can change it.
+    private(set) var sortedGroups: [BurstGroup] = []
+
+    private func refreshSortedGroups() {
+        sortedGroups = groupSortOrder.sorted(groups) { $0.assets }
     }
     var isLoading = true
     private(set) var hasLoadedGroups = false
