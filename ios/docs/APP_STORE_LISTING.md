@@ -2,9 +2,10 @@
 
 > **Status (2026-11-23):** 1.2.1 (build 12) is live. 1.3.0 (build 13) is the
 > next release; its copy is below and in `docs/appstore/listings.json`.
-> `website/src/data/releases.ts` still names 1.2.0: set `IOS_VERSION` and
-> `IOS_BUILD` there, and move the "Latest iPhone release" badge in
-> `website/src/content/pages/changelog.html`, for each release App Review approves.
+> When App Review approves 1.3.0, set `IOS_VERSION` and `IOS_BUILD` in
+> `website/src/data/releases.ts`, add a 1.3.0 entry to
+> `website/src/content/pages/changelog.html`, and move the "Latest iPhone
+> release" badge to it.
 > The site's `/changelog` is the canonical version history.
 
 Paste-ready copy for App Store Connect. Char-count annotations are inline. Anything marked **TODO** needs a human decision before submission.
