@@ -83,7 +83,7 @@
     "Best overall": "એકંદરે શ્રેષ્ઠ",
     "Best quality": "શ્રેષ્ઠ ગુણવત્તા",
     "Biggest files in your library": "તમારી લાઇબ્રેરીની સૌથી મોટી ફાઇલો",
-    "Biggest photos and videos first": "સૌથી મોટા ફોટા અને વીડિયો પહેલા",
+    "Biggest photos and videos first": "સૌથી મોટા ફોટા અને વિડિયો પહેલા",
     "Blur": "ઝાંખપ",
     "Blur Detection Sensitivity": "ઝાંખી શોધ સંવેદનશીલતા",
     "Blurry": "ઝાંખી",
@@ -209,7 +209,7 @@
     "Detect Low-Quality Photos": "નીચી ગુણવત્તાવાળા ફોટા શોધી કાઢો",
     "Detected by file name heuristics — may include some camera photos": "ફાઇલ નામના અંદાજ પરથી ઓળખાયું — તેમાં થોડા કૅમેરા ફોટા હોઈ શકે છે",
     "Device Storage": "ડિવાઇસ સ્ટોરેજ",
-    "Discard": "રદ કરો",
+    "Discard": "ફગાવી દો",
     "Discard your choices?": "તમારી પસંદગીઓ રદ કરવી છે?",
     "Dismiss": "બંધ કરો",
     "Dismiss error": "ભૂલ બંધ કરો",
@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld લખાણવાળો ફોટો",
       "other": "%lld લખાણવાળા ફોટા"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld ફોટાનું વિશ્લેષણ થઈ શક્યું નહીં.",
+      "other": "%lld ફોટાનું વિશ્લેષણ થઈ શક્યું નહીં."
     }
   }
 }

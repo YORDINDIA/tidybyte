@@ -209,7 +209,7 @@
     "Detect Low-Quality Photos": "कमी दर्जाचे फोटो ओळखा",
     "Detected by file name heuristics — may include some camera photos": "फाइल नावाच्या अंदाजावरून ओळखले — त्यात काही कॅमेरा फोटो असू शकतात",
     "Device Storage": "डिव्हाइस स्टोरेज",
-    "Discard": "रद्द करा",
+    "Discard": "टाकून द्या",
     "Discard your choices?": "तुमच्या निवडी रद्द करायच्या?",
     "Dismiss": "बंद करा",
     "Dismiss error": "त्रुटी बंद करा",
@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld मजकूर असलेला फोटो",
       "other": "%lld मजकूर असलेले फोटो"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld फोटोचे विश्लेषण करता आले नाही.",
+      "other": "%lld फोटोंचे विश्लेषण करता आले नाही."
     }
   }
 }

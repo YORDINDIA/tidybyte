@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld ಪಠ್ಯವಿರುವ ಫೋಟೋ",
       "other": "%lld ಪಠ್ಯವಿರುವ ಫೋಟೋಗಳು"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld ಫೋಟೋವನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಆಗಲಿಲ್ಲ.",
+      "other": "%lld ಫೋಟೋಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಆಗಲಿಲ್ಲ."
     }
   }
 }

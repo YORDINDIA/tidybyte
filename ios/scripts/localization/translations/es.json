@@ -83,7 +83,7 @@
     "Best overall": "Mejor en conjunto",
     "Best quality": "Mejor calidad",
     "Biggest files in your library": "Los archivos más grandes de tu fototeca",
-    "Biggest photos and videos first": "Primero las fotos y los videos más grandes",
+    "Biggest photos and videos first": "Primero las fotos y los vídeos más grandes",
     "Blur": "Desenfoque",
     "Blur Detection Sensitivity": "Sensibilidad de detección de desenfoque",
     "Blurry": "Borrosa",
@@ -1206,6 +1206,11 @@
       "one": "%lld foto con texto",
       "many": "%lld fotos con texto",
       "other": "%lld fotos con texto"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "No se pudo analizar %lld foto.",
+      "many": "No se pudieron analizar %lld fotos.",
+      "other": "No se pudieron analizar %lld fotos."
     }
   }
 }

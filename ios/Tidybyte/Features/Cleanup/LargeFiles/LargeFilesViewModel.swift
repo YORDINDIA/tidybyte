@@ -12,7 +12,10 @@ final class LargeFilesViewModel {
         didSet { refreshTotals() }
     }
     var mediaFilter: MediaFilter = .all {
-        didSet { invalidateFilterCache() }
+        didSet {
+            if mediaFilter == .photos, sortOrder == .longest { sortOrder = .largest }
+            invalidateFilterCache()
+        }
     }
     var sortOrder: MediaSortOrder = .largest {
         didSet { invalidateFilterCache() }

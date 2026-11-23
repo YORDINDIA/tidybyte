@@ -216,6 +216,11 @@
       "file": "Tidybyte/Shared/Components/SelectableMediaGridCell.swift"
     },
     {
+      "key": "%lld photo could not be analyzed.",
+      "fallback": "%lld photos could not be analyzed.",
+      "file": "Tidybyte/Features/Cleanup/TextPhotos/TextPhotosView.swift"
+    },
+    {
       "key": "%lld photo could not be scored from a local image.",
       "fallback": "%lld photos could not be scored from a local image.",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
@@ -2755,5 +2760,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 679
+  "total": 680
 }

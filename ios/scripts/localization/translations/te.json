@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld టెక్స్ట్ ఫోటో",
       "other": "%lld టెక్స్ట్ ఫోటోలు"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld ఫోటోను విశ్లేషించలేకపోయాం.",
+      "other": "%lld ఫోటోలను విశ్లేషించలేకపోయాం."
     }
   }
 }

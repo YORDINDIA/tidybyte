@@ -83,7 +83,7 @@
     "Best overall": "সামগ্রিকভাবে সেরা",
     "Best quality": "সেরা গুণমান",
     "Biggest files in your library": "আপনার লাইব্রেরির সবচেয়ে বড় ফাইল",
-    "Biggest photos and videos first": "সবচেয়ে বড় ছবি ও ভিডিও আগে",
+    "Biggest photos and videos first": "সবচেয়ে বড় ফটো ও ভিডিও আগে",
     "Blur": "ঝাপসা",
     "Blur Detection Sensitivity": "ঝাপসা শনাক্তকরণ সংবেদনশীলতা",
     "Blurry": "ঝাপসা",
@@ -209,7 +209,7 @@
     "Detect Low-Quality Photos": "কম গুণমানের ফটো শনাক্ত করুন",
     "Detected by file name heuristics — may include some camera photos": "ফাইলের নাম বিশ্লেষণ করে শনাক্ত — কিছু ক্যামেরার ফটোও থাকতে পারে",
     "Device Storage": "ডিভাইস স্টোরেজ",
-    "Discard": "বাতিল করুন",
+    "Discard": "বাদ দিন",
     "Discard your choices?": "আপনার বাছাই বাতিল করবেন?",
     "Dismiss": "খারিজ করুন",
     "Dismiss error": "ত্রুটি খারিজ করুন",
@@ -249,7 +249,7 @@
     "Filter": "ফিল্টার",
     "Find Duplicate Photos": "ডুপ্লিকেট ফটো খুঁজুন",
     "Find Duplicates": "ডুপ্লিকেট খুঁজুন",
-    "Find Photos Full of Text": "লেখায় ভরা ছবি খুঁজুন",
+    "Find Photos Full of Text": "লেখায় ভরা ফটো খুঁজুন",
     "Find Similar Photos": "একইরকম ফটো খুঁজুন",
     "Find blurry, too dark, and overexposed photos.": "ঝাপসা, খুব গাঢ় ও অতিরিক্ত এক্সপোজড ফটো খুঁজুন.",
     "Find exact & visual duplicates": "হুবহু ও দেখতে একইরকম ডুপ্লিকেট খুঁজুন",
@@ -410,7 +410,7 @@
     "No more items": "আর কোনও আইটেম নেই",
     "No more photos to review with this filter.": "এই ফিল্টারে দেখার মতো আর ফটো নেই.",
     "No photo is waiting to be filed. Dismiss and try again.": "অ্যালবামে রাখার মতো কোনও ফটো অপেক্ষা করছে না. বন্ধ করে আবার চেষ্টা করুন.",
-    "No photos full of text are this old.": "এত পুরোনো লেখায় ভরা কোনো ছবি নেই।",
+    "No photos full of text are this old.": "এত পুরোনো লেখায় ভরা কোনো ফটো নেই।",
     "No photos in this category.": "এই শ্রেণিতে কোনও ফটো নেই.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "%lld MB-এর চেয়ে বড় কোনও ফটো নেই. সীমা কম করুন বা সব/ভিডিও-তে যান.",
     "No photos over %lld MB are left to compress. HEIC photos are already small.": "%lld MB-এর বেশি কোনও ফটো কমপ্রেস করার জন্য আর নেই. HEIC ফটো আগেই ছোট.",
@@ -430,7 +430,7 @@
     "Not now": "এখন নয়",
     "Not really": "তেমন নয়",
     "Not scanned": "স্ক্যান করা হয়নি",
-    "Notes, tickets, receipts and boards you photographed are often out of date after a few weeks.": "আপনার তোলা নোট, টিকিট, রসিদ আর বোর্ডের ছবি কয়েক সপ্তাহ পরেই প্রায়ই পুরোনো হয়ে যায়।",
+    "Notes, tickets, receipts and boards you photographed are often out of date after a few weeks.": "আপনার তোলা নোট, টিকিট, রসিদ আর বোর্ডের ফটো কয়েক সপ্তাহ পরেই প্রায়ই পুরোনো হয়ে যায়।",
     "Nothing Leaves Your Device": "কিছুই আপনার ডিভাইস ছাড়ে না",
     "Nothing is selected. Tap the circles to pick, or tap Select All.": "কিছুই নির্বাচিত নয়. বেছে নিতে বৃত্তে ট্যাপ করুন, বা সব নির্বাচন করুন-এ ট্যাপ করুন.",
     "Nothing is selected. Tap the circles to pick.": "কিছুই নির্বাচিত নয়. বেছে নিতে বৃত্তে ট্যাপ করুন.",
@@ -527,7 +527,7 @@
     "Rate on the App Store": "App Store-এ রেটিং দিন",
     "Re-encode photos to save space": "জায়গা বাঁচাতে ফটো আবার এনকোড করুন",
     "Re-encode to HEIC, full resolution": "HEIC-এ আবার এনকোড করুন, পূর্ণ রেজোলিউশন",
-    "Reads the text in your photos on this device": "এই ডিভাইসেই আপনার ছবির লেখা পড়ে",
+    "Reads the text in your photos on this device": "এই ডিভাইসেই আপনার ফটোর লেখা পড়ে",
     "Recent": "সাম্প্রতিক",
     "Recent Cleanups": "সাম্প্রতিক পরিষ্কার",
     "Recently Added": "সম্প্রতি যোগ করা",
@@ -595,7 +595,7 @@
     "Screen Recordings": "স্ক্রিন রেকর্ডিং",
     "Screenshots": "স্ক্রিনশট",
     "Screenshots & Recordings": "স্ক্রিনশট ও রেকর্ডিং",
-    "Screenshots and favorites are not included.": "স্ক্রিনশট ও প্রিয় ছবি এতে নেই।",
+    "Screenshots and favorites are not included.": "স্ক্রিনশট ও প্রিয় ফটো এতে নেই।",
     "Screenshots and large files add up. Take a few minutes to review them.": "স্ক্রিনশট ও বড় ফাইল জমতে থাকে. এগুলি দেখতে কয়েক মিনিট দিন.",
     "Search": "খুঁজুন",
     "Search scanned photos": "স্ক্যান করা ফটো খুঁজুন",
@@ -691,7 +691,7 @@
     "Swipe to Organize": "গোছাতে সোয়াইপ করুন",
     "Tell us what got in the way.": "বলুন কোনটা বাধা হয়ে দাঁড়িয়েছে.",
     "Tells you how much space TidyByte can help you reclaim.": "TidyByte আপনাকে কত জায়গা ফেরাতে সাহায্য করতে পারে তা জানায়.",
-    "Text Photos": "লেখাযুক্ত ছবি",
+    "Text Photos": "লেখাযুক্ত ফটো",
     "Thanks for the support": "সহযোগিতার জন্য ধন্যবাদ",
     "That photo can't be undone anymore.": "ওই ফটোটি আর ফিরিয়ে আনা যাবে না.",
     "The best copy of each group will be kept.": "প্রতিটি গ্রুপের সেরা কপিটি রাখা হবে।",
@@ -1132,8 +1132,12 @@
       "other": "রূপান্তরের জন্য %lld Live Photo"
     },
     "%lld text photo": {
-      "one": "%lldটি লেখাযুক্ত ছবি",
-      "other": "%lldটি লেখাযুক্ত ছবি"
+      "one": "%lldটি লেখাযুক্ত ফটো",
+      "other": "%lldটি লেখাযুক্ত ফটো"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lldটি ফটো বিশ্লেষণ করা যায়নি।",
+      "other": "%lldটি ফটো বিশ্লেষণ করা যায়নি।"
     }
   }
 }

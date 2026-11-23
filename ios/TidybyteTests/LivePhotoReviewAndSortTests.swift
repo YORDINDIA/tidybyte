@@ -114,6 +114,32 @@ final class LivePhotoReviewAndSortTests: XCTestCase {
         XCTAssertEqual(firstIds(.oldest), ["g2a", "g1a", "g3a"])
     }
 
+    func testUndatedGroupsSortAsOldest() {
+        let groups: [[AssetSummary]] = [
+            [asset("dated", taken: 100)],
+            [asset("undated", taken: nil)],
+        ]
+        func firstIds(_ order: GroupSortOrder) -> [String] { order.sorted(groups) { $0 }.map { $0[0].id } }
+        XCTAssertEqual(firstIds(.oldest), ["undated", "dated"], "No date counts as the distant past, as in MediaSortOrder")
+        XCTAssertEqual(firstIds(.newest), ["dated", "undated"])
+    }
+
+    func testLongestIsOfferedOnlyWhenVideosCanBeListed() {
+        XCTAssertTrue(MediaSortOrder.options(includingVideos: true).contains(.longest))
+        XCTAssertFalse(MediaSortOrder.options(includingVideos: false).contains(.longest))
+    }
+
+    func testDuplicateSortKeepsExactGroupsFirst() {
+        let viewModel = DuplicateFinderViewModel()
+        viewModel.scanType = .all
+        viewModel.exactGroups = [DuplicateGroup(id: "e2", assets: [asset("a"), asset("b")], bestAssetId: "a", type: .exact)]
+        viewModel.visualGroups = [
+            DuplicateGroup(id: "v3", assets: [asset("c"), asset("d"), asset("e")], bestAssetId: "c", type: .visual),
+            DuplicateGroup(id: "v4", assets: [asset("f"), asset("g"), asset("h"), asset("i")], bestAssetId: "f", type: .visual),
+        ]
+        XCTAssertEqual(viewModel.sortedGroups.map(\.id), ["e2", "v4", "v3"], "Sorted inside each type, exact first")
+    }
+
     // MARK: - Swipe tab: Largest First
 
     func testLargestFirstDeckDropsSwipedItemsAndCollapsesBursts() {

@@ -74,6 +74,8 @@ final class TextPhotosViewModel {
     var selectedIds: Set<String> = []
     private(set) var deletedCount = 0
     private(set) var skippedAnalysisCount = 0
+    /// Photos whose text recognition failed, so they could not be judged.
+    private(set) var failedAnalysisCount = 0
     /// The results for the chosen age, in the chosen order.
     private(set) var visiblePhotos: [TextPhoto] = []
 
@@ -124,15 +126,19 @@ final class TextPhotosViewModel {
         // this run's count instead of publishing a pre-change one.
         let scanEpoch = ScanResults.epoch
         scanDate = Date()
+        errorMessage = nil
         scanState = .scanning(0)
         photos = []
         selectedIds.removeAll()
         skippedAnalysisCount = 0
+        failedAnalysisCount = 0
         deletedCount = 0
         pendingPrune = false
 
         let cutoff = TextPhotoPolicy.scanAge.cutoff(from: scanDate)
-        let candidates = await photoService.fetchAllPhotos().filter { TextPhotoPolicy.isCandidate($0, cutoff: cutoff) }
+        // PhotoKit narrows the fetch; the policy check is the same rule, kept as a guard.
+        let candidates = await photoService.fetchTextPhotoCandidates(takenOnOrBefore: cutoff)
+            .filter { TextPhotoPolicy.isCandidate($0, cutoff: cutoff) }
         let total = candidates.count
         let phById = photoService.phAssetsById(candidates.map(\.id))
         var found: [TextPhoto] = []
@@ -149,6 +155,7 @@ final class TextPhotosViewModel {
             }
             let amount = await visionService.analyzeText(image: image)
             guard !Task.isCancelled, scanRunner.isCurrent(token) else { return }
+            if !amount.succeeded { failedAnalysisCount += 1 }
             if TextPhotoPolicy.isTextHeavy(amount) {
                 found.append(TextPhoto(id: photo.id, asset: photo, characterCount: amount.characterCount))
             }

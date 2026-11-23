@@ -83,7 +83,7 @@
     "Best overall": "மொத்தத்தில் சிறந்தது",
     "Best quality": "சிறந்த தரம்",
     "Biggest files in your library": "உங்கள் நூலகத்தின் மிகப்பெரிய கோப்புகள்",
-    "Biggest photos and videos first": "பெரிய படங்களும் வீடியோக்களும் முதலில்",
+    "Biggest photos and videos first": "பெரிய புகைப்படங்களும் வீடியோக்களும் முதலில்",
     "Blur": "மங்கல்",
     "Blur Detection Sensitivity": "மங்கல் கண்டறிதல் உணர்திறன்",
     "Blurry": "மங்கலான",
@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld உரைப் புகைப்படம்",
       "other": "%lld உரைப் புகைப்படங்கள்"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld புகைப்படத்தைப் பகுப்பாய்வு செய்ய முடியவில்லை.",
+      "other": "%lld புகைப்படங்களைப் பகுப்பாய்வு செய்ய முடியவில்லை."
     }
   }
 }

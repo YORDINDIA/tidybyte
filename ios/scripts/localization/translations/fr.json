@@ -1206,6 +1206,11 @@
       "one": "%lld photo de texte",
       "many": "%lld photos de texte",
       "other": "%lld photos de texte"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld photo n’a pas pu être analysée.",
+      "many": "%lld photos n’ont pas pu être analysées.",
+      "other": "%lld photos n’ont pas pu être analysées."
     }
   }
 }

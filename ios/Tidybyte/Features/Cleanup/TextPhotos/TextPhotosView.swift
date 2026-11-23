@@ -252,6 +252,12 @@ struct TextPhotosView: View {
                                  viewModel.skippedAnalysisCount))
                     .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.lg)
             }
+            if viewModel.failedAnalysisCount > 0 {
+                Text(L10n.format("%lld photo could not be analyzed.",
+                                 fallback: "%lld photos could not be analyzed.",
+                                 viewModel.failedAnalysisCount))
+                    .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.lg)
+            }
         }
     }
 

@@ -286,5 +286,9 @@
   "%lld text photo": {
     "one": "%lld text photo",
     "other": "%lld text photos"
+  },
+  "%lld photo could not be analyzed.": {
+    "one": "%lld photo could not be analyzed.",
+    "other": "%lld photos could not be analyzed."
   }
 }

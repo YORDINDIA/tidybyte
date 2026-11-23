@@ -249,7 +249,7 @@
     "Filter": "Фильтр",
     "Find Duplicate Photos": "Найти дубликаты фото",
     "Find Duplicates": "Найти дубликаты",
-    "Find Photos Full of Text": "Найти фото, полные текста",
+    "Find Photos Full of Text": "Найти фото с текстом",
     "Find Similar Photos": "Найти похожие фото",
     "Find blurry, too dark, and overexposed photos.": "Найдите размытые, слишком темные и пересвеченные фото.",
     "Find exact & visual duplicates": "Найти точные и визуальные дубликаты",
@@ -368,7 +368,7 @@
     "Min size: %@": "Мин. размер: %@",
     "Mixed": "Смешанное",
     "More actions": "Другие действия",
-    "Most Items": "Больше объектов",
+    "Most Items": "Больше всего объектов",
     "Most recent": "Самое новое",
     "Moved to Recently Deleted": "Перемещено в «Недавно удаленные»",
     "Nature": "Природа",
@@ -410,7 +410,7 @@
     "No more items": "Больше нет объектов",
     "No more photos to review with this filter.": "С этим фильтром больше нет фото для просмотра.",
     "No photo is waiting to be filed. Dismiss and try again.": "Нет фото, ожидающего помещения в альбом. Закройте и повторите попытку.",
-    "No photos full of text are this old.": "Нет таких старых фото, полных текста.",
+    "No photos full of text are this old.": "Нет таких старых фото с текстом.",
     "No photos in this category.": "В этой категории нет фото.",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "Нет фото больше %lld MB. Снизьте порог или переключитесь на «Все»/«Видео».",
     "No photos over %lld MB are left to compress. HEIC photos are already small.": "Не осталось фото больше %lld MB для сжатия. Фото HEIC и так небольшие.",
@@ -1278,6 +1278,12 @@
       "few": "%lld фото с текстом",
       "many": "%lld фото с текстом",
       "other": "%lld фото с текстом"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "Не удалось проанализировать %lld фото.",
+      "few": "Не удалось проанализировать %lld фото.",
+      "many": "Не удалось проанализировать %lld фото.",
+      "other": "Не удалось проанализировать %lld фото."
     }
   }
 }

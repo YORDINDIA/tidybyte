@@ -118,6 +118,7 @@ final class BlurryPhotosViewModel {
                 filtered.append(photo)
             }
         }
+        // Counts are tab membership, which the sort does not change.
         filtered = sortOrder.sorted(filtered, asset: \.asset)
         filterCache = (activeTab, sortOrder, filtered, counts)
         return (filtered, counts)

@@ -1178,6 +1178,9 @@ const INTENTIONAL_LITERALS = new Set([
   // code rather than copy. Translating it would produce a predicate that matches
   // nothing.
   'localIdentifier IN %@',
+  // The Text Photos fetch (`fetchTextPhotoCandidates`): PhotoKit key paths and
+  // operators, filled in with a date and two enum values. Code, not copy.
+  'mediaType = %d AND creationDate <= %@ AND favorite == NO AND (mediaSubtypes & %d) == 0',
 
   // Prompts for Apple's on-device model, not copy. The model follows English
   // instructions and is asked to emit English Vision labels because

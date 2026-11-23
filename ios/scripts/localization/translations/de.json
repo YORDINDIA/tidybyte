@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld Textfoto",
       "other": "%lld Textfotos"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld Foto konnte nicht analysiert werden.",
+      "other": "%lld Fotos konnten nicht analysiert werden."
     }
   }
 }

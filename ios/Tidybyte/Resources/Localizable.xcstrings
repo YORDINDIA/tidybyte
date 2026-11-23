@@ -13701,6 +13701,436 @@
         }
       }
     },
+    "%lld photo could not be analyzed.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photo could not be analyzed."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photos could not be analyzed."
+                }
+              }
+            }
+          }
+        },
+        "hi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld फ़ोटो का विश्लेषण नहीं हो सका।"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld फ़ोटो का विश्लेषण नहीं हो सका।"
+                }
+              }
+            }
+          }
+        },
+        "bn": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lldটি ফটো বিশ্লেষণ করা যায়নি।"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lldটি ফটো বিশ্লেষণ করা যায়নি।"
+                }
+              }
+            }
+          }
+        },
+        "ta": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld புகைப்படத்தைப் பகுப்பாய்வு செய்ய முடியவில்லை."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld புகைப்படங்களைப் பகுப்பாய்வு செய்ய முடியவில்லை."
+                }
+              }
+            }
+          }
+        },
+        "te": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ఫోటోను విశ్లేషించలేకపోయాం."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ఫోటోలను విశ్లేషించలేకపోయాం."
+                }
+              }
+            }
+          }
+        },
+        "mr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld फोटोचे विश्लेषण करता आले नाही."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld फोटोंचे विश्लेषण करता आले नाही."
+                }
+              }
+            }
+          }
+        },
+        "gu": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ફોટાનું વિશ્લેષણ થઈ શક્યું નહીં."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ફોટાનું વિશ્લેષણ થઈ શક્યું નહીં."
+                }
+              }
+            }
+          }
+        },
+        "kn": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಫೋಟೋವನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಆಗಲಿಲ್ಲ."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ಫೋಟೋಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಆಗಲಿಲ್ಲ."
+                }
+              }
+            }
+          }
+        },
+        "ml": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ഫോട്ടോ വിശകലനം ചെയ്യാനായില്ല."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ഫോട്ടോകൾ വിശകലനം ചെയ്യാനായില്ല."
+                }
+              }
+            }
+          }
+        },
+        "pa": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਫ਼ੋਟੋ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਨਹੀਂ ਹੋ ਸਕਿਆ।"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ਫ਼ੋਟੋਆਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਨਹੀਂ ਹੋ ਸਕਿਆ।"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "No se pudo analizar %lld foto."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "No se pudieron analizar %lld fotos."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "No se pudieron analizar %lld fotos."
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photo n’a pas pu être analysée."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photos n’ont pas pu être analysées."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photos n’ont pas pu être analysées."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Foto konnte nicht analysiert werden."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Fotos konnten nicht analysiert werden."
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Não foi possível analisar %lld foto."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Não foi possível analisar %lld fotos."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Não foi possível analisar %lld fotos."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Impossibile analizzare %lld foto."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Impossibile analizzare %lld foto."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Impossibile analizzare %lld foto."
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld枚の写真を分析できませんでした。"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "사진 %lld장을 분석하지 못했습니다."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "有 %lld 张照片无法分析。"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не удалось проанализировать %lld фото."
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не удалось проанализировать %lld фото."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не удалось проанализировать %lld фото."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не удалось проанализировать %lld фото."
+                }
+              }
+            }
+          }
+        },
+        "ar": {
+          "variations": {
+            "plural": {
+              "zero": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تعذّر تحليل %lld صورة."
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تعذّر تحليل %lld صورة."
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تعذّر تحليل %lld صورتين."
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تعذّر تحليل %lld صور."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تعذّر تحليل %lld صورة."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "تعذّر تحليل %lld صورة."
+                }
+              }
+            }
+          }
+        },
+        "he": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "לא ניתן היה לנתח %lld תמונה."
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "לא ניתן היה לנתח %lld תמונות."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "לא ניתן היה לנתח %lld תמונות."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld photo could not be scored from a local image.": {
       "localizations": {
         "en": {
@@ -21485,13 +21915,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lldটি লেখাযুক্ত ছবি"
+                  "value": "%lldটি লেখাযুক্ত ফটো"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lldটি লেখাযুক্ত ছবি"
+                  "value": "%lldটি লেখাযুক্ত ফটো"
                 }
               }
             }
@@ -21821,13 +22251,13 @@
               "two": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صورة نصية"
+                  "value": "%lld صورتان نصيتان"
                 }
               },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld صورة نصية"
+                  "value": "%lld صور نصية"
                 }
               },
               "many": {
@@ -30028,13 +30458,13 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "সবচেয়ে বড় ছবি ও ভিডিও আগে"
+            "value": "সবচেয়ে বড় ফটো ও ভিডিও আগে"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "பெரிய படங்களும் வீடியோக்களும் முதலில்"
+            "value": "பெரிய புகைப்படங்களும் வீடியோக்களும் முதலில்"
           }
         },
         "te": {
@@ -30052,7 +30482,7 @@
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "સૌથી મોટા ફોટા અને વીડિયો પહેલા"
+            "value": "સૌથી મોટા ફોટા અને વિડિયો પહેલા"
           }
         },
         "kn": {
@@ -30076,7 +30506,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Primero las fotos y los videos más grandes"
+            "value": "Primero las fotos y los vídeos más grandes"
           }
         },
         "fr": {
@@ -30112,7 +30542,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "큰 사진과 비디오 먼저"
+            "value": "큰 사진과 동영상 먼저"
           }
         },
         "zh-Hans": {
@@ -49108,7 +49538,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "বাতিল করুন"
+            "value": "বাদ দিন"
           }
         },
         "ta": {
@@ -49126,13 +49556,13 @@
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "रद्द करा"
+            "value": "टाकून द्या"
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "રદ કરો"
+            "value": "ફગાવી દો"
           }
         },
         "kn": {
@@ -49150,7 +49580,7 @@
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਰੱਦ ਕਰੋ"
+            "value": "ਤਿਆਗ ਦਿਓ"
           }
         },
         "es": {
@@ -54218,7 +54648,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "লেখায় ভরা ছবি খুঁজুন"
+            "value": "লেখায় ভরা ফটো খুঁজুন"
           }
         },
         "ta": {
@@ -54314,7 +54744,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Найти фото, полные текста"
+            "value": "Найти фото с текстом"
           }
         },
         "ar": {
@@ -67602,7 +68032,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "긴 순"
+            "value": "길이순"
           }
         },
         "zh-Hans": {
@@ -69694,13 +70124,13 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Больше объектов"
+            "value": "Больше всего объектов"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الأكثر عناصر"
+            "value": "أكبر عدد من العناصر"
           }
         },
         "he": {
@@ -74928,7 +75358,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এত পুরোনো লেখায় ভরা কোনো ছবি নেই।"
+            "value": "এত পুরোনো লেখায় ভরা কোনো ফটো নেই।"
           }
         },
         "ta": {
@@ -75024,7 +75454,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нет таких старых фото, полных текста."
+            "value": "Нет таких старых фото с текстом."
           }
         },
         "ar": {
@@ -77528,7 +77958,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার তোলা নোট, টিকিট, রসিদ আর বোর্ডের ছবি কয়েক সপ্তাহ পরেই প্রায়ই পুরোনো হয়ে যায়।"
+            "value": "আপনার তোলা নোট, টিকিট, রসিদ আর বোর্ডের ফটো কয়েক সপ্তাহ পরেই প্রায়ই পুরোনো হয়ে যায়।"
           }
         },
         "ta": {
@@ -89878,7 +90308,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এই ডিভাইসেই আপনার ছবির লেখা পড়ে"
+            "value": "এই ডিভাইসেই আপনার ফটোর লেখা পড়ে"
           }
         },
         "ta": {
@@ -98458,7 +98888,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "স্ক্রিনশট ও প্রিয় ছবি এতে নেই।"
+            "value": "স্ক্রিনশট ও প্রিয় ফটো এতে নেই।"
           }
         },
         "ta": {
@@ -98500,7 +98930,7 @@
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਸਕਰੀਨਸ਼ਾਟ ਅਤੇ ਮਨਪਸੰਦ ਸ਼ਾਮਲ ਨਹੀਂ ਹਨ।"
+            "value": "ਸਕਰੀਨਸ਼ਾਟ ਅਤੇ ਪਸੰਦੀਦਾ ਸ਼ਾਮਲ ਨਹੀਂ ਹਨ।"
           }
         },
         "es": {
@@ -110808,7 +111238,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "লেখাযুক্ত ছবি"
+            "value": "লেখাযুক্ত ফটো"
           }
         },
         "ta": {

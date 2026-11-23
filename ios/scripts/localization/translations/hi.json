@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld टेक्स्ट वाली फ़ोटो",
       "other": "%lld टेक्स्ट वाली फ़ोटो"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld फ़ोटो का विश्लेषण नहीं हो सका।",
+      "other": "%lld फ़ोटो का विश्लेषण नहीं हो सका।"
     }
   }
 }

@@ -82,7 +82,7 @@ struct CompressionHistoryView: View {
         }
         return switch sortOrder {
         case .oldest: filtered.reversed()
-        case .largest: filtered.sorted { $0.savedBytes > $1.savedBytes }
+        case .largest: filtered.sorted { $0.originalSizeBytes > $1.originalSizeBytes }
         default: filtered
         }
     }

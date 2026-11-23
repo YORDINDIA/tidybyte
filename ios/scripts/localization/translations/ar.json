@@ -368,7 +368,7 @@
     "Min size: %@": "الحد الأدنى للحجم: %@",
     "Mixed": "مختلط",
     "More actions": "إجراءات أخرى",
-    "Most Items": "الأكثر عناصر",
+    "Most Items": "أكبر عدد من العناصر",
     "Most recent": "الأحدث",
     "Moved to Recently Deleted": "تم النقل إلى «المحذوفة مؤخرًا»",
     "Nature": "الطبيعة",
@@ -1418,10 +1418,18 @@
     "%lld text photo": {
       "zero": "%lld صورة نصية",
       "one": "%lld صورة نصية",
-      "two": "%lld صورة نصية",
-      "few": "%lld صورة نصية",
+      "two": "%lld صورتان نصيتان",
+      "few": "%lld صور نصية",
       "many": "%lld صورة نصية",
       "other": "%lld صورة نصية"
+    },
+    "%lld photo could not be analyzed.": {
+      "zero": "تعذّر تحليل %lld صورة.",
+      "one": "تعذّر تحليل %lld صورة.",
+      "few": "تعذّر تحليل %lld صور.",
+      "many": "تعذّر تحليل %lld صورة.",
+      "other": "تعذّر تحليل %lld صورة.",
+      "two": "تعذّر تحليل %lld صورتين."
     }
   }
 }

@@ -39,11 +39,17 @@ final class DuplicateFinderViewModel {
         }
     }
 
-    /// Display order. The sort is stable, so equal groups keep the scan's
-    /// order (exact before visual).
+    /// Display order inside each type. In the All view exact groups stay
+    /// first, as the scan lists them: they are the safer ones to delete.
     var groupSortOrder: GroupSortOrder = .mostItems
     var sortedGroups: [DuplicateGroup] {
-        groupSortOrder.sorted(allGroups) { $0.assets }
+        let exact = groupSortOrder.sorted(exactGroups) { $0.assets }
+        let visual = groupSortOrder.sorted(visualGroups) { $0.assets }
+        switch scanType {
+        case .exact: return exact
+        case .visual: return visual
+        case .all: return exact + visual
+        }
     }
 
     var totalDuplicateCount: Int {

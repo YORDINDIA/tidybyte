@@ -1062,6 +1062,9 @@
     },
     "%lld text photo": {
       "other": "%lld 张文字照片"
+    },
+    "%lld photo could not be analyzed.": {
+      "other": "有 %lld 张照片无法分析。"
     }
   }
 }

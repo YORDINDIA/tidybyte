@@ -32,6 +32,12 @@ enum MediaSortOrder: String, CaseIterable {
         }
     }
 
+    /// The orders to offer. Longest only means something when videos can be in
+    /// the list.
+    static func options(includingVideos: Bool) -> [MediaSortOrder] {
+        includingVideos ? allCases : allCases.filter { $0 != .longest }
+    }
+
     /// `items` in this order. Swift's sort is stable, so ties keep their
     /// incoming order. An unknown size is 0, so Largest puts it last.
     func sorted<T>(_ items: [T], asset: (T) -> AssetSummary) -> [T] {
@@ -79,8 +85,9 @@ enum GroupSortOrder: String, CaseIterable {
             let key: Double = switch self {
             case .mostItems: Double(members.count)
             case .largest: Double(members.reduce(Int64(0)) { $0 + $1.fileSize })
-            case .newest: members.compactMap(\.creationDate).max()?.timeIntervalSinceReferenceDate ?? -.infinity
-            case .oldest: -(members.compactMap(\.creationDate).min()?.timeIntervalSinceReferenceDate ?? .infinity)
+            // No date counts as the distant past, as in MediaSortOrder.
+            case .newest: (members.compactMap(\.creationDate).max() ?? .distantPast).timeIntervalSinceReferenceDate
+            case .oldest: -(members.map { $0.creationDate ?? .distantPast }.min() ?? .distantPast).timeIntervalSinceReferenceDate
             }
             return (group, key)
         }

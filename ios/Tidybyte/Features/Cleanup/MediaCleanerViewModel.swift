@@ -8,7 +8,14 @@ final class MediaCleanerViewModel {
     var albums: [AlbumInfo] = []
     var albumIDs: Set<String> = []
     var activeAlbumID: String? { didSet { refreshFilter() } }
-    var mediaFilter = MediaFilter.all { didSet { refreshFilter() } }
+    var mediaFilter = MediaFilter.all {
+        didSet {
+            if !listsVideos, sortOrder == .longest { sortOrder = .largest }
+            refreshFilter()
+        }
+    }
+    /// Screen recordings are videos; chat media lists them unless filtered to photos.
+    var listsVideos: Bool { tool == .screenRecordings || mediaFilter != .photos }
     var sortOrder = MediaSortOrder.largest { didSet { refreshFilter() } }
     var selectedIDs: Set<String> = [] { didSet { refreshSelection() } }
     var isLoading = false

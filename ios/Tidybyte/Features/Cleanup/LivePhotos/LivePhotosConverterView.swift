@@ -283,7 +283,7 @@ struct LivePhotosConverterView: View {
             .buttonStyle(.plain)
             // Converting, saved and converted rows have nothing left to review.
             .disabled(!item.conversionState.isConvertible || viewModel.convertingAll || viewModel.isBusy)
-            .accessibilityLabel("Review with Swipe")
+            .accessibilityHint("Review with Swipe")
 
             conversionButton(for: item)
         }

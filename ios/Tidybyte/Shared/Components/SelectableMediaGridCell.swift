@@ -88,7 +88,7 @@ struct SelectableMediaGridCell<MenuContent: View>: View {
                             // One line: at large text sizes a wrapped badge
                             // covered half the photo.
                             .lineLimit(1)
-                            .minimumScaleFactor(0.6)
+                            .minimumScaleFactor(0.5)
                             .foregroundStyle(.white)
                             .padding(.horizontal, Spacing.xs + 2)
                             .padding(.vertical, 2)

@@ -209,7 +209,7 @@
     "Detect Low-Quality Photos": "ਘਟੀਆ ਗੁਣਵੱਤਾ ਵਾਲੀਆਂ ਫ਼ੋਟੋਆਂ ਪਛਾਣੋ",
     "Detected by file name heuristics — may include some camera photos": "ਫ਼ਾਈਲ ਨਾਮ ਦੇ ਅੰਦਾਜ਼ੇ ਤੋਂ ਪਛਾਣਿਆ — ਇਸ ਵਿੱਚ ਕੁਝ ਕੈਮਰਾ ਫ਼ੋਟੋਆਂ ਹੋ ਸਕਦੀਆਂ ਹਨ",
     "Device Storage": "ਡੀਵਾਈਸ ਸਟੋਰੇਜ",
-    "Discard": "ਰੱਦ ਕਰੋ",
+    "Discard": "ਤਿਆਗ ਦਿਓ",
     "Discard your choices?": "ਕੀ ਆਪਣੀਆਂ ਚੋਣਾਂ ਰੱਦ ਕਰਨੀਆਂ ਹਨ?",
     "Dismiss": "ਬੰਦ ਕਰੋ",
     "Dismiss error": "ਗੜਬੜੀ ਬੰਦ ਕਰੋ",
@@ -595,7 +595,7 @@
     "Screen Recordings": "ਸਕਰੀਨ ਰਿਕਾਰਡਿੰਗਾਂ",
     "Screenshots": "ਸਕਰੀਨਸ਼ਾਟ",
     "Screenshots & Recordings": "ਸਕਰੀਨਸ਼ਾਟ ਅਤੇ ਰਿਕਾਰਡਿੰਗਾਂ",
-    "Screenshots and favorites are not included.": "ਸਕਰੀਨਸ਼ਾਟ ਅਤੇ ਮਨਪਸੰਦ ਸ਼ਾਮਲ ਨਹੀਂ ਹਨ।",
+    "Screenshots and favorites are not included.": "ਸਕਰੀਨਸ਼ਾਟ ਅਤੇ ਪਸੰਦੀਦਾ ਸ਼ਾਮਲ ਨਹੀਂ ਹਨ।",
     "Screenshots and large files add up. Take a few minutes to review them.": "ਸਕਰੀਨਸ਼ਾਟ ਅਤੇ ਵੱਡੀਆਂ ਫ਼ਾਈਲਾਂ ਜੁੜਦੀਆਂ ਜਾਂਦੀਆਂ ਹਨ. ਇਨ੍ਹਾਂ ਦੀ ਸਮੀਖਿਆ ਲਈ ਕੁਝ ਮਿੰਟ ਕੱਢੋ.",
     "Search": "ਖੋਜੋ",
     "Search scanned photos": "ਸਕੈਨ ਕੀਤੀਆਂ ਫ਼ੋਟੋਆਂ ਖੋਜੋ",
@@ -1134,6 +1134,10 @@
     "%lld text photo": {
       "one": "%lld ਲਿਖਤ ਵਾਲੀ ਫ਼ੋਟੋ",
       "other": "%lld ਲਿਖਤ ਵਾਲੀਆਂ ਫ਼ੋਟੋਆਂ"
+    },
+    "%lld photo could not be analyzed.": {
+      "one": "%lld ਫ਼ੋਟੋ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਨਹੀਂ ਹੋ ਸਕਿਆ।",
+      "other": "%lld ਫ਼ੋਟੋਆਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਨਹੀਂ ਹੋ ਸਕਿਆ।"
     }
   }
 }

@@ -1062,6 +1062,9 @@
     },
     "%lld text photo": {
       "other": "テキストの写真 %lld枚"
+    },
+    "%lld photo could not be analyzed.": {
+      "other": "%lld枚の写真を分析できませんでした。"
     }
   }
 }

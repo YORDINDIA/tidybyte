@@ -428,6 +428,20 @@ actor PhotoLibraryService {
         return groups.filter { $0.value.count > 1 }
     }
 
+    /// Photos taken on or before `cutoff` that are neither screenshots nor
+    /// favorites: the Text Photos scan. PhotoKit applies the predicate, so
+    /// resources are read only for these photos, not the whole library.
+    func fetchTextPhotoCandidates(takenOnOrBefore cutoff: Date) async -> [AssetSummary] {
+        let options = allAssetsFetchOptions()
+        options.predicate = NSPredicate(
+            format: "mediaType = %d AND creationDate <= %@ AND favorite == NO AND (mediaSubtypes & %d) == 0",
+            PHAssetMediaType.image.rawValue,
+            cutoff as NSDate,
+            PHAssetMediaSubtype.photoScreenshot.rawValue
+        )
+        return await extractSummaries(from: PHAsset.fetchAssets(with: options))
+    }
+
     /// `sortByCreationDate: false` keeps PhotoKit's fetch order, which is the
     /// order photos were added to the library (oldest added first).
     func fetchAllPhotos(sortByCreationDate: Bool = true) async -> [AssetSummary] {
