@@ -6,6 +6,12 @@ final class BurstCleanerViewModel {
     var groups: [BurstGroup] = [] {
         didSet { updateDerivedTotals() }
     }
+    /// Display order. The sort is stable, so Most Items keeps the stored
+    /// order between equal groups, and a group a delete shrank moves down.
+    var groupSortOrder: GroupSortOrder = .mostItems
+    var sortedGroups: [BurstGroup] {
+        groupSortOrder.sorted(groups) { $0.assets }
+    }
     var isLoading = true
     private(set) var hasLoadedGroups = false
     var selectedForDeletion: Set<String> = []

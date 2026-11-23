@@ -278,5 +278,13 @@
   "Updated %lld day ago": {
     "one": "Updated %lld day ago",
     "other": "Updated %lld days ago"
+  },
+  "%lld Live Photo to convert": {
+    "one": "%lld Live Photo to convert",
+    "other": "%lld Live Photos to convert"
+  },
+  "%lld text photo": {
+    "one": "%lld text photo",
+    "other": "%lld text photos"
   }
 }

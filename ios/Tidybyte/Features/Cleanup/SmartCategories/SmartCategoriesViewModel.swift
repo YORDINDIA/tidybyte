@@ -25,6 +25,11 @@ final class SmartCategoriesViewModel {
     var activeCategory: PhotoCategory = .memes {
         didSet { recomputeFiltered() }
     }
+    /// Order inside a category. The scan reads newest first, so Newest is the default.
+    var sortOrder: MediaSortOrder = .newest {
+        didSet { recomputeFiltered() }
+    }
+    static let sortOptions: [MediaSortOrder] = [.newest, .oldest, .largest]
     var errorMessage: String?
     var searchText = "" {
         didSet {
@@ -166,7 +171,7 @@ final class SmartCategoriesViewModel {
             }
             return photo.categories.contains(activeCategory)
         }
-        cachedFilteredPhotos = filtered
+        cachedFilteredPhotos = sortOrder.sorted(filtered, asset: \.asset)
         cachedActiveCategorySize = filtered.reduce(0) { $0 + $1.asset.fileSize }
     }
 

@@ -178,6 +178,14 @@ struct VideoCompressionView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
+                SortMenu(
+                    selection: $viewModel.sortOrder,
+                    options: VideoCompressionViewModel.sortOptions,
+                    title: \.displayName
+                )
+                .font(.caption.bold())
+                .frame(minHeight: 44)
+                .disabled(viewModel.isCompressing)
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.vertical, Spacing.xs)

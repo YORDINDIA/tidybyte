@@ -70,7 +70,7 @@ struct MetadataRow: View {
 }
 
 /// Shared "no more items" empty state for full-screen media previews.
-/// `title` differs per tool ("No more items" vs "No more Live Photos").
+/// `title` is the empty message, for example "No more items".
 struct PreviewEmptyState: View {
     let title: LocalizedStringKey
     @Environment(\.dismiss) private var dismiss

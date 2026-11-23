@@ -134,6 +134,11 @@ struct SmartCategoriesView: View {
                             } label: {
                                 Label("Review with Swipe", systemImage: "hand.draw")
                             }
+                            SortMenu(
+                                selection: $viewModel.sortOrder,
+                                options: SmartCategoriesViewModel.sortOptions,
+                                title: \.displayName
+                            )
                         }
                         Button {
                             HapticHelper.impact(.light)

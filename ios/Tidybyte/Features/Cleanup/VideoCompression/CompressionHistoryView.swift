@@ -45,6 +45,8 @@ struct CompressionHistoryView: View {
     /// `presetLabel`) only update that way.
     @Environment(\.locale) private var locale
     @State private var mediaFilter: HistoryFilter = .all
+    /// Newest first is the query order, so it is the default.
+    @State private var sortOrder: MediaSortOrder = .newest
 
     private enum HistoryFilter: String, CaseIterable {
         case all
@@ -72,11 +74,16 @@ struct CompressionHistoryView: View {
     }
 
     private var filteredRecords: [CompressionRecord] {
-        switch mediaFilter {
+        let filtered = switch mediaFilter {
         case .all: records
         case .photo: records.filter { $0.mediaType == "photo" }
         case .video: records.filter { $0.mediaType != "photo" && $0.mediaType != "livePhoto" }
         case .livePhoto: records.filter { $0.mediaType == "livePhoto" }
+        }
+        return switch sortOrder {
+        case .oldest: filtered.reversed()
+        case .largest: filtered.sorted { $0.savedBytes > $1.savedBytes }
+        default: filtered
         }
     }
 
@@ -207,5 +214,12 @@ struct CompressionHistoryView: View {
         }
         .localizedNavigationTitle("History")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if records.count > 1 {
+                ToolbarItem(placement: .topBarTrailing) {
+                    SortMenu(selection: $sortOrder, options: [.newest, .oldest, .largest], title: \.displayName)
+                }
+            }
+        }
     }
 }

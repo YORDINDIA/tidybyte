@@ -54,7 +54,7 @@
     },
     {
       "key": "%@ of %lld",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "%@ of %lld reviewed",
@@ -179,6 +179,11 @@
       "file": "Tidybyte/AppIntents/CleanupIntents.swift"
     },
     {
+      "key": "%lld Live Photo to convert",
+      "fallback": "%lld Live Photos to convert",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
       "key": "%lld Live Photos",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
     },
@@ -196,7 +201,7 @@
     },
     {
       "key": "%lld of %lld",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
+      "file": "Tidybyte/Shared/Components/GroupComparisonView.swift"
     },
     {
       "key": "%lld of %lld items couldn't be prepared to share.",
@@ -273,6 +278,11 @@
       "fallback": "%lld selected · %@"
     },
     {
+      "key": "%lld text photo",
+      "fallback": "%lld text photos",
+      "file": "Tidybyte/Features/Cleanup/TextPhotos/TextPhotosView.swift"
+    },
+    {
       "key": "%lld total · %lld removable · %@",
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
@@ -335,6 +345,10 @@
     {
       "key": "Add to Album",
       "file": "Tidybyte/Features/Swipe/AlbumPickerSheet.swift"
+    },
+    {
+      "key": "Age",
+      "file": "Tidybyte/Features/Cleanup/TextPhotos/TextPhotosView.swift"
     },
     {
       "key": "Album",
@@ -629,7 +643,7 @@
     },
     {
       "key": "Close preview",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
+      "file": "Tidybyte/Shared/Components/MediaPreviewView.swift"
     },
     {
       "key": "Come back here and tap Try Again.",
@@ -690,16 +704,12 @@
       "file": "Tidybyte/Shared/Utilities/PhotoPermissionHandler.swift"
     },
     {
-      "key": "Conversion Failed",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
-    },
-    {
       "key": "Conversion History",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
     },
     {
       "key": "Convert",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Convert All",
@@ -708,14 +718,6 @@
     {
       "key": "Convert All Live Photos",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
-    },
-    {
-      "key": "Convert Live Photo",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
-    },
-    {
-      "key": "Convert Live Photo to Still",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
     },
     {
       "key": "Convert to stills & save space",
@@ -729,10 +731,6 @@
     {
       "key": "Converted %lld of %lld. %lld failed.",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterViewModel.swift"
-    },
-    {
-      "key": "Converted to Still",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
     },
     {
       "key": "Copies kept. Both versions are in your library; delete either one in Photos.",
@@ -851,10 +849,6 @@
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
     },
     {
-      "key": "DELETE",
-      "file": "Tidybyte/Features/Swipe/CardView.swift"
-    },
-    {
       "key": "Delete %@",
       "file": "Tidybyte/Features/Cleanup/Duplicates/DuplicateFinderView.swift"
     },
@@ -889,14 +883,6 @@
       "file": "Tidybyte/Shared/Components/MediaPreviewView.swift"
     },
     {
-      "key": "Delete Live Photo",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
-    },
-    {
-      "key": "Delete Live Photo?",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
-    },
-    {
       "key": "Delete Originals",
       "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
@@ -923,10 +909,6 @@
     {
       "key": "Delete what you don't need",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
-    },
-    {
-      "key": "Deleted %lld",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
     },
     {
       "key": "Deleted %lld of %lld items. %lld couldn't be deleted. Try again.",
@@ -961,6 +943,14 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     },
     {
+      "key": "Discard",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
+      "key": "Discard your choices?",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
       "key": "Dismiss",
       "file": "Tidybyte/Shared/Components/RecentlyDeletedNotice.swift"
     },
@@ -978,7 +968,7 @@
     },
     {
       "key": "Done",
-      "file": "Tidybyte/Features/Cleanup/MediaCleanerView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Duplicates",
@@ -994,7 +984,7 @@
     },
     {
       "key": "est. ~%@ savings",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "estimated",
@@ -1232,11 +1222,7 @@
     },
     {
       "key": "Keep",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
-    },
-    {
-      "key": "KEEP",
-      "file": "Tidybyte/Features/Swipe/CardView.swift"
+      "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
     },
     {
       "key": "Keep All Items",
@@ -1253,10 +1239,6 @@
     {
       "key": "Keep everything, use less room",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
-    },
-    {
-      "key": "Keep Live Photo",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
     },
     {
       "key": "Keep This",
@@ -1393,7 +1375,7 @@
     },
     {
       "key": "Live Photo",
-      "file": "Tidybyte/Features/Swipe/CardView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Live Photo not found.",
@@ -1401,7 +1383,7 @@
     },
     {
       "key": "Live Photo.",
-      "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Live Photos",
@@ -1430,6 +1412,10 @@
     {
       "key": "Local AI is unavailable.",
       "file": "Tidybyte/Services/LocalPhotoIntelligence.swift"
+    },
+    {
+      "key": "Longest",
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "Low",
@@ -1490,6 +1476,10 @@
     {
       "key": "More actions",
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
+    },
+    {
+      "key": "Most Items",
+      "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
     {
       "key": "Most recent",
@@ -1612,6 +1602,10 @@
       "file": "Tidybyte/Features/Onboarding/OnboardingView.swift"
     },
     {
+      "key": "Nothing marked to convert",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
       "key": "Nothing measurable yet. Items stored only in iCloud don't report a size.",
       "file": "Tidybyte/Features/Activity/ActivityView.swift"
     },
@@ -1640,6 +1634,26 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
+      "key": "Old notes, tickets and receipts",
+      "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
+    },
+    {
+      "key": "Older than 1 month",
+      "file": "Tidybyte/Features/Cleanup/TextPhotos/TextPhotosViewModel.swift"
+    },
+    {
+      "key": "Older than 1 year",
+      "file": "Tidybyte/Features/Cleanup/TextPhotos/TextPhotosViewModel.swift"
+    },
+    {
+      "key": "Older than 2 weeks",
+      "file": "Tidybyte/Features/Cleanup/TextPhotos/TextPhotosViewModel.swift"
+    },
+    {
+      "key": "Older than 3 months",
+      "file": "Tidybyte/Features/Cleanup/TextPhotos/TextPhotosViewModel.swift"
+    },
+    {
       "key": "Oldest",
       "file": "Tidybyte/Features/Cleanup/MediaAssetFilter.swift"
     },
@@ -1664,10 +1678,6 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
-      "key": "Open Live Photo preview",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
-    },
-    {
       "key": "Open Photos",
       "file": "Tidybyte/Shared/Components/RecentlyDeletedNotice.swift"
     },
@@ -1690,10 +1700,6 @@
     {
       "key": "Open TidyByte to scan your library",
       "file": "TidybyteWidget/StorageWidgetView.swift"
-    },
-    {
-      "key": "Opens full-screen preview with motion playback",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
     },
     {
       "key": "Opens iOS Settings, where you can turn photo access back on",
@@ -1962,6 +1968,10 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
+      "key": "Resume Session",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
       "key": "Reverts your last swipe",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
@@ -2037,10 +2047,6 @@
     {
       "key": "Save failed: %@",
       "file": "Tidybyte/Services/PhotoCompressionService.swift"
-    },
-    {
-      "key": "Saved %@",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
     },
     {
       "key": "Saved from Apps",
@@ -2188,7 +2194,7 @@
     },
     {
       "key": "Skip",
-      "file": "Tidybyte/Features/Onboarding/OnboardingView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Skips the introduction and asks for photo access later",
@@ -2313,6 +2319,10 @@
     {
       "key": "Tell us what got in the way.",
       "file": "Tidybyte/Shared/Components/HappyPathPromptCard.swift"
+    },
+    {
+      "key": "Text Photos",
+      "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
     },
     {
       "key": "That photo can't be undone anymore.",
@@ -2442,10 +2452,6 @@
     {
       "key": "This photo will be deleted from Photos.",
       "file": "Tidybyte/Features/Cleanup/BlurryPhotos/BlurryPhotosView.swift"
-    },
-    {
-      "key": "This removes both the still image and the motion. %@",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoPreviewView.swift"
     },
     {
       "key": "This screenshot will be deleted from Photos.",
@@ -2585,7 +2591,7 @@
     },
     {
       "key": "Undo",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Undo your newer actions first to reach that photo.",
@@ -2749,5 +2755,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 678
+  "total": 679
 }

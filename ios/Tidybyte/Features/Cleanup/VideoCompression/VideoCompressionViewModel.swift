@@ -49,9 +49,15 @@ final class VideoCompressionViewModel {
         CompressionPreset.presets.first { $0.id == defaultPresetId } ?? CompressionPreset.presets[0]
     }
 
+    /// List order. Largest first was the only order before, so it stays the default.
+    var sortOrder: MediaSortOrder = .largest {
+        didSet { cachedSortedVideoIdSet = [] }
+    }
+    static let sortOptions: [MediaSortOrder] = [.largest, .newest, .oldest, .longest]
+
     /// Cached sort ORDER (ids only, C13 parity): sort keys are immutable
-    /// (`fileSize`), so the order is recomputed only when the id set changes
-    /// and survives progress-tick mutations. Items are always mapped from the
+    /// (size, date, duration), so the order is recomputed only when the id set
+    /// or `sortOrder` changes and survives progress-tick mutations. Items are always mapped from the
     /// current `videos`, so preset/state edits never render stale copies.
     private var cachedSortedVideoOrder: [String] = []
     private var cachedSortedVideoIdSet: Set<String> = []
@@ -59,7 +65,7 @@ final class VideoCompressionViewModel {
     var sortedVideos: [VideoItem] {
         let ids = Set(videos.map(\.id))
         if ids != cachedSortedVideoIdSet {
-            cachedSortedVideoOrder = videos.sorted { $0.asset.fileSize > $1.asset.fileSize }.map(\.id)
+            cachedSortedVideoOrder = sortOrder.sorted(videos, asset: \.asset).map(\.id)
             cachedSortedVideoIdSet = ids
         }
         let byId = Dictionary(uniqueKeysWithValues: videos.map { ($0.id, $0) })

@@ -9,6 +9,14 @@ enum ConversionState {
     case copySaved
     case completed
     case failed(String)
+
+    /// Idle, or failed (the Live Photo is still in the library).
+    var isConvertible: Bool {
+        switch self {
+        case .idle, .failed: true
+        case .converting, .copySaved, .completed: false
+        }
+    }
 }
 
 struct LivePhotoItem: Identifiable {
@@ -25,7 +33,6 @@ final class LivePhotosConverterViewModel {
     var items: [LivePhotoItem] = []
     var isLoading = true
     private(set) var hasLoadedItems = false
-    var selectedIds: Set<String> = []
     var convertingAll = false
     var errorMessage: String?
     /// Outcome of the most recent Convert All, so the view can decide the
@@ -42,8 +49,8 @@ final class LivePhotosConverterViewModel {
     /// tapped "Don't Allow"). The view offers Try Again / Remove Copies.
     /// `OriginalsCommit.commit` already settles them as kept-both in the journal.
     var keptOriginals: [PendingOriginal] = []
-    /// True while a single conversion or a retry runs, so row buttons and
-    /// Convert All stay disabled.
+    /// True while a retry or Remove Copies runs, so Convert All and the
+    /// swipe review stay disabled.
     private(set) var isBusy = false
     /// D2: the Convert-All loop, owned by the VM so leaving the screen can
     /// cancel it instead of letting it keep converting (and deleting originals)
@@ -52,18 +59,11 @@ final class LivePhotosConverterViewModel {
 
     private let photoService = PhotoLibraryService.shared
 
-    /// Album names keyed by asset id, populated in a single pass over the
-    /// user's albums (O(albums)) — COMP-13. The blocking PhotoKit enumeration
-    /// runs off the main actor via `AlbumMembershipLoader` (D12).
-    private(set) var albumNamesByAsset: [String: [String]] = [:]
-
-    func refreshAlbumNames(for itemIds: Set<String>) async {
-        guard !itemIds.isEmpty else {
-            albumNamesByAsset = [:]
-            return
-        }
-        albumNamesByAsset = await AlbumMembershipLoader.membership(for: itemIds)
+    /// List order. Newest first is the fetch order, so the default changes nothing.
+    var sortOrder: MediaSortOrder = .newest {
+        didSet { items = sortOrder.sorted(items, asset: \.asset) }
     }
+    static let sortOptions: [MediaSortOrder] = [.newest, .oldest, .largest]
 
     var totalSize: Int64 {
         items.reduce(0) { $0 + $1.asset.fileSize }
@@ -74,39 +74,6 @@ final class LivePhotosConverterViewModel {
         items.reduce(0) { $0 + $1.asset.fileSize / 2 }
     }
 
-    var deletedCount: Int = 0
-
-    func indexOfItem(id: String) -> Int? {
-        items.firstIndex(where: { $0.id == id })
-    }
-
-    /// Deletes a Live Photo outright (removes both the still and the motion
-    /// component) without creating a replacement. Use when the user decides
-    /// the Live Photo is junk from the preview. Album membership is dropped
-    /// automatically by iOS on delete.
-    func deleteLivePhoto(itemId: String) async {
-        // COMP-18: never delete outright while Convert All is running — the
-        // batch may be converting (and about to delete) this same item.
-        guard !convertingAll, !isBusy else { return }
-        guard let index = items.firstIndex(where: { $0.id == itemId }) else { return }
-        // Captured before the await: a post-delete fetch returns nothing.
-        let size = items[index].asset.fileSize
-        errorMessage = nil
-        // The shared pipeline, for the partial-failure reconciliation this used
-        // to drop: a delete that half-succeeded reported only the error and left
-        // the confirmed rows in the list.
-        let outcome = await CleanupDeletion.delete(
-            requestedIds: [itemId],
-            kind: .livePhotos,
-            sizeById: [itemId: size],
-            apply: { removed in
-                items.removeAll { removed.contains($0.id) }
-            },
-            recordDeleted: { self.deletedCount += $0 }
-        )
-        errorMessage = outcome.errorMessage
-    }
-
     func loadIfNeeded() async {
         guard !hasLoadedItems else { return }
         await load()
@@ -115,12 +82,8 @@ final class LivePhotosConverterViewModel {
     func load() async {
         isLoading = true
         errorMessage = nil
-        // The header's "Deleted N" counts deletions from THIS visit. Once the
-        // list is re-fetched the rows are gone from the library, so keeping a
-        // running total next to a freshly built list reads as a live figure.
-        deletedCount = 0
         let livePhotos = await photoService.fetchLivePhotos()
-        items = livePhotos.map { LivePhotoItem(id: $0.id, asset: $0) }
+        items = sortOrder.sorted(livePhotos.map { LivePhotoItem(id: $0.id, asset: $0) }, asset: \.asset)
         hasLoadedItems = true
         isLoading = false
     }
@@ -133,18 +96,18 @@ final class LivePhotosConverterViewModel {
     func refresh() async {
         guard !convertingAll, !isBusy else { return }
         errorMessage = nil
-        deletedCount = 0
         let livePhotos = await photoService.fetchLivePhotos()
-        items = livePhotos.map { LivePhotoItem(id: $0.id, asset: $0) }
+        items = sortOrder.sorted(livePhotos.map { LivePhotoItem(id: $0.id, asset: $0) }, asset: \.asset)
         hasLoadedItems = true
     }
 
     /// D2: starts Convert All on a VM-owned task so leaving the screen cancels
-    /// it. Idempotent while running.
-    func startConvertAll(modelContext: ModelContext) {
+    /// it. Idempotent while running. `ids` limits the batch to the photos the
+    /// swipe review marked; nil converts every idle row.
+    func startConvertAll(ids: Set<String>? = nil, modelContext: ModelContext) {
         guard batchTask == nil else { return }
         batchTask = Task { [weak self] in
-            await self?.convertAll(modelContext: modelContext)
+            await self?.convertAll(ids: ids, modelContext: modelContext)
             self?.batchTask = nil
         }
     }
@@ -162,29 +125,6 @@ final class LivePhotosConverterViewModel {
         cancelConvertAll()
         // Ends the PhotoKit read. Its onResume hook cancels the data request.
         inFlightRead?.resume(throwing: CancellationError())
-    }
-
-    func convertSingle(itemId: String, modelContext: ModelContext) async {
-        // COMP-18: never start a single conversion while Convert All is
-        // running (double spinners, double counts).
-        guard !convertingAll, !isBusy else { return }
-        guard let index = items.firstIndex(where: { $0.id == itemId }) else { return }
-        errorMessage = nil
-        isBusy = true
-        defer { isBusy = false }
-        items[index].conversionState = .converting
-
-        do {
-            let pending = try await performConversion(assetId: itemId, modelContext: modelContext)
-            setState(.copySaved, for: itemId)
-            let result = await commitOriginals([pending])
-            if result.failed > 0 {
-                errorMessage = OriginalsCommit.missingStillMessage
-            }
-        } catch {
-            setState(.failed(error.localizedDescription), for: itemId)
-            errorMessage = error.localizedDescription
-        }
     }
 
     /// Step 2: delete the Live Photos of every saved still in one call (one
@@ -259,7 +199,18 @@ final class LivePhotosConverterViewModel {
         }
     }
 
-    func convertAll(modelContext: ModelContext) async {
+    /// The rows a batch converts, in list order, narrowed to `accepted` when
+    /// the swipe review passed a set. A failed row is retried: its Live Photo
+    /// was never deleted.
+    nonisolated static func eligibleIds(items: [LivePhotoItem], accepted: Set<String>?) -> [String] {
+        items.compactMap { item -> String? in
+            guard item.conversionState.isConvertible else { return nil }
+            if let accepted, !accepted.contains(item.id) { return nil }
+            return item.id
+        }
+    }
+
+    func convertAll(ids accepted: Set<String>? = nil, modelContext: ModelContext) async {
         guard !isBusy else { return }
         errorMessage = nil
         isCancelled = false
@@ -273,10 +224,7 @@ final class LivePhotosConverterViewModel {
         await CompressionJournal.reconcile(modelContext: modelContext)
         // COMP-09: snapshot the eligible (idle) ids up front so the summary's
         // denominator matches what was actually attempted.
-        let pendingIds = items.compactMap { item -> String? in
-            guard case .idle = item.conversionState else { return nil }
-            return item.id
-        }
+        let pendingIds = Self.eligibleIds(items: items, accepted: accepted)
         // One album pass for the whole batch instead of one predicate scan
         // per album per item inside `performConversion`.
         let albumMap = await photoService.userAlbumIdentifiers(for: Set(pendingIds))
@@ -384,7 +332,7 @@ final class LivePhotosConverterViewModel {
 
     /// Step 1 of a conversion: save the still as a new asset. The Live Photo
     /// itself is deleted later, in `commitOriginals`.
-    private func performConversion(assetId: String, modelContext: ModelContext, albumIdentifiers: [String]? = nil) async throws -> PendingOriginal {
+    private func performConversion(assetId: String, modelContext: ModelContext, albumIdentifiers: [String]) async throws -> PendingOriginal {
         guard let phAsset = photoService.getPHAsset(for: assetId) else {
             throw LivePhotoError.assetNotFound
         }
@@ -425,15 +373,6 @@ final class LivePhotosConverterViewModel {
                 throw LivePhotoError.invalidImageData
             }
 
-            // Capture album membership for the new still (batch callers
-            // pass the precomputed map; single conversions look it up directly).
-            let resolvedAlbumIds: [String]
-            if let precomputed = albumIdentifiers {
-                resolvedAlbumIds = precomputed
-            } else {
-                resolvedAlbumIds = await photoService.userAlbumIdentifiers(containing: assetId)
-            }
-
             // Save as a new still photo, preserving the original's metadata
             // (including hidden state — COMP-17). Burst membership cannot be
             // carried over: PHAssetCreationRequest has no burst-linkage API, so a
@@ -464,7 +403,7 @@ final class LivePhotosConverterViewModel {
             swap.recordReplacement(id: replacementId, size: Int64(imageData.count))
 
             // Restore album membership on the replacement (best effort).
-            for albumId in resolvedAlbumIds {
+            for albumId in albumIdentifiers {
                 do {
                     try await photoService.addToAlbum(assetIdentifiers: [replacementId], albumIdentifier: albumId)
                 } catch {

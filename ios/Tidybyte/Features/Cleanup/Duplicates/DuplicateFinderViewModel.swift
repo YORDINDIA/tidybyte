@@ -39,6 +39,13 @@ final class DuplicateFinderViewModel {
         }
     }
 
+    /// Display order. The sort is stable, so equal groups keep the scan's
+    /// order (exact before visual).
+    var groupSortOrder: GroupSortOrder = .mostItems
+    var sortedGroups: [DuplicateGroup] {
+        groupSortOrder.sorted(allGroups) { $0.assets }
+    }
+
     var totalDuplicateCount: Int {
         allGroups.reduce(0) { $0 + $1.assets.count - 1 }
     }

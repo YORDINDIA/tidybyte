@@ -242,19 +242,20 @@ final class SwipeSessionViewModel {
             fetched = scored.sorted(by: Self.worstShotOrder).map(\.asset)
         case .notSwipedYet:
             let allAssets = await photoService.fetchDeckListing(filter: .allMedia)
-            // Collapse before the swipe filter: filtering first lets a reviewed
-            // keeper's unreviewed siblings win the next session's collapse and
-            // return. Burst-level exclusion covers a keeper that changed since
-            // the review — any burst with a recorded frame is done.
-            let collapsed = Self.collapsingBursts(allAssets)
-            let swipedBurstIds = Set(allAssets.filter { swipedIds.contains($0.id) }.compactMap(\.burstIdentifier))
-            let filtered = collapsed.filter {
-                !swipedIds.contains($0.id) && ($0.burstIdentifier.map { !swipedBurstIds.contains($0) } ?? true)
-            }
+            let filtered = Self.unswipedDeck(allAssets, swipedIds: swipedIds)
             if filtered.isEmpty && !allAssets.isEmpty {
                 allPhotosAlreadySwiped = true
             }
             fetched = filtered
+        case .largestFirst:
+            // Complete summaries (sizes included) through the resource cache.
+            // The whole-library fetch keeps the change baseline broad.
+            let allAssets = await photoService.fetchAssets(filter: .allMedia)
+            guard !Task.isCancelled, token == loadGeneration else { return }
+            fetched = Self.largestFirstDeck(allAssets, swipedIds: swipedIds)
+            if fetched.isEmpty && !allAssets.isEmpty {
+                allPhotosAlreadySwiped = true
+            }
         default:
             fetched = await photoService.fetchDeckListing(filter: filter)
         }
@@ -263,7 +264,7 @@ final class SwipeSessionViewModel {
         // and belong to the Bursts tool. An explicit id list is left alone.
         let deck: [AssetSummary]
         switch filter {
-        case .customAssetIds, .notSwipedYet: // .notSwipedYet is collapsed above
+        case .customAssetIds, .notSwipedYet, .largestFirst: // the last two are collapsed above
             deck = fetched
         default:
             deck = Self.collapsingBursts(fetched)
@@ -285,8 +286,8 @@ final class SwipeSessionViewModel {
         } else {
             reason = nil
         }
-        if filter == .worstShots {
-            // Scored from complete summaries already.
+        if filter == .worstShots || filter == .largestFirst {
+            // Built from complete summaries already.
             detailedEnd = listed.count
         } else {
             // The listing has no file sizes or iCloud state; fill them in for
@@ -397,6 +398,25 @@ final class SwipeSessionViewModel {
         pendingDeletionIds.removeAll { $0 == asset.id }
         sessionStats.deletedCount = max(0, sessionStats.deletedCount - 1)
         sessionStats.deletedBytes = max(0, sessionStats.deletedBytes - removedSize)
+    }
+
+    /// One card per burst, without anything already swiped. Collapse before the
+    /// swipe filter: filtering first lets a reviewed keeper's unreviewed
+    /// siblings win the next session's collapse and return. Burst-level
+    /// exclusion covers a keeper that changed since the review — any burst with
+    /// a recorded frame is done.
+    nonisolated static func unswipedDeck(_ allAssets: [AssetSummary], swipedIds: Set<String>) -> [AssetSummary] {
+        let collapsed = collapsingBursts(allAssets)
+        let swipedBurstIds = Set(allAssets.filter { swipedIds.contains($0.id) }.compactMap(\.burstIdentifier))
+        return collapsed.filter {
+            !swipedIds.contains($0.id) && ($0.burstIdentifier.map { !swipedBurstIds.contains($0) } ?? true)
+        }
+    }
+
+    /// The Largest First deck: unswiped items, biggest file first. An unknown
+    /// size (0) goes last.
+    nonisolated static func largestFirstDeck(_ allAssets: [AssetSummary], swipedIds: Set<String>) -> [AssetSummary] {
+        MediaSortOrder.largest.sorted(unswipedDeck(allAssets, swipedIds: swipedIds)) { $0 }
     }
 
     /// Keeps one frame per burst: the user's pick, then iPhone's pick, then

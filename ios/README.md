@@ -36,6 +36,7 @@ App Store Connect rejects, and must not be uploaded.
 - Swipe-based photo review (keep/delete)
 - Duplicate & similar photo detection (SHA-256 + Vision feature prints)
 - Blurry photo detection
+- Text photo finder (old notes, tickets and receipts full of text)
 - Screenshot, burst, and Live Photo cleanup
 - Large file finder
 - Video compression

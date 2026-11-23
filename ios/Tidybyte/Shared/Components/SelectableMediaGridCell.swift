@@ -85,6 +85,10 @@ struct SelectableMediaGridCell<MenuContent: View>: View {
                     HStack {
                         Text(verbatim: bottomBadgeText)
                             .font(.caption2.monospacedDigit())
+                            // One line: at large text sizes a wrapped badge
+                            // covered half the photo.
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
                             .foregroundStyle(.white)
                             .padding(.horizontal, Spacing.xs + 2)
                             .padding(.vertical, 2)

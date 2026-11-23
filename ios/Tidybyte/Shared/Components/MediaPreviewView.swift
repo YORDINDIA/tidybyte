@@ -19,8 +19,7 @@ struct AccessoryAction {
 /// start index, the `PhotoLibraryService`, and an optional `onDelete`
 /// callback — so any screen can adopt it.
 ///
-/// Mirrors `LivePhotoPreviewView`'s layout and post-delete index clamping, but
-/// works for arbitrary media types. It reads the paged list **live**: either
+/// Clamps the page index after a delete and works for any media type. It reads the paged list **live**: either
 /// the caller's `assets` array (recomputed by the caller each render) or an
 /// `assetsProvider` closure that re-reads the presenting screen's view model.
 /// When the caller's `onDelete` mutates the underlying source the preview
@@ -37,7 +36,7 @@ struct MediaPreviewView: View {
     /// Replace-flow Originals Kept alert (photo/video compression). Off by
     /// default so non-replace callers are unaffected; a replace screen passes a
     /// LIVE PROVIDER (`{ !viewModel.keptOriginals.isEmpty }`) plus its
-    /// retry/remove handlers, mirroring `LivePhotoPreviewView`.
+    /// retry/remove handlers.
     ///
     /// A provider rather than a `Bool`: a stored value is fixed at construction
     /// and only updates if SwiftUI happens to re-invoke the cover's content
@@ -164,7 +163,7 @@ struct MediaPreviewView: View {
             Text("This deletes this item from your photo library. \(CleanupDeletion.recoverableNote)")
         }
         // Replace flows only: the list-level alert cannot present over this
-        // cover, so the cover shows it (mirrors LivePhotoPreviewView).
+        // cover, so the cover shows it.
         // No settable state backs this condition — keptOriginals is VM-owned —
         // so a constant binding, re-read from the live provider every render.
         .originalsKeptAlert(

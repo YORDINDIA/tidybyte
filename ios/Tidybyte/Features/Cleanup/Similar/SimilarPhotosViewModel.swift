@@ -63,6 +63,11 @@ final class SimilarPhotosViewModel {
     var groups: [SimilarGroup] = [] {
         didSet { updateSuggestedIds() }
     }
+    /// Display order. Oldest matches the scan's order; the sort is stable.
+    var groupSortOrder: GroupSortOrder = .oldest
+    var sortedGroups: [SimilarGroup] {
+        groupSortOrder.sorted(groups) { $0.assets }
+    }
     var scanState: ScanState = .idle
     var selectedForDeletion: Set<String> = []
     var errorMessage: String?

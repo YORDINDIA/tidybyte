@@ -112,6 +112,15 @@ enum Formatters {
         return formatter.string(from: date)
     }
 
+    /// Month and year only ("Feb 2026"), in the user's order. Short enough for
+    /// a grid badge at large text sizes.
+    static func monthYear(_ date: Date, language: AppLanguage? = nil, region: Locale.Region? = nil) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = locale(for: language, region: region)
+        formatter.setLocalizedDateFormatFromTemplate("MMMyyyy")
+        return formatter.string(from: date)
+    }
+
     /// A short time in the user's convention: 24-hour for most of the world,
     /// 12-hour with AM/PM for the US and a few others. This is the piece that
     /// makes the reminder footer correct outside the US — the app previously

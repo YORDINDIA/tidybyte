@@ -54,6 +54,11 @@ struct BurstCleanerView: View {
         .toolbar {
             if !viewModel.groups.isEmpty {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    SortMenu(
+                        selection: $viewModel.groupSortOrder,
+                        options: GroupSortOrder.allCases,
+                        title: \.displayName
+                    )
                     SelectAllToolbarButton(
                         allSelected: viewModel.allNonBestSelected,
                         selectAll: { viewModel.selectAllNonBest() },
@@ -198,7 +203,7 @@ struct BurstCleanerView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                 }
-                ForEach(Array(viewModel.groups.enumerated()), id: \.element.id) { index, group in
+                ForEach(Array(viewModel.sortedGroups.enumerated()), id: \.element.id) { index, group in
                     burstGroupRow(group)
                         .fadeSlideIn(delay: Double(index) * 0.03)
                 }

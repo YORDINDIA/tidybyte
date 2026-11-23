@@ -12,6 +12,9 @@ enum SwipeFilter: Sendable, Hashable {
     case notSwipedYet
     case screenshots
     case worstShots
+    /// Unreviewed items, biggest file first. Needs every file size, so on a
+    /// cold cache it waits for a full library read.
+    case largestFirst
     case customAssetIds(Set<String>)
 }
 
@@ -267,7 +270,7 @@ actor PhotoLibraryService {
     /// after fetching. Nil when the filter's album no longer exists.
     nonisolated private func query(for filter: SwipeFilter) -> (assets: PHFetchResult<PHAsset>, excluding: Set<String>)? {
         switch filter {
-        case .allMedia:
+        case .allMedia, .largestFirst:
             return (PHAsset.fetchAssets(with: allAssetsFetchOptions()), [])
 
         case .allMediaBefore(let cutoffDate):

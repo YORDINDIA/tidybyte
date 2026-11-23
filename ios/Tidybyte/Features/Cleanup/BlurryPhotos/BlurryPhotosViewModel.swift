@@ -27,6 +27,11 @@ final class BlurryPhotosViewModel {
     }
     var scanState: ScanState = .idle
     var activeTab: BlurryTab = .blurry
+    /// Order inside a tab. The scan reads newest first, so Newest is the default.
+    var sortOrder: MediaSortOrder = .newest {
+        didSet { filterCache = nil }
+    }
+    static let sortOptions: [MediaSortOrder] = [.newest, .oldest, .largest]
     var errorMessage: String?
     var isDeleting = false
     /// DUP-04/DUP-09 parity: how many items the last delete actually removed,
@@ -97,10 +102,10 @@ final class BlurryPhotosViewModel {
     /// `analyzedPhotos` didSet invalidates on every mutation (scan appends,
     /// deletes). During a scan each progress tick still rebuilds once, same as
     /// before; after the scan, renders are free.
-    private var filterCache: (tab: BlurryTab, filtered: [AnalyzedPhoto], counts: [BlurryTab: Int])?
+    private var filterCache: (tab: BlurryTab, order: MediaSortOrder, filtered: [AnalyzedPhoto], counts: [BlurryTab: Int])?
 
     private func filteredAndCounts() -> (filtered: [AnalyzedPhoto], counts: [BlurryTab: Int]) {
-        if let cache = filterCache, cache.tab == activeTab {
+        if let cache = filterCache, cache.tab == activeTab, cache.order == sortOrder {
             return (cache.filtered, cache.counts)
         }
         var counts: [BlurryTab: Int] = [:]
@@ -113,7 +118,8 @@ final class BlurryPhotosViewModel {
                 filtered.append(photo)
             }
         }
-        filterCache = (activeTab, filtered, counts)
+        filtered = sortOrder.sorted(filtered, asset: \.asset)
+        filterCache = (activeTab, sortOrder, filtered, counts)
         return (filtered, counts)
     }
 

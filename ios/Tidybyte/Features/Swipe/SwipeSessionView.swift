@@ -44,6 +44,12 @@ struct SwipeSessionView: View {
                         .padding(.horizontal, Spacing.xxl)
                     Button("Cancel") { viewModel.cancelLoading(); dismiss() }
                         .frame(minHeight: 44)
+                } else if viewModel.filter == .largestFirst {
+                    // Reads every file size on a cold cache, which can take a
+                    // minute or two on a large library: offer a way out.
+                    ProgressView("Loading photos...")
+                    Button("Cancel") { viewModel.cancelLoading(); dismiss() }
+                        .frame(minHeight: 44)
                 } else {
                     ProgressView("Loading photos...")
                 }
