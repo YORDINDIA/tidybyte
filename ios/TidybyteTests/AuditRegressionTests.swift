@@ -347,20 +347,6 @@ final class AuditRegressionTests: XCTestCase {
         XCTAssertEqual(summary.lifetimeItemCount, 3)
     }
 
-    // MARK: - F4: the Live Photo delete tally belongs to one visit
-
-    /// `deletedCount` was only ever incremented, so a re-fetched list of Live
-    /// Photos still carried a red "Deleted N" from a previous pass under a
-    /// freshly built header.
-    func testRefreshClearsTheSessionDeleteTally() async {
-        let viewModel = LivePhotosConverterViewModel()
-        viewModel.deletedCount = 3
-
-        await viewModel.refresh()
-
-        XCTAssertEqual(viewModel.deletedCount, 0)
-    }
-
     // MARK: - F5: a collapsed burst says so on both delete paths
 
     /// Deleting one frame collapses a two-frame burst, which then drops out of

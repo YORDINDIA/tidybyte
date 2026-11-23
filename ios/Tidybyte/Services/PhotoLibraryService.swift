@@ -12,7 +12,11 @@ enum SwipeFilter: Sendable, Hashable {
     case notSwipedYet
     case screenshots
     case worstShots
-    case customAssetIds(Set<String>)
+    /// Unreviewed items, biggest file first. Needs every file size, so on a
+    /// cold cache it waits for a full library read.
+    case largestFirst
+    /// An explicit list, in the order the deck shows it (a tool's sort).
+    case customAssetIds([String])
 }
 
 actor PhotoLibraryService {
@@ -258,16 +262,19 @@ actor PhotoLibraryService {
         return count
     }
 
+    /// Fetch order only: `SwipeSessionViewModel` applies the Largest First
+    /// size order and the custom-list order.
     func fetchAssets(filter: SwipeFilter) async -> [AssetSummary] {
         guard let query = query(for: filter) else { return [] }
-        return await extractSummaries(from: query.assets, excluding: query.excluding, isFullLibrary: filter == .allMedia)
+        let isFullLibrary = filter == .allMedia || filter == .largestFirst
+        return await extractSummaries(from: query.assets, excluding: query.excluding, isFullLibrary: isFullLibrary)
     }
 
     /// The PhotoKit fetch behind each filter, plus the ids the filter drops
     /// after fetching. Nil when the filter's album no longer exists.
     nonisolated private func query(for filter: SwipeFilter) -> (assets: PHFetchResult<PHAsset>, excluding: Set<String>)? {
         switch filter {
-        case .allMedia:
+        case .allMedia, .largestFirst:
             return (PHAsset.fetchAssets(with: allAssetsFetchOptions()), [])
 
         case .allMediaBefore(let cutoffDate):
@@ -306,7 +313,7 @@ actor PhotoLibraryService {
             return (PHAsset.fetchAssets(with: options), [])
 
         case .customAssetIds(let ids):
-            return (PHAsset.fetchAssets(withLocalIdentifiers: Array(ids), options: allAssetsFetchOptions()), [])
+            return (PHAsset.fetchAssets(withLocalIdentifiers: ids, options: allAssetsFetchOptions()), [])
         }
     }
 
@@ -423,6 +430,20 @@ actor PhotoLibraryService {
             groups[key]?.sort { ($0.creationDate ?? .distantPast) < ($1.creationDate ?? .distantPast) }
         }
         return groups.filter { $0.value.count > 1 }
+    }
+
+    /// Photos taken on or before `cutoff` that are neither screenshots nor
+    /// favorites: the Text Photos scan. PhotoKit applies the predicate, so
+    /// resources are read only for these photos, not the whole library.
+    func fetchTextPhotoCandidates(takenOnOrBefore cutoff: Date) async -> [AssetSummary] {
+        let options = allAssetsFetchOptions()
+        options.predicate = NSPredicate(
+            format: "mediaType = %d AND creationDate <= %@ AND favorite == NO AND (mediaSubtypes & %d) == 0",
+            PHAssetMediaType.image.rawValue,
+            cutoff as NSDate,
+            PHAssetMediaSubtype.photoScreenshot.rawValue
+        )
+        return await extractSummaries(from: PHAsset.fetchAssets(with: options))
     }
 
     /// `sortByCreationDate: false` keeps PhotoKit's fetch order, which is the

@@ -92,11 +92,16 @@ struct BlurryPhotosView: View {
                         if !viewModel.filteredPhotos.isEmpty {
                             Button {
                                 HapticHelper.impact(.light)
-                                let ids = Set(viewModel.filteredPhotos.map(\.id))
+                                let ids = viewModel.filteredPhotos.map(\.id)
                                 startSwipeReview(with: .customAssetIds(ids))
                             } label: {
                                 Label("Review with Swipe", systemImage: "hand.draw")
                             }
+                            SortMenu(
+                                selection: $viewModel.sortOrder,
+                                options: BlurryPhotosViewModel.sortOptions,
+                                title: \.displayName
+                            )
                         }
                         Button {
                             HapticHelper.impact(.light)
@@ -148,7 +153,7 @@ struct BlurryPhotosView: View {
         .fullScreenCover(item: $previewPhoto, onDismiss: {
             if pendingSwipeReview {
                 pendingSwipeReview = false
-                let ids = Set(viewModel.filteredPhotos.map(\.id))
+                let ids = viewModel.filteredPhotos.map(\.id)
                 startSwipeReview(with: .customAssetIds(ids))
             }
         }) { photo in

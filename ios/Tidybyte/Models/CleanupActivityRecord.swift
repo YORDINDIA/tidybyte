@@ -17,6 +17,7 @@ enum CleanupActivityKind: String, CaseIterable, Sendable {
     case duplicates
     case similar
     case screenshots
+    case textPhotos
     case screenRecordings
     case chatMedia
     case blurry
@@ -38,6 +39,7 @@ enum CleanupActivityKind: String, CaseIterable, Sendable {
         case .duplicates: .duplicates
         case .similar: .similar
         case .screenshots: .screenshots
+        case .textPhotos: .textPhotos
         case .screenRecordings: .screenRecordings
         case .chatMedia: .chatMedia
         case .blurry: .blurry

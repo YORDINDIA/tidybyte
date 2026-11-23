@@ -45,6 +45,7 @@
     "Add to Album": "アルバムに追加",
     "Added to albums": "アルバムに追加",
     "Adds this photo to the delete list": "この写真を削除リストに追加します",
+    "Age": "期間",
     "Album": "アルバム",
     "Album name": "アルバム名",
     "Album not found.": "アルバムが見つかりません。",
@@ -82,6 +83,7 @@
     "Best overall": "総合的に最良",
     "Best quality": "最高画質",
     "Biggest files in your library": "ライブラリ内の大きいファイル",
+    "Biggest photos and videos first": "大きい写真とビデオから順に",
     "Blur": "ぼやけ",
     "Blur Detection Sensitivity": "ぼやけ検出の感度",
     "Blurry": "ぼやけた",
@@ -207,6 +209,8 @@
     "Detect Low-Quality Photos": "低品質な写真を検出",
     "Detected by file name heuristics — may include some camera photos": "ファイル名からの推定で検出 — カメラで撮影した写真が含まれる場合があります",
     "Device Storage": "デバイスのストレージ",
+    "Discard": "破棄",
+    "Discard your choices?": "選択内容を破棄しますか？",
     "Dismiss": "閉じる",
     "Dismiss error": "エラーを閉じる",
     "Documents": "書類",
@@ -245,6 +249,7 @@
     "Filter": "フィルタ",
     "Find Duplicate Photos": "重複した写真を検索",
     "Find Duplicates": "重複を検索",
+    "Find Photos Full of Text": "テキストの多い写真を探す",
     "Find Similar Photos": "類似した写真を検索",
     "Find blurry, too dark, and overexposed photos.": "ぼやけた写真、暗すぎる写真、露出オーバーの写真を検出します。",
     "Find exact & visual duplicates": "完全な重複と見た目の重複を検索",
@@ -347,6 +352,7 @@
     "Local": "ローカル",
     "Local AI could not interpret this search.": "ローカルAIはこの検索を解釈できませんでした。",
     "Local AI is unavailable.": "ローカルAIは利用できません。",
+    "Longest": "長い順",
     "Low": "低",
     "Lower quality, maximum savings": "低い画質、最大の節約",
     "Manage Apps & System Storage": "アプリとシステムのストレージを管理",
@@ -362,6 +368,7 @@
     "Min size: %@": "最小サイズ: %@",
     "Mixed": "混在",
     "More actions": "その他の操作",
+    "Most Items": "項目数が多い順",
     "Most recent": "最新",
     "Moved to Recently Deleted": "「最近削除した項目」に移動",
     "Nature": "自然",
@@ -403,6 +410,7 @@
     "No more items": "項目はもうありません",
     "No more photos to review with this filter.": "このフィルタで確認する写真はもうありません。",
     "No photo is waiting to be filed. Dismiss and try again.": "アルバムに追加する写真がありません。閉じて、もう一度お試しください。",
+    "No photos full of text are this old.": "この期間より古いテキストの多い写真はありません。",
     "No photos in this category.": "このカテゴリには写真がありません。",
     "No photos larger than %lld MB. Lower the threshold or switch to All/Videos.": "サイズが%lld MBを超える写真はありません。しきい値を下げるか、「すべて」/「ビデオ」に切り替えてください。",
     "No photos over %lld MB are left to compress. HEIC photos are already small.": "圧縮できる%lld MBを超える写真はもうありません。HEICの写真はすでに小さいサイズです。",
@@ -422,9 +430,11 @@
     "Not now": "今はしない",
     "Not really": "いいえ、それほどでも",
     "Not scanned": "未スキャン",
+    "Notes, tickets, receipts and boards you photographed are often out of date after a few weeks.": "撮影したメモ、チケット、レシート、ボードは、数週間で古くなることがよくあります。",
     "Nothing Leaves Your Device": "デバイスの外には何も出ません",
     "Nothing is selected. Tap the circles to pick, or tap Select All.": "何も選択されていません。丸をタップして選ぶか、「すべて選択」をタップしてください。",
     "Nothing is selected. Tap the circles to pick.": "何も選択されていません。丸をタップして選んでください。",
+    "Nothing marked to convert": "変換する項目が選択されていません",
     "Nothing measurable yet. Items stored only in iCloud don't report a size.": "まだ測定できるデータがありません。iCloudにのみ保存されている項目はサイズを報告しません。",
     "Nothing to Sort": "並べ替えるものがありません",
     "Nothing to clean in the %lld items you picked.": "選択した %lld 個の項目に整理するものはありません。",
@@ -433,6 +443,11 @@
     "Notifications Disabled": "通知がオフです",
     "OK": "OK",
     "Off: keep both versions.": "オフ: 両方のバージョンを残します。",
+    "Old notes, tickets and receipts": "古いメモ、チケット、レシート",
+    "Older than 1 month": "1か月以上前",
+    "Older than 1 year": "1年以上前",
+    "Older than 2 weeks": "2週間以上前",
+    "Older than 3 months": "3か月以上前",
     "Oldest": "古い順",
     "On this device, from %@: screenshots, Live Photos, large videos, photos saved from apps and large files.": "このデバイスでは%@から: スクリーンショット、Live Photo、大きいビデオ、アプリから保存した写真、大きいファイル。",
     "On this iPhone. Live Photos and large videos count at about half their size.": "このiPhone内。Live Photoと大きいビデオは約半分のサイズで計算されます。",
@@ -512,6 +527,7 @@
     "Rate on the App Store": "App Storeで評価",
     "Re-encode photos to save space": "写真を再エンコードして容量を節約",
     "Re-encode to HEIC, full resolution": "HEICで再エンコード、フル解像度",
+    "Reads the text in your photos on this device": "このデバイス上で写真の文字を読み取ります",
     "Recent": "最近",
     "Recent Cleanups": "最近のクリーンアップ",
     "Recently Added": "追加が新しい順",
@@ -579,6 +595,7 @@
     "Screen Recordings": "画面収録",
     "Screenshots": "スクリーンショット",
     "Screenshots & Recordings": "スクリーンショットと画面収録",
+    "Screenshots and favorites are not included.": "スクリーンショットとお気に入りは含まれません。",
     "Screenshots and large files add up. Take a few minutes to review them.": "スクリーンショットと大きいファイルはたまります。数分で確認してみましょう。",
     "Search": "検索",
     "Search scanned photos": "スキャン済みの写真を検索",
@@ -674,6 +691,7 @@
     "Swipe to Organize": "スワイプで整理",
     "Tell us what got in the way.": "何が邪魔になったか教えてください。",
     "Tells you how much space TidyByte can help you reclaim.": "TidyByteが確保できる容量を表示します。",
+    "Text Photos": "テキストの写真",
     "Thanks for the support": "ご支援ありがとうございます",
     "That photo can't be undone anymore.": "その写真はもう取り消せません。",
     "The best copy of each group will be kept.": "各グループのベストなコピーは残されます。",
@@ -776,6 +794,7 @@
     "You Could Free": "削減できる容量",
     "You can free up to %@ on this iPhone. Review %@ in TidyByte.": "このiPhoneでは最大%@を空けられます。TidyByteで%@を確認してください。",
     "You can keep or skip it. Delete is off until it shows.": "残してもスキップしてもかまいません。表示されるまで「削除」はオフです。",
+    "You can skip it. Convert is off until it shows.": "スキップできます。表示されるまで変換はオフです。",
     "You could free up to %@ on this device, from %@": "このデバイスでは最大%@を空けられます。内訳: %@",
     "You don't have any Live Photos in your library.": "ライブラリにLive Photoはありません。",
     "You don't have any burst photo groups.": "バースト写真のグループはありません。",
@@ -1038,6 +1057,15 @@
     },
     "Updated %lld day ago": {
       "other": "%lld日前に更新"
+    },
+    "%lld Live Photo to convert": {
+      "other": "変換するLive Photo：%lld枚"
+    },
+    "%lld text photo": {
+      "other": "テキストの写真 %lld枚"
+    },
+    "%lld photo could not be analyzed.": {
+      "other": "%lld枚の写真を分析できませんでした。"
     }
   }
 }

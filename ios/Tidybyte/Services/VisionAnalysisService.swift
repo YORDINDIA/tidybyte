@@ -105,6 +105,15 @@ struct ContentClassificationResult: Sendable {
     var succeeded = true
 }
 
+/// How much readable text a photo holds, for the Text Photos tool.
+struct TextAmount: Sendable, Equatable {
+    /// Letters and digits in the confident text lines.
+    let characterCount: Int
+    /// Confident text lines.
+    let lineCount: Int
+    var succeeded = true
+}
+
 struct AestheticsResult: Sendable, Equatable {
     let score: Float
     let isUtility: Bool
@@ -330,6 +339,36 @@ actor VisionAnalysisService {
             return Float.greatestFiniteMagnitude
         }
         return distance
+    }
+
+    // MARK: - Text Amount (for Text Photos)
+
+    /// Counts the readable text in one image. `fast` recognition without
+    /// language correction: the count matters, not the words. Lines below
+    /// `minimumConfidence` are dropped, because fast recognition reads short
+    /// junk strings off textures such as brick, foliage and fabric.
+    func analyzeText(image: CGImage, minimumConfidence: Float = 0.5) -> TextAmount {
+        let handler = VNImageRequestHandler(cgImage: image, options: [:])
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .fast
+        request.usesLanguageCorrection = false
+        do {
+            try handler.perform([request])
+        } catch {
+            AppLog.vision.error("Text recognition failed: \(error.localizedDescription, privacy: .public)")
+            return TextAmount(characterCount: 0, lineCount: 0, succeeded: false)
+        }
+        var characters = 0
+        var lines = 0
+        for observation in request.results ?? [] {
+            guard let candidate = observation.topCandidates(1).first,
+                  candidate.confidence >= minimumConfidence else { continue }
+            let count = candidate.string.unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) }.count
+            guard count > 0 else { continue }
+            characters += count
+            lines += 1
+        }
+        return TextAmount(characterCount: characters, lineCount: lines)
     }
 
     // MARK: - Content Classification (for Smart Categories)

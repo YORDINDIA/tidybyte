@@ -196,13 +196,13 @@ final class CleanupHomeViewModel {
         return (rollup, allAssets.filter(\.isScreenRecording).count, chatMedia, removableFrames)
     }
 
-    /// Duplicates, similar, blurry and smart categories cost a full scan to
-    /// count: show the last scan's result, or nil ("Not scanned").
+    /// Duplicates, similar, blurry, smart categories and text photos cost a
+    /// full scan to count: show the last scan's result, or nil ("Not scanned").
     func applyScanResults() {
         for tool in [CleanupTool.chatMedia, .screenRecordings] {
             if let count = ScanResults.counts[tool] { updateTool(tool, count: count) }
         }
-        for tool in [CleanupTool.duplicates, .similar, .blurry, .smartCategories] {
+        for tool in [CleanupTool.duplicates, .similar, .blurry, .smartCategories, .textPhotos] {
             updateTool(tool, count: ScanResults.counts[tool], isLoading: false)
         }
     }

@@ -48,7 +48,7 @@ final class CleanupHomeGroupingTests: XCTestCase {
     }
 
     func testReviewToolsAreGroupedAsOrganize() {
-        for tool in [CleanupTool.screenshots, .smartCategories] {
+        for tool in [CleanupTool.screenshots, .textPhotos, .smartCategories] {
             XCTAssertEqual(tool.category, .organize, "\(tool) is a review tool")
         }
     }

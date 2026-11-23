@@ -51,7 +51,7 @@ struct LargeFilesView: View {
                             .pickerStyle(.segmented)
 
                             Picker("Sort", selection: $viewModel.sortOrder) {
-                                ForEach(MediaSortOrder.allCases, id: \.self) { order in
+                                ForEach(MediaSortOrder.options(includingVideos: viewModel.mediaFilter != .photos), id: \.self) { order in
                                     Text(LocalizedStringKey(order.displayName)).tag(order)
                                 }
                             }

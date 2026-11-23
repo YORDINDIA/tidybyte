@@ -70,6 +70,11 @@ struct DuplicateFinderView: View {
         .toolbar {
             if viewModel.scanState == .completed && !viewModel.allGroups.isEmpty {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    SortMenu(
+                        selection: $viewModel.groupSortOrder,
+                        options: GroupSortOrder.allCases,
+                        title: \.displayName
+                    )
                     // DUP-04c: select/deselect every asset across all groups.
                     // Delete lives in the bottom bar only.
                     SelectAllToolbarButton(
@@ -224,7 +229,7 @@ struct DuplicateFinderView: View {
                     .fadeSlideIn()
 
                     List {
-                        ForEach(Array(viewModel.allGroups.enumerated()), id: \.element.id) { index, group in
+                        ForEach(Array(viewModel.sortedGroups.enumerated()), id: \.element.id) { index, group in
                             duplicateGroupRow(group)
                             // DUP-04a: delete just this group's checked assets. No
                             // full swipe: a delete needs a deliberate tap.

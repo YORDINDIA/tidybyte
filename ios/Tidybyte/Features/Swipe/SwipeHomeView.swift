@@ -122,6 +122,16 @@ struct SwipeHomeView: View {
                     }
 
                     filterCard(
+                        title: "Largest First",
+                        description: "Biggest photos and videos first",
+                        icon: "arrow.up.arrow.down",
+                        color: .green,
+                        filter: .largestFirst,
+                        tag: "Scans library"
+                    )
+                    .fadeSlideIn(delay: 0.09)
+
+                    filterCard(
                         title: "All Media",
                         description: "Start from the beginning — includes skipped items",
                         icon: "photo.on.rectangle.angled",

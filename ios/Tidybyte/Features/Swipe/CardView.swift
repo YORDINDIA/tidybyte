@@ -78,6 +78,9 @@ struct CardView: View {
     /// horizontal axis there (see `SwipeDirection.resolve`), so the drag stamps
     /// must mirror with it or the screen names the wrong action.
     var isRightToLeft: Bool = false
+    /// What the drag stamps say. The swipe session's DELETE / KEEP / ALBUM by
+    /// default; the Live Photo review passes its own pair.
+    var stamps: SwipeStamps = .session
     /// Incremented by SwipeSessionView's "Zoom" accessibility action; CardView
     /// toggles zoom on change (only the top card receives a non-zero value).
     var zoomToggleRequest: Int = 0
@@ -308,7 +311,7 @@ struct CardView: View {
 
                 // Swipe indicators
                 if let motion {
-                    SwipeStampOverlay(motion: motion, isRightToLeft: isRightToLeft)
+                    SwipeStampOverlay(motion: motion, isRightToLeft: isRightToLeft, stamps: stamps)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.large))
@@ -569,7 +572,9 @@ struct CardView: View {
             Text(loadFailureMessage)
                 .font(.headline)
                 .multilineTextAlignment(.center)
-            Text("You can keep or skip it. Delete is off until it shows.")
+            Text(stamps.backwardDeletes
+                 ? "You can keep or skip it. Delete is off until it shows."
+                 : "You can skip it. Convert is off until it shows.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -749,55 +754,106 @@ struct CardView: View {
     }
 }
 
-/// DELETE / KEEP / ALBUM stamps and tints, driven by the card's drag. Its own
-/// view so a drag frame re-evaluates only this and the root offset.
+/// The words, symbols and colors on a card's drag stamps.
+struct SwipeStamps {
+    struct Stamp {
+        let title: LocalizedStringKey
+        let icon: String
+        let color: Color
+        /// True for the session's stamps, whose keys are already upper case.
+        /// False uppercases a sentence-case key at draw time.
+        var isUppercaseKey = true
+        /// A fill behind a light stamp so it stays readable on a bright photo.
+        var plate: Color? = nil
+    }
+
+    /// The stamp for a forward drag (right, or left in Arabic and Hebrew).
+    let forward: Stamp
+    /// The stamp for a backward drag.
+    let backward: Stamp
+    /// The backward swipe deletes: the card tints under its stamp, and a card
+    /// that failed to load says Delete (not Convert) is off until it shows.
+    let backwardDeletes: Bool
+    /// Shows ALBUM on an up-drag.
+    let showsAlbum: Bool
+
+    // Computed: `LocalizedStringKey` is not Sendable, so a stored static is not concurrency-safe.
+    static var session: SwipeStamps {
+        SwipeStamps(
+            forward: Stamp(title: "KEEP", icon: "checkmark", color: .green),
+            backward: Stamp(title: "DELETE", icon: "trash.fill", color: .red),
+            backwardDeletes: true,
+            showsAlbum: true
+        )
+    }
+
+    /// Live Photo review: forward marks the photo for conversion to a still,
+    /// backward leaves it a Live Photo.
+    static var livePhotoReview: SwipeStamps {
+        SwipeStamps(
+            forward: Stamp(title: "Convert", icon: "livephoto.slash", color: .green, isUppercaseKey: false),
+            backward: Stamp(title: "Skip", icon: "livephoto", color: .white, isUppercaseKey: false, plate: .black.opacity(0.45)),
+            backwardDeletes: false,
+            showsAlbum: false
+        )
+    }
+}
+
+/// Forward / backward / ALBUM stamps and tints, driven by the card's drag. Its
+/// own view so a drag frame re-evaluates only this and the root offset.
 private struct SwipeStampOverlay: View {
     let motion: CardMotion
-    /// Mirrors the DELETE/KEEP pair for Arabic and Hebrew, matching the action
-    /// the deck will commit. The ALBUM stamp below is left alone: up is up in
-    /// both directions.
+    /// Mirrors the forward/backward pair for Arabic and Hebrew, matching the
+    /// action the deck will commit. The ALBUM stamp below is left alone: up is
+    /// up in both directions.
     let isRightToLeft: Bool
+    let stamps: SwipeStamps
 
-    private var stamps: (delete: Double, keep: Double) {
+    private var opacities: (delete: Double, keep: Double) {
         SwipeDirection.stampOpacities(offset: motion.offset, isRightToLeft: isRightToLeft)
     }
-    private var deleteOpacity: Double { stamps.delete }
-    private var keepOpacity: Double { stamps.keep }
+    private var backwardOpacity: Double { opacities.delete }
+    private var forwardOpacity: Double { opacities.keep }
     private var albumOpacity: Double { min(max(-Double(motion.offset.height) / 150.0, 0), 1.0) }
+
+    private func stampLabel(_ stamp: SwipeStamps.Stamp) -> some View {
+        Label {
+            Text(stamp.title).textCase(stamp.isUppercaseKey ? nil : .uppercase)
+        } icon: {
+            Image(systemName: stamp.icon)
+        }
+        .font(.title.bold())
+        // One line: a long translation (German "Überspringen") shrinks instead
+        // of breaking the stamp in two.
+        .lineLimit(1)
+        .minimumScaleFactor(0.5)
+        .foregroundStyle(stamp.color)
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.sm)
+        .background(stamp.plate ?? .clear, in: RoundedRectangle(cornerRadius: CornerRadius.small))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.small)
+                .stroke(stamp.color, lineWidth: 3)
+        )
+    }
 
     var body: some View {
         ZStack {
             VStack {
                 HStack {
                     Spacer()
-                    Label("DELETE", systemImage: "trash.fill")
-                        .font(.title.bold())
-                        .foregroundStyle(.red)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.sm)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.small)
-                                .stroke(.red, lineWidth: 3)
-                        )
+                    stampLabel(stamps.backward)
                         .rotationEffect(.degrees(15))
                         .padding(.trailing, Spacing.xxl)
                         .padding(.top, 40)
                 }
                 Spacer()
             }
-            .opacity(deleteOpacity)
+            .opacity(backwardOpacity)
 
             VStack {
                 HStack {
-                    Label("KEEP", systemImage: "checkmark")
-                        .font(.title.bold())
-                        .foregroundStyle(.green)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.sm)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.small)
-                                .stroke(.green, lineWidth: 3)
-                        )
+                    stampLabel(stamps.forward)
                         .rotationEffect(.degrees(-15))
                         .padding(.leading, Spacing.xxl)
                         .padding(.top, 40)
@@ -805,29 +861,33 @@ private struct SwipeStampOverlay: View {
                 }
                 Spacer()
             }
-            .opacity(keepOpacity)
+            .opacity(forwardOpacity)
 
             // Up-drag: file into an album (SwipeSessionView's up-swipe
             // gesture) — mirrors the DELETE/KEEP direction stamps.
-            VStack {
-                Label("ALBUM", systemImage: "folder.badge.plus")
-                    .font(.title3.bold())
-                    .foregroundStyle(.blue)
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.vertical, Spacing.sm)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.small)
-                            .stroke(.blue, lineWidth: 3)
-                    )
-                    .padding(.top, 40)
-                Spacer()
+            if stamps.showsAlbum {
+                VStack {
+                    Label("ALBUM", systemImage: "folder.badge.plus")
+                        .font(.title3.bold())
+                        .foregroundStyle(.blue)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.sm)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.small)
+                                .stroke(.blue, lineWidth: 3)
+                        )
+                        .padding(.top, 40)
+                    Spacer()
+                }
+                .opacity(albumOpacity)
             }
-            .opacity(albumOpacity)
 
+            if stamps.backwardDeletes {
+                Rectangle()
+                    .fill(stamps.backward.color.opacity(backwardOpacity * 0.15))
+            }
             Rectangle()
-                .fill(.red.opacity(deleteOpacity * 0.15))
-            Rectangle()
-                .fill(.green.opacity(keepOpacity * 0.15))
+                .fill(stamps.forward.color.opacity(forwardOpacity * 0.15))
         }
         .allowsHitTesting(false)
     }

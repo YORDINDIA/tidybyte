@@ -61,7 +61,21 @@ struct SimilarGroup: Identifiable, Hashable, Sendable {
 @MainActor
 final class SimilarPhotosViewModel {
     var groups: [SimilarGroup] = [] {
-        didSet { updateSuggestedIds() }
+        didSet {
+            updateSuggestedIds()
+            refreshSortedGroups()
+        }
+    }
+    /// Display order. Oldest matches the scan's order; the sort is stable.
+    var groupSortOrder: GroupSortOrder = .oldest {
+        didSet { refreshSortedGroups() }
+    }
+    /// Cached: the list reads it on every render, and only a change to the
+    /// groups or the order can change it.
+    private(set) var sortedGroups: [SimilarGroup] = []
+
+    private func refreshSortedGroups() {
+        sortedGroups = groupSortOrder.sorted(groups) { $0.assets }
     }
     var scanState: ScanState = .idle
     var selectedForDeletion: Set<String> = []

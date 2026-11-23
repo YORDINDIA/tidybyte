@@ -6,13 +6,16 @@ struct LivePhotosConverterView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var viewModel = LivePhotosConverterViewModel()
     @State private var showConvertAllConfirm = false
-    @State private var previewItem: LivePhotoItem?
-    /// Set when a single Convert waits for the first-time explainer.
-    @State private var explainerItemId: String?
-    @AppStorage(LivePhotoConvertExplainer.storageKey) private var hasSeenExplainer = false
+    /// The open swipe review. Its Convert closes it, then converts the marked
+    /// photos in one batch, so iOS asks once for the whole review.
+    @State private var review: ReviewStart?
     @State private var isCelebrating = false
     @State private var celebrationStatLine: String?
     private let photoService = PhotoLibraryService.shared
+
+    private var hasIdleItems: Bool {
+        viewModel.items.contains { $0.conversionState.isConvertible }
+    }
 
     var body: some View {
         Group {
@@ -37,7 +40,15 @@ struct LivePhotosConverterView: View {
         .localizedNavigationTitle("Live Photos")
         .toolbar {
             // Conversions are logged in the same history as compression.
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if !viewModel.items.isEmpty {
+                    SortMenu(
+                        selection: $viewModel.sortOrder,
+                        options: LivePhotosConverterViewModel.sortOptions,
+                        title: \.displayName
+                    )
+                    .disabled(viewModel.convertingAll)
+                }
                 NavigationLink {
                     CompressionHistoryView()
                 } label: {
@@ -60,25 +71,11 @@ struct LivePhotosConverterView: View {
         } message: {
             Text(LivePhotoConvertExplainer.message)
         }
-        .alert("Convert Live Photo", isPresented: .init(
-            get: { explainerItemId != nil },
-            set: { if !$0 { explainerItemId = nil } }
-        )) {
-            Button("Cancel", role: .cancel) { explainerItemId = nil }
-            Button("Convert") {
-                hasSeenExplainer = true
-                if let id = explainerItemId {
-                    explainerItemId = nil
-                    Task { await viewModel.convertSingle(itemId: id, modelContext: modelContext) }
-                }
-            }
-        } message: {
-            Text(LivePhotoConvertExplainer.message)
-        }
         .originalsKeptAlert(
             // No settable state backs this condition — keptOriginals is
-            // VM-owned and the preview gate is local — so a constant binding.
-            isPresented: .constant(!viewModel.keptOriginals.isEmpty && previewItem == nil),
+            // VM-owned and the review gate is local — so a constant binding.
+            // An alert cannot present over the review's full-screen cover.
+            isPresented: .constant(!viewModel.keptOriginals.isEmpty && review == nil),
             onTryAgain: { viewModel.retryRemovingOriginals() },
             onRemoveCopies: { viewModel.removeCopies() }
         )
@@ -121,8 +118,15 @@ struct LivePhotosConverterView: View {
                 .padding(.vertical, Spacing.sm)
             }
         }
-        .fullScreenCover(item: $previewItem) { item in
-            LivePhotoPreviewView(viewModel: viewModel, startItemId: item.id)
+        .fullScreenCover(item: $review) { start in
+            LivePhotoSwipeReviewView(
+                items: viewModel.items,
+                startId: start.itemId,
+                photoService: photoService
+            ) { marked in
+                review = nil
+                viewModel.startConvertAll(ids: marked, modelContext: modelContext)
+            }
         }
         .task {
             await viewModel.loadIfNeeded()
@@ -160,17 +164,17 @@ struct LivePhotosConverterView: View {
 
             // Bottom action bar
             ActionBarView {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("\(viewModel.items.count) Live Photos")
-                        .font(.caption.bold())
-                    Text("est. ~\(viewModel.estimatedSavings.formattedFileSize) savings")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
                 if viewModel.convertingAll || viewModel.phase != .idle {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text("\(viewModel.items.count) Live Photos")
+                            .font(.caption.bold())
+                        Text("est. ~\(viewModel.estimatedSavings.formattedFileSize) savings")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
                     ProgressView()
                         .padding(.trailing, Spacing.sm)
                     Text(ReplaceOriginalsNotice.phaseText(viewModel.phase))
@@ -187,20 +191,35 @@ struct LivePhotosConverterView: View {
                         .font(.subheadline.bold())
                     }
                 } else {
-                    Button {
-                        HapticHelper.impact(.light)
-                        showConvertAllConfirm = true
-                    } label: {
-                        Text("Convert All")
-                            .font(.headline)
-                            .padding(.horizontal, Spacing.xxl)
-                            .padding(.vertical, Spacing.sm)
-                            .background(Color.actionFill)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                    // The summary card above already shows the count and the
+                    // savings, so the bar holds only the two actions.
+                    AdaptiveRow(spacing: Spacing.md) {
+                        Button("Convert All") {
+                            HapticHelper.impact(.light)
+                            showConvertAllConfirm = true
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .frame(minHeight: 44)
+                        .disabled(viewModel.isBusy || !hasIdleItems)
+
+                        AdaptiveSpacer()
+
+                        Button {
+                            HapticHelper.impact(.light)
+                            review = ReviewStart(itemId: nil)
+                        } label: {
+                            Label("Review with Swipe", systemImage: "hand.draw")
+                                .font(.headline)
+                                .padding(.horizontal, Spacing.lg)
+                                .padding(.vertical, Spacing.sm)
+                                .frame(minHeight: 44)
+                                .background(Color.actionFill)
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
+                        }
+                        .scaleOnPress()
+                        .disabled(viewModel.isBusy || !hasIdleItems)
                     }
-                    .scaleOnPress()
-                    .disabled(viewModel.isBusy)
                 }
             }
         }
@@ -214,13 +233,7 @@ struct LivePhotosConverterView: View {
             tint: CleanupTool.livePhotos.color,
             headline: Text("\(viewModel.items.count) Live Photos"),
             subtitle: Text("Total: \(viewModel.totalSize.formattedFileSize) · est. savings ~\(viewModel.estimatedSavings.formattedFileSize)")
-        ) {
-            if viewModel.deletedCount > 0 {
-                Text("Deleted \(viewModel.deletedCount)")
-                    .font(.caption.bold())
-                    .foregroundStyle(Color.destructiveText)
-            }
-        }
+        )
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.sm)
     }
@@ -236,7 +249,7 @@ struct LivePhotosConverterView: View {
         return layout {
             Button {
                 HapticHelper.impact(.light)
-                previewItem = item
+                review = ReviewStart(itemId: item.id)
             } label: {
                 HStack(spacing: Spacing.md) {
                     AsyncThumbnailView(assetId: item.id, photoService: photoService)
@@ -268,8 +281,9 @@ struct LivePhotosConverterView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Open Live Photo preview")
-            .accessibilityHint("Opens full-screen preview with motion playback")
+            // Converting, saved and converted rows have nothing left to review.
+            .disabled(!item.conversionState.isConvertible || viewModel.convertingAll || viewModel.isBusy)
+            .accessibilityHint("Review with Swipe")
 
             conversionButton(for: item)
         }
@@ -281,28 +295,7 @@ struct LivePhotosConverterView: View {
     private func conversionButton(for item: LivePhotoItem) -> some View {
         switch item.conversionState {
         case .idle:
-            Button {
-                HapticHelper.impact(.light)
-                if hasSeenExplainer {
-                    Task { await viewModel.convertSingle(itemId: item.id, modelContext: modelContext) }
-                } else {
-                    explainerItemId = item.id
-                }
-            } label: {
-                Text("Convert")
-                    .font(.caption.bold())
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm)
-                    .background(Color.cardSurface)
-                    .foregroundStyle(.blue)
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.small)
-                            .strokeBorder(Color.cardBorder, lineWidth: 1)
-                    )
-            }
-            .scaleOnPress()
-            .disabled(viewModel.convertingAll || viewModel.isBusy)
+            EmptyView()
 
         case .converting:
             ProgressView()
@@ -339,10 +332,9 @@ struct LivePhotosConverterView: View {
     }
 }
 
-/// First-time explainer for Live Photo conversion. Shared by the list and the
-/// full-screen preview, which both offer a single Convert.
+/// What a Live Photo conversion does. Shown in the Convert All alert and on
+/// the swipe review's Convert screen.
 enum LivePhotoConvertExplainer {
-    static let storageKey = "hasSeenLivePhotoConvertExplainer"
     /// Computed, not stored: a `static let` resolves once, the first time the
     /// type is touched, and then keeps serving that language after the user
     /// switches — the same caching bug the other `static let` copy sites had.
@@ -352,4 +344,10 @@ enum LivePhotoConvertExplainer {
             originals: L10n.string("the Live Photos")
         )
     }
+}
+
+/// Where a swipe review starts: a tapped row, or the first idle photo.
+private struct ReviewStart: Identifiable {
+    let id = UUID()
+    let itemId: String?
 }

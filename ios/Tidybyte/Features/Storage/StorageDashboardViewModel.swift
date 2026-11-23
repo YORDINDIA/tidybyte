@@ -221,7 +221,7 @@ final class StorageDashboardViewModel {
                 title = L10n.format("%lld saved from apps", bucket.count)
                 detail = L10n.format("%@ total", bucket.bytes.formattedFileSize)
                 color = .orange
-                action = .swipe(.customAssetIds(Set(bucket.ids)))
+                action = .swipe(.customAssetIds(bucket.ids))
             case "largeFiles":
                 title = L10n.format("%lld large file", fallback: "%lld large files", bucket.count)
                 detail = L10n.format("%@ total", bucket.bytes.formattedFileSize)

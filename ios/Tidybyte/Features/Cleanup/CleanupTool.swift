@@ -45,6 +45,7 @@ enum CleanupTool: String, CaseIterable, Identifiable, Hashable, Sendable {
     case duplicates
     case similar
     case screenshots
+    case textPhotos
     case screenRecordings
     case chatMedia
     case blurry
@@ -61,7 +62,7 @@ enum CleanupTool: String, CaseIterable, Identifiable, Hashable, Sendable {
         switch self {
         case .duplicates, .similar, .blurry, .largeFiles, .bursts, .screenRecordings:
             .freeUpSpace
-        case .screenshots, .smartCategories, .chatMedia:
+        case .screenshots, .textPhotos, .smartCategories, .chatMedia:
             .organize
         case .livePhotos, .videoCompression, .photoCompression:
             .shrink
@@ -78,6 +79,7 @@ enum CleanupTool: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .duplicates: L10n.key("Duplicates")
         case .similar: L10n.key("Similar Photos")
         case .screenshots: L10n.key("Screenshots")
+        case .textPhotos: L10n.key("Text Photos")
         case .screenRecordings: L10n.key("Screen Recordings")
         case .chatMedia: L10n.key("Chat Media")
         case .blurry: L10n.key("Blurry Photos")
@@ -97,6 +99,7 @@ enum CleanupTool: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .duplicates: L10n.string("Find exact & visual duplicates")
         case .similar: L10n.string("Photos taken close together")
         case .screenshots: L10n.string("Review & clean up screenshots")
+        case .textPhotos: L10n.string("Old notes, tickets and receipts")
         case .screenRecordings: L10n.string("Review recorded videos")
         case .chatMedia: L10n.string("Review media in chat albums")
         case .blurry: L10n.string("Out-of-focus & poorly lit")
@@ -114,6 +117,7 @@ enum CleanupTool: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .duplicates: "doc.on.doc"
         case .similar: "square.on.square"
         case .screenshots: "camera.viewfinder"
+        case .textPhotos: "text.viewfinder"
         case .screenRecordings: "record.circle"
         case .chatMedia: "bubble.left.and.bubble.right"
         case .blurry: "camera.metering.unknown"
@@ -131,6 +135,7 @@ enum CleanupTool: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .duplicates: .red
         case .similar: .orange
         case .screenshots: .screenshotTint
+        case .textPhotos: .brown
         case .screenRecordings: .indigo
         case .chatMedia: .green
         case .blurry: .purple
@@ -154,6 +159,8 @@ func cleanupDestinationView(for tool: CleanupTool) -> some View {
         SimilarPhotosView()
     case .screenshots:
         ScreenshotCleanerView()
+    case .textPhotos:
+        TextPhotosView()
     case .screenRecordings, .chatMedia:
         MediaCleanerView(tool: tool)
     case .blurry:

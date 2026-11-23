@@ -41,7 +41,7 @@ struct MediaCleanerView: View {
                         }
                         if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                         Picker("Sort", selection: $viewModel.sortOrder) {
-                            ForEach(MediaSortOrder.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            ForEach(MediaSortOrder.options(includingVideos: viewModel.listsVideos), id: \.self) { Text($0.displayName).tag($0) }
                         }
                         .pickerStyle(.menu)
                         .accessibilityIdentifier("mediaSort")

@@ -69,6 +69,11 @@ struct SimilarPhotosView: View {
         .toolbar {
             if viewModel.scanState == .completed && !viewModel.groups.isEmpty {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    SortMenu(
+                        selection: $viewModel.groupSortOrder,
+                        options: GroupSortOrder.allCases,
+                        title: \.displayName
+                    )
                     // Delete lives in the bottom bar only. Select All applies the
                     // suggestion: every non-keeper except favorites.
                     if viewModel.hasSuggestions {
@@ -229,7 +234,7 @@ struct SimilarPhotosView: View {
                         .fadeSlideIn()
 
                         // Groups
-                        ForEach(Array(viewModel.groups.enumerated()), id: \.element.id) { index, group in
+                        ForEach(Array(viewModel.sortedGroups.enumerated()), id: \.element.id) { index, group in
                             groupRow(group)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     let checked = viewModel.checkedIds(in: group).count

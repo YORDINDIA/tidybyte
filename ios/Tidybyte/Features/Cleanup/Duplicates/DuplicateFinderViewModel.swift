@@ -4,11 +4,17 @@ import SwiftUI
 @Observable
 @MainActor
 final class DuplicateFinderViewModel {
-    var exactGroups: [DuplicateGroup] = []
-    var visualGroups: [DuplicateGroup] = []
+    var exactGroups: [DuplicateGroup] = [] {
+        didSet { refreshSortedGroups() }
+    }
+    var visualGroups: [DuplicateGroup] = [] {
+        didSet { refreshSortedGroups() }
+    }
     var scanState: ScanState = .idle
     var selectedForDeletion: Set<String> = []
-    var scanType: DuplicateScanType = .exact
+    var scanType: DuplicateScanType = .exact {
+        didSet { refreshSortedGroups() }
+    }
     var errorMessage: String?
     var isDeleting = false
     /// DUP-03: exact scans skip iCloud-only assets (hashing would download
@@ -37,6 +43,21 @@ final class DuplicateFinderViewModel {
         case .visual: return visualGroups
         case .all: return exactGroups + visualGroups
         }
+    }
+
+    /// Display order inside each type. In the All view exact groups stay
+    /// first, as the scan lists them: they are the safer ones to delete.
+    var groupSortOrder: GroupSortOrder = .mostItems {
+        didSet { refreshSortedGroups() }
+    }
+    /// Cached: the list reads it on every render, and only the groups, the
+    /// scan type or the order can change it.
+    private(set) var sortedGroups: [DuplicateGroup] = []
+
+    private func refreshSortedGroups() {
+        let exact = scanType == .visual ? [] : groupSortOrder.sorted(exactGroups) { $0.assets }
+        let visual = scanType == .exact ? [] : groupSortOrder.sorted(visualGroups) { $0.assets }
+        sortedGroups = exact + visual
     }
 
     var totalDuplicateCount: Int {

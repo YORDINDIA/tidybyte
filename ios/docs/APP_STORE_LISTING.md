@@ -1,10 +1,11 @@
 # App Store Connect Listing — TidyByte
 
-> **Status (2026-11-22):** 1.2.0 (build 11) is live. 1.2.1 (build 12) is the
+> **Status (2026-11-23):** 1.2.1 (build 12) is live. 1.3.0 (build 13) is the
 > next release; its copy is below and in `docs/appstore/listings.json`.
-> When App Review approves 1.2.1, set `IOS_VERSION` and `IOS_BUILD` in
-> `website/src/data/releases.ts`, and move the "Latest iPhone release" badge
-> to the 1.2.1 entry in `website/src/content/pages/changelog.html`.
+> When App Review approves 1.3.0, set `IOS_VERSION` and `IOS_BUILD` in
+> `website/src/data/releases.ts`, add a 1.3.0 entry to
+> `website/src/content/pages/changelog.html`, and move the "Latest iPhone
+> release" badge to it.
 > The site's `/changelog` is the canonical version history.
 
 Paste-ready copy for App Store Connect. Char-count annotations are inline. Anything marked **TODO** needs a human decision before submission.
@@ -304,7 +305,14 @@ Both are fixed sizes — the 1179-vs-1206 slack the iPhone row allows does not a
 
 ---
 
-## 12. What's New (v1.2.1 release notes)
+## 12. What's New (v1.3.0 release notes)
+
+```
+Review Live Photos with swipes, then convert the ones you pick to stills in one go, with a single iOS prompt. The new Text Photos tool finds old notes, tickets and receipts full of text that are likely out of date. Cleanup tools can now sort by size, date and more, and the Swipe tab has a new Largest First deck. Everything still runs on your device: no account, no ads, no subscription.
+```
+Length: 388 chars. Translated into all 21 storefront locales by `scripts/localization/translations/_notes-1.3.0.mjs`. The notes name no swipe direction, because right and left swap in Arabic and Hebrew.
+
+### v1.2.1 release notes, for the record
 
 ```
 Much faster with large photo libraries. TidyByte now remembers what it has measured, so after the first scan, Storage and Cleanup open in about a second, even with tens of thousands of photos and videos. They no longer get stuck loading when iCloud or an album changes. A photo you swipe past stops downloading from iCloud at once, and the exact duplicate scan reads far fewer files. Everything still runs on your device: no account, no ads, no subscription.
@@ -356,7 +364,8 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 
 | Version | Build | Release notes source |
 |---|---|---|
-| 1.2.1 | 12 | §12 above. Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
+| 1.3.0 | 13 | §12 above. Live Photo swipe review (marked photos convert in one batch, one iOS delete prompt), the Text Photos tool, sort options in every Cleanup tool, and the Largest First swipe deck. |
+| 1.2.1 | 12 | §12, "v1.2.1 release notes, for the record". Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
 | 1.2.0 | 11 | §12 above. Delete-prompt fixes (#24), whole-photo swipe cards, compression, accessibility-layout and data-safety fixes (#27). Google Photos stays hidden (no OAuth client ID). |
 | 1.1.3 | 10 | §12 above. The photo-access recovery (#11), the large-library speed fixes (#6-#8), the Storage first-load fix (#9) and the Recently Deleted notice fix (#10). |
 | 1.1.2 | 9 | Never shipped. Withdrawn from review and renamed to 1.1.3; build 9 is unused. |
