@@ -33,13 +33,14 @@ App Store Connect rejects, and must not be uploaded.
 
 ## Features
 
-- Swipe-based photo review (keep/delete)
+- Swipe-based photo review (keep/delete), with sessions saved across quits and a Reduce Swipe Motion setting
 - Duplicate & similar photo detection (SHA-256 + Vision feature prints)
 - Blurry photo detection
 - Text photo finder (old notes, tickets and receipts full of text)
 - Screenshot, burst, and Live Photo cleanup
 - Large file finder
-- Video compression
+- Video compression, and batches that keep going in the background (iOS 26) or resume on return
+- Cleanup tools remember their last scan and checked items
 - Storage dashboard
 - Activity & savings history (lifetime space freed, 30-day chart, per-tool breakdown)
 - Home Screen widget with interactive Swipe / Screenshots buttons, plus Siri and Shortcuts intents
