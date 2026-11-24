@@ -1,56 +1,259 @@
+import BackgroundTasks
 import Photos
 import SwiftData
 import UIKit
 
-/// Keeps a batch running while the user is away: the screen stays awake, and
-/// iOS grants background time to finish the step in flight. Every path must
-/// call `end()`. `CompressionBatchRunner.run` does so with `defer`.
+/// Keeps a batch going while the user is away, and keeps the screen awake.
+///
+/// - iOS 26 and later: a `BGContinuedProcessingTask` lets the batch run in the
+///   background, with a system progress view. When that task ends (the user's
+///   Cancel there, or the system; iOS reports both the same way), the batch
+///   pauses like below and goes on when the app is back. Stop is in the app.
+/// - Earlier systems, or when iOS refuses that task: iOS gives a short grant
+///   (about 30 seconds). When it ends, the batch waits at the next item and
+///   goes on once the app is active again (`waitWhilePaused`).
+///
+/// A pause never deletes originals: the batch keeps its saved copies and
+/// deletes every original in one commit at the end, in the foreground
+/// (`waitForForeground`), so iOS still asks once. Every path must call `end()`.
 @MainActor
 final class CompressionSession {
     /// Batches running now. The screen setting is restored when the last one ends.
     private static var active = 0
     private static var idleTimerWasDisabled = false
+    /// Sessions that lost their background time and have not resumed yet.
+    private static var pausedCount = 0
 
+    /// True while any batch waits for the app to come back, or while the app is
+    /// off screen. An item that throws then was interrupted, not broken (no GPU
+    /// in the background, a suspended read): the loop runs it again on return,
+    /// and its journal row is settled as skipped, not failed.
+    static var isInterrupted: Bool {
+        pausedCount > 0 || UIApplication.shared.applicationState != .active
+    }
+
+    /// What a batch loop does after an item throws.
+    enum AfterFailure: Equatable, Sendable {
+        /// The user stopped the batch.
+        case stop
+        /// Interrupted: run the item again once the app is back.
+        case retry
+        /// A real failure of this item.
+        case fail
+    }
+
+    nonisolated static func afterFailure(
+        userStopped: Bool,
+        paused: Bool,
+        appActive: Bool,
+        isCancellationError: Bool
+    ) -> AfterFailure {
+        if userStopped { return .stop }
+        // Before the cancel check: suspension can end work with a cancel error
+        // that the user never asked for.
+        if paused || !appActive { return .retry }
+        if isCancellationError { return .stop }
+        return .fail
+    }
+
+    private let title: String
+    private var total: Int
+    private var done = 0
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    /// The running `BGContinuedProcessingTask` (iOS 26+). `AnyObject` so the
+    /// stored property needs no availability check.
+    private var continuedTask: AnyObject?
     private var ended = false
+    /// iOS ended this session's background time. It asks again on return.
+    private var lostBackgroundTime = false {
+        didSet {
+            guard lostBackgroundTime != oldValue else { return }
+            Self.pausedCount += lostBackgroundTime ? 1 : -1
+        }
+    }
 
-    /// `onExpire` runs when iOS ends the background time. Use it to cancel
-    /// the batch, so it stops cleanly before the app is suspended.
-    static func begin(onExpire: @escaping @MainActor () -> Void) -> CompressionSession {
+    /// The loop's decision for an item that just threw.
+    func afterFailure(userStopped: Bool, error: Error) -> AfterFailure {
+        Self.afterFailure(
+            userStopped: userStopped,
+            paused: lostBackgroundTime,
+            appActive: UIApplication.shared.applicationState == .active,
+            isCancellationError: error is CancellationError
+        )
+    }
+
+    /// Waits before an interrupted item runs again: for new background time
+    /// after a pause, otherwise for the app to be on screen.
+    func waitToRetry() async {
+        if lostBackgroundTime {
+            await waitWhilePaused()
+        } else {
+            await AppForeground.wait()
+        }
+    }
+
+    private init(title: String, total: Int) {
+        self.title = title
+        self.total = total
+    }
+
+    /// `title` names the batch in the system progress view ("Compressing Videos").
+    static func begin(title: String, total: Int) -> CompressionSession {
         let app = UIApplication.shared
         if active == 0 { idleTimerWasDisabled = app.isIdleTimerDisabled }
         active += 1
         app.isIdleTimerDisabled = true
-
-        let session = CompressionSession()
-        session.backgroundTask = app.beginBackgroundTask(withName: "TidyByte compression") {
-            // iOS calls this on the main thread and needs the task ended before
-            // it returns, or the watchdog can end the app. Both calls stay
-            // synchronous. `onExpire` only sets a flag and cancels a task.
-            MainActor.assumeIsolated {
-                onExpire()
-                session.stopBackgroundTime()
-            }
-        }
+        let session = CompressionSession(title: title, total: total)
+        session.requestBackgroundTime()
         return session
+    }
+
+    /// Returns at once, unless iOS ended the background time. Then it waits
+    /// until the app is active again (or the task is cancelled) and asks for
+    /// new background time, so the next app switch is covered too.
+    func waitWhilePaused() async {
+        guard lostBackgroundTime else { return }
+        await AppForeground.wait()
+        guard UIApplication.shared.applicationState == .active else { return }
+        lostBackgroundTime = false
+        requestBackgroundTime()
+    }
+
+    /// Sets the item count once the batch knows it. A session can begin before
+    /// the batch reads its list, so that read is covered too.
+    func setTotal(_ total: Int) {
+        self.total = total
+        if #available(iOS 26.0, *), let task = continuedTask as? BGContinuedProcessingTask {
+            task.progress.totalUnitCount = Int64(total)
+        }
+    }
+
+    /// Records finished items for the system progress view.
+    func report(done: Int) {
+        self.done = done
+        if #available(iOS 26.0, *), let task = continuedTask as? BGContinuedProcessingTask {
+            task.progress.completedUnitCount = Int64(done)
+            task.updateTitle(title, subtitle: L10n.format("%lld of %lld", done, total))
+        }
+    }
+
+    /// The iOS delete prompt needs the app on screen. Call this before the
+    /// commit: it returns at once in the foreground, and otherwise tells the
+    /// user to open the app and waits for it.
+    func waitForForeground() async {
+        guard UIApplication.shared.applicationState != .active else { return }
+        if #available(iOS 26.0, *), let task = continuedTask as? BGContinuedProcessingTask {
+            task.updateTitle(title, subtitle: L10n.string("Open TidyByte to finish"))
+        }
+        await AppForeground.wait()
     }
 
     /// Idempotent. Restores the screen setting once no batch is running.
     func end() {
         guard !ended else { return }
         ended = true
+        lostBackgroundTime = false
         Self.active -= 1
         if Self.active == 0 {
             UIApplication.shared.isIdleTimerDisabled = Self.idleTimerWasDisabled
         }
         stopBackgroundTime()
+        finishContinuedTask(success: true)
     }
 
-    fileprivate func stopBackgroundTime() {
+    private func requestBackgroundTime() {
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "TidyByte compression") {
+            // iOS calls this on the main thread and needs the task ended before
+            // it returns, or the watchdog can end the app. Stays synchronous.
+            MainActor.assumeIsolated { self.backgroundTimeEnded() }
+        }
+        if #available(iOS 26.0, *) { submitContinuedTask() }
+    }
+
+    private func backgroundTimeEnded() {
+        lostBackgroundTime = true
+        stopBackgroundTime()
+        finishContinuedTask(success: false)
+    }
+
+    private func stopBackgroundTime() {
         guard backgroundTask != .invalid else { return }
         UIApplication.shared.endBackgroundTask(backgroundTask)
         backgroundTask = .invalid
     }
+
+    @available(iOS 26.0, *)
+    private func submitContinuedTask() {
+        guard let bundleId = Bundle.main.bundleIdentifier else { return }
+        // One identifier per request: iOS ends the app on a second registration
+        // of the same identifier. Info.plist permits `<bundle id>.batch.*`.
+        let identifier = "\(bundleId).batch.\(UUID().uuidString)"
+        let scheduler = BGTaskScheduler.shared
+        let registered = scheduler.register(forTaskWithIdentifier: identifier, using: .main) { [weak self] task in
+            MainActor.assumeIsolated {
+                guard let continued = task as? BGContinuedProcessingTask, let self, !self.ended else {
+                    task.setTaskCompleted(success: true)
+                    return
+                }
+                self.attach(continued)
+            }
+        }
+        guard registered else { return }
+        let request = BGContinuedProcessingTaskRequest(
+            identifier: identifier,
+            title: title,
+            subtitle: L10n.format("%lld of %lld", done, total)
+        )
+        // Start now or not at all. The short grant covers a refusal.
+        request.strategy = .fail
+        do {
+            try scheduler.submit(request)
+        } catch {
+            AppLog.compression.info("Background processing not granted: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    @available(iOS 26.0, *)
+    private func attach(_ task: BGContinuedProcessingTask) {
+        continuedTask = task
+        task.progress.totalUnitCount = Int64(total)
+        task.progress.completedUnitCount = Int64(done)
+        task.expirationHandler = { [weak self] in
+            // The user's Cancel in the system progress view, or the system: iOS
+            // reports both here. The user chose "keep going and resume", so this
+            // pauses like the short grant; Stop in the app ends the batch.
+            Task { @MainActor in self?.backgroundTimeEnded() }
+        }
+        // This task keeps the app running now. Without this, the short grant's
+        // expiry would pause a batch that may keep going.
+        stopBackgroundTime()
+    }
+
+    private func finishContinuedTask(success: Bool) {
+        guard #available(iOS 26.0, *), let task = continuedTask as? BGContinuedProcessingTask else { return }
+        continuedTask = nil
+        task.setTaskCompleted(success: success)
+    }
+}
+
+@MainActor
+enum AppForeground {
+    /// Returns once the app is active: at once when it already is, and also
+    /// when the calling task is cancelled.
+    static func wait() async {
+        guard UIApplication.shared.applicationState != .active else { return }
+        for await _ in NotificationCenter.default.notifications(named: UIApplication.didBecomeActiveNotification) {
+            return
+        }
+    }
+}
+
+/// Runs `operation` in a new task, so the caller's cancellation does not reach
+/// it. For a step that must finish once started: after Stop, the originals of
+/// the copies already saved must still be deleted, and `deleteAssets` refuses
+/// to start in a cancelled task.
+func ignoringCancellation<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
+    try await Task { try await operation() }.value
 }
 
 /// Shared per-item loop for the photo + video batch compressions (COMP-12).
@@ -141,6 +344,8 @@ final class CompressionSwap {
         assetId: String,
         originalSize: Int64,
         exportPreset: String,
+        // True when the batch deletes the original after the copy is saved.
+        deletesOriginal: Bool = false,
         modelContext: ModelContext
     ) throws {
         self.modelContext = modelContext
@@ -151,7 +356,8 @@ final class CompressionSwap {
             assetId: assetId,
             originalSize: originalSize,
             compressedSize: 0,
-            exportPreset: exportPreset
+            exportPreset: exportPreset,
+            deletesOriginal: deletesOriginal
         )
         Self.liveSwaps[assetId] = WeakSwap(swap: self)
     }
@@ -250,10 +456,9 @@ enum CompressionBatchRunner {
         var setPhase: @MainActor @Sendable (ReplacePhase) -> Void
     }
 
-    /// The batch's failure line, or nil when none is due. A background stop
-    /// already set the message, which says more, so no failure line replaces it.
-    nonisolated static func failureSummary(completed: Int, failed: Int, stoppedForBackground: Bool) -> String? {
-        guard failed > 0, !stoppedForBackground else { return nil }
+    /// The batch's failure line, or nil when none is due.
+    nonisolated static func failureSummary(completed: Int, failed: Int) -> String? {
+        guard failed > 0 else { return nil }
         // Through `L10n`: an interpolated literal is not a catalog key.
         return L10n.format("Compressed %lld of %lld. %lld failed.", completed, completed + failed, failed)
     }
@@ -274,7 +479,9 @@ enum CompressionBatchRunner {
 
     // Runs the per-item loop. `execute` creates its CompressionSwap (it alone
     // knows the resolved preset id) and MUST terminally settle it on every path.
+    // `title` names the batch in the system progress view.
     static func run(
+        title: String,
         selected: Set<String>,
         fileSizes: [String: Int64],
         indexById: [String: Int],
@@ -284,21 +491,22 @@ enum CompressionBatchRunner {
         modelContext: ModelContext,
         handlers: Handlers,
         deleteOriginals: Bool = true,
-        onBackgroundExpiry: @escaping @MainActor () -> Void = {},
         execute: @MainActor @Sendable (String, Int, @escaping @MainActor @Sendable (Float) -> Void) async throws
             -> CompressionItemOutcome
     ) async -> Result {
-        // Ends on every path: finish, cancel, error and return from the loop.
-        let session = CompressionSession.begin(onExpire: onBackgroundExpiry)
-        defer { session.end() }
         let orderedIds = sortedBatchIds(selected: selected, fileSizes: fileSizes)
+        // Ends on every path: finish, cancel, error and return from the loop.
+        let session = CompressionSession.begin(title: title, total: orderedIds.count)
+        defer { session.end() }
         var saved: [PendingOriginal] = []
         var failed = 0, skipped = 0
         var idsWithoutRow: Set<String> = []
-        for (offset, id) in orderedIds.enumerated() {
+        itemLoop: for (offset, id) in orderedIds.enumerated() {
             if offset % 20 == 0 { await Task.yield() }
+            await session.waitWhilePaused()
             if isCancelled() { break }
             handlers.setPhase(.savingCopies(done: offset, total: orderedIds.count))
+            defer { session.report(done: offset + 1) }
             // A selected id with no row index cannot be reported through
             // `setState`, but it must still land in the tally. Skipping it
             // outright left completed + failed + skipped short of `selected`,
@@ -314,31 +522,45 @@ enum CompressionBatchRunner {
                 skipped += 1
                 continue
             }
-            handlers.setState(index, .exporting(0))
-            do {
-                let outcome = try await execute(id, index, { p in handlers.setState(index, .exporting(p)) })
-                switch outcome {
-                case .skipped:
-                    skipped += 1
-                case .saved(let pending):
-                    saved.append(pending)
-                    handlers.setState(index, .copySaved)
+            // Repeats only for an interrupted item (the background time ended,
+            // or it failed while the app was off screen): it runs again once
+            // the app is back.
+            while true {
+                handlers.setState(index, .exporting(0))
+                do {
+                    let outcome = try await execute(id, index, { p in handlers.setState(index, .exporting(p)) })
+                    switch outcome {
+                    case .skipped:
+                        skipped += 1
+                    case .saved(let pending):
+                        saved.append(pending)
+                        handlers.setState(index, .copySaved)
+                    }
+                } catch {
+                    switch session.afterFailure(userStopped: isCancelled(), error: error) {
+                    case .stop:
+                        handlers.setState(index, .waiting)
+                        break itemLoop
+                    case .retry:
+                        handlers.setState(index, .waiting)
+                        await session.waitToRetry()
+                        if isCancelled() { break itemLoop }
+                        continue
+                    case .fail:
+                        break
+                    }
+                    if isSizeUnknown(error) {
+                        handlers.setState(index, .keptOriginal(reason: L10n.string("Size unknown (iCloud-only) — skipped")))
+                        skipped += 1
+                        continue itemLoop
+                    }
+                    // The full error, for the journal, load and save steps. The
+                    // export step logs its NSError where it throws.
+                    AppLog.compression.error("Compression failed for \(id, privacy: .public): \(String(describing: error), privacy: .public)")
+                    failed += 1
+                    handlers.setState(index, .failed(error.localizedDescription))
                 }
-            } catch {
-                if isCancelled() || error is CancellationError {
-                    handlers.setState(index, .waiting)
-                    break
-                }
-                if isSizeUnknown(error) {
-                    handlers.setState(index, .keptOriginal(reason: L10n.string("Size unknown (iCloud-only) — skipped")))
-                    skipped += 1
-                    continue
-                }
-                // The full error, for the journal, load and save steps. The
-                // export step logs its NSError where it throws.
-                AppLog.compression.error("Compression failed for \(id, privacy: .public): \(String(describing: error), privacy: .public)")
-                failed += 1
-                handlers.setState(index, .failed(error.localizedDescription))
+                break
             }
         }
 
@@ -359,6 +581,8 @@ enum CompressionBatchRunner {
             }
             copiesOnly = saved.count
         } else if !saved.isEmpty {
+            // The delete prompt needs the app on screen.
+            await session.waitForForeground()
             handlers.setPhase(.removingOriginals(count: saved.count))
             let outcome = await OriginalsCommit.commit(saved)
             for item in outcome.committed {
@@ -493,7 +717,8 @@ enum OriginalsCommit {
         // decides what happened either way.
         var deleted = Set<String>()
         do {
-            deleted = try await photoService.deleteAssets(identifiers: ids).deletedIds
+            // Also after Stop: the copies are saved, so their originals must go.
+            deleted = try await ignoringCancellation { try await photoService.deleteAssets(identifiers: ids).deletedIds }
         } catch {
             deleted = (error as? PhotoServiceError)?.deletionOutcome?.deletedIds ?? []
         }

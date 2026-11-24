@@ -31,7 +31,10 @@ struct LivePhotosConverterView: View {
                     // since the last fetch (parity with Large Files/Bursts).
                     actionTitle: "Refresh"
                 ) {
-                    Task { await viewModel.refresh() }
+                    Task {
+                        await viewModel.refresh()
+                        await viewModel.markAlreadyConverted(modelContext: modelContext)
+                    }
                 }
             } else {
                 contentView
@@ -129,9 +132,12 @@ struct LivePhotosConverterView: View {
             }
         }
         .task {
-            await viewModel.loadIfNeeded()
             // D1 (review pass): resolve any conversions a crash interrupted.
+            // Before loading, like the compression tools: finishing a swap
+            // deletes Live Photos the list must not show.
             await CompressionJournal.reconcile(modelContext: modelContext)
+            await viewModel.loadIfNeeded()
+            await viewModel.markAlreadyConverted(modelContext: modelContext)
         }
     }
 
@@ -160,7 +166,10 @@ struct LivePhotosConverterView: View {
                 }
             }
             .listStyle(.plain)
-            .pullToRefresh { await viewModel.refresh() }
+            .pullToRefresh {
+                await viewModel.refresh()
+                await viewModel.markAlreadyConverted(modelContext: modelContext)
+            }
 
             // Bottom action bar
             ActionBarView {

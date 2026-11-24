@@ -701,6 +701,14 @@
       "file": "Tidybyte/Features/Cleanup/VideoCompression/VideoCompressionView.swift"
     },
     {
+      "key": "Compressing Photos",
+      "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionViewModel.swift"
+    },
+    {
+      "key": "Compressing Videos",
+      "file": "Tidybyte/Features/Cleanup/VideoCompression/VideoCompressionViewModel.swift"
+    },
+    {
       "key": "Compression History",
       "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
@@ -735,6 +743,10 @@
     },
     {
       "key": "Converted %lld of %lld. %lld failed.",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterViewModel.swift"
+    },
+    {
+      "key": "Converting Live Photos",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterViewModel.swift"
     },
     {
@@ -1699,6 +1711,10 @@
       "file": "Tidybyte/Shared/Utilities/PhotoAccessRecovery.swift"
     },
     {
+      "key": "Open TidyByte to finish",
+      "file": "Tidybyte/Shared/Utilities/CompressionBatchRunner.swift"
+    },
+    {
       "key": "Open TidyByte to refresh",
       "file": "TidybyteWidget/StorageWidgetView.swift"
     },
@@ -2535,10 +2551,6 @@
       "file": "Tidybyte/Services/VideoCompressionService.swift"
     },
     {
-      "key": "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterViewModel.swift"
-    },
-    {
       "key": "Time for a Photo Cleanup",
       "file": "Tidybyte/Services/NotificationService.swift"
     },
@@ -2756,5 +2768,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 679
+  "total": 682
 }

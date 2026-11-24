@@ -43,6 +43,13 @@ final class CompressionRecord {
     /// hide that duplicate). Defaulted like `mediaType`, for the same
     /// lightweight-migration reason.
     var saveAttempted: Bool = false
+    /// True when the batch meant to delete the original once the copy is saved.
+    /// After a crash or an app kill, when the row journaled its copy and both
+    /// versions are still in the library, reconcile finishes the swap (deletes
+    /// the original) instead of deleting the copy. Rows without a journaled
+    /// copy resolve as before. False on rows from older versions, which keeps
+    /// their old rollback.
+    var deletesOriginal: Bool = false
 
     init(
         assetLocalIdentifier: String,
@@ -53,7 +60,8 @@ final class CompressionRecord {
         exportPreset: String,
         outcome: String = "completed",
         mediaType: String = "video",
-        saveAttempted: Bool = false
+        saveAttempted: Bool = false,
+        deletesOriginal: Bool = false
     ) {
         self.assetLocalIdentifier = assetLocalIdentifier
         self.replacementAssetLocalIdentifier = replacementAssetLocalIdentifier
@@ -64,6 +72,7 @@ final class CompressionRecord {
         self.outcome = outcome
         self.mediaType = mediaType
         self.saveAttempted = saveAttempted
+        self.deletesOriginal = deletesOriginal
     }
 
     /// True when the record represents a successful compression (the

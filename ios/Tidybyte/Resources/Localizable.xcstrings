@@ -37281,6 +37281,266 @@
         }
       }
     },
+    "Compressing Photos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressing Photos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ़ोटो कंप्रेस हो रही हैं"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফটো কমপ্রেস হচ্ছে"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "புகைப்படங்கள் சுருக்கப்படுகின்றன"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఫోటోలు కుదించబడుతున్నాయి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फोटो कंप्रेस होत आहेत"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ફોટા કોમ્પ્રેસ થઈ રહ્યા છે"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಫೋಟೋಗಳನ್ನು ಸಂಕುಚಿಸಲಾಗುತ್ತಿದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഫോട്ടോകൾ കംപ്രസ് ചെയ്യുന്നു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਫ਼ੋਟੋਆਂ ਕੰਪਰੈਸ ਹੋ ਰਹੀਆਂ ਹਨ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprimiendo fotos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compression des photos"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos werden komprimiert"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprimindo fotos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressione delle foto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写真を圧縮中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사진 압축 중"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在压缩照片"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идёт сжатие фото"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ ضغط الصور"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מכווץ תמונות"
+          }
+        }
+      }
+    },
+    "Compressing Videos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressing Videos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वीडियो कंप्रेस हो रहे हैं"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিডিও কমপ্রেস হচ্ছে"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வீடியோக்கள் சுருக்கப்படுகின்றன"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "వీడియోలు కుదించబడుతున్నాయి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "व्हिडिओ कंप्रेस होत आहेत"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "વિડિયો કોમ્પ્રેસ થઈ રહ્યા છે"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ವೀಡಿಯೊಗಳನ್ನು ಸಂಕುಚಿಸಲಾಗುತ್ತಿದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "വീഡിയോകൾ കംപ്രസ് ചെയ്യുന്നു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਵੀਡੀਓ ਕੰਪਰੈਸ ਹੋ ਰਹੇ ਹਨ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprimiendo vídeos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compression des vidéos"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos werden komprimiert"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprimindo vídeos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressione dei video"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビデオを圧縮中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동영상 압축 중"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在压缩视频"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идёт сжатие видео"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ ضغط الفيديوهات"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מכווץ סרטונים"
+          }
+        }
+      }
+    },
     "Compression History": {
       "localizations": {
         "en": {
@@ -38317,6 +38577,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "הומרו %lld מתוך %lld. %lld לא ניתן היה להמיר."
+          }
+        }
+      }
+    },
+    "Converting Live Photos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converting Live Photos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos कन्वर्ट हो रहे हैं"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos রূপান্তর হচ্ছে"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos மாற்றப்படுகின்றன"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos మార్చబడుతున్నాయి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos रूपांतरित होत आहेत"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos કન્વર્ટ થઈ રહ્યા છે"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos ಪರಿವರ್ತಿಸಲಾಗುತ್ತಿದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos കൺവേർട്ട് ചെയ്യുന്നു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos ਕਨਵਰਟ ਹੋ ਰਹੀਆਂ ਹਨ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convirtiendo Live Photos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversion des Live Photos"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos werden konvertiert"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convertendo Live Photos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversione delle Live Photo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photoを変換中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo 변환 중"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在转换 Live Photos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идёт преобразование Live Photos"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ تحويل Live Photos"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ממיר Live Photos"
           }
         }
       }
@@ -81711,6 +82101,136 @@
         }
       }
     },
+    "Open TidyByte to finish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open TidyByte to finish"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पूरा करने के लिए TidyByte खोलें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ করতে TidyByte খুলুন"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "முடிக்க TidyByte-ஐத் திற"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "పూర్తి చేయడానికి TidyByte తెరవండి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पूर्ण करण्यासाठी TidyByte उघडा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "પૂર્ણ કરવા TidyByte ખોલો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಮುಗಿಸಲು TidyByte ತೆರೆಯಿರಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "പൂർത്തിയാക്കാൻ TidyByte തുറക്കുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਪੂਰਾ ਕਰਨ ਲਈ TidyByte ਖੋਲ੍ਹੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre TidyByte para terminar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrez TidyByte pour terminer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne TidyByte, um den Vorgang abzuschließen"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abra o TidyByte para concluir"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri TidyByte per finire"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByteを開いて完了"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyByte를 열어 완료"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 TidyByte 以完成"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Откройте TidyByte, чтобы завершить"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح TidyByte للإنهاء"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פתח את TidyByte כדי לסיים"
+          }
+        }
+      }
+    },
     "Open TidyByte to refresh": {
       "localizations": {
         "en": {
@@ -118537,136 +119057,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "TidyByte שומר עותק חדש וקטן יותר של כל תמונה ושומר על המקוריים. תקבל את שתי הגרסאות בספרייה שלך."
-          }
-        }
-      }
-    },
-    "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ऐप फ़ोरग्राउंड से हट जाने के कारण TidyByte ने Live Photo का रूपांतरण रोक दिया। रूपांतरण के दौरान TidyByte खुला रखें, फिर दोबारा कोशिश करें।"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "অ্যাপটি ফোরগ্রাউন্ড ছেড়ে যাওয়ায় TidyByte Live Photo রূপান্তর বন্ধ করেছে। রূপান্তরের সময় TidyByte খোলা রাখুন, তারপর আবার চেষ্টা করুন।"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "முன்புலத்திலிருந்து வெளியேறியதால் TidyByte Live Photo மாற்றத்தை நிறுத்தியது. மாற்றம் நடக்கும்போது TidyByte-ஐ திறந்து வைத்திருங்கள், பின்னர் மீண்டும் முயற்சிக்கவும்."
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "యాప్ ముందుభాగం నుండి వెళ్లిపోవడంతో TidyByte Live Photo మార్పిడిని ఆపివేసింది. మార్పిడి జరుగుతున్నప్పుడు TidyByte ను తెరిచి ఉంచండి, ఆ తర్వాత మళ్లీ ప్రయత్నించండి."
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte फोरग्राउंडमधून बाहेर गेल्यामुळे Live Photo रूपांतरण थांबले. रूपांतरण सुरू असताना TidyByte उघडे ठेवा, मग पुन्हा प्रयत्न करा."
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte એ Live Photo નું રૂપાંતર બંધ કર્યું, કારણ કે તે ફોરગ્રાઉન્ડમાંથી નીકળી ગયું. રૂપાંતર ચાલુ હોય ત્યારે TidyByte ખુલ્લું રાખો, પછી ફરી પ્રયાસ કરો."
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte ಮುನ್ನೆಲೆಯಿಂದ ಹೊರಹೋದ ಕಾರಣ Live Photo ಪರಿವರ್ತನೆಯನ್ನು ನಿಲ್ಲಿಸಲಾಯಿತು. ಪರಿವರ್ತನೆಯ ಸಮಯದಲ್ಲಿ TidyByte ಅನ್ನು ತೆರೆದಿಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte മുൻനിരയിൽ നിന്ന് പോയതിനാൽ Live Photo പരിവർത്തനം നിർത്തി. പരിവർത്തനം നടക്കുമ്പോൾ TidyByte തുറന്നുവെക്കുക, പിന്നീട് വീണ്ടും ശ്രമിക്കുക."
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte ਫੋਰਗ੍ਰਾਊਂਡ ਤੋਂ ਬਾਹਰ ਚਲੇ ਜਾਣ ਕਾਰਨ Live Photo ਰੂਪਾਂਤਰਨ ਰੋਕਿਆ ਗਿਆ। ਰੂਪਾਂਤਰਨ ਦੌਰਾਨ TidyByte ਖੁੱਲ੍ਹਾ ਰੱਖੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte detuvo la conversión de Live Photo porque salió del primer plano. Mantén TidyByte abierto mientras convierte y, después, vuelve a intentarlo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte a arrêté la conversion Live Photo car l'app a quitté le premier plan. Gardez TidyByte ouvert pendant la conversion, puis réessayez."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte hat die Live-Photo-Konvertierung beendet, weil die App in den Hintergrund gewechselt ist. Lass TidyByte während der Konvertierung geöffnet und versuche es dann erneut."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O TidyByte interrompeu a conversão de Live Photo porque saiu do primeiro plano. Mantenha o TidyByte aberto enquanto ele converte e tente novamente."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte ha interrotto la conversione di Live Photo perché è uscito dal primo piano. Tieni TidyByte aperto mentre converte, poi riprova."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte はフォアグラウンドから離れたため、Live Photo の変換を停止しました。変換中は TidyByte を開いたままにして、もう一度お試しください。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "앱이 포그라운드를 벗어나 TidyByte가 Live Photo 변환을 중단했습니다. 변환하는 동안 TidyByte를 열어 두고 다시 시도하세요."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte 离开了前台，因此停止了 Live Photo 转换。转换期间请保持 TidyByte 打开，然后重试。"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte остановил конвертацию Live Photo, потому что приложение ушло с переднего плана. Не закрывайте TidyByte во время конвертации, затем попробуйте снова."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "توقّف TidyByte عن تحويل Live Photo لأنه انتقل إلى الخلفية. أبقِ TidyByte مفتوحًا أثناء التحويل، ثم حاوِل مرة أخرى."
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TidyByte עצר את המרת Live Photo כי האפליקציה יצאה מהמסך הפעיל. השאר את TidyByte פתוח בזמן ההמרה, ואז נסה שוב."
           }
         }
       }
