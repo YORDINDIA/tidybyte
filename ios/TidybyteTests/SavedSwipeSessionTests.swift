@@ -39,11 +39,11 @@ final class SavedSwipeSessionTests: XCTestCase {
     func testAKeepClearsDeleteMarksInOtherDecks() {
         SwipeDeckStore.record(.marked, assetId: "a", deckKey: "blurry", context: context)
         SwipeDeckStore.record(.marked, assetId: "a", deckKey: "allMedia", context: context)
-        XCTAssertEqual(SwipeDeckStore.markedCounts(context: context), ["blurry": 1, "allMedia": 1])
+        XCTAssertEqual(SwipeDeckStore.markedByDeck(context: context), ["blurry": ["a"], "allMedia": ["a"]])
 
         SwipeDeckStore.record(.keep, assetId: "a", deckKey: "notSwipedYet", context: context)
 
-        XCTAssertEqual(SwipeDeckStore.markedCounts(context: context), [:])
+        XCTAssertEqual(SwipeDeckStore.markedByDeck(context: context), [:])
         XCTAssertEqual(decisions("notSwipedYet"), ["a": .keep])
     }
 
@@ -52,6 +52,16 @@ final class SavedSwipeSessionTests: XCTestCase {
         SwipeDeckStore.record(.marked, assetId: "a", deckKey: "blurry", context: context)
         XCTAssertEqual(decisions("allMedia"), ["a": .keep])
         XCTAssertEqual(decisions("blurry"), ["a": .marked])
+    }
+
+    /// A photo that left the library leaves every deck.
+    func testRemoveEverywhere() {
+        SwipeDeckStore.record(.marked, assetId: "a", deckKey: "d1", context: context)
+        SwipeDeckStore.record(.keep, assetId: "a", deckKey: "d2", context: context)
+        SwipeDeckStore.record(.keep, assetId: "b", deckKey: "d2", context: context)
+        SwipeDeckStore.removeEverywhere(assetIds: ["a"], context: context)
+        XCTAssertEqual(decisions("d1"), [:])
+        XCTAssertEqual(decisions("d2"), ["b": .keep])
     }
 
     func testRemoveByKindKeepsTheOtherKinds() {
@@ -98,6 +108,36 @@ final class SavedSwipeSessionTests: XCTestCase {
 
         await session.undo()
         XCTAssertEqual(decisions("allMedia"), ["asset-0": .marked, "asset-1": .keep])
+    }
+
+    /// Reopening a saved deck brings its delete marks back as pending, with
+    /// the tally rebuilt from the saved decisions.
+    func testReopeningASavedDeckRestoresItsMarks() async {
+        SwipeDeckStore.record(.marked, assetId: "asset-0", deckKey: "allMedia", context: context)
+        SwipeDeckStore.record(.keep, assetId: "asset-1", deckKey: "allMedia", context: context)
+        let reopened = SwipeSessionViewModel(filter: .allMedia, deckKey: "allMedia", photoService: PhotoLibraryService(), modelContext: context)
+        let marked = makeAsset(id: "asset-0")
+        reopened.loadDetails = { ids in ids.contains("asset-0") ? ["asset-0": marked] : [:] }
+
+        await reopened.loadAssetsIfNeeded()
+
+        XCTAssertEqual(reopened.pendingDeletionIds, ["asset-0"])
+        XCTAssertEqual(reopened.pendingDeletionBytes, 8_000_000)
+        XCTAssertEqual(reopened.sessionStats.keptCount, 1)
+        XCTAssertTrue(reopened.needsDeletionDecision)
+    }
+
+    /// A keep in another deck clears the mark in the store; the deck that still
+    /// holds it in memory must not delete it.
+    func testCommitSkipsAPhotoKeptInAnotherDeck() async {
+        let session = makeSession()
+        session.swipeLeft()
+        SwipeDeckStore.record(.keep, assetId: "asset-0", deckKey: "blurry", context: context)
+
+        await session.commitDeletions()
+
+        XCTAssertTrue(session.pendingDeletionIds.isEmpty)
+        XCTAssertFalse(session.deletionCommitted, "nothing was sent to Photos")
     }
 
     func testKeepAllItemsUnmarksTheSavedMarks() {
@@ -153,7 +193,7 @@ final class SavedSwipeSessionTests: XCTestCase {
         XCTAssertEqual(deck.current, "c")
         XCTAssertEqual(deck.markedIds, ["b"])
         XCTAssertEqual(deck.decisions, ["b": true], "a photo no longer listed is dropped")
-        XCTAssertTrue(deck.canUndo, "a saved decision can be taken back")
+        XCTAssertFalse(deck.canUndo, "undo does not reach past a quit")
     }
 
     func testLivePhotoReviewWithEverythingDecidedIsFinished() {

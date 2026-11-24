@@ -1,3 +1,4 @@
+import Photos
 import SwiftUI
 import SwiftData
 
@@ -138,7 +139,7 @@ struct SwipeHomeView: View {
 
                     filterCard(
                         title: "All Media",
-                        description: "Start from the beginning — includes skipped items",
+                        description: "Every photo and video, including ones you skipped",
                         icon: "photo.on.rectangle.angled",
                         color: .purple,
                         filter: .allMedia,
@@ -347,7 +348,15 @@ struct SwipeHomeView: View {
     }
 
     private func refreshHomeCounts() async {
-        markedCounts = SwipeDeckStore.markedCounts(context: modelContext)
+        // Count only marked photos still in the library. With the whole library
+        // readable, a missing one was deleted elsewhere: drop it from every deck.
+        let marked = SwipeDeckStore.markedByDeck(context: modelContext)
+        let markedIds = Set(marked.values.joined())
+        let live = markedIds.isEmpty ? [] : await photoService.existingIds(Array(markedIds))
+        if CompressionJournal.canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite)) {
+            SwipeDeckStore.removeEverywhere(assetIds: markedIds.subtracting(live), context: modelContext)
+        }
+        markedCounts = marked.mapValues { $0.intersection(live).count }.filter { $0.value > 0 }
         let total = await photoService.totalAssetCount()
         libraryTotalCount = total
         let records = (try? modelContext.fetch(FetchDescriptor<SwipeRecord>())) ?? []
@@ -437,7 +446,9 @@ struct SwipeDateCutoffSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Start") {
-                        onStart(cutoff)
+                        // The whole chosen day: "on or before this date", and one
+                        // saved deck per day whatever time the picker held.
+                        onStart(Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: cutoff) ?? cutoff)
                         dismiss()
                     }
                     .font(.headline)

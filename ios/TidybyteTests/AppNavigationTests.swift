@@ -63,4 +63,17 @@ final class AppNavigationTests: XCTestCase {
         XCTAssertNil(navigation.consumePendingSwipeFilter())
         XCTAssertEqual(navigation.swipeDismissRequestID, initialDismissID)
     }
+
+    /// A Storage row's saved deck travels with its filter, and leaves with it.
+    func testShowSwipeSessionCarriesTheDeckKey() {
+        let navigation = AppNavigation()
+        navigation.showSwipeSession(filter: .customAssetIds(["a"]), deckKey: "storage.year.2019")
+        XCTAssertEqual(navigation.pendingSwipeDeckKey, "storage.year.2019")
+        _ = navigation.consumePendingSwipeFilter()
+        XCTAssertNil(navigation.pendingSwipeDeckKey)
+
+        navigation.showSwipeSession(filter: .customAssetIds(["a"]), deckKey: "storage.year.2019")
+        navigation.selectTabManually(.storage)
+        XCTAssertNil(navigation.pendingSwipeDeckKey, "a manual tab tap drops the parked request")
+    }
 }

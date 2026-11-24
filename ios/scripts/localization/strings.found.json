@@ -1831,7 +1831,7 @@
       "file": "Tidybyte/Features/Swipe/SwipeHomeView.swift"
     },
     {
-      "key": "Photos move less and do not tilt when you swipe. A decided photo fades out.",
+      "key": "Photos move less and do not tilt when you swipe. After you decide, the photo fades out.",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {

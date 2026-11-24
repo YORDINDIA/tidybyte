@@ -281,7 +281,7 @@ struct SettingsView: View {
             } header: {
                 Text("Swipe")
             } footer: {
-                Text("Photos move less and do not tilt when you swipe. A decided photo fades out.")
+                Text("Photos move less and do not tilt when you swipe. After you decide, the photo fades out.")
             }
 
             // MARK: - Cleanup Settings

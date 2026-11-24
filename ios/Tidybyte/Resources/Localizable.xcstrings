@@ -51731,6 +51731,136 @@
         }
       }
     },
+    "Every photo and video, including ones you skipped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every photo and video, including ones you skipped"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी फ़ोटो और वीडियो, स्किप किए गए भी"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সব ফটো ও ভিডিও, এড়িয়ে যাওয়াগুলোসহ"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "நீங்கள் தவிர்த்தவை உட்பட எல்லா புகைப்படங்களும் வீடியோக்களும்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మీరు దాటవేసినవాటితో సహా అన్ని ఫోటోలు మరియు వీడియోలు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वगळलेल्यांसह सर्व फोटो आणि व्हिडिओ"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "બધા ફોટા અને વિડિયો, છોડેલા સહિત"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನೀವು ಬಿಟ್ಟುಬಿಟ್ಟವು ಸೇರಿದಂತೆ ಎಲ್ಲಾ ಫೋಟೋಗಳು ಮತ್ತು ವೀಡಿಯೊಗಳು"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഒഴിവാക്കിയവ ഉൾപ്പെടെ എല്ലാ ഫോട്ടോകളും വീഡിയോകളും"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਛੱਡੀਆਂ ਸਮੇਤ ਸਾਰੀਆਂ ਫ਼ੋਟੋਆਂ ਅਤੇ ਵੀਡੀਓ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las fotos y vídeos, incluidos los que omitiste"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les photos et vidéos, y compris celles ignorées"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Fotos und Videos, auch übersprungene"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as fotos e vídeos, incluindo os que você pulou"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutte le foto e i video, anche quelli saltati"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スキップしたものを含む、すべての写真とビデオ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "건너뛴 항목을 포함한 모든 사진과 동영상"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有照片和视频，包括你跳过的"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все фото и видео, включая пропущенные"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كل صورة وفيديو، بما فيها التي تخطيتها"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כל התמונות והסרטונים, כולל אלה שדילגת עליהם"
+          }
+        }
+      }
+    },
     "Every photo in this deck has a decision. Start over to review them again.": {
       "localizations": {
         "en": {
@@ -87301,132 +87431,132 @@
         }
       }
     },
-    "Photos move less and do not tilt when you swipe. A decided photo fades out.": {
+    "Photos move less and do not tilt when you swipe. After you decide, the photo fades out.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos move less and do not tilt when you swipe. A decided photo fades out."
+            "value": "Photos move less and do not tilt when you swipe. After you decide, the photo fades out."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप करते समय फ़ोटो कम हिलती हैं और झुकती नहीं. तय की गई फ़ोटो धीरे से गायब होती है."
+            "value": "स्वाइप करते समय फ़ोटो कम हिलती हैं और झुकती नहीं. फ़ैसला करने के बाद फ़ोटो धीरे से गायब होती है."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "সোয়াইপ করার সময় ফটো কম নড়ে এবং হেলে না. সিদ্ধান্ত নেওয়া ফটো ধীরে মিলিয়ে যায়."
+            "value": "সোয়াইপ করার সময় ফটো কম নড়ে এবং হেলে না. সিদ্ধান্ত নেওয়ার পর ফটোটি ধীরে মিলিয়ে যায়."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "ஸ்வைப் செய்யும்போது புகைப்படங்கள் குறைவாக நகரும், சாயாது. முடிவு செய்த புகைப்படம் மெதுவாக மறையும்."
+            "value": "ஸ்வைப் செய்யும்போது புகைப்படங்கள் குறைவாக நகரும், சாயாது. நீங்கள் முடிவு செய்த பிறகு புகைப்படம் மெதுவாக மறையும்."
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "స్వైప్ చేసేటప్పుడు ఫోటోలు తక్కువగా కదులుతాయి, వంగవు. నిర్ణయించిన ఫోటో నెమ్మదిగా మాయమవుతుంది."
+            "value": "స్వైప్ చేసేటప్పుడు ఫోటోలు తక్కువగా కదులుతాయి, వంగవు. మీరు నిర్ణయించిన తర్వాత ఫోటో నెమ్మదిగా మాయమవుతుంది."
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप करताना फोटो कमी हलतात आणि झुकत नाहीत. निर्णय झालेला फोटो हळूहळू नाहीसा होतो."
+            "value": "स्वाइप करताना फोटो कमी हलतात आणि झुकत नाहीत. तुम्ही निर्णय घेतल्यावर फोटो हळूहळू नाहीसा होतो."
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "સ્વાઇપ કરતી વખતે ફોટા ઓછા ખસે છે અને નમતા નથી. નક્કી કરેલો ફોટો ધીમે ધીમે ઝાંખો થાય છે."
+            "value": "સ્વાઇપ કરતી વખતે ફોટા ઓછા ખસે છે અને નમતા નથી. તમે નક્કી કરો પછી ફોટો ધીમે ધીમે ઝાંખો થાય છે."
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಸ್ವೈಪ್ ಮಾಡುವಾಗ ಫೋಟೋಗಳು ಕಡಿಮೆ ಚಲಿಸುತ್ತವೆ ಮತ್ತು ಓರೆಯಾಗುವುದಿಲ್ಲ. ನಿರ್ಧರಿಸಿದ ಫೋಟೋ ಮಸುಕಾಗಿ ಮರೆಯಾಗುತ್ತದೆ."
+            "value": "ಸ್ವೈಪ್ ಮಾಡುವಾಗ ಫೋಟೋಗಳು ಕಡಿಮೆ ಚಲಿಸುತ್ತವೆ ಮತ್ತು ಓರೆಯಾಗುವುದಿಲ್ಲ. ನೀವು ನಿರ್ಧರಿಸಿದ ನಂತರ ಫೋಟೋ ಮಸುಕಾಗಿ ಮರೆಯಾಗುತ್ತದೆ."
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "സ്വൈപ്പ് ചെയ്യുമ്പോൾ ഫോട്ടോകൾ കുറച്ച് മാത്രം നീങ്ങും, ചരിയില്ല. തീരുമാനിച്ച ഫോട്ടോ മങ്ങി മറയും."
+            "value": "സ്വൈപ്പ് ചെയ്യുമ്പോൾ ഫോട്ടോകൾ കുറച്ച് മാത്രം നീങ്ങും, ചരിയില്ല. നിങ്ങൾ തീരുമാനിച്ച ശേഷം ഫോട്ടോ മങ്ങി മറയും."
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਸਵਾਈਪ ਕਰਦੇ ਸਮੇਂ ਫ਼ੋਟੋਆਂ ਘੱਟ ਹਿੱਲਦੀਆਂ ਹਨ ਅਤੇ ਝੁਕਦੀਆਂ ਨਹੀਂ. ਫ਼ੈਸਲਾ ਕੀਤੀ ਫ਼ੋਟੋ ਹੌਲੀ-ਹੌਲੀ ਗਾਇਬ ਹੁੰਦੀ ਹੈ."
+            "value": "ਸਵਾਈਪ ਕਰਦੇ ਸਮੇਂ ਫ਼ੋਟੋਆਂ ਘੱਟ ਹਿੱਲਦੀਆਂ ਹਨ ਅਤੇ ਝੁਕਦੀਆਂ ਨਹੀਂ. ਤੁਹਾਡੇ ਫ਼ੈਸਲੇ ਤੋਂ ਬਾਅਦ ਫ਼ੋਟੋ ਹੌਲੀ-ਹੌਲੀ ਗਾਇਬ ਹੁੰਦੀ ਹੈ."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las fotos se mueven menos y no se inclinan al deslizar. Una foto decidida se desvanece."
+            "value": "Las fotos se mueven menos y no se inclinan al deslizar. Cuando decides, la foto se desvanece."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les photos bougent moins et ne pivotent pas quand vous balayez. Une photo traitée s'efface en fondu."
+            "value": "Les photos bougent moins et ne pivotent pas quand vous balayez. Une fois votre choix fait, la photo s'efface en fondu."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fotos bewegen sich beim Wischen weniger und kippen nicht. Ein entschiedenes Foto wird ausgeblendet."
+            "value": "Fotos bewegen sich beim Wischen weniger und kippen nicht. Nach deiner Entscheidung wird das Foto ausgeblendet."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "As fotos se movem menos e não inclinam ao deslizar. Uma foto decidida desaparece aos poucos."
+            "value": "As fotos se movem menos e não inclinam ao deslizar. Depois que você decide, a foto desaparece aos poucos."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le foto si muovono meno e non si inclinano quando scorri. Una foto decisa svanisce."
+            "value": "Le foto si muovono meno e non si inclinano quando scorri. Dopo la tua scelta, la foto svanisce."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スワイプ時に写真があまり動かず、傾きません。選択した写真はフェードアウトします。"
+            "value": "スワイプ時に写真があまり動かず、傾きません。選択すると、写真はフェードアウトします。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스와이프할 때 사진이 덜 움직이고 기울지 않습니다. 결정한 사진은 서서히 사라집니다."
+            "value": "스와이프할 때 사진이 덜 움직이고 기울지 않습니다. 결정하면 사진이 서서히 사라집니다."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "滑动时照片移动更少且不倾斜。已决定的照片会淡出。"
+            "value": "滑动时照片移动更少且不倾斜。你做出决定后，照片会淡出。"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Фото меньше двигаются и не наклоняются при свайпе. Обработанное фото плавно исчезает."
+            "value": "Фото меньше двигаются и не наклоняются при свайпе. После вашего решения фото плавно исчезает."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تتحرك الصور أقل ولا تميل عند السحب. تتلاشى الصورة بعد اتخاذ القرار."
+            "value": "تتحرك الصور أقل ولا تميل عند السحب. بعد أن تقرر، تتلاشى الصورة."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "התמונות זזות פחות ולא נוטות בזמן ההחלקה. תמונה שהוחלט עליה נמוגה."
+            "value": "התמונות זזות פחות ולא נוטות בזמן ההחלקה. אחרי שתחליט, התמונה נמוגה."
           }
         }
       }
@@ -94072,7 +94202,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप सत्र रीसेट करें"
+            "value": "स्वाइप सेशन रीसेट करें"
           }
         },
         "bn": {
@@ -109531,136 +109661,6 @@
         }
       }
     },
-    "Start from the beginning — includes skipped items": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start from the beginning — includes skipped items"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "शुरुआत से शुरू करें — स्किप किए गए आइटम सहित"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "শুরু থেকে দেখুন — এড়িয়ে যাওয়া আইটেমসহ"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "தொடக்கத்திலிருந்து தொடங்கு — தவிர்த்தவை உட்பட"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "మొదటి నుండి ప్రారంభించు — దాటవేసిన అంశాలతో సహా"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "सुरुवातीपासून सुरू करा — वगळलेले आयटम समाविष्ट आहेत"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "શરૂઆતથી જુઓ — છોડેલી આઇટમ્સ સહિત"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಪ್ರಾರಂಭದಿಂದ ನೋಡಿ — ಬಿಟ್ಟುಬಿಟ್ಟ ಐಟಂಗಳು ಸೇರಿವೆ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ആദ്യം മുതൽ തുടങ്ങുക — ഒഴിവാക്കിയവ ഉൾപ്പെടെ"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸ਼ੁਰੂ ਤੋਂ ਸ਼ੁਰੂ ਕਰੋ — ਛੱਡੀਆਂ ਆਈਟਮਾਂ ਸਮੇਤ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Empezar desde el principio — incluye elementos omitidos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recommencer depuis le début — inclut les éléments ignorés"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Von vorn beginnen — enthält übersprungene Objekte"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Começar do início — inclui itens pulados"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizia dall'inizio — include gli elementi saltati"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最初からやり直す — スキップした項目も含む"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "처음부터 시작 — 건너뛴 항목 포함"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从头开始浏览 — 包含已跳过的项目"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Начать сначала — включая пропущенные объекты"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "البدء من البداية — يتضمن العناصر المتخطاة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התחל מההתחלה — כולל פריטים שדולגו"
-          }
-        }
-      }
-    },
     "Start here": {
       "localizations": {
         "en": {
@@ -112272,7 +112272,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप सत्र साफ़ किए गए"
+            "value": "स्वाइप सेशन साफ़ किए गए"
           }
         },
         "bn": {
@@ -115522,7 +115522,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "यह आपका स्वाइप इतिहास और Live Photo समीक्षा सहित हर सहेजा गया स्वाइप सत्र साफ़ कर देगा. हटाने के लिए चिह्नित फ़ोटो का चिह्न हट जाएगा; कोई फ़ोटो नहीं हटेगी. सभी फ़ोटो फिर से \"अभी स्वाइप नहीं किया\" दिखेंगी. इसे पूर्ववत नहीं किया जा सकता."
+            "value": "यह आपका स्वाइप इतिहास और Live Photo समीक्षा सहित हर सहेजा गया स्वाइप सेशन साफ़ कर देगा. हटाने के लिए चिह्नित फ़ोटो का चिह्न हट जाएगा; कोई फ़ोटो नहीं हटेगी. सभी फ़ोटो फिर से \"अभी स्वाइप नहीं किया\" दिखेंगी. इसे पूर्ववत नहीं किया जा सकता."
           }
         },
         "bn": {
@@ -127952,7 +127952,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आप अपनी सभी फ़ोटो स्वाइप कर चुके हैं. फिर से समीक्षा करने के लिए \"सभी मीडिया\" आज़माएँ, या सेटिंग्स में स्वाइप सत्र रीसेट करें."
+            "value": "आप अपनी सभी फ़ोटो स्वाइप कर चुके हैं. फिर से समीक्षा करने के लिए \"सभी मीडिया\" आज़माएँ, या सेटिंग्स में स्वाइप सेशन रीसेट करें."
           }
         },
         "bn": {

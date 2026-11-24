@@ -379,11 +379,14 @@ final class SwipeSessionViewModel {
     /// the tally. A marked photo that is gone from the library is dropped.
     private func restoreSavedMarks(_ saved: [SwipeDeckEntry]) async {
         restoredSavedMarks = true
-        guard let deckKey else { return }
+        guard deckKey != nil else { return }
         let markedIds = saved.filter { $0.deckDecision == .marked }.map(\.assetLocalIdentifier)
         let summaries = markedIds.isEmpty ? [:] : await fetchDetails(for: markedIds)
-        let gone = Set(markedIds).subtracting(summaries.keys)
-        SwipeDeckStore.remove(assetIds: gone, deckKey: deckKey, context: modelContext)
+        // A missing summary means deleted only when the whole library is
+        // readable: limited access hides photos that still exist.
+        if CompressionJournal.canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite)) {
+            SwipeDeckStore.removeEverywhere(assetIds: Set(markedIds).subtracting(summaries.keys), context: modelContext)
+        }
         for id in markedIds where !pendingDeletionIds.contains(id) {
             guard let summary = summaries[id] else { continue }
             pendingDeletionIds.append(id)
@@ -403,13 +406,17 @@ final class SwipeSessionViewModel {
     /// Writes one decision to the saved deck. No-op for an unsaved deck.
     private func remember(_ decision: SwipeDeckDecision, _ assetId: String) {
         guard let deckKey else { return }
-        SwipeDeckStore.record(decision, assetId: assetId, deckKey: deckKey, context: modelContext)
+        if !SwipeDeckStore.record(decision, assetId: assetId, deckKey: deckKey, context: modelContext) {
+            errorMessage = L10n.string("Couldn't save your changes. Please try again.")
+        }
     }
 
-    /// Drops decisions from the saved deck (undo, unmark, commit).
+    /// Drops decisions from the saved deck (undo, unmark).
     private func forget(_ assetIds: Set<String>) {
         guard let deckKey else { return }
-        SwipeDeckStore.remove(assetIds: assetIds, deckKey: deckKey, context: modelContext)
+        if !SwipeDeckStore.remove(assetIds: assetIds, deckKey: deckKey, context: modelContext) {
+            errorMessage = L10n.string("Couldn't save your changes. Please try again.")
+        }
     }
 
     /// "Start Over" on a finished deck: its keep, skip and album decisions go,
@@ -705,6 +712,12 @@ final class SwipeSessionViewModel {
     }
 
     func commitDeletions() async {
+        // A saved deck's marks can change in another deck while this one waits:
+        // a keep there clears the mark here. Delete only what is still marked.
+        if let deckKey {
+            let stillMarked = SwipeDeckStore.markedIds(deckKey: deckKey, context: modelContext)
+            applyDeletionReview(keeping: Set(pendingDeletionIds).subtracting(stillMarked))
+        }
         guard !pendingDeletionIds.isEmpty, !isDeletingBatch else { return }
         isDeletingBatch = true
         // Sizes come from the in-memory session assets (no re-fetch): only ids
@@ -777,8 +790,10 @@ final class SwipeSessionViewModel {
         } catch {
             deletionErrorMessage = Self.deletionFailureMessage(count: pendingDeletionIds.count, error: error)
         }
-        // Deleted photos leave the saved deck; the rest stay marked.
-        forget(requestedIds.subtracting(pendingDeletionIds))
+        // Deleted photos leave every saved deck; the rest stay marked.
+        if deckKey != nil {
+            SwipeDeckStore.removeEverywhere(assetIds: requestedIds.subtracting(pendingDeletionIds), context: modelContext)
+        }
         isDeletingBatch = false
     }
 

@@ -57,7 +57,9 @@ enum SwipeDeckStore {
     /// deck. Anything but a delete mark also clears that photo's delete marks in
     /// other decks: a keep, file or skip always wins over an earlier mark, so a
     /// photo kept here is never deleted from a deck the user left for later.
-    static func record(_ decision: SwipeDeckDecision, assetId: String, deckKey: String, context: ModelContext) {
+    /// Returns false when the store could not save.
+    @discardableResult
+    static func record(_ decision: SwipeDeckDecision, assetId: String, deckKey: String, context: ModelContext) -> Bool {
         let marked = SwipeDeckDecision.marked.rawValue
         let existing = (try? context.fetch(FetchDescriptor<SwipeDeckEntry>(
             predicate: #Predicate { $0.assetLocalIdentifier == assetId }
@@ -66,17 +68,31 @@ enum SwipeDeckStore {
             context.delete(entry)
         }
         context.insert(SwipeDeckEntry(deckKey: deckKey, assetLocalIdentifier: assetId, decision: decision))
-        save(context)
+        return save(context)
     }
 
-    /// Removes this deck's decisions for the given photos (an undo, an unmark,
-    /// a committed delete).
-    static func remove(assetIds: Set<String>, deckKey: String, context: ModelContext) {
-        guard !assetIds.isEmpty else { return }
-        for entry in decisions(deckKey: deckKey, context: context) where assetIds.contains(entry.assetLocalIdentifier) {
-            context.delete(entry)
-        }
-        save(context)
+    /// Removes this deck's decisions for the given photos (an undo, an unmark).
+    @discardableResult
+    static func remove(assetIds: Set<String>, deckKey: String, context: ModelContext) -> Bool {
+        guard !assetIds.isEmpty else { return true }
+        let ids = Array(assetIds)
+        let entries = (try? context.fetch(FetchDescriptor<SwipeDeckEntry>(
+            predicate: #Predicate { $0.deckKey == deckKey && ids.contains($0.assetLocalIdentifier) }
+        ))) ?? []
+        entries.forEach(context.delete)
+        return save(context)
+    }
+
+    /// Removes the photos from every deck: they left the library.
+    @discardableResult
+    static func removeEverywhere(assetIds: Set<String>, context: ModelContext) -> Bool {
+        guard !assetIds.isEmpty else { return true }
+        let ids = Array(assetIds)
+        let entries = (try? context.fetch(FetchDescriptor<SwipeDeckEntry>(
+            predicate: #Predicate { ids.contains($0.assetLocalIdentifier) }
+        ))) ?? []
+        entries.forEach(context.delete)
+        return save(context)
     }
 
     /// Removes every decision of one kind from the deck ("Keep All Items" drops
@@ -88,21 +104,33 @@ enum SwipeDeckStore {
         save(context)
     }
 
+    /// The photos this deck has marked for deletion.
+    static func markedIds(deckKey: String, context: ModelContext) -> Set<String> {
+        let marked = SwipeDeckDecision.marked.rawValue
+        let entries = (try? context.fetch(FetchDescriptor<SwipeDeckEntry>(
+            predicate: #Predicate { $0.deckKey == deckKey && $0.decision == marked }
+        ))) ?? []
+        return Set(entries.map(\.assetLocalIdentifier))
+    }
+
     /// Photos marked for deletion, per deck. Drives the "N marked" line on the
     /// Swipe home cards.
-    static func markedCounts(context: ModelContext) -> [String: Int] {
+    static func markedByDeck(context: ModelContext) -> [String: Set<String>] {
         let marked = SwipeDeckDecision.marked.rawValue
         let entries = (try? context.fetch(FetchDescriptor<SwipeDeckEntry>(
             predicate: #Predicate { $0.decision == marked }
         ))) ?? []
-        return entries.reduce(into: [:]) { $0[$1.deckKey, default: 0] += 1 }
+        return entries.reduce(into: [:]) { $0[$1.deckKey, default: []].insert($1.assetLocalIdentifier) }
     }
 
-    private static func save(_ context: ModelContext) {
+    @discardableResult
+    private static func save(_ context: ModelContext) -> Bool {
         do {
             try context.save()
+            return true
         } catch {
             AppLog.app.error("Saving a swipe deck decision failed: \(error.localizedDescription, privacy: .public)")
+            return false
         }
     }
 }

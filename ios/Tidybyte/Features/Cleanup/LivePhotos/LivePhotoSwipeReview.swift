@@ -11,6 +11,10 @@ struct LivePhotoReviewDeck: Equatable {
     private(set) var index = 0
     /// True = convert to a still, false = keep the Live Photo.
     private(set) var decisions: [String: Bool] = [:]
+    /// Decisions from earlier visits sit below this index. Undo stops here, as
+    /// the swipe session's undo does not reach past a quit; the review grid
+    /// still changes them.
+    private var undoFloor = 0
 
     /// `saved` holds the decisions of earlier visits; the deck resumes after them.
     init(ids: [String], startingAt startId: String? = nil, saved: [String: Bool] = [:]) {
@@ -25,11 +29,12 @@ struct LivePhotoReviewDeck: Equatable {
         let listed = Set(ids)
         decisions = saved.filter { listed.contains($0.key) }
         index = decided.count
+        undoFloor = decided.count
     }
 
     var current: String? { index < ids.count ? ids[index] : nil }
     var isFinished: Bool { index >= ids.count }
-    var canUndo: Bool { index > 0 }
+    var canUndo: Bool { index > undoFloor }
     /// Photos marked to convert, in deck order.
     var markedIds: [String] { ids.filter { decisions[$0] == true } }
 

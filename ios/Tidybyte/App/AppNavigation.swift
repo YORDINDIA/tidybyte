@@ -141,7 +141,8 @@ final class AppNavigation {
     /// Safe to call at any time; a no-op otherwise.
     ///
     /// Two deliberate waits:
-    /// - Re-checks `hasPendingDeletions` instead of trusting the caller's timing:
+    /// - Re-checks `needsDeletionDecision` instead of trusting the caller's timing
+    ///   (marks kept for later in a saved deck no longer hold the replay):
     ///   the session view can disappear without being destroyed (a tab switch, a
     ///   sheet), and replaying then would be the very teardown this prevents.
     /// - Holds while the completion review is on screen. Its exit buttons are an
