@@ -52,6 +52,9 @@ struct TextPhotosView: View {
         .localizedNavigationTitle(CleanupTool.textPhotos.nameKey)
         .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         // Items deleted elsewhere (Swipe Review, the Photos app) leave the list.
+        .task {
+            await viewModel.restoreSavedScan()
+        }
         .task(id: libraryMonitor.generation) {
             await viewModel.pruneDeleted()
         }
@@ -194,6 +197,10 @@ struct TextPhotosView: View {
             LimitedLibraryBanner()
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.sm)
+
+            if let date = viewModel.savedScanDate {
+                SavedScanNote(date: date)
+            }
 
             AdaptiveRow(spacing: Spacing.sm) {
                 ageMenu

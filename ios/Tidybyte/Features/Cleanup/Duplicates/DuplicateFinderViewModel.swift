@@ -5,13 +5,26 @@ import SwiftUI
 @MainActor
 final class DuplicateFinderViewModel {
     var exactGroups: [DuplicateGroup] = [] {
-        didSet { refreshSortedGroups() }
+        didSet {
+            refreshSortedGroups()
+            if scanState == .completed { saveScan() }
+        }
     }
     var visualGroups: [DuplicateGroup] = [] {
-        didSet { refreshSortedGroups() }
+        didSet {
+            refreshSortedGroups()
+            if scanState == .completed { saveScan() }
+        }
     }
     var scanState: ScanState = .idle
-    var selectedForDeletion: Set<String> = []
+    var selectedForDeletion: Set<String> = [] {
+        didSet { SavedScanStore.saveSelection(selectedForDeletion, name: Self.savedName) }
+    }
+    /// When the results on screen were scanned, if they came from a saved scan.
+    private(set) var savedScanDate: Date?
+    /// When the results were scanned. A re-save after a delete keeps it.
+    private var scannedAt = Date.now
+    static let savedName = "duplicates"
     var scanType: DuplicateScanType = .exact {
         didSet { refreshSortedGroups() }
     }
@@ -175,9 +188,80 @@ final class DuplicateFinderViewModel {
         }
 
         scanState = .completed
+        scannedAt = .now
+        savedScanDate = nil
+        saveScan()
         ScanResults.record(.duplicates, count: totalDuplicateCount, epoch: scanEpoch)
 
         selectNonBestAssets()
+    }
+
+    // MARK: - Saved scan
+
+    /// One saved group. The summaries are read again from the library on restore.
+    struct SavedGroup: Codable, Sendable {
+        let id: String
+        let assetIds: [String]
+        let bestAssetId: String
+    }
+
+    struct SavedScan: Codable, Sendable {
+        let scannedAt: Date
+        let scanType: DuplicateScanType
+        let exactGroups: [SavedGroup]
+        let visualGroups: [SavedGroup]
+        let skippedICloudCount: Int
+    }
+
+    private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
+        let save = { (groups: [DuplicateGroup]) in
+            groups.map { SavedGroup(id: $0.id, assetIds: $0.assets.map(\.id), bestAssetId: $0.bestAssetId) }
+        }
+        SavedScanStore.save(
+            SavedScan(scannedAt: scannedAt, scanType: scanType, exactGroups: save(exactGroups),
+                      visualGroups: save(visualGroups), skippedICloudCount: skippedICloudCount),
+            name: Self.savedName
+        )
+    }
+
+    /// Shows the last saved scan when nothing is on screen. Photos deleted since
+    /// drop out, a group left with one photo goes, and picks that are no longer
+    /// listed are dropped. The saved picks are used as they are (the automatic
+    /// selection does not run over them), except that a keeper is never checked.
+    func restoreSavedScan() async {
+        guard scanState == .idle, exactGroups.isEmpty, visualGroups.isEmpty, SavedScanStore.canTrustLibrary(),
+              let saved = await SavedScanStore.load(SavedScan.self, name: Self.savedName) else { return }
+        let epoch = ScanResults.epoch
+        let ids = (saved.payload.exactGroups + saved.payload.visualGroups).flatMap(\.assetIds)
+        let summaries = await SavedScanStore.summaries(for: ids)
+        let picks = await SavedScanStore.selection(name: Self.savedName)
+        // The user left, or started a scan meanwhile: that wins.
+        guard !Task.isCancelled, scanState == .idle, exactGroups.isEmpty, visualGroups.isEmpty else { return }
+        let rebuild = { (groups: [SavedGroup], type: DuplicateType) -> [DuplicateGroup] in
+            groups.compactMap { group in
+                let assets = group.assetIds.compactMap { summaries[$0] }
+                guard assets.count >= 2 else { return nil }
+                let best = assets.contains { $0.id == group.bestAssetId } ? group.bestAssetId : assets[0].id
+                return DuplicateGroup(id: group.id, assets: assets, bestAssetId: best, type: type)
+            }
+        }
+        let exact = rebuild(saved.payload.exactGroups, .exact)
+        let visual = rebuild(saved.payload.visualGroups, .visual)
+        guard !exact.isEmpty || !visual.isEmpty else { return }
+        scannedAt = saved.payload.scannedAt
+        savedScanDate = saved.payload.scannedAt
+        scanType = saved.payload.scanType
+        skippedICloudCount = saved.payload.skippedICloudCount
+        scanState = .completed
+        exactGroups = exact
+        visualGroups = visual
+        selectedForDeletion = picks
+            .intersection((exact + visual).flatMap { $0.assets.map(\.id) })
+            .subtracting((exact + visual).map(\.bestAssetId))
+        // The library changed while the summaries loaded: drop what it removed.
+        if epoch != ScanResults.epoch { await pruneDeleted() }
     }
 
     /// Drops items deleted elsewhere (Swipe Review, the Photos app) from their
@@ -383,7 +467,7 @@ final class DuplicateFinderViewModel {
     }
 }
 
-enum DuplicateScanType: String, CaseIterable {
+enum DuplicateScanType: String, CaseIterable, Codable, Sendable {
     case exact = "Exact"
     case visual = "Visual"
     case all = "All"

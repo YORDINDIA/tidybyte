@@ -9,9 +9,19 @@ final class SmartCategoriesViewModel {
             cancelSearch()
             recomputeCategoryCounts()
             recomputeFiltered()
-            if scanState == .completed { ScanResults.record(.smartCategories, count: categorizedPhotos.count) }
+            if scanState == .completed {
+                ScanResults.record(.smartCategories, count: categorizedPhotos.count)
+                saveScan()
+            }
         }
     }
+    /// When the results on screen were scanned, if they came from a saved scan.
+    private(set) var savedScanDate: Date?
+    /// When the results were scanned. A re-save after a delete keeps it.
+    private var scannedAt = Date.now
+    /// The sensitivity the results were scanned with: their saved stamp.
+    private var scanStamp = ""
+    static let savedName = "smartCategories"
     /// Per-category counts, recomputed only when `categorizedPhotos` changes so the
     /// chip row doesn't run an O(categories × photos) pass on every view update.
     private(set) var categoryCounts: [PhotoCategory: Int] = [:]
@@ -98,7 +108,9 @@ final class SmartCategoriesViewModel {
     /// One selection per photo, shared by all categories (a screenshot that
     /// is also a document shows the same check in both). The action bar, the
     /// confirm and the delete all count this one set (C11).
-    var selectedIds: Set<String> = []
+    var selectedIds: Set<String> = [] {
+        didSet { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+    }
 
     var totalSelectedCount: Int { selectedIds.count }
 
@@ -242,7 +254,78 @@ final class SmartCategoriesViewModel {
             activeCategory = first
         }
         scanState = .completed
+        scannedAt = .now
+        scanStamp = sensitivity.rawValue
+        savedScanDate = nil
+        saveScan()
         ScanResults.record(.smartCategories, count: categorizedPhotos.count, epoch: scanEpoch)
+    }
+
+    // MARK: - Saved scan
+
+    /// One saved result. The summary is read again from the library on restore.
+    struct SavedPhoto: Codable, Sendable {
+        let id: String
+        let categories: Set<PhotoCategory>
+        let contentLabels: [String: Float]
+        let wasAnalyzed: Bool
+        /// A photo edited since the scan is not restored: its categories may differ.
+        let modified: Date?
+    }
+
+    struct SavedScan: Codable, Sendable {
+        let scannedAt: Date
+        let photos: [SavedPhoto]
+        let skippedAnalysisCount: Int
+        let analyzedPhotoCount: Int
+    }
+
+    private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
+        let photos = categorizedPhotos.map {
+            SavedPhoto(id: $0.id, categories: $0.categories, contentLabels: $0.contentLabels,
+                       wasAnalyzed: $0.wasAnalyzed, modified: $0.asset.modificationDate)
+        }
+        // The sensitivity of the scan on screen, not today's setting.
+        SavedScanStore.save(
+            SavedScan(scannedAt: scannedAt, photos: photos, skippedAnalysisCount: skippedAnalysisCount,
+                      analyzedPhotoCount: analyzedPhotoCount),
+            name: Self.savedName,
+            stamp: scanStamp
+        )
+    }
+
+    /// Shows the last saved scan when nothing is on screen. Photos deleted or
+    /// edited since drop out, and so do picks that are no longer listed.
+    func restoreSavedScan() async {
+        guard scanState == .idle, categorizedPhotos.isEmpty, SavedScanStore.canTrustLibrary() else { return }
+        let stamp = sensitivity.rawValue
+        guard let saved = await SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: stamp) else { return }
+        let epoch = ScanResults.epoch
+        let summaries = await SavedScanStore.summaries(for: saved.payload.photos.map(\.id))
+        let picks = await SavedScanStore.selection(name: Self.savedName)
+        // The user left, or started a scan meanwhile: that wins.
+        guard !Task.isCancelled, scanState == .idle, categorizedPhotos.isEmpty else { return }
+        let restored = saved.payload.photos.compactMap { photo -> CategorizedPhoto? in
+            guard let asset = summaries[photo.id], asset.modificationDate == photo.modified else { return nil }
+            return CategorizedPhoto(id: photo.id, asset: asset, categories: photo.categories,
+                                    contentLabels: photo.contentLabels, wasAnalyzed: photo.wasAnalyzed)
+        }
+        guard !restored.isEmpty else { return }
+        scannedAt = saved.payload.scannedAt
+        savedScanDate = saved.payload.scannedAt
+        scanStamp = stamp
+        skippedAnalysisCount = saved.payload.skippedAnalysisCount
+        analyzedPhotoCount = saved.payload.analyzedPhotoCount
+        scanState = .completed
+        categorizedPhotos = restored
+        if !nonEmptyCategories.contains(activeCategory), let first = nonEmptyCategories.first {
+            activeCategory = first
+        }
+        selectedIds = picks.intersection(restored.map(\.id))
+        // The library changed while the summaries loaded: drop what it removed.
+        if epoch != ScanResults.epoch { await pruneDeleted() }
     }
 
     /// D-06: the "Saved from Apps" bucket is recall-heavy by design (filename

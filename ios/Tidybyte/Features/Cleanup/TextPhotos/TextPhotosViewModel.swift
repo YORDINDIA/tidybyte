@@ -2,7 +2,7 @@ import SwiftUI
 
 /// How old a text photo must be to show. Notes, tickets, receipts and boards
 /// go out of date within weeks, so the results start a month back by default.
-enum TextPhotoAge: String, CaseIterable, Sendable {
+enum TextPhotoAge: String, CaseIterable, Sendable, Codable {
     case twoWeeks, oneMonth, threeMonths, oneYear
 
     var displayName: String {
@@ -71,7 +71,9 @@ final class TextPhotosViewModel {
     static let sortOptions: [MediaSortOrder] = [.oldest, .newest, .largest]
     var errorMessage: String?
     var isDeleting = false
-    var selectedIds: Set<String> = []
+    var selectedIds: Set<String> = [] {
+        didSet { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+    }
     private(set) var deletedCount = 0
     private(set) var skippedAnalysisCount = 0
     /// Photos whose text recognition failed, so they could not be judged.
@@ -84,6 +86,11 @@ final class TextPhotosViewModel {
     private let visionService = VisionAnalysisService()
     /// Fixed for a scan's results, so the age choice compares against one moment.
     private var scanDate = Date()
+    /// When the results on screen were scanned, if they came from a saved scan.
+    private(set) var savedScanDate: Date?
+    /// When the results were scanned. A re-save after a delete keeps it.
+    private var scannedAt = Date.now
+    static let savedName = "textPhotos"
 
     var selectedSize: Int64 {
         visiblePhotos.totalFileSize(selectedIds: selectedIds, idOf: \.id, sizeOf: { $0.asset.fileSize })
@@ -103,7 +110,66 @@ final class TextPhotosViewModel {
         visiblePhotos = Self.visible(photos, age: age, now: scanDate, order: sortOrder)
         // A pick the age filter hides must not be deleted unseen.
         selectedIds.formIntersection(visiblePhotos.map(\.id))
-        if scanState == .completed { ScanResults.record(.textPhotos, count: visiblePhotos.count) }
+        if scanState == .completed {
+            ScanResults.record(.textPhotos, count: visiblePhotos.count)
+            saveScan()
+        }
+    }
+
+    // MARK: - Saved scan
+
+    /// One saved result. The summary is read again from the library on restore.
+    struct SavedPhoto: Codable, Sendable {
+        let characterCount: Int
+        /// A photo edited since the scan is not restored: its text may differ.
+        let modified: Date?
+    }
+
+    struct SavedScan: Codable, Sendable {
+        let scannedAt: Date
+        let age: TextPhotoAge
+        let photos: [String: SavedPhoto]
+    }
+
+    private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
+        let saved = Dictionary(
+            photos.map { ($0.id, SavedPhoto(characterCount: $0.characterCount, modified: $0.asset.modificationDate)) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        SavedScanStore.save(SavedScan(scannedAt: scannedAt, age: age, photos: saved), name: Self.savedName)
+    }
+
+    /// Shows the last saved scan when nothing is on screen. Photos deleted or
+    /// edited since drop out, and so do photos the tool now excludes (a new
+    /// favorite) and picks that are no longer listed.
+    func restoreSavedScan() async {
+        guard scanState == .idle, photos.isEmpty, SavedScanStore.canTrustLibrary(),
+              let saved = await SavedScanStore.load(SavedScan.self, name: Self.savedName) else { return }
+        let epoch = ScanResults.epoch
+        let summaries = await SavedScanStore.summaries(for: Array(saved.payload.photos.keys))
+        let picks = await SavedScanStore.selection(name: Self.savedName)
+        // The user left, or started a scan meanwhile: that wins.
+        guard !Task.isCancelled, scanState == .idle, photos.isEmpty else { return }
+        let now = Date()
+        let cutoff = TextPhotoPolicy.scanAge.cutoff(from: now)
+        let restored = saved.payload.photos.compactMap { id, photo -> TextPhoto? in
+            guard let asset = summaries[id], asset.modificationDate == photo.modified,
+                  TextPhotoPolicy.isCandidate(asset, cutoff: cutoff) else { return nil }
+            return TextPhoto(id: id, asset: asset, characterCount: photo.characterCount)
+        }
+        guard !restored.isEmpty else { return }
+        // Ages compare against today: the photos kept aging since the scan.
+        scanDate = now
+        scannedAt = saved.payload.scannedAt
+        savedScanDate = saved.payload.scannedAt
+        age = saved.payload.age
+        scanState = .completed
+        photos = restored
+        selectedIds = picks.intersection(visiblePhotos.map(\.id))
+        // The library changed while the summaries loaded: drop what it removed.
+        if epoch != ScanResults.epoch { await pruneDeleted() }
     }
 
     func startScan() {
@@ -172,6 +238,8 @@ final class TextPhotosViewModel {
         }
         scanState = .scanning(1.0)
         scanState = .completed
+        scannedAt = .now
+        savedScanDate = nil
         // Assigned after `.completed`, so the didSet records the derived count.
         photos = found
         if pendingPrune {

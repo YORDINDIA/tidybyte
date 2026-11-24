@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum BlurryTab: String, CaseIterable, Sendable {
+enum BlurryTab: String, CaseIterable, Sendable, Codable {
     case blurry = "Blurry"
     case tooDark = "Too Dark"
     case overexposed = "Overexposed"
@@ -22,9 +22,19 @@ final class BlurryPhotosViewModel {
     var analyzedPhotos: [AnalyzedPhoto] = [] {
         didSet {
             filterCache = nil
-            if scanState == .completed { ScanResults.record(.blurry, count: analyzedPhotos.count) }
+            if scanState == .completed {
+                ScanResults.record(.blurry, count: analyzedPhotos.count)
+                saveScan()
+            }
         }
     }
+    /// When the results on screen were scanned, if they came from a saved scan.
+    private(set) var savedScanDate: Date?
+    /// When the results were scanned. A re-save after a delete keeps it.
+    private var scannedAt = Date.now
+    /// The sensitivity the results were scanned with: their saved stamp.
+    private var scanStamp = ""
+    static let savedName = "blurry"
     var scanState: ScanState = .idle
     var activeTab: BlurryTab = .blurry
     /// Order inside a tab. The scan reads newest first, so Newest is the default.
@@ -59,7 +69,9 @@ final class BlurryPhotosViewModel {
     /// blurry and too dark shows the same check on both tabs, and the action
     /// bar, the confirm and the delete all count the same set. Switching tabs
     /// keeps every pick (C11).
-    var selectedIds: Set<String> = []
+    var selectedIds: Set<String> = [] {
+        didSet { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+    }
 
     var totalSelectedCount: Int { selectedIds.count }
 
@@ -249,6 +261,10 @@ final class BlurryPhotosViewModel {
         }
         scanState = .scanning(1.0)
         scanState = .completed
+        scannedAt = .now
+        scanStamp = sensitivity.rawValue
+        savedScanDate = nil
+        saveScan()
         // A library change that landed mid-scan: prune now that publishing
         // can't be overwritten by a later tick.
         if pendingPrune {
@@ -256,6 +272,78 @@ final class BlurryPhotosViewModel {
             await pruneDeleted()
         }
         ScanResults.record(.blurry, count: analyzedPhotos.count, epoch: scanEpoch)
+    }
+
+    // MARK: - Saved scan
+
+    /// One saved result. The summary is read again from the library on restore.
+    struct SavedPhoto: Codable, Sendable {
+        let id: String
+        let blurScore: Float
+        let luminance: Float
+        let categories: Set<BlurryTab>
+        let smudgeConfidence: Float?
+        /// A photo edited since the scan is not restored: its scores may be wrong.
+        let modified: Date?
+    }
+
+    struct SavedScan: Codable, Sendable {
+        let scannedAt: Date
+        let photos: [SavedPhoto]
+        let supportsLensSmudge: Bool
+        let skippedScreenshotCount: Int
+        let skippedAnalysisCount: Int
+        let skippedSmudgeCount: Int
+    }
+
+    private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
+        let photos = analyzedPhotos.map {
+            SavedPhoto(id: $0.id, blurScore: $0.blurScore, luminance: $0.luminance,
+                       categories: $0.categories, smudgeConfidence: $0.smudgeConfidence,
+                       modified: $0.asset.modificationDate)
+        }
+        let scan = SavedScan(scannedAt: scannedAt, photos: photos, supportsLensSmudge: supportsLensSmudge,
+                             skippedScreenshotCount: skippedScreenshotCount,
+                             skippedAnalysisCount: skippedAnalysisCount, skippedSmudgeCount: skippedSmudgeCount)
+        // The sensitivity of the scan on screen, not today's setting.
+        SavedScanStore.save(scan, name: Self.savedName, stamp: scanStamp)
+    }
+
+    /// Shows the last saved scan when nothing is on screen. Photos deleted or
+    /// edited since drop out, and so do picks that are no longer listed.
+    func restoreSavedScan() async {
+        guard scanState == .idle, analyzedPhotos.isEmpty, SavedScanStore.canTrustLibrary() else { return }
+        let stamp = sensitivity.rawValue
+        guard let saved = await SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: stamp) else { return }
+        let epoch = ScanResults.epoch
+        let summaries = await SavedScanStore.summaries(for: saved.payload.photos.map(\.id))
+        let picks = await SavedScanStore.selection(name: Self.savedName)
+        // The user left, or started a scan meanwhile: that wins.
+        guard !Task.isCancelled, scanState == .idle, analyzedPhotos.isEmpty else { return }
+        let restored = saved.payload.photos.compactMap { photo -> AnalyzedPhoto? in
+            guard let asset = summaries[photo.id], asset.modificationDate == photo.modified else { return nil }
+            return AnalyzedPhoto(id: photo.id, asset: asset, blurScore: photo.blurScore, luminance: photo.luminance,
+                                 categories: photo.categories, smudgeConfidence: photo.smudgeConfidence)
+        }
+        guard !restored.isEmpty else { return }
+        supportsLensSmudge = saved.payload.supportsLensSmudge
+        skippedScreenshotCount = saved.payload.skippedScreenshotCount
+        skippedAnalysisCount = saved.payload.skippedAnalysisCount
+        skippedSmudgeCount = saved.payload.skippedSmudgeCount
+        scannedAt = saved.payload.scannedAt
+        savedScanDate = saved.payload.scannedAt
+        scanStamp = stamp
+        scanState = .completed
+        analyzedPhotos = restored
+        selectedIds = picks.intersection(restored.map(\.id))
+        if !restored.contains(where: { $0.categories.contains(activeTab) }),
+           let first = BlurryTab.allCases.first(where: { tab in restored.contains { $0.categories.contains(tab) } }) {
+            activeTab = first
+        }
+        // The library changed while the summaries loaded: drop what it removed.
+        if epoch != ScanResults.epoch { await pruneDeleted() }
     }
 
     /// Drops results deleted elsewhere (Swipe Review, the Photos app).

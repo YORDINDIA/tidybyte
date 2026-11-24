@@ -9,8 +9,13 @@ final class LargeFilesViewModel {
     var isLoading = true
     private(set) var hasLoadedAssets = false
     var selectedIds: Set<String> = [] {
-        didSet { refreshTotals() }
+        didSet {
+            refreshTotals()
+            if hasLoadedAssets { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+        }
     }
+    /// Checked files survive a quit (Settings > Clear Saved Scans removes them).
+    static let savedName = "largeFiles"
     var mediaFilter: MediaFilter = .all {
         didSet {
             if mediaFilter == .photos, sortOrder == .longest { sortOrder = .largest }
@@ -194,7 +199,10 @@ final class LargeFilesViewModel {
         isLoading = true
         errorMessage = nil
         let allAssets = await photoService.fetchAssets(filter: .allMedia)
-        apply(allAssets)
+        // The first load after a launch brings back the saved picks.
+        let savedPicks = hasLoadedAssets ? nil : await SavedScanStore.selection(name: Self.savedName)
+        // A load another one already finished must not replace the picks.
+        apply(allAssets, restoring: hasLoadedAssets ? nil : savedPicks)
         isLoading = false
     }
 
@@ -207,7 +215,7 @@ final class LargeFilesViewModel {
     }
 
     /// Shared load/refresh pipeline (de-slop D3).
-    private func apply(_ newAssets: [AssetSummary]) {
+    private func apply(_ newAssets: [AssetSummary], restoring savedPicks: Set<String>? = nil) {
         assets = newAssets.sorted { $0.fileSize > $1.fileSize }
         // Drop picks for files that no longer exist AND for files this list can
         // never show (below the size threshold, including zero-size unknowns):
@@ -223,6 +231,9 @@ final class LargeFilesViewModel {
         let existingIds = Set(newAssets.lazy.map(\.id))
         // Only below-threshold picks need explaining; a pick whose file is gone
         // from the library is self-evident.
+        // Saved picks come back first; the rules below then drop the ones that
+        // no longer apply.
+        if let savedPicks { selectedIds = savedPicks }
         let clearedBelowThreshold = selectedIds.intersection(existingIds).subtracting(displayableIds).count
         selectedIds.formIntersection(displayableIds)
         droppedSelectionNotice = clearedBelowThreshold == 0
@@ -234,6 +245,8 @@ final class LargeFilesViewModel {
                 )
             )
         hasLoadedAssets = true
+        // Keep the saved picks in step with the ones that survived.
+        if savedPicks != nil { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
     }
 
     func toggleSelection(_ id: String) {

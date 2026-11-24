@@ -42,7 +42,11 @@ final class PhotoCompressionViewModel {
     var photos: [PhotoItem] = []
     var isLoading = true
     private(set) var hasLoadedPhotos = false
-    var selectedIds: Set<String> = []
+    var selectedIds: Set<String> = [] {
+        didSet { if hasLoadedPhotos { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) } }
+    }
+    /// Checked photos survive a quit (Settings > Clear Saved Scans removes them).
+    static let savedName = "photoCompression"
     var isCompressing = false
     var errorMessage: String?
     var insufficientDiskSpace = false
@@ -161,6 +165,17 @@ final class PhotoCompressionViewModel {
         allPhotoAssets = await photoService.fetchAllPhotos(sortByCreationDate: false)
         eligibleCount = PhotoCompressionPolicy.candidates(from: allPhotoAssets, excluding: compressedCopyIds, showAll: true).count
         applyFilter()
+        // The first load after a launch brings back the saved picks still listed,
+        // and saves them back pruned.
+        if !hasLoadedPhotos {
+            let saved = await SavedScanStore.selection(name: Self.savedName)
+            // A cancelled load, or one another load finished first, leaves the picks alone.
+            if !Task.isCancelled, !hasLoadedPhotos {
+                selectedIds = saved.intersection(photos.map(\.id))
+                hasLoadedPhotos = true
+                SavedScanStore.saveSelection(selectedIds, name: Self.savedName)
+            }
+        }
         hasLoadedPhotos = true
     }
 
