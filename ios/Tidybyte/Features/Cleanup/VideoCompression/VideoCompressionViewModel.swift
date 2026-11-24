@@ -308,6 +308,12 @@ final class VideoCompressionViewModel {
         isCompressing = true
         isCancelled = false
 
+        // D1: resolve leftovers from any interrupted swap BEFORE the batch —
+        // otherwise a stranded duplicate could be re-compressed or double-counted.
+        // Before the "already done" set below: finishing an interrupted swap
+        // settles its row, and that original must not be compressed again.
+        await CompressionJournal.reconcile(modelContext: modelContext)
+
         // COMP-16: skip assets that already have a usable copy — completed
         // swaps, no-savings skips, and kept-both declines — so they are never
         // re-encoded (quality degradation, duplicate copies).
@@ -318,10 +324,6 @@ final class VideoCompressionViewModel {
         let settled = CompressionJournal.settledReplacements(modelContext: modelContext)
         let liveReplacements = await photoService.existingIds(Array(settled.values))
         let previouslyCompletedIds = CompressionJournal.idsWithLiveCopy(settled: settled, liveCopies: liveReplacements)
-
-        // D1: resolve leftovers from any interrupted swap BEFORE the batch —
-        // otherwise a stranded duplicate could be re-compressed or double-counted.
-        await CompressionJournal.reconcile(modelContext: modelContext)
 
         // COMP-12: deterministic batch order (descending file size, id tiebreak)
         // instead of nondeterministic Set iteration. Fixed by size: it does not
@@ -425,9 +427,10 @@ final class VideoCompressionViewModel {
                     ))
                 } catch {
                     if self.isCancelled || error is CancellationError || CompressionSession.isPaused {
-                        // User cancelled mid-item: reset the row and stop the loop. A
-                        // cancel is not a failure — History must not render a red
-                        // badge for something the summary reports as cancelled.
+                        // A user cancel stops the loop; a background pause ends this
+                        // item, and the runner runs it again once the app is back.
+                        // Neither is a failure: History must not render a red badge
+                        // for something that was not tried to the end.
                         await swap.markSkipped()
                         throw error
                     }

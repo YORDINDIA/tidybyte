@@ -473,6 +473,11 @@ final class PhotoCompressionViewModel {
         isCompressing = true
         isCancelled = false
 
+        // D1: resolve leftovers from any interrupted swap BEFORE the batch.
+        // Before the "already done" set below: finishing an interrupted swap
+        // settles its row, and that original must not be compressed again.
+        await CompressionJournal.reconcile(modelContext: modelContext)
+
         // COMP-16: skip assets that already have a usable copy — completed
         // swaps, no-savings skips, and kept-both declines — so they are never
         // re-encoded (quality degradation, duplicate copies).
@@ -483,9 +488,6 @@ final class PhotoCompressionViewModel {
         let settled = CompressionJournal.settledReplacements(modelContext: modelContext)
         let liveReplacements = await photoService.existingIds(Array(settled.values))
         let previouslyCompletedIds = CompressionJournal.idsWithLiveCopy(settled: settled, liveCopies: liveReplacements)
-
-        // D1: resolve leftovers from any interrupted swap BEFORE the batch.
-        await CompressionJournal.reconcile(modelContext: modelContext)
 
         // COMP-12: deterministic batch order (descending file size, id tiebreak)
         // matching the on-screen list instead of nondeterministic Set iteration.
@@ -581,8 +583,9 @@ final class PhotoCompressionViewModel {
                     ))
                 } catch {
                     if self.isCancelled || error is CancellationError || CompressionSession.isPaused {
-                        // A cancel is not a failure: History must not render a red
-                        // badge for something the batch summary reports as cancelled.
+                        // A user cancel stops the loop; a background pause ends this
+                        // item, and the runner runs it again once the app is back.
+                        // Neither is a failure: History must not render a red badge.
                         await swap.markSkipped()
                         throw error
                     }

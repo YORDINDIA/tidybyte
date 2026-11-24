@@ -283,11 +283,15 @@ enum CompressionJournal {
         case dropRow
     }
 
+    /// `replacementExists`: the journaled copy is still in the library. Only
+    /// then may a row finish its swap by deleting the original; with the copy
+    /// gone the original is the only version left.
     nonisolated static func resolution(
         originalExists: Bool,
         replacementId: String?,
         saveAttempted: Bool,
-        deletesOriginal: Bool = false
+        deletesOriginal: Bool = false,
+        replacementExists: Bool = true
     ) -> Resolution {
         switch (originalExists, replacementId) {
         case (false, .some):
@@ -295,7 +299,9 @@ enum CompressionJournal {
         case (false, .none):
             return .failed
         case (true, .some(let orphanId)):
-            return deletesOriginal ? .deleteOriginalThenComplete : .deleteOrphanThenFail(id: orphanId)
+            // A copy that is already gone "removes" as absent, which settles
+            // the row as failed with the original untouched.
+            return deletesOriginal && replacementExists ? .deleteOriginalThenComplete : .deleteOrphanThenFail(id: orphanId)
         case (true, .none):
             return saveAttempted ? .failedWithPossibleOrphan : .dropRow
         }
@@ -367,12 +373,14 @@ enum CompressionJournal {
         // waiting on the Originals Kept choice) are not crash leftovers.
         let leftovers = pendings.filter { !CompressionSwap.isLive(assetId: $0.assetLocalIdentifier) }
         let existingOriginals = await PhotoLibraryService.shared.existingIds(leftovers.map(\.assetLocalIdentifier))
+        let existingCopies = await PhotoLibraryService.shared.existingIds(leftovers.compactMap(\.replacementAssetLocalIdentifier))
         for record in leftovers {
             resolved.append((record, Self.resolution(
                 originalExists: existingOriginals.contains(record.assetLocalIdentifier),
                 replacementId: record.replacementAssetLocalIdentifier,
                 saveAttempted: record.saveAttempted,
-                deletesOriginal: record.deletesOriginal
+                deletesOriginal: record.deletesOriginal,
+                replacementExists: record.replacementAssetLocalIdentifier.map(existingCopies.contains) ?? false
             )))
         }
 

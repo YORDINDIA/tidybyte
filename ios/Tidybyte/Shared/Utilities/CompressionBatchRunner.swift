@@ -6,7 +6,8 @@ import UIKit
 /// Keeps a batch going while the user is away, and keeps the screen awake.
 ///
 /// - iOS 26 and later: a `BGContinuedProcessingTask` lets the batch run in the
-///   background, with a system progress view the user can cancel.
+///   background, with a system progress view the user can cancel. When that
+///   task ends (the user's Cancel, or the system), the batch stops as on Stop.
 /// - Earlier systems, or when iOS refuses that task: iOS gives a short grant
 ///   (about 30 seconds). When it ends, the batch waits at the next item and
 ///   goes on once the app is active again (`waitWhilePaused`).
@@ -28,7 +29,7 @@ final class CompressionSession {
     static var isPaused: Bool { pausedCount > 0 }
 
     private let title: String
-    private let total: Int
+    private var total: Int
     private var done = 0
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
     /// The running `BGContinuedProcessingTask` (iOS 26+). `AnyObject` so the
@@ -45,6 +46,10 @@ final class CompressionSession {
 
     /// True after iOS ended the background time, until the batch resumes.
     var isPaused: Bool { lostBackgroundTime }
+
+    /// The background task ended (the user's Cancel in the system progress
+    /// view, or the system). The batch stops here as it does on Stop.
+    private(set) var isStopped = false
 
     private init(title: String, total: Int) {
         self.title = title
@@ -71,6 +76,15 @@ final class CompressionSession {
         guard UIApplication.shared.applicationState == .active else { return }
         lostBackgroundTime = false
         requestBackgroundTime()
+    }
+
+    /// Sets the item count once the batch knows it. A session can begin before
+    /// the batch reads its list, so that read is covered too.
+    func setTotal(_ total: Int) {
+        self.total = total
+        if #available(iOS 26.0, *), let task = continuedTask as? BGContinuedProcessingTask {
+            task.progress.totalUnitCount = Int64(total)
+        }
     }
 
     /// Records finished items for the system progress view.
@@ -164,8 +178,12 @@ final class CompressionSession {
         task.progress.totalUnitCount = Int64(total)
         task.progress.completedUnitCount = Int64(done)
         task.expirationHandler = { [weak self] in
-            // The system or the user ended the task: the same as the short grant ending.
-            Task { @MainActor in self?.backgroundTimeEnded() }
+            // The user's Cancel in the system progress view, or the system. It
+            // cannot tell which, so stop as on Stop rather than resume later.
+            Task { @MainActor in
+                self?.isStopped = true
+                self?.backgroundTimeEnded()
+            }
         }
         // This task keeps the app running now. Without this, the short grant's
         // expiry would pause a batch that may keep going.
@@ -447,7 +465,7 @@ enum CompressionBatchRunner {
         itemLoop: for (offset, id) in orderedIds.enumerated() {
             if offset % 20 == 0 { await Task.yield() }
             await session.waitWhilePaused()
-            if isCancelled() { break }
+            if isCancelled() || session.isStopped { break }
             handlers.setPhase(.savingCopies(done: offset, total: orderedIds.count))
             defer { session.report(done: offset + 1) }
             // A selected id with no row index cannot be reported through
@@ -479,15 +497,21 @@ enum CompressionBatchRunner {
                         handlers.setState(index, .copySaved)
                     }
                 } catch {
-                    if isCancelled() || error is CancellationError {
+                    if isCancelled() || session.isStopped {
                         handlers.setState(index, .waiting)
                         break itemLoop
                     }
+                    // Before the cancel check below: suspension can end an
+                    // export with a cancel error that the user never asked for.
                     if session.isPaused {
                         handlers.setState(index, .waiting)
                         await session.waitWhilePaused()
-                        if isCancelled() { break itemLoop }
+                        if isCancelled() || session.isStopped { break itemLoop }
                         continue
+                    }
+                    if error is CancellationError {
+                        handlers.setState(index, .waiting)
+                        break itemLoop
                     }
                     if isSizeUnknown(error) {
                         handlers.setState(index, .keptOriginal(reason: L10n.string("Size unknown (iCloud-only) — skipped")))

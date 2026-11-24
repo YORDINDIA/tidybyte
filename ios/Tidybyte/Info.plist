@@ -6,6 +6,10 @@
 	<array>
 		<string>com.sakshammittal.tidybyte.batch.*</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+	</array>
 	<key>GoogleClientID</key>
 	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
 	<key>LSApplicationQueriesSchemes</key>

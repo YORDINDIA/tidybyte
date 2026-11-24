@@ -216,6 +216,10 @@ final class LivePhotosConverterViewModel {
         errorMessage = nil
         isCancelled = false
         convertingAll = true
+        // Keeps the screen awake and the batch going in the background, from
+        // the first await on. Ends on every exit.
+        let session = CompressionSession.begin(title: L10n.string("Converting Live Photos"), total: 0)
+        defer { session.end() }
         // D1 (review pass): resolve leftovers from interrupted conversions
         // before starting a batch.
         await CompressionJournal.reconcile(modelContext: modelContext)
@@ -223,9 +227,7 @@ final class LivePhotosConverterViewModel {
         // COMP-09: snapshot the eligible (idle) ids up front so the summary's
         // denominator matches what was actually attempted.
         let pendingIds = Self.eligibleIds(items: items, accepted: accepted)
-        // Keeps the screen awake and the batch going in the background. Ends on every exit.
-        let session = CompressionSession.begin(title: L10n.string("Converting Live Photos"), total: pendingIds.count)
-        defer { session.end() }
+        session.setTotal(pendingIds.count)
         // One album pass for the whole batch instead of one predicate scan
         // per album per item inside `performConversion`.
         let albumMap = await photoService.userAlbumIdentifiers(for: Set(pendingIds))
@@ -234,7 +236,7 @@ final class LivePhotosConverterViewModel {
         itemLoop: for (offset, itemId) in pendingIds.enumerated() {
             await session.waitWhilePaused()
             // D2: cancellation checked at the top of every iteration.
-            if isCancelled { break }
+            if isCancelled || session.isStopped { break }
             phase = .savingCopies(done: offset, total: pendingIds.count)
             defer { session.report(done: offset + 1) }
             guard items.contains(where: { $0.id == itemId }) else { continue }
@@ -247,17 +249,23 @@ final class LivePhotosConverterViewModel {
                     saved.append(pending)
                     setState(.copySaved, for: itemId)
                 } catch {
-                    if isCancelled || error is CancellationError {
-                        // A cancel is not a failure: the row goes back to idle so
-                        // it stays eligible for a later run.
+                    // A cancel is not a failure: the row goes back to idle so
+                    // it stays eligible for a later run.
+                    if isCancelled || session.isStopped {
                         setState(.idle, for: itemId)
                         break itemLoop
                     }
+                    // Before the cancel check below: suspension can end a read
+                    // with a cancel error that the user never asked for.
                     if session.isPaused {
                         setState(.idle, for: itemId)
                         await session.waitWhilePaused()
-                        if isCancelled { break itemLoop }
+                        if isCancelled || session.isStopped { break itemLoop }
                         continue
+                    }
+                    if error is CancellationError {
+                        setState(.idle, for: itemId)
+                        break itemLoop
                     }
                     failed += 1
                     setState(.failed(error.localizedDescription), for: itemId)
@@ -296,47 +304,57 @@ final class LivePhotosConverterViewModel {
         return nil
     }
 
-    /// Reads the still's bytes from PhotoKit.
+    /// Reads the still's bytes from PhotoKit. Stop (task cancellation) ends the
+    /// read and cancels the PhotoKit request, so no still is saved after Stop.
     private func readStillData(_ photoResource: PHAssetResource) async throws -> Data {
         let resourceManager = PHAssetResourceManager.default()
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
-            let resumer = ThrowingContinuationResumer(continuation)
-            // Chunks arrive on one queue, the completion on another. Both go through the lock.
-            let buffer = LockedValue(Data())
-            let options = PHAssetResourceRequestOptions()
-            options.isNetworkAccessAllowed = true
+        let inFlight = LockedValue<ThrowingContinuationResumer<Data>?>(nil)
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
+                let resumer = ThrowingContinuationResumer(continuation)
+                inFlight.withValue { $0 = resumer }
+                // Chunks arrive on one queue, the completion on another. Both go through the lock.
+                let buffer = LockedValue(Data())
+                let options = PHAssetResourceRequestOptions()
+                options.isNetworkAccessAllowed = true
 
-            // Network access is allowed, so a stalled iCloud download could leave
-            // the completion handler unfired forever. Bound it with a stall timeout +
-            // request cancellation, wired before the request so even a synchronous
-            // callback cancels the timer. Without this the item hangs in `.converting`.
-            // Each data chunk is progress, so a steady download is not cut off.
-            let stall = StallWatch()
-            let requestID = LockedValue<PHAssetResourceDataRequestID>(0)
-            let timeoutTask = watchForStall(stall) {
-                resumer.resume(throwing: LivePhotoError.conversionTimedOut)
-            }
-            resumer.onResume = {
-                resourceManager.cancelDataRequest(requestID.withValue { $0 })
-                timeoutTask.cancel()
-            }
-
-            let id = resourceManager.requestData(
-                for: photoResource,
-                options: options
-            ) { chunk in
-                let at = LoadStall.now()
-                Task { await stall.recordProgress(at: at) }
-                buffer.withValue { $0.append(chunk) }
-            } completionHandler: { error in
-                if let error {
-                    resumer.resume(throwing: error)
-                } else {
-                    resumer.resume(returning: buffer.withValue { $0 })
+                // Network access is allowed, so a stalled iCloud download could leave
+                // the completion handler unfired forever. Bound it with a stall timeout +
+                // request cancellation, wired before the request so even a synchronous
+                // callback cancels the timer. Without this the item hangs in `.converting`.
+                // Each data chunk is progress, so a steady download is not cut off.
+                let stall = StallWatch()
+                let requestID = LockedValue<PHAssetResourceDataRequestID>(0)
+                let timeoutTask = watchForStall(stall) {
+                    resumer.resume(throwing: LivePhotoError.conversionTimedOut)
                 }
+                resumer.onResume = {
+                    resourceManager.cancelDataRequest(requestID.withValue { $0 })
+                    timeoutTask.cancel()
+                }
+
+                let id = resourceManager.requestData(
+                    for: photoResource,
+                    options: options
+                ) { chunk in
+                    let at = LoadStall.now()
+                    Task { await stall.recordProgress(at: at) }
+                    buffer.withValue { $0.append(chunk) }
+                } completionHandler: { error in
+                    if let error {
+                        resumer.resume(throwing: error)
+                    } else {
+                        resumer.resume(returning: buffer.withValue { $0 })
+                    }
+                }
+                // Stored after the call returns, never under the lock (see LockedValue).
+                requestID.withValue { $0 = id }
+                // Cancelled before the resumer was stored: the handler found nothing.
+                if Task.isCancelled { resumer.resume(throwing: CancellationError()) }
             }
-            // Stored after the call returns, never under the lock (see LockedValue).
-            requestID.withValue { $0 = id }
+        } onCancel: {
+            // Resumed outside the lock (see LockedValue). Its onResume cancels the request.
+            inFlight.withValue { $0 }?.resume(throwing: CancellationError())
         }
     }
 

@@ -277,6 +277,12 @@ final class MediaLibraryStatsTests: XCTestCase {
             CompressionJournal.resolution(originalExists: true, replacementId: "r", saveAttempted: true, deletesOriginal: true),
             .deleteOriginalThenComplete
         )
+        // The copy is gone: the original is the only version, so never delete
+        // it. Removing the absent copy settles the row as failed.
+        XCTAssertEqual(
+            CompressionJournal.resolution(originalExists: true, replacementId: "r", saveAttempted: true, deletesOriginal: true, replacementExists: false),
+            .deleteOrphanThenFail(id: "r")
+        )
         // The intent changes nothing once the original is gone, or with no copy.
         XCTAssertEqual(
             CompressionJournal.resolution(originalExists: false, replacementId: "r", saveAttempted: true, deletesOriginal: true),
@@ -338,7 +344,8 @@ final class MediaLibraryStatsTests: XCTestCase {
             modelContext: context, mediaType: .photo, assetId: "copy-only",
             originalSize: 1_000, compressedSize: 0, exportPreset: "high"
         )
-        let rows = try context.fetch(FetchDescriptor<CompressionRecord>())
+        // A second context reads the store, not the first context's memory.
+        let rows = try ModelContext(container).fetch(FetchDescriptor<CompressionRecord>())
         let intent = Dictionary(uniqueKeysWithValues: rows.map { ($0.assetLocalIdentifier, $0.deletesOriginal) })
         XCTAssertEqual(intent, ["replace": true, "copy-only": false])
     }
