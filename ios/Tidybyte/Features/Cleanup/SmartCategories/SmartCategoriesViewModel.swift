@@ -308,7 +308,7 @@ final class SmartCategoriesViewModel {
         // The user left, or started a scan meanwhile: that wins.
         guard !Task.isCancelled, scanState == .idle, categorizedPhotos.isEmpty else { return }
         let restored = saved.payload.photos.compactMap { photo -> CategorizedPhoto? in
-            guard let asset = summaries[photo.id], asset.modificationDate == photo.modified else { return nil }
+            guard let asset = summaries[photo.id], SavedScanStore.sameModification(photo.modified, asset.modificationDate) else { return nil }
             return CategorizedPhoto(id: photo.id, asset: asset, categories: photo.categories,
                                     contentLabels: photo.contentLabels, wasAnalyzed: photo.wasAnalyzed)
         }

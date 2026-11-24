@@ -323,7 +323,7 @@ final class BlurryPhotosViewModel {
         // The user left, or started a scan meanwhile: that wins.
         guard !Task.isCancelled, scanState == .idle, analyzedPhotos.isEmpty else { return }
         let restored = saved.payload.photos.compactMap { photo -> AnalyzedPhoto? in
-            guard let asset = summaries[photo.id], asset.modificationDate == photo.modified else { return nil }
+            guard let asset = summaries[photo.id], SavedScanStore.sameModification(photo.modified, asset.modificationDate) else { return nil }
             return AnalyzedPhoto(id: photo.id, asset: asset, blurScore: photo.blurScore, luminance: photo.luminance,
                                  categories: photo.categories, smudgeConfidence: photo.smudgeConfidence)
         }

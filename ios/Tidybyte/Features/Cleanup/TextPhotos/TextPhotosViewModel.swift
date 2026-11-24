@@ -155,7 +155,7 @@ final class TextPhotosViewModel {
         let now = Date()
         let cutoff = TextPhotoPolicy.scanAge.cutoff(from: now)
         let restored = saved.payload.photos.compactMap { id, photo -> TextPhoto? in
-            guard let asset = summaries[id], asset.modificationDate == photo.modified,
+            guard let asset = summaries[id], SavedScanStore.sameModification(photo.modified, asset.modificationDate),
                   TextPhotoPolicy.isCandidate(asset, cutoff: cutoff) else { return nil }
             return TextPhoto(id: id, asset: asset, characterCount: photo.characterCount)
         }

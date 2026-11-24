@@ -185,8 +185,9 @@ final class IOSCleanupBScanTests: XCTestCase {
         XCTAssertEqual(decide(), .fail)
         XCTAssertEqual(decide(stopped: true, paused: true, active: false), .stop, "the user's Stop wins")
         XCTAssertEqual(decide(paused: true), .retry)
-        XCTAssertEqual(decide(active: false), .retry)
-        XCTAssertEqual(decide(active: false, cancel: true), .retry, "a cancel error from suspension is not a Stop")
+        XCTAssertEqual(decide(active: false), .later, "off screen: the rest of the batch goes on, this item runs last")
+        XCTAssertEqual(decide(active: false, cancel: true), .later, "a cancel error from suspension is not a Stop")
+        XCTAssertEqual(decide(paused: true, active: false), .retry, "with no background time, the batch waits")
         XCTAssertEqual(decide(cancel: true), .stop)
     }
 

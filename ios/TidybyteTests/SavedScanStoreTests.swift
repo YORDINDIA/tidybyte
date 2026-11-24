@@ -92,6 +92,23 @@ final class SavedScanStoreTests: XCTestCase {
         XCTAssertNil(loaded)
     }
 
+    /// PhotoKit dates carry fractions of a second. A restore compares them, so
+    /// one that survives the JSON round trip must still match.
+    func testFractionalModificationDatesStillMatchAfterARoundTrip() async throws {
+        let modified = Date(timeIntervalSinceReferenceDate: 754_123_456.789_123_4)
+        let text = TextPhotosViewModel.SavedScan(scannedAt: .now, age: .oneMonth, photos: ["a": .init(characterCount: 99, modified: modified)])
+        SavedScanStore.save(text, name: "dates")
+        let loaded = await SavedScanStore.load(TextPhotosViewModel.SavedScan.self, name: "dates")
+        let restored = try XCTUnwrap(loaded?.payload.photos["a"]?.modified)
+        XCTAssertTrue(SavedScanStore.sameModification(restored, modified))
+        XCTAssertFalse(SavedScanStore.sameModification(restored, modified.addingTimeInterval(1)), "an edit changes it")
+        // The tolerance itself: under a millisecond matches, over it does not.
+        XCTAssertTrue(SavedScanStore.sameModification(modified, modified.addingTimeInterval(0.000_5)))
+        XCTAssertFalse(SavedScanStore.sameModification(modified, modified.addingTimeInterval(0.002)))
+        XCTAssertTrue(SavedScanStore.sameModification(nil, nil))
+        XCTAssertFalse(SavedScanStore.sameModification(nil, modified))
+    }
+
     /// The tools' payloads encode and decode as saved, including the enum sets.
     func testToolPayloadsRoundTrip() async throws {
         let blurry = BlurryPhotosViewModel.SavedScan(

@@ -233,41 +233,86 @@ final class LivePhotosConverterViewModel {
         let albumMap = await photoService.userAlbumIdentifiers(for: Set(pendingIds))
         var saved: [PendingOriginal] = []
         var failed = 0
+        var deferred: [String] = []
+
+        /// One try at one conversion. `lastTry`: an off-screen failure now counts.
+        func attempt(_ itemId: String, lastTry: Bool) async -> AttemptResult {
+            setState(.converting, for: itemId)
+            do {
+                let pending = try await performConversion(assetId: itemId, modelContext: modelContext, albumIdentifiers: albumMap[itemId] ?? [])
+                saved.append(pending)
+                setState(.copySaved, for: itemId)
+                return .done
+            } catch {
+                // A cancel or an interruption is not a failure: the row goes
+                // back to idle, so it stays eligible.
+                switch session.afterFailure(userStopped: isCancelled, error: error) {
+                case .stop:
+                    setState(.idle, for: itemId)
+                    return .stop
+                case .retry:
+                    setState(.idle, for: itemId)
+                    return .waitAndRetry
+                case .later where !lastTry:
+                    setState(.idle, for: itemId)
+                    return .later
+                case .later, .fail:
+                    break
+                }
+                failed += 1
+                setState(.failed(error.localizedDescription), for: itemId)
+                return .done
+            }
+        }
+
         itemLoop: for (offset, itemId) in pendingIds.enumerated() {
             await session.waitWhilePaused()
             // D2: cancellation checked at the top of every iteration.
             if isCancelled { break }
             phase = .savingCopies(done: offset, total: pendingIds.count)
-            defer { session.report(done: offset + 1) }
+            // A deferred photo is not done yet: its final pass reports it.
+            defer { session.report(done: offset + 1 - deferred.count) }
             guard items.contains(where: { $0.id == itemId }) else { continue }
-            // Repeats only for an interrupted conversion (the background time
-            // ended, or it failed while the app was off screen): it runs again
-            // once the app is back.
+            // Repeats only when the background time ended mid-conversion.
             while true {
-                setState(.converting, for: itemId)
-                do {
-                    let pending = try await performConversion(assetId: itemId, modelContext: modelContext, albumIdentifiers: albumMap[itemId] ?? [])
-                    saved.append(pending)
-                    setState(.copySaved, for: itemId)
-                } catch {
-                    // A cancel is not a failure: the row goes back to idle so
-                    // it stays eligible for a later run.
-                    switch session.afterFailure(userStopped: isCancelled, error: error) {
-                    case .stop:
-                        setState(.idle, for: itemId)
-                        break itemLoop
-                    case .retry:
-                        setState(.idle, for: itemId)
-                        await session.waitToRetry()
-                        if isCancelled { break itemLoop }
-                        continue
-                    case .fail:
-                        break
-                    }
-                    failed += 1
-                    setState(.failed(error.localizedDescription), for: itemId)
+                switch await attempt(itemId, lastTry: false) {
+                case .done:
+                    break
+                case .stop:
+                    break itemLoop
+                case .waitAndRetry:
+                    await session.waitToRetry()
+                    if isCancelled { break itemLoop }
+                    continue
+                case .later:
+                    deferred.append(itemId)
                 }
                 break
+            }
+        }
+        // Conversions that failed while the app was off screen get one more
+        // try, after every other photo, once the app is back.
+        if !deferred.isEmpty, !isCancelled {
+            await session.waitForForeground()
+            // Clears a pause that ended while waiting, so a failure in this
+            // pass counts instead of waiting again.
+            await session.waitWhilePaused()
+            retryLoop: for (done, itemId) in deferred.enumerated() where items.contains(where: { $0.id == itemId }) {
+                if isCancelled { break }
+                defer { session.report(done: pendingIds.count - deferred.count + done + 1) }
+                while true {
+                    switch await attempt(itemId, lastTry: true) {
+                    case .done, .later:
+                        break
+                    case .stop:
+                        break retryLoop
+                    case .waitAndRetry:
+                        await session.waitToRetry()
+                        if isCancelled { break retryLoop }
+                        continue
+                    }
+                    break
+                }
             }
         }
         // Step 2: one delete for every saved still — one iOS prompt. Also runs
