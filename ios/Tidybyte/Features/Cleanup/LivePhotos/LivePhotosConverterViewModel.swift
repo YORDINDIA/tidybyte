@@ -236,12 +236,13 @@ final class LivePhotosConverterViewModel {
         itemLoop: for (offset, itemId) in pendingIds.enumerated() {
             await session.waitWhilePaused()
             // D2: cancellation checked at the top of every iteration.
-            if isCancelled || session.isStopped { break }
+            if isCancelled { break }
             phase = .savingCopies(done: offset, total: pendingIds.count)
             defer { session.report(done: offset + 1) }
             guard items.contains(where: { $0.id == itemId }) else { continue }
-            // Repeats only when iOS took the background time away mid-item:
-            // that conversion was interrupted, so it runs again on return.
+            // Repeats only for an interrupted conversion (the background time
+            // ended, or it failed while the app was off screen): it runs again
+            // once the app is back.
             while true {
                 setState(.converting, for: itemId)
                 do {
@@ -251,21 +252,17 @@ final class LivePhotosConverterViewModel {
                 } catch {
                     // A cancel is not a failure: the row goes back to idle so
                     // it stays eligible for a later run.
-                    if isCancelled || session.isStopped {
+                    switch session.afterFailure(userStopped: isCancelled, error: error) {
+                    case .stop:
                         setState(.idle, for: itemId)
                         break itemLoop
-                    }
-                    // Before the cancel check below: suspension can end a read
-                    // with a cancel error that the user never asked for.
-                    if session.isPaused {
+                    case .retry:
                         setState(.idle, for: itemId)
-                        await session.waitWhilePaused()
-                        if isCancelled || session.isStopped { break itemLoop }
+                        await session.waitToRetry()
+                        if isCancelled { break itemLoop }
                         continue
-                    }
-                    if error is CancellationError {
-                        setState(.idle, for: itemId)
-                        break itemLoop
+                    case .fail:
+                        break
                     }
                     failed += 1
                     setState(.failed(error.localizedDescription), for: itemId)
@@ -453,7 +450,7 @@ final class LivePhotosConverterViewModel {
             // for something the batch summary reports as cancelled. Mirrors the
             // photo and video batch loops. Nor is a background interruption:
             // the batch runs this item again on return.
-            if isCancelled || error is CancellationError || CompressionSession.isPaused {
+            if isCancelled || error is CancellationError || CompressionSession.isInterrupted {
                 await swap.markSkipped()
                 throw error
             }

@@ -6,8 +6,9 @@ import UIKit
 /// Keeps a batch going while the user is away, and keeps the screen awake.
 ///
 /// - iOS 26 and later: a `BGContinuedProcessingTask` lets the batch run in the
-///   background, with a system progress view the user can cancel. When that
-///   task ends (the user's Cancel, or the system), the batch stops as on Stop.
+///   background, with a system progress view. When that task ends (the user's
+///   Cancel there, or the system; iOS reports both the same way), the batch
+///   pauses like below and goes on when the app is back. Stop is in the app.
 /// - Earlier systems, or when iOS refuses that task: iOS gives a short grant
 ///   (about 30 seconds). When it ends, the batch waits at the next item and
 ///   goes on once the app is active again (`waitWhilePaused`).
@@ -23,10 +24,37 @@ final class CompressionSession {
     /// Sessions that lost their background time and have not resumed yet.
     private static var pausedCount = 0
 
-    /// True while any batch waits for the app to come back. An item that
-    /// throws in this window was interrupted, not broken: the loop retries it,
+    /// True while any batch waits for the app to come back, or while the app is
+    /// off screen. An item that throws then was interrupted, not broken (no GPU
+    /// in the background, a suspended read): the loop runs it again on return,
     /// and its journal row is settled as skipped, not failed.
-    static var isPaused: Bool { pausedCount > 0 }
+    static var isInterrupted: Bool {
+        pausedCount > 0 || UIApplication.shared.applicationState != .active
+    }
+
+    /// What a batch loop does after an item throws.
+    enum AfterFailure: Equatable, Sendable {
+        /// The user stopped the batch.
+        case stop
+        /// Interrupted: run the item again once the app is back.
+        case retry
+        /// A real failure of this item.
+        case fail
+    }
+
+    nonisolated static func afterFailure(
+        userStopped: Bool,
+        paused: Bool,
+        appActive: Bool,
+        isCancellationError: Bool
+    ) -> AfterFailure {
+        if userStopped { return .stop }
+        // Before the cancel check: suspension can end work with a cancel error
+        // that the user never asked for.
+        if paused || !appActive { return .retry }
+        if isCancellationError { return .stop }
+        return .fail
+    }
 
     private let title: String
     private var total: Int
@@ -44,12 +72,25 @@ final class CompressionSession {
         }
     }
 
-    /// True after iOS ended the background time, until the batch resumes.
-    var isPaused: Bool { lostBackgroundTime }
+    /// The loop's decision for an item that just threw.
+    func afterFailure(userStopped: Bool, error: Error) -> AfterFailure {
+        Self.afterFailure(
+            userStopped: userStopped,
+            paused: lostBackgroundTime,
+            appActive: UIApplication.shared.applicationState == .active,
+            isCancellationError: error is CancellationError
+        )
+    }
 
-    /// The background task ended (the user's Cancel in the system progress
-    /// view, or the system). The batch stops here as it does on Stop.
-    private(set) var isStopped = false
+    /// Waits before an interrupted item runs again: for new background time
+    /// after a pause, otherwise for the app to be on screen.
+    func waitToRetry() async {
+        if lostBackgroundTime {
+            await waitWhilePaused()
+        } else {
+            await AppForeground.wait()
+        }
+    }
 
     private init(title: String, total: Int) {
         self.title = title
@@ -178,12 +219,10 @@ final class CompressionSession {
         task.progress.totalUnitCount = Int64(total)
         task.progress.completedUnitCount = Int64(done)
         task.expirationHandler = { [weak self] in
-            // The user's Cancel in the system progress view, or the system. It
-            // cannot tell which, so stop as on Stop rather than resume later.
-            Task { @MainActor in
-                self?.isStopped = true
-                self?.backgroundTimeEnded()
-            }
+            // The user's Cancel in the system progress view, or the system: iOS
+            // reports both here. The user chose "keep going and resume", so this
+            // pauses like the short grant; Stop in the app ends the batch.
+            Task { @MainActor in self?.backgroundTimeEnded() }
         }
         // This task keeps the app running now. Without this, the short grant's
         // expiry would pause a batch that may keep going.
@@ -465,7 +504,7 @@ enum CompressionBatchRunner {
         itemLoop: for (offset, id) in orderedIds.enumerated() {
             if offset % 20 == 0 { await Task.yield() }
             await session.waitWhilePaused()
-            if isCancelled() || session.isStopped { break }
+            if isCancelled() { break }
             handlers.setPhase(.savingCopies(done: offset, total: orderedIds.count))
             defer { session.report(done: offset + 1) }
             // A selected id with no row index cannot be reported through
@@ -483,8 +522,9 @@ enum CompressionBatchRunner {
                 skipped += 1
                 continue
             }
-            // Repeats only when iOS took the background time away mid-item:
-            // that item was interrupted, so it runs again once the app is back.
+            // Repeats only for an interrupted item (the background time ended,
+            // or it failed while the app was off screen): it runs again once
+            // the app is back.
             while true {
                 handlers.setState(index, .exporting(0))
                 do {
@@ -497,21 +537,17 @@ enum CompressionBatchRunner {
                         handlers.setState(index, .copySaved)
                     }
                 } catch {
-                    if isCancelled() || session.isStopped {
+                    switch session.afterFailure(userStopped: isCancelled(), error: error) {
+                    case .stop:
                         handlers.setState(index, .waiting)
                         break itemLoop
-                    }
-                    // Before the cancel check below: suspension can end an
-                    // export with a cancel error that the user never asked for.
-                    if session.isPaused {
+                    case .retry:
                         handlers.setState(index, .waiting)
-                        await session.waitWhilePaused()
-                        if isCancelled() || session.isStopped { break itemLoop }
+                        await session.waitToRetry()
+                        if isCancelled() { break itemLoop }
                         continue
-                    }
-                    if error is CancellationError {
-                        handlers.setState(index, .waiting)
-                        break itemLoop
+                    case .fail:
+                        break
                     }
                     if isSizeUnknown(error) {
                         handlers.setState(index, .keptOriginal(reason: L10n.string("Size unknown (iCloud-only) — skipped")))

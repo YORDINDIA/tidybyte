@@ -175,9 +175,19 @@ final class IOSCleanupBScanTests: XCTestCase {
         XCTAssertFalse(result.inner, "the shielded step is not")
     }
 
-    @MainActor
-    func testNoBatchIsPausedAtRest() {
-        XCTAssertFalse(CompressionSession.isPaused)
+    /// A failure is only a failure in the foreground with no pause: work that
+    /// throws while the app is off screen (no GPU there, a suspended read) runs
+    /// again on return instead of landing in History as failed.
+    func testAfterFailureDecisionTable() {
+        func decide(stopped: Bool = false, paused: Bool = false, active: Bool = true, cancel: Bool = false) -> CompressionSession.AfterFailure {
+            CompressionSession.afterFailure(userStopped: stopped, paused: paused, appActive: active, isCancellationError: cancel)
+        }
+        XCTAssertEqual(decide(), .fail)
+        XCTAssertEqual(decide(stopped: true, paused: true, active: false), .stop, "the user's Stop wins")
+        XCTAssertEqual(decide(paused: true), .retry)
+        XCTAssertEqual(decide(active: false), .retry)
+        XCTAssertEqual(decide(active: false, cancel: true), .retry, "a cancel error from suspension is not a Stop")
+        XCTAssertEqual(decide(cancel: true), .stop)
     }
 
     /// A copy the user later deleted frees its original for a new run; a live

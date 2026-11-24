@@ -582,7 +582,7 @@ final class PhotoCompressionViewModel {
                         swap: swap
                     ))
                 } catch {
-                    if self.isCancelled || error is CancellationError || CompressionSession.isPaused {
+                    if self.isCancelled || error is CancellationError || CompressionSession.isInterrupted {
                         // A user cancel stops the loop; a background pause ends this
                         // item, and the runner runs it again once the app is back.
                         // Neither is a failure: History must not render a red badge.
