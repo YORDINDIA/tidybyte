@@ -240,8 +240,10 @@ struct SwipeCardDeck: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
 
-            // Action buttons
+            // Action buttons. The side inset keeps the outer circles off the
+            // screen edges when large text grows the five circles.
             actionBar
+                .padding(.horizontal, Spacing.lg)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
         }
