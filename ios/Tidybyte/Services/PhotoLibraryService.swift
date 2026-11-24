@@ -457,8 +457,9 @@ actor PhotoLibraryService {
 
     // MARK: - Image Loading
 
-    /// `resizeMode` `.none` can return the full original (a 12 MP photo is a
-    /// ~48 MB decode); pass `.exact` to cap the decode at `targetSize`.
+    /// `targetSize` is in pixels (points × display scale). `resizeMode` `.none`
+    /// can return the full original (a 12 MP photo is a ~48 MB decode); pass
+    /// `.exact` to cap the decode at `targetSize`.
     func loadImage(
         for assetId: String,
         targetSize: CGSize,

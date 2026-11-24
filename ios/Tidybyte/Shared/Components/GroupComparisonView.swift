@@ -413,6 +413,12 @@ private struct SharpPhotoLayer: View {
                 }
                 // Unmeasured: a request now would decode a 64 px image.
                 guard size != .zero else { return }
+                // A live resize sends many sizes; wait for it to settle before
+                // a reload. A new size cancels this task during the wait.
+                if image != nil {
+                    try? await Task.sleep(for: .milliseconds(200))
+                    guard !Task.isCancelled else { return }
+                }
                 let target = CardImageRequest.size(deckTarget: .zero, frame: size, displayScale: displayScale)
                 // `.exact` caps the decode at the card's pixels; `.none` returns the
                 // full original. A failed load keeps what is on screen.
