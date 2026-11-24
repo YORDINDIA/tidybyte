@@ -308,9 +308,9 @@ Both are fixed sizes — the 1179-vs-1206 slack the iPhone row allows does not a
 ## 12. What's New (v1.4.0 release notes)
 
 ```
-Long jobs now survive leaving the app: Live Photo conversion and video and photo compression keep running in the background on iOS 26, and on earlier versions they continue when you come back. Swipe sessions in every section remember your place and your marked photos until you reset them in Settings, and the Cleanup tools keep their last scan and your picks. Undo now sits under the photo, and the new Reduce Swipe Motion setting keeps the cards calm. Everything still runs on your device: no account, no ads, no subscription.
+Long jobs now survive leaving the app: Live Photo conversion and video and photo compression keep running in the background on iOS 26, and on earlier versions they continue when you come back. Swipe sessions remember your place and your marked photos until you reset them in Settings, and the Cleanup tools keep their last scan and your picks. Undo now sits under the photo, and the new Reduce Swipe Motion setting keeps the cards calm. Everything still runs on your device: no account, no ads, no subscription.
 ```
-Length: 528 chars. Translated into all 21 storefront locales by `scripts/localization/translations/_notes-1.4.0.mjs`. The notes name no swipe direction, because right and left swap in Arabic and Hebrew.
+Length: 511 chars. Translated into all 21 storefront locales by `scripts/localization/translations/_notes-1.4.0.mjs`. The notes name no swipe direction, because right and left swap in Arabic and Hebrew.
 
 ### v1.3.0 release notes, for the record
 
@@ -371,7 +371,7 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 
 | Version | Build | Release notes source |
 |---|---|---|
-| 1.4.0 | 14 | §12 above. Batches survive leaving the app (BGContinuedProcessingTask on iOS 26, resume on return before; Stop deletes originals again), saved swipe sessions in every deck with Keep for Later and Start Over, Undo in the button row, Reduce Swipe Motion, and saved scans and picks in the Cleanup tools. |
+| 1.4.0 | 14 | §12 above. Batches survive leaving the app (BGContinuedProcessingTask on iOS 26, resume on return before; Stop deletes originals again), saved swipe sessions (Swipe tab, Cleanup review and Live Photo decks) with Keep for Later, Start Over on finished saved decks (not Not Swiped Yet or Largest First), Undo in the button row, Reduce Swipe Motion, and saved scans and picks in the Cleanup tools. |
 | 1.3.0 | 13 | §12, "v1.3.0 release notes, for the record". Live Photo swipe review (marked photos convert in one batch, one iOS delete prompt), the Text Photos tool, sort options in every Cleanup tool, and the Largest First swipe deck. |
 | 1.2.1 | 12 | §12, "v1.2.1 release notes, for the record". Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
 | 1.2.0 | 11 | §12 above. Delete-prompt fixes (#24), whole-photo swipe cards, compression, accessibility-layout and data-safety fixes (#27). Google Photos stays hidden (no OAuth client ID). |
