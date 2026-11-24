@@ -100,6 +100,17 @@ enum SavedScanStore {
         }
     }
 
+    /// True when a photo's modification date matches the one saved with the
+    /// scan, so the scan still describes it. Within a millisecond: a date can
+    /// lose sub-microsecond digits in a JSON round trip.
+    nonisolated static func sameModification(_ saved: Date?, _ current: Date?) -> Bool {
+        switch (saved, current) {
+        case (nil, nil): true
+        case let (saved?, current?): abs(saved.timeIntervalSince(current)) < 0.001
+        default: false
+        }
+    }
+
     /// Settings > Clear Saved Scans.
     static func removeAll() {
         let folder = directory

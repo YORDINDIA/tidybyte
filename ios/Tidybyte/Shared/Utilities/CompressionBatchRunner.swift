@@ -36,8 +36,13 @@ final class CompressionSession {
     enum AfterFailure: Equatable, Sendable {
         /// The user stopped the batch.
         case stop
-        /// Interrupted: run the item again once the app is back.
+        /// iOS ended the background time: wait for the app, then run it again.
         case retry
+        /// It failed while the app was off screen (no GPU there, a suspended
+        /// read): go on with the other items and try it once more at the end,
+        /// with the app on screen. Waiting here would stall the batch on an
+        /// item that may fail the same way in the foreground.
+        case later
         /// A real failure of this item.
         case fail
     }
@@ -51,7 +56,8 @@ final class CompressionSession {
         if userStopped { return .stop }
         // Before the cancel check: suspension can end work with a cancel error
         // that the user never asked for.
-        if paused || !appActive { return .retry }
+        if paused { return .retry }
+        if !appActive { return .later }
         if isCancellationError { return .stop }
         return .fail
     }
@@ -448,6 +454,17 @@ final class CompressionSwap {
     }
 }
 
+/// What one try at a batch item led to.
+enum AttemptResult: Equatable, Sendable {
+    /// Settled: saved, skipped or failed.
+    case done
+    case stop
+    /// The background time ended: wait for it, then try again.
+    case waitAndRetry
+    /// Failed off screen: try again at the end of the batch.
+    case later
+}
+
 @MainActor
 enum CompressionBatchRunner {
     struct Handlers: Sendable {
@@ -501,6 +518,50 @@ enum CompressionBatchRunner {
         var saved: [PendingOriginal] = []
         var failed = 0, skipped = 0
         var idsWithoutRow: Set<String> = []
+        var deferred: [(id: String, index: Int)] = []
+
+        /// One try at one item. `lastTry`: an off-screen failure now counts.
+        func attempt(_ id: String, _ index: Int, lastTry: Bool) async -> AttemptResult {
+            handlers.setState(index, .exporting(0))
+            do {
+                switch try await execute(id, index, { p in handlers.setState(index, .exporting(p)) }) {
+                case .skipped:
+                    skipped += 1
+                case .saved(let pending):
+                    saved.append(pending)
+                    handlers.setState(index, .copySaved)
+                }
+                return .done
+            } catch {
+                let decision = session.afterFailure(userStopped: isCancelled(), error: error)
+                // A known outcome is the same in any app state: settle it now.
+                if decision != .stop, isSizeUnknown(error) {
+                    handlers.setState(index, .keptOriginal(reason: L10n.string("Size unknown (iCloud-only) — skipped")))
+                    skipped += 1
+                    return .done
+                }
+                switch decision {
+                case .stop:
+                    handlers.setState(index, .waiting)
+                    return .stop
+                case .retry:
+                    handlers.setState(index, .waiting)
+                    return .waitAndRetry
+                case .later where !lastTry:
+                    handlers.setState(index, .waiting)
+                    return .later
+                case .later, .fail:
+                    break
+                }
+                // The full error, for the journal, load and save steps. The
+                // export step logs its NSError where it throws.
+                AppLog.compression.error("Compression failed for \(id, privacy: .public): \(String(describing: error), privacy: .public)")
+                failed += 1
+                handlers.setState(index, .failed(error.localizedDescription))
+                return .done
+            }
+        }
+
         itemLoop: for (offset, id) in orderedIds.enumerated() {
             if offset % 20 == 0 { await Task.yield() }
             await session.waitWhilePaused()
@@ -522,45 +583,43 @@ enum CompressionBatchRunner {
                 skipped += 1
                 continue
             }
-            // Repeats only for an interrupted item (the background time ended,
-            // or it failed while the app was off screen): it runs again once
-            // the app is back.
+            // Repeats only when the background time ended mid-item.
             while true {
-                handlers.setState(index, .exporting(0))
-                do {
-                    let outcome = try await execute(id, index, { p in handlers.setState(index, .exporting(p)) })
-                    switch outcome {
-                    case .skipped:
-                        skipped += 1
-                    case .saved(let pending):
-                        saved.append(pending)
-                        handlers.setState(index, .copySaved)
-                    }
-                } catch {
-                    switch session.afterFailure(userStopped: isCancelled(), error: error) {
-                    case .stop:
-                        handlers.setState(index, .waiting)
-                        break itemLoop
-                    case .retry:
-                        handlers.setState(index, .waiting)
-                        await session.waitToRetry()
-                        if isCancelled() { break itemLoop }
-                        continue
-                    case .fail:
-                        break
-                    }
-                    if isSizeUnknown(error) {
-                        handlers.setState(index, .keptOriginal(reason: L10n.string("Size unknown (iCloud-only) — skipped")))
-                        skipped += 1
-                        continue itemLoop
-                    }
-                    // The full error, for the journal, load and save steps. The
-                    // export step logs its NSError where it throws.
-                    AppLog.compression.error("Compression failed for \(id, privacy: .public): \(String(describing: error), privacy: .public)")
-                    failed += 1
-                    handlers.setState(index, .failed(error.localizedDescription))
+                switch await attempt(id, index, lastTry: false) {
+                case .done:
+                    break
+                case .stop:
+                    break itemLoop
+                case .waitAndRetry:
+                    await session.waitToRetry()
+                    if isCancelled() { break itemLoop }
+                    continue
+                case .later:
+                    deferred.append((id, index))
                 }
                 break
+            }
+        }
+
+        // Items that failed while the app was off screen get one more try,
+        // after every other item, once the app is back.
+        if !deferred.isEmpty, !isCancelled() {
+            await session.waitForForeground()
+            retryLoop: for item in deferred {
+                if isCancelled() { break }
+                while true {
+                    switch await attempt(item.id, item.index, lastTry: true) {
+                    case .done, .later:
+                        break
+                    case .stop:
+                        break retryLoop
+                    case .waitAndRetry:
+                        await session.waitToRetry()
+                        if isCancelled() { break retryLoop }
+                        continue
+                    }
+                    break
+                }
             }
         }
 
