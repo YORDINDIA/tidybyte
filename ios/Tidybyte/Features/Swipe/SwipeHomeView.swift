@@ -12,6 +12,8 @@ struct SwipeHomeView: View {
     @State private var pendingDateFilter: SwipeFilter?
     @State private var libraryTotalCount: Int = 0
     @State private var swipedRecordCount: Int = 0
+    /// Photos marked for deletion and kept for later, per saved deck.
+    @State private var markedCounts: [String: Int] = [:]
 
     @AppStorage(AppPreferences.Key.defaultSwipeFilter) private var defaultFilterRaw: String = DefaultSwipeFilterPreference.notSwipedYet.rawValue
 
@@ -38,7 +40,7 @@ struct SwipeHomeView: View {
             // review instead of being torn down here. Nil-ing the route removes
             // the navigationDestination that hosts the session (and anything it
             // pushed), so the review could not survive.
-            if let session = appNavigation.activeSwipeSession, session.hasPendingDeletions {
+            if let session = appNavigation.activeSwipeSession, session.needsDeletionDecision {
                 session.requestDeletionReview()
                 return
             }
@@ -105,7 +107,8 @@ struct SwipeHomeView: View {
                         icon: "sparkles",
                         color: .blue,
                         filter: .notSwipedYet,
-                        isDefault: defaultFilterPreference == .notSwipedYet
+                        isDefault: defaultFilterPreference == .notSwipedYet,
+                        marked: marked(.notSwipedYet)
                     )
                     .fadeSlideIn(delay: 0.05)
 
@@ -116,7 +119,8 @@ struct SwipeHomeView: View {
                             icon: "camera.metering.unknown",
                             color: .orange,
                             filter: .worstShots,
-                            tag: "Scans library"
+                            tag: "Scans library",
+                            marked: marked(.worstShots)
                         )
                         .fadeSlideIn(delay: 0.08)
                     }
@@ -127,7 +131,8 @@ struct SwipeHomeView: View {
                         icon: "arrow.up.arrow.down",
                         color: .green,
                         filter: .largestFirst,
-                        tag: "Scans library"
+                        tag: "Scans library",
+                        marked: marked(.largestFirst)
                     )
                     .fadeSlideIn(delay: 0.09)
 
@@ -138,7 +143,8 @@ struct SwipeHomeView: View {
                         color: .purple,
                         filter: .allMedia,
                         isDefault: defaultFilterPreference == .allMedia,
-                        count: libraryTotalCount > 0 ? libraryTotalCount : nil
+                        count: libraryTotalCount > 0 ? libraryTotalCount : nil,
+                        marked: marked(.allMedia)
                     )
                     .fadeSlideIn(delay: 0.1)
 
@@ -148,6 +154,7 @@ struct SwipeHomeView: View {
                         icon: "calendar",
                         color: .indigo,
                         filter: nil,
+                        marked: marked(keyPrefix: "allMediaBefore."),
                         onCustomAction: { showDateSelection = true }
                     )
                     .fadeSlideIn(delay: 0.12)
@@ -158,7 +165,8 @@ struct SwipeHomeView: View {
                         icon: "folder.badge.questionmark",
                         color: .cyan,
                         filter: .notInAnyAlbum,
-                        isDefault: defaultFilterPreference == .notInAnyAlbum
+                        isDefault: defaultFilterPreference == .notInAnyAlbum,
+                        marked: marked(.notInAnyAlbum)
                     )
                     .fadeSlideIn(delay: 0.15)
 
@@ -167,7 +175,8 @@ struct SwipeHomeView: View {
                         description: "Review photos from a specific album",
                         icon: "rectangle.stack",
                         color: .teal,
-                        filter: nil
+                        filter: nil,
+                        marked: marked(keyPrefix: "album.")
                     )
                     .fadeSlideIn(delay: 0.2)
                 }
@@ -252,6 +261,7 @@ struct SwipeHomeView: View {
         isDefault: Bool = false,
         count: Int? = nil,
         tag: LocalizedStringKey? = nil,
+        marked: Int = 0,
         onCustomAction: (() -> Void)? = nil
     ) -> some View {
         Button {
@@ -296,6 +306,15 @@ struct SwipeHomeView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.leading)
+                    if marked > 0 {
+                        // Kept for later: nothing is deleted until the user confirms.
+                        Label(
+                            L10n.format("%lld item marked for deletion", fallback: "%lld items marked for deletion", marked),
+                            systemImage: "trash"
+                        )
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    }
                 }
 
                 Spacer()
@@ -318,7 +337,17 @@ struct SwipeHomeView: View {
         .accessibilityElement(children: .combine)
     }
 
+    private func marked(_ filter: SwipeFilter) -> Int {
+        filter.deckKey.flatMap { markedCounts[$0] } ?? 0
+    }
+
+    /// Decks picked from a sheet (a date, an album) share one card.
+    private func marked(keyPrefix: String) -> Int {
+        markedCounts.filter { $0.key.hasPrefix(keyPrefix) }.values.reduce(0, +)
+    }
+
     private func refreshHomeCounts() async {
+        markedCounts = SwipeDeckStore.markedCounts(context: modelContext)
         let total = await photoService.totalAssetCount()
         libraryTotalCount = total
         let records = (try? modelContext.fetch(FetchDescriptor<SwipeRecord>())) ?? []
@@ -331,8 +360,8 @@ struct SwipeHomeView: View {
         }
     }
 
-    private func startSwipeSession(with filter: SwipeFilter) {
-        selectedRoute = SwipeSessionRoute(filter: filter)
+    private func startSwipeSession(with filter: SwipeFilter, deckKey: String? = nil) {
+        selectedRoute = SwipeSessionRoute(filter: filter, deckKey: deckKey)
     }
 
     /// Consumes a pending filter set by another tab (e.g., Storage → Swipe deep-link).
@@ -344,17 +373,18 @@ struct SwipeHomeView: View {
     /// Now a gated session keeps the filter parked until its review resolves;
     /// SwipeHomeView.onAppear picks it up once the route is gone.
     private func consumePendingFilter() {
-        if let session = appNavigation.activeSwipeSession, session.hasPendingDeletions {
+        if let session = appNavigation.activeSwipeSession, session.needsDeletionDecision {
             session.requestDeletionReview()
             return
         }
+        let deckKey = appNavigation.pendingSwipeDeckKey
         guard let filter = appNavigation.consumePendingSwipeFilter() else { return }
         // If a previous swipe session is still mounted (no pending deletions),
         // clear it first so the next route builds a fresh view model.
         selectedRoute = nil
         Task { @MainActor in
             await Task.yield()
-            startSwipeSession(with: filter)
+            startSwipeSession(with: filter, deckKey: deckKey)
         }
     }
 }

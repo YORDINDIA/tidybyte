@@ -61,6 +61,8 @@ enum AppPreferences {
         /// widget compiles. No `@AppStorage` site reads either one, so a
         /// second spelling here would only be a place for them to drift.
         static let hapticsEnabled = "hapticsEnabled"
+        /// Optional Bool: unset follows iOS Reduce Motion, set wins over it.
+        static let reduceSwipeMotion = "reduceSwipeMotion"
     }
 
     static func defaultSwipeFilter(in defaults: UserDefaults = .standard) -> DefaultSwipeFilterPreference {

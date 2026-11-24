@@ -209,7 +209,7 @@ struct SmartCategoriesView: View {
     }
 
     private func startSwipeReview(with filter: SwipeFilter) {
-        selectedSwipeRoute = SwipeSessionRoute(filter: filter)
+        selectedSwipeRoute = SwipeSessionRoute(filter: filter, deckKey: "smartCategory.\(viewModel.activeCategory.rawValue)")
     }
 
     // MARK: - Idle View

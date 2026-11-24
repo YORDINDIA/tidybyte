@@ -23,6 +23,7 @@ struct SwipeSessionView: View {
     /// The explanatory undo text shows the first few times only; after that
     /// the toast is just "Marked for deletion" with its Undo button.
     @AppStorage("swipeUndoHintCount") private var undoHintCount = 0
+    @State private var confirmStartOver = false
 
     var body: some View {
         let isBootstrapping = !viewModel.hasLoadedInitialAssets || viewModel.isLoading
@@ -196,19 +197,6 @@ struct SwipeSessionView: View {
                     .accessibilityValue(L10n.format("%lld item", fallback: "%lld items", viewModel.pendingDeletionIds.count))
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task { await viewModel.undo() }
-                } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                }
-                .keyboardShortcut("z", modifiers: .command)
-                // Undo is inert mid-commit (would resurrect a card the batch is
-                // deleting right now, B2).
-                .disabled(viewModel.undoStack.isEmpty || viewModel.isDeletingBatch)
-                .accessibilityLabel("Undo")
-                .accessibilityHint("Reverts your last swipe")
-            }
         }
         .sheet(isPresented: $viewModel.showAlbumPicker, onDismiss: {
             viewModel.cancelPendingKeep()
@@ -268,16 +256,16 @@ struct SwipeSessionView: View {
             // External dismissal (deep link / tab switch): never drop pending
             // deletions silently — route through the completion review first
             // (APP-07).
-            if viewModel.hasPendingDeletions {
+            if viewModel.needsDeletionDecision {
                 Task { await viewModel.endSession() }
             } else {
                 Task { await viewModel.stopAllCaching() }
                 dismiss()
             }
         }
-        .onChange(of: viewModel.hasPendingDeletions) { _, _ in
-            // Committed or discarded: a navigation request parked behind those
-            // ids can now be applied without destroying anything.
+        .onChange(of: viewModel.needsDeletionDecision) { _, _ in
+            // Committed, discarded or kept for later: a navigation request
+            // parked behind those ids can now be applied without losing anything.
             appNavigation.applyDeferredLinkIfPossible()
         }
         .onDisappear {
@@ -323,7 +311,7 @@ struct SwipeSessionView: View {
                     .font(.title2.bold())
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.75)
-                Text("You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe history in Settings.")
+                Text("You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe sessions in Settings.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -394,6 +382,35 @@ struct SwipeSessionView: View {
                         PhotoRecoveryPresentation.Action.perform(action)
                     }
                 }
+            } else if viewModel.canStartOver {
+                // A saved deck stays finished until the user starts it over
+                // here or resets swipe sessions in Settings.
+                Image(systemName: "checkmark.circle")
+                    .scaledGlyph(ScaledSize.stateGlyph)
+                    .foregroundStyle(.green)
+
+                Text("All Caught Up!")
+                    .font(.title2.bold())
+                Text("Every photo in this deck has a decision. Start over to review them again.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Spacing.xxl)
+
+                Button {
+                    confirmStartOver = true
+                } label: {
+                    emptyStateButtonLabel("Start Over")
+                }
+                .scaleOnPress()
+                .confirmationDialog("Start this deck over?", isPresented: $confirmStartOver, titleVisibility: .visible) {
+                    Button("Start Over") {
+                        Task { await viewModel.startOver() }
+                    }
+                } message: {
+                    Text("Photos you kept, skipped or added to albums here show again. Photos marked for deletion stay marked.")
+                }
+                undoButton
             } else {
                 Image(systemName: "checkmark.circle")
                     .scaledGlyph(ScaledSize.stateGlyph)
@@ -414,9 +431,28 @@ struct SwipeSessionView: View {
                     emptyStateButtonLabel("Try Again")
                 }
                 .scaleOnPress()
+                undoButton
             }
         }
         .padding()
+    }
+
+    /// The deck's button row is gone once the last card is decided, so the
+    /// empty state carries Undo for that last swipe.
+    @ViewBuilder
+    private var undoButton: some View {
+        if !viewModel.undoStack.isEmpty {
+            Button {
+                Task { await viewModel.undo() }
+            } label: {
+                Label("Undo", systemImage: "arrow.uturn.backward")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(minHeight: 44)
+            }
+            .keyboardShortcut("z", modifiers: .command)
+            .disabled(viewModel.isDeletingBatch || viewModel.isPerformingMutation)
+            .accessibilityHint("Reverts your last swipe")
+        }
     }
 
     /// Re-reads a deck that came back empty for an access reason.

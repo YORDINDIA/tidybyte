@@ -644,7 +644,7 @@
     },
     {
       "key": "Close",
-      "file": "Tidybyte/Features/GooglePhotos/GooglePhotosHomeView.swift"
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Close preview",
@@ -731,6 +731,10 @@
     {
       "key": "Convert All Live Photos",
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotosConverterView.swift"
+    },
+    {
+      "key": "Convert Now",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Convert to stills & save space",
@@ -964,10 +968,6 @@
       "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
-      "key": "Discard your choices?",
-      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
-    },
-    {
       "key": "Dismiss",
       "file": "Tidybyte/Shared/Components/RecentlyDeletedNotice.swift"
     },
@@ -1006,6 +1006,14 @@
     {
       "key": "estimated",
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
+    },
+    {
+      "key": "Every Live Photo shows again, including the ones you kept.",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
+      "key": "Every photo in this deck has a decision. Start over to review them again.",
+      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
       "key": "Exact",
@@ -1256,6 +1264,10 @@
     {
       "key": "Keep everything, use less room",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
+    },
+    {
+      "key": "Keep for Later",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
     },
     {
       "key": "Keep This",
@@ -1819,8 +1831,16 @@
       "file": "Tidybyte/Features/Swipe/SwipeHomeView.swift"
     },
     {
+      "key": "Photos move less and do not tilt when you swipe. A decided photo fades out.",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
       "key": "Photos taken close together",
       "file": "Tidybyte/Features/Cleanup/CleanupTool.swift"
+    },
+    {
+      "key": "Photos you kept, skipped or added to albums here show again. Photos marked for deletion stay marked.",
+      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
       "key": "Pick items in Google Photos, tap Done, then come back.",
@@ -1923,6 +1943,10 @@
       "file": "Tidybyte/Shared/Components/GroupComparisonView.swift"
     },
     {
+      "key": "Reduce Swipe Motion",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
       "key": "Refresh",
       "file": "Tidybyte/Features/Cleanup/Bursts/BurstCleanerView.swift"
     },
@@ -1973,7 +1997,7 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
-      "key": "Reset Swipe History",
+      "key": "Reset Swipe Sessions",
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
@@ -1994,7 +2018,7 @@
     },
     {
       "key": "Reverts your last swipe",
-      "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
+      "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
     },
     {
       "key": "Review",
@@ -2274,6 +2298,14 @@
       "file": "Tidybyte/Features/Cleanup/CleanupHomeView.swift"
     },
     {
+      "key": "Start Over",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
+      "key": "Start this deck over?",
+      "file": "Tidybyte/Features/Cleanup/LivePhotos/LivePhotoSwipeReview.swift"
+    },
+    {
       "key": "Start with %@",
       "file": "Tidybyte/Features/Swipe/SwipeHomeView.swift"
     },
@@ -2318,16 +2350,16 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
-      "key": "Swipe history cleared",
-      "file": "Tidybyte/Features/Settings/SettingsView.swift"
-    },
-    {
       "key": "Swipe session",
       "file": "Tidybyte/Models/CleanupActivityRecord.swift"
     },
     {
       "key": "Swipe Session",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
+    },
+    {
+      "key": "Swipe sessions cleared",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
       "key": "Swipe Through Your Library",
@@ -2427,6 +2459,10 @@
       "file": "Tidybyte/Shared/Utilities/CleanupLedger.swift"
     },
     {
+      "key": "This clears your swipe history and every saved swipe session, including the Live Photo review. Photos marked for deletion are unmarked; no photo is deleted. All photos appear as \"Not Swiped Yet\" again. This cannot be undone.",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
       "key": "This deletes this item from your photo library. %@",
       "file": "Tidybyte/Shared/Components/MediaPreviewView.swift"
     },
@@ -2477,10 +2513,6 @@
     {
       "key": "This screenshot will be deleted from Photos.",
       "file": "Tidybyte/Features/Cleanup/Screenshots/ScreenshotCleanerView.swift"
-    },
-    {
-      "key": "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.",
-      "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
       "key": "This will delete %@. %@",
@@ -2728,7 +2760,7 @@
       "file": "Tidybyte/Shared/Components/HappyPathPromptCard.swift"
     },
     {
-      "key": "You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe history in Settings.",
+      "key": "You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe sessions in Settings.",
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
@@ -2768,5 +2800,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 682
+  "total": 690
 }

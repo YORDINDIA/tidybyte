@@ -897,12 +897,13 @@ private struct SwipeStampOverlay: View {
 /// of `motion.offset` re-evaluates only this, not the card's body.
 private struct SwipeMotionEffect: ViewModifier {
     let motion: CardMotion?
+    @Environment(\.reduceSwipeMotion) private var reduceSwipeMotion
 
     func body(content: Content) -> some View {
-        let offset = motion?.offset ?? .zero
+        let drawn = SwipeMotionStyle.drawn(motion?.offset ?? .zero, reduced: reduceSwipeMotion)
         content
-            .offset(offset)
-            .rotationEffect(.degrees(Double(offset.width / 20)))
+            .offset(drawn.offset)
+            .rotationEffect(.degrees(drawn.degrees))
     }
 }
 

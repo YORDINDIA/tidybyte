@@ -62,6 +62,30 @@ extension Animation {
     }
 }
 
+// MARK: - Reduce Swipe Motion
+
+extension EnvironmentValues {
+    /// Settings > Reduce Swipe Motion. Until the user picks a value it follows
+    /// iOS Reduce Motion (`RootView` sets it). When on, a swipe card moves a
+    /// quarter of the drag without tilting, and decided cards fade out instead
+    /// of flying off.
+    @Entry var reduceSwipeMotion = false
+}
+
+/// How far a swipe card is drawn from its center for a given drag. The swipe
+/// thresholds and the stamps still read the full drag; only the drawing changes.
+enum SwipeMotionStyle {
+    static let reducedTravel: CGFloat = 0.25
+
+    static func drawn(_ drag: CGSize, reduced: Bool) -> (offset: CGSize, degrees: Double) {
+        guard reduced else { return (drag, Double(drag.width / 20)) }
+        return (CGSize(width: drag.width * reducedTravel, height: drag.height * reducedTravel), 0)
+    }
+
+    /// The fade a decided card uses instead of the fling.
+    static let fade = Animation.easeOut(duration: 0.2)
+}
+
 // MARK: - State Transition
 
 extension AnyTransition {

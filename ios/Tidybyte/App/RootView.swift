@@ -25,6 +25,9 @@ struct RootView: View {
     #endif
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
+    /// Settings > Reduce Swipe Motion. Nil until the user picks: then iOS Reduce Motion decides.
+    @AppStorage(AppPreferences.Key.reduceSwipeMotion) private var reduceSwipeMotionChoice: Bool?
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(WidgetSnapshotCoordinator.self) private var widgetCoordinator
 
     init() {
@@ -117,6 +120,7 @@ struct RootView: View {
         // it is what the rebuild cost.
         .environment(\.locale, languageStore.locale)
         .environment(\.layoutDirection, languageStore.layoutDirection)
+        .environment(\.reduceSwipeMotion, reduceSwipeMotionChoice ?? systemReduceMotion)
         // `nil` for the default: SwiftUI then keeps following the device's
         // light/dark setting and any automatic schedule, which is the behavior
         // the app had before this setting existed.

@@ -125,6 +125,7 @@ struct LivePhotosConverterView: View {
             LivePhotoSwipeReviewView(
                 items: viewModel.items,
                 startId: start.itemId,
+                saved: start.saved,
                 photoService: photoService
             ) { marked in
                 review = nil
@@ -138,6 +139,26 @@ struct LivePhotosConverterView: View {
             await CompressionJournal.reconcile(modelContext: modelContext)
             await viewModel.loadIfNeeded()
             await viewModel.markAlreadyConverted(modelContext: modelContext)
+        }
+    }
+
+    /// The saved review's decisions for photos still in the list. A converted
+    /// or deleted Live Photo has left the library, so its decision goes too.
+    private func savedReviewDecisions() -> [String: Bool] {
+        let key = SwipeDeckStore.livePhotosKey
+        let entries = SwipeDeckStore.decisions(deckKey: key, context: modelContext)
+        let listed = Set(viewModel.items.map(\.id))
+        if viewModel.hasLoadedItems {
+            let gone = Set(entries.map(\.assetLocalIdentifier)).subtracting(listed)
+            SwipeDeckStore.remove(assetIds: gone, deckKey: key, context: modelContext)
+        }
+        return entries.reduce(into: [:]) { result, entry in
+            guard listed.contains(entry.assetLocalIdentifier) else { return }
+            switch entry.deckDecision {
+            case .convert: result[entry.assetLocalIdentifier] = true
+            case .keepLive: result[entry.assetLocalIdentifier] = false
+            default: break
+            }
         }
     }
 
@@ -215,7 +236,7 @@ struct LivePhotosConverterView: View {
 
                         Button {
                             HapticHelper.impact(.light)
-                            review = ReviewStart(itemId: nil)
+                            review = ReviewStart(itemId: nil, saved: savedReviewDecisions())
                         } label: {
                             Label("Review with Swipe", systemImage: "hand.draw")
                                 .font(.headline)
@@ -258,7 +279,7 @@ struct LivePhotosConverterView: View {
         return layout {
             Button {
                 HapticHelper.impact(.light)
-                review = ReviewStart(itemId: item.id)
+                review = ReviewStart(itemId: item.id, saved: savedReviewDecisions())
             } label: {
                 HStack(spacing: Spacing.md) {
                     AsyncThumbnailView(assetId: item.id, photoService: photoService)
@@ -355,8 +376,11 @@ enum LivePhotoConvertExplainer {
     }
 }
 
-/// Where a swipe review starts: a tapped row, or the first idle photo.
+/// Where a swipe review starts: a tapped row, or the first idle photo, plus
+/// the decisions the saved review already holds.
 private struct ReviewStart: Identifiable {
     let id = UUID()
     let itemId: String?
+    /// True = convert, false = keep the Live Photo.
+    let saved: [String: Bool]
 }

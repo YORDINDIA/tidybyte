@@ -183,7 +183,8 @@ struct SwipeCardDeck: View {
         guard let id = viewModel.currentAsset?.id else { return false }
         return shownAssetIds.contains(id)
     }
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Settings > Reduce Swipe Motion (follows iOS Reduce Motion until set).
+    @Environment(\.reduceSwipeMotion) private var reduceSwipeMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// Mirrors the swipe deck's horizontal axis for Arabic and Hebrew. See
     /// `SwipeDirection.resolve` — without this, "swipe to keep" would delete.
@@ -201,6 +202,16 @@ struct SwipeCardDeck: View {
     /// the decode instead of leaving it pinned to the device screen.
     private var renderTarget: CGSize {
         CGSize(width: deckSize.width * displayScale, height: deckSize.height * displayScale)
+    }
+
+    /// The card animations: springs and flings, or a short fade when Reduce
+    /// Swipe Motion is on.
+    private func cardAnimation(_ base: Animation) -> Animation {
+        reduceSwipeMotion ? SwipeMotionStyle.fade : base
+    }
+
+    private var canUndo: Bool {
+        !viewModel.undoStack.isEmpty && !viewModel.isDeletingBatch && !viewModel.isPerformingMutation
     }
 
     /// Far enough that a card, rotated, clears the screen from the deck center.
@@ -269,10 +280,7 @@ struct SwipeCardDeck: View {
             // to deck center.
             if let returningId = viewModel.currentAsset?.id,
                departing.contains(where: { $0.id == returningId }) {
-                withAnimation(.reduceMotionAware(
-                    .spring(response: 0.35, dampingFraction: 0.8),
-                    reduceMotion: reduceMotion
-                )) {
+                withAnimation(cardAnimation(.spring(response: 0.35, dampingFraction: 0.8))) {
                     motion.offset = .zero
                 }
             } else if motion.offset != .zero {
@@ -329,11 +337,14 @@ struct SwipeCardDeck: View {
                     )
                     // Scoped so the stack shift animates on every path (swipe,
                     // skip, undo, album confirm) without touching the drag.
-                    .animation(.reduceMotionAware(.smooth(duration: 0.3), reduceMotion: reduceMotion)) {
-                        $0.scaleEffect(1.0 - depth * 0.05)
-                            .offset(y: depth * 10)
+                    // Reduce Swipe Motion: the stack stays still, and a decided
+                    // card fades out where it is.
+                    .animation(cardAnimation(.smooth(duration: 0.3))) {
+                        $0.scaleEffect(reduceSwipeMotion ? 1 : 1.0 - depth * 0.05)
+                            .offset(y: reduceSwipeMotion ? 0 : depth * 10)
                     }
-                    .transition(.stateTransition)
+                    .opacity(reduceSwipeMotion && slot.depth == nil ? 0 : 1)
+                    .transition(reduceSwipeMotion ? .opacity : .stateTransition)
                     // No `.gesture` here on purpose. A drag attached above
                     // CardView is starved: the card's own pinch holds the touch
                     // and the deck never sees `onChanged`. The swipe is relayed
@@ -348,6 +359,9 @@ struct SwipeCardDeck: View {
                             Button("Keep") { commit(.keep) }
                             Button("Add to Album") { commit(.album) }
                             Button("Skip") { commit(.skip) }
+                            if canUndo {
+                                Button("Undo") { undo() }
+                            }
                             if !shownAssetIds.contains(asset.id) {
                                 Button("Try Loading Again") { retryRequest += 1 }
                             }
@@ -439,12 +453,12 @@ struct SwipeCardDeck: View {
     /// album card once the picker's choice has already advanced the view model,
     /// so its exit animates like every other decision instead of vanishing.
     private func flingOut(_ asset: AssetSummary) {
-        let target = SwipeDirection.album.flingOffset(from: .zero, distance: flingDistance)
+        let target = reduceSwipeMotion ? .zero : SwipeDirection.album.flingOffset(from: .zero, distance: flingDistance)
         let flying = CardMotion(offset: target)
-        withAnimation(.reduceMotionAware(
-            Animation.interpolatingSpring(duration: 0.35, bounce: 0, initialVelocity: 0),
-            reduceMotion: reduceMotion
-        ), completionCriteria: .logicallyComplete) {
+        withAnimation(
+            cardAnimation(.interpolatingSpring(duration: 0.35, bounce: 0, initialVelocity: 0)),
+            completionCriteria: .logicallyComplete
+        ) {
             departing.removeAll { $0.id == asset.id }
             departing.append(DeckSlot(asset: asset, depth: nil, motion: flying))
         } completion: {
@@ -482,14 +496,17 @@ struct SwipeCardDeck: View {
         }
 
         let start = motion.offset
-        let target = direction.flingOffset(from: start, distance: flingDistance, isRightToLeft: isRightToLeft)
+        // Reduce Swipe Motion: the card fades out where it is.
+        let target = reduceSwipeMotion
+            ? start
+            : direction.flingOffset(from: start, distance: flingDistance, isRightToLeft: isRightToLeft)
         let flying = CardMotion(offset: target)
         let fling = Animation.interpolatingSpring(
             duration: 0.35,
             bounce: 0,
             initialVelocity: SwipeDirection.relativeVelocity(velocity, from: start, to: target)
         )
-        withAnimation(.reduceMotionAware(fling, reduceMotion: reduceMotion), completionCriteria: .logicallyComplete) {
+        withAnimation(cardAnimation(fling), completionCriteria: .logicallyComplete) {
             departing.removeAll { $0.id == asset.id }
             departing.append(DeckSlot(asset: asset, depth: nil, motion: flying))
             motion.offset = .zero
@@ -506,9 +523,15 @@ struct SwipeCardDeck: View {
     }
 
     private func snapBack() {
-        withAnimation(.reduceMotionAware(.spring(response: 0.4, dampingFraction: 0.7), reduceMotion: reduceMotion)) {
+        withAnimation(cardAnimation(.spring(response: 0.4, dampingFraction: 0.7))) {
             motion.offset = .zero
         }
+    }
+
+    private func undo() {
+        guard canUndo else { return }
+        HapticHelper.impact(.light)
+        Task { await viewModel.undo() }
     }
 
     // MARK: - Accessibility
@@ -530,7 +553,7 @@ struct SwipeCardDeck: View {
     // MARK: - Action Bar
 
     private var actionBar: some View {
-        // The four controls are fixed-diameter circles, so at accessibility text
+        // The five controls are fixed-diameter circles, so at accessibility text
         // sizes their scaled diameters can exceed the screen width. `ViewThatFits`
         // picks the roomiest spacing that still fits rather than letting the row
         // clip the outer buttons — which is what a fixed 32pt spacing did once the
@@ -541,7 +564,11 @@ struct SwipeCardDeck: View {
             actionBarRow(spacing: Spacing.md)
             actionBarRow(spacing: Spacing.xs)
         }
-        .disabled(!viewModel.hasMoreCards || viewModel.isPerformingMutation)
+    }
+
+    /// Off when no card is left or a change is running. Undo has its own state.
+    private var decisionsDisabled: Bool {
+        !viewModel.hasMoreCards || viewModel.isPerformingMutation
     }
 
     private func actionBarRow(spacing: CGFloat) -> some View {
@@ -559,7 +586,7 @@ struct SwipeCardDeck: View {
             }
             // Keys follow the swipe: left deletes, right keeps.
             .keyboardShortcut(.leftArrow, modifiers: [])
-            .disabled(!canDeleteTopCard)
+            .disabled(decisionsDisabled || !canDeleteTopCard)
             .opacity(canDeleteTopCard ? 1 : 0.4)
             .accessibilityLabel("Delete")
             .accessibilityHint("Marks this photo for deletion and shows the next one")
@@ -576,8 +603,27 @@ struct SwipeCardDeck: View {
                 )
             }
             .keyboardShortcut(.downArrow, modifiers: [])
+            .disabled(decisionsDisabled)
             .accessibilityLabel("Skip")
             .accessibilityHint("Leaves this photo unchanged and won't show it in Not Swiped Yet unless reset")
+
+            // In the middle of the row, under the photo, as in the Live Photo review.
+            Button {
+                undo()
+            } label: {
+                actionButtonLabel(
+                    systemImage: "arrow.uturn.backward",
+                    title: "Undo",
+                    size: ScaledSize.secondaryActionButton,
+                    font: .title3,
+                    background: Color.neutralFill
+                )
+            }
+            .keyboardShortcut("z", modifiers: .command)
+            .disabled(!canUndo)
+            .opacity(canUndo ? 1 : 0.4)
+            .accessibilityLabel("Undo")
+            .accessibilityHint("Reverts your last swipe")
 
             // Add to Album button — same as an up-swipe
             Button {
@@ -592,6 +638,7 @@ struct SwipeCardDeck: View {
                 )
             }
             .keyboardShortcut(.upArrow, modifiers: [])
+            .disabled(decisionsDisabled)
             .accessibilityLabel("Add to Album")
             .accessibilityHint("Opens the album picker to file this photo")
 
@@ -607,6 +654,7 @@ struct SwipeCardDeck: View {
                 )
             }
             .keyboardShortcut(.rightArrow, modifiers: [])
+            .disabled(decisionsDisabled)
             .accessibilityLabel("Keep")
             .accessibilityHint("Keeps this photo without prompting")
         }

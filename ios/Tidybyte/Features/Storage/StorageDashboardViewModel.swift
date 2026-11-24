@@ -12,7 +12,8 @@ struct StorageCategory: Identifiable, Sendable {
 /// Unified action for Storage row taps — cleanup tools or swipe sessions.
 enum StorageAction: Sendable {
     case cleanup(CleanupTool)
-    case swipe(SwipeFilter)
+    /// `deckKey` names the saved swipe deck the row resumes.
+    case swipe(SwipeFilter, deckKey: String? = nil)
     case activity
 }
 
@@ -221,7 +222,7 @@ final class StorageDashboardViewModel {
                 title = L10n.format("%lld saved from apps", bucket.count)
                 detail = L10n.format("%@ total", bucket.bytes.formattedFileSize)
                 color = .orange
-                action = .swipe(.customAssetIds(bucket.ids))
+                action = .swipe(.customAssetIds(bucket.ids), deckKey: "storage.savedFromApps")
             case "largeFiles":
                 title = L10n.format("%lld large file", fallback: "%lld large files", bucket.count)
                 detail = L10n.format("%@ total", bucket.bytes.formattedFileSize)

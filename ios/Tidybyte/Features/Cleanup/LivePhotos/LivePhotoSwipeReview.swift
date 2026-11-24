@@ -1,21 +1,30 @@
+import SwiftData
 import SwiftUI
 
 /// Swipe state of a Live Photo review: the photo on top and each decision.
 /// Nothing changes in the library until the review's Convert, which converts
 /// every marked photo in one batch, so iOS asks once.
 struct LivePhotoReviewDeck: Equatable {
-    /// Deck order: the list order, rotated to start at the photo the user tapped.
+    /// Deck order: photos decided in an earlier visit first, then the list
+    /// order rotated to start at the photo the user tapped.
     let ids: [String]
     private(set) var index = 0
     /// True = convert to a still, false = keep the Live Photo.
     private(set) var decisions: [String: Bool] = [:]
 
-    init(ids: [String], startingAt startId: String? = nil) {
+    /// `saved` holds the decisions of earlier visits; the deck resumes after them.
+    init(ids: [String], startingAt startId: String? = nil, saved: [String: Bool] = [:]) {
+        let rotated: [String]
         if let startId, let start = ids.firstIndex(of: startId) {
-            self.ids = Array(ids[start...] + ids[..<start])
+            rotated = Array(ids[start...] + ids[..<start])
         } else {
-            self.ids = ids
+            rotated = ids
         }
+        let decided = ids.filter { saved[$0] != nil }
+        self.ids = decided + rotated.filter { saved[$0] == nil }
+        let listed = Set(ids)
+        decisions = saved.filter { listed.contains($0.key) }
+        index = decided.count
     }
 
     var current: String? { index < ids.count ? ids[index] : nil }
@@ -53,7 +62,9 @@ struct LivePhotoSwipeReviewView: View {
     private let assets: [String: AssetSummary]
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.modelContext) private var modelContext
+    /// Settings > Reduce Swipe Motion (follows iOS Reduce Motion until set).
+    @Environment(\.reduceSwipeMotion) private var reduceSwipeMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.layoutDirection) private var layoutDirection
     private var isRightToLeft: Bool { layoutDirection == .rightToLeft }
@@ -67,7 +78,10 @@ struct LivePhotoSwipeReviewView: View {
     @State private var departing: [Slot] = []
     @State private var deckSize: CGSize = .zero
     @State private var playRequest = 0
-    @State private var confirmDiscard = false
+    @State private var confirmClose = false
+    @State private var confirmStartOver = false
+    /// Every photo the deck can hold, for Start Over.
+    private let allIds: [String]
     /// Photos the review grid has listed, kept across Resume so an unchecked
     /// photo stays there to check again.
     @State private var listedInReview: [String] = []
@@ -78,6 +92,7 @@ struct LivePhotoSwipeReviewView: View {
     init(
         items: [LivePhotoItem],
         startId: String?,
+        saved: [String: Bool] = [:],
         photoService: PhotoLibraryService,
         onConvert: @escaping (Set<String>) -> Void
     ) {
@@ -85,9 +100,13 @@ struct LivePhotoSwipeReviewView: View {
         self.onConvert = onConvert
         assets = Dictionary(items.map { ($0.id, $0.asset) }, uniquingKeysWith: { first, _ in first })
         let ids = LivePhotosConverterViewModel.eligibleIds(items: items, accepted: nil)
-        _deck = State(initialValue: LivePhotoReviewDeck(ids: ids, startingAt: startId))
-        // Nothing to swipe: open on the review, which says so.
-        _reviewIds = State(initialValue: ids.isEmpty ? [] : nil)
+        allIds = ids
+        let deck = LivePhotoReviewDeck(ids: ids, startingAt: startId, saved: saved)
+        _deck = State(initialValue: deck)
+        _listedInReview = State(initialValue: deck.markedIds)
+        // Nothing left to swipe: open on the review, which lists the saved
+        // marks or says there are none.
+        _reviewIds = State(initialValue: deck.isFinished ? deck.markedIds : nil)
     }
 
     /// One rendered card: `depth` 0 is the top card, nil a departing one.
@@ -111,12 +130,26 @@ struct LivePhotoSwipeReviewView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    // Decisions live only in this screen: ask before dropping them.
-                    Button("Cancel") {
-                        if deck.decisions.isEmpty { dismiss() } else { confirmDiscard = true }
+                    // Decisions are saved as they are made. With photos marked,
+                    // ask what to do with them, as the swipe session does.
+                    Button("Close") {
+                        if deck.markedIds.isEmpty { dismiss() } else { confirmClose = true }
                     }
-                    .confirmationDialog("Discard your choices?", isPresented: $confirmDiscard, titleVisibility: .visible) {
-                        Button("Discard", role: .destructive) { dismiss() }
+                    .confirmationDialog(
+                        L10n.format("%lld Live Photo to convert", fallback: "%lld Live Photos to convert", deck.markedIds.count),
+                        isPresented: $confirmClose,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Convert Now") {
+                            HapticHelper.impact(.medium)
+                            onConvert(Set(deck.markedIds))
+                        }
+                        Button("Keep for Later") { dismiss() }
+                        Button("Discard", role: .destructive) {
+                            // The marked photos go back to undecided.
+                            SwipeDeckStore.remove([.convert], deckKey: SwipeDeckStore.livePhotosKey, context: modelContext)
+                            dismiss()
+                        }
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -128,7 +161,7 @@ struct LivePhotoSwipeReviewView: View {
                     } else if deck.canUndo {
                         // The last swipe opened the review: take it back.
                         Button("Undo") {
-                            deck.undo()
+                            undoDecision()
                             reviewIds = nil
                         }
                     }
@@ -228,11 +261,14 @@ struct LivePhotoSwipeReviewView: View {
                         onSwipeDragEnded: handleDragEnded,
                         onImageShown: { shownIds.insert($0) }
                     )
-                    .animation(.reduceMotionAware(.smooth(duration: 0.3), reduceMotion: reduceMotion)) {
-                        $0.scaleEffect(1.0 - depth * 0.05)
-                            .offset(y: depth * 10)
+                    // Reduce Swipe Motion: the stack stays still, and a decided
+                    // card fades out where it is.
+                    .animation(cardAnimation(.smooth(duration: 0.3))) {
+                        $0.scaleEffect(reduceSwipeMotion ? 1 : 1.0 - depth * 0.05)
+                            .offset(y: reduceSwipeMotion ? 0 : depth * 10)
                     }
-                    .transition(.stateTransition)
+                    .opacity(reduceSwipeMotion && slot.depth == nil ? 0 : 1)
+                    .transition(reduceSwipeMotion ? .opacity : .stateTransition)
                     .allowsHitTesting(isTop)
                     .accessibilityElement(children: .ignore)
                     .accessibilityHidden(!isTop)
@@ -241,6 +277,9 @@ struct LivePhotoSwipeReviewView: View {
                         if isTop {
                             Button("Convert") { commit(convert: true) }
                             Button("Skip") { commit(convert: false) }
+                            if deck.canUndo {
+                                Button("Undo") { undo() }
+                            }
                             Button("Live Photo") { playRequest += 1 }
                         }
                     }
@@ -305,14 +344,17 @@ struct LivePhotoSwipeReviewView: View {
         // Forward (right in LTR) converts, the same side the stamp shows.
         let direction: SwipeDirection = convert ? .keep : .delete
         let start = motion.offset
-        let target = direction.flingOffset(from: start, distance: flingDistance, isRightToLeft: isRightToLeft)
+        // Reduce Swipe Motion: the card fades out where it is.
+        let target = reduceSwipeMotion
+            ? start
+            : direction.flingOffset(from: start, distance: flingDistance, isRightToLeft: isRightToLeft)
         let flying = CardMotion(offset: target)
         let fling = Animation.interpolatingSpring(
             duration: 0.35,
             bounce: 0,
             initialVelocity: SwipeDirection.relativeVelocity(velocity, from: start, to: target)
         )
-        withAnimation(.reduceMotionAware(fling, reduceMotion: reduceMotion), completionCriteria: .logicallyComplete) {
+        withAnimation(cardAnimation(fling), completionCriteria: .logicallyComplete) {
             departing.removeAll { $0.id == id }
             departing.append(Slot(asset: asset, depth: nil, motion: flying))
             motion.offset = .zero
@@ -320,25 +362,53 @@ struct LivePhotoSwipeReviewView: View {
         } completion: {
             departing.removeAll { $0.motion === flying }
         }
+        save(convert, for: id)
         playRequest = 0
     }
 
     private func undo() {
         guard deck.canUndo else { return }
         HapticHelper.impact(.light)
-        deck.undo()
+        undoDecision()
         playRequest = 0
         // The returning card may still be flying out. Animating the offset home
         // lets it travel back from where it is instead of jumping to the center.
         if let id = deck.current, departing.contains(where: { $0.id == id }) {
-            withAnimation(.reduceMotionAware(.spring(response: 0.35, dampingFraction: 0.8), reduceMotion: reduceMotion)) {
+            withAnimation(cardAnimation(.spring(response: 0.35, dampingFraction: 0.8))) {
                 motion.offset = .zero
             }
         }
     }
 
+    /// Takes back the last decision, in the deck and in the saved review.
+    private func undoDecision() {
+        deck.undo()
+        if let id = deck.current {
+            SwipeDeckStore.remove(assetIds: [id], deckKey: SwipeDeckStore.livePhotosKey, context: modelContext)
+        }
+    }
+
+    /// Saves a decision, so the review resumes after a quit.
+    private func save(_ convert: Bool, for id: String) {
+        SwipeDeckStore.record(convert ? .convert : .keepLive, assetId: id, deckKey: SwipeDeckStore.livePhotosKey, context: modelContext)
+    }
+
+    /// Clears the saved review and starts the deck again from the first photo.
+    private func startOver() {
+        SwipeDeckStore.remove([.convert, .keepLive], deckKey: SwipeDeckStore.livePhotosKey, context: modelContext)
+        deck = LivePhotoReviewDeck(ids: allIds)
+        listedInReview = []
+        reviewIds = allIds.isEmpty ? [] : nil
+    }
+
+    /// The card animations: springs and flings, or a short fade when Reduce
+    /// Swipe Motion is on.
+    private func cardAnimation(_ base: Animation) -> Animation {
+        reduceSwipeMotion ? SwipeMotionStyle.fade : base
+    }
+
     private func snapBack() {
-        withAnimation(.reduceMotionAware(.spring(response: 0.4, dampingFraction: 0.7), reduceMotion: reduceMotion)) {
+        withAnimation(cardAnimation(.spring(response: 0.4, dampingFraction: 0.7))) {
             motion.offset = .zero
         }
     }
@@ -366,7 +436,7 @@ struct LivePhotoSwipeReviewView: View {
 
             Button { undo() } label: {
                 actionLabel(systemImage: "arrow.uturn.backward", title: "Undo", size: ScaledSize.secondaryActionButton,
-                            font: .title3, fill: Color.actionFill)
+                            font: .title3, fill: Color.neutralFill)
             }
             .keyboardShortcut("z", modifiers: .command)
             .disabled(!deck.canUndo)
@@ -415,10 +485,26 @@ struct LivePhotoSwipeReviewView: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 if ids.isEmpty {
-                    Text("Nothing marked to convert")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, Spacing.xxxl)
+                    VStack(spacing: Spacing.lg) {
+                        Text("Nothing marked to convert")
+                            .font(.headline)
+                        // Every photo was decided in an earlier visit: let the
+                        // user review them again.
+                        if deck.isFinished, !allIds.isEmpty {
+                            Button {
+                                confirmStartOver = true
+                            } label: {
+                                PrimaryActionLabel(title: "Start Over", fullWidth: false)
+                            }
+                            .confirmationDialog("Start this deck over?", isPresented: $confirmStartOver, titleVisibility: .visible) {
+                                Button("Start Over") { startOver() }
+                            } message: {
+                                Text("Every Live Photo shows again, including the ones you kept.")
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, Spacing.xxxl)
                 } else {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(L10n.format(
@@ -448,7 +534,10 @@ struct LivePhotoSwipeReviewView: View {
                                     isSelected: deck.decisions[id] == true,
                                     bottomBadgeText: asset.displaySize,
                                     onPreview: { previewId = id },
-                                    onToggleSelection: { deck.toggle(id) }
+                                    onToggleSelection: {
+                                        deck.toggle(id)
+                                        if let convert = deck.decisions[id] { save(convert, for: id) }
+                                    }
                                 )
                             }
                         }
