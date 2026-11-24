@@ -609,8 +609,16 @@
       "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
+      "key": "Cleanup tools forget their last scan results and checked items, and scan again next time. No photo is deleted.",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
       "key": "Clear",
       "file": "Tidybyte/Features/Cleanup/SmartCategories/SmartCategoriesView.swift"
+    },
+    {
+      "key": "Clear Saved Scans",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
     },
     {
       "key": "cleared %lld blurry photo",
@@ -1344,6 +1352,10 @@
     {
       "key": "Last scan, %@: %@ to review.",
       "file": "Tidybyte/Services/NotificationService.swift"
+    },
+    {
+      "key": "Last scan: %@",
+      "file": "Tidybyte/Shared/Components/SavedScanNote.swift"
     },
     {
       "key": "Leaves this photo unchanged and won't show it in Not Swiped Yet unless reset",
@@ -2098,6 +2110,10 @@
       "file": "Tidybyte/Features/Cleanup/SmartCategories/SmartCategoriesView.swift"
     },
     {
+      "key": "Saved scans cleared",
+      "file": "Tidybyte/Features/Settings/SettingsView.swift"
+    },
+    {
       "key": "Saving copy %lld of %lld",
       "file": "Tidybyte/Features/Cleanup/PhotoCompression/PhotoCompressionView.swift"
     },
@@ -2800,5 +2816,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 690
+  "total": 694
 }

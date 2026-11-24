@@ -4,7 +4,7 @@
         <p class="badge mb-5">Privacy</p>
         <h1 class="h-display">Privacy Policy</h1>
         <p class="lede mt-5">TidyByte&rsquo;s iPhone cleanup tools process your local photo library on-device. The app has no TidyByte account or developer-operated server. In builds with the optional Google Photos source, the app connects directly to Google after you sign in, check storage quota, or select items. Google sends previews to your device for local scanning; photos are not sent to TidyByte.</p>
-        <p class="muted mt-6 text-xs">Effective date: January 1, 2026 &middot; Last updated: November 16, 2026</p>
+        <p class="muted mt-6 text-xs">Effective date: January 1, 2026 &middot; Last updated: November 24, 2026</p>
       </header>
 
       <article class="prose-section mt-12 space-y-12">
@@ -47,13 +47,15 @@
 
         <section>
           <h2 class="h-section text-2xl sm:text-3xl">5. Data storage on your device</h2>
-          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte stores a small amount of local data using SwiftData to power features and history:</p>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">TidyByte stores a small amount of local data on your device to power features and history:</p>
           <ul class="muted mt-4 space-y-2 text-base sm:text-lg">
             <li><code class="rounded bg-surface-card px-1.5 py-0.5 text-sm text-ink">SwipeRecord</code> &mdash; asset local identifiers and your keep/delete decisions. The actual photo data is never copied.</li>
+            <li><code class="rounded bg-surface-card px-1.5 py-0.5 text-sm text-ink">SwipeDeckEntry</code> &mdash; the decisions in each saved swipe session (keep, skip, marked for deletion, convert), so a session continues where you left it. Asset local identifiers only.</li>
             <li><code class="rounded bg-surface-card px-1.5 py-0.5 text-sm text-ink">CompressionRecord</code> &mdash; bookkeeping for video and photo compression jobs.</li>
             <li><code class="rounded bg-surface-card px-1.5 py-0.5 text-sm text-ink">StorageSnapshot</code> &mdash; cached storage breakdown used by the dashboard.</li>
+            <li>Saved scans &mdash; the last results of the Cleanup tools and the items you checked, as files in the app&rsquo;s own storage. Asset local identifiers and scores only.</li>
           </ul>
-          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">This data never leaves your device and can be cleared at any time via <strong class="font-semibold text-ink">Settings &rarr; Reset Swipe History</strong> inside the app.</p>
+          <p class="muted mt-4 text-base leading-relaxed sm:text-lg">This data never leaves your device. Clear it at any time inside the app: <strong class="font-semibold text-ink">Settings &rarr; Reset Swipe Sessions</strong> clears the swipe data, and <strong class="font-semibold text-ink">Settings &rarr; Clear Saved Scans</strong> clears the saved scans.</p>
         </section>
 
         <section>

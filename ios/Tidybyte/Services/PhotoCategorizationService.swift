@@ -5,7 +5,7 @@ import UIKit
 /// can belong to several at once (e.g. a screenshot of a recipe → memes + food).
 /// UI presentation (title/icon/color) is added as an extension in the view layer
 /// so this service-layer enum stays free of SwiftUI.
-enum PhotoCategory: String, CaseIterable, Sendable {
+enum PhotoCategory: String, CaseIterable, Sendable, Codable {
     case memes
     case documents
     case food

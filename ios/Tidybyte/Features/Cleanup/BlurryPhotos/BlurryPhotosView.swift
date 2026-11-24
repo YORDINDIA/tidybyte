@@ -62,6 +62,9 @@ struct BlurryPhotosView: View {
         .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         // Items deleted elsewhere (Swipe Review, the Photos app) leave the
         // list when the library changes, instead of lingering as blanks.
+        .task {
+            await viewModel.restoreSavedScan()
+        }
         .task(id: libraryMonitor.generation) {
             await viewModel.pruneDeleted()
         }
@@ -230,6 +233,10 @@ struct BlurryPhotosView: View {
             LimitedLibraryBanner()
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.sm)
+
+            if let date = viewModel.savedScanDate {
+                SavedScanNote(date: date)
+            }
 
             // Horizontal category chips matching Smart Categories
             categoryChips

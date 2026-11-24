@@ -14,7 +14,11 @@ final class VideoCompressionViewModel {
     var videos: [VideoItem] = []
     var isLoading = true
     private(set) var hasLoadedVideos = false
-    var selectedIds: Set<String> = []
+    var selectedIds: Set<String> = [] {
+        didSet { if hasLoadedVideos { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) } }
+    }
+    /// Checked videos survive a quit (Settings > Clear Saved Scans removes them).
+    static let savedName = "videoCompression"
     var isCompressing = false
     var errorMessage: String?
     /// Per-batch outcome counts, set once the loop finishes so the view can
@@ -83,6 +87,8 @@ final class VideoCompressionViewModel {
         isLoading = true
         errorMessage = nil
         videos = await candidateVideos(presets: [:], modelContext: modelContext)
+        // The first load after a launch brings back the saved picks still listed.
+        if !hasLoadedVideos { selectedIds = SavedScanStore.selection(name: Self.savedName).intersection(videos.map(\.id)) }
         hasLoadedVideos = true
         isLoading = false
     }

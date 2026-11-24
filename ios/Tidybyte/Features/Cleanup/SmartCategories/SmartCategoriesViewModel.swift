@@ -9,9 +9,17 @@ final class SmartCategoriesViewModel {
             cancelSearch()
             recomputeCategoryCounts()
             recomputeFiltered()
-            if scanState == .completed { ScanResults.record(.smartCategories, count: categorizedPhotos.count) }
+            if scanState == .completed {
+                ScanResults.record(.smartCategories, count: categorizedPhotos.count)
+                saveScan()
+            }
         }
     }
+    /// When the results on screen were scanned, if they came from a saved scan.
+    private(set) var savedScanDate: Date?
+    /// When the results were scanned. A re-save after a delete keeps it.
+    private var scannedAt = Date.now
+    static let savedName = "smartCategories"
     /// Per-category counts, recomputed only when `categorizedPhotos` changes so the
     /// chip row doesn't run an O(categories × photos) pass on every view update.
     private(set) var categoryCounts: [PhotoCategory: Int] = [:]
@@ -98,7 +106,9 @@ final class SmartCategoriesViewModel {
     /// One selection per photo, shared by all categories (a screenshot that
     /// is also a document shows the same check in both). The action bar, the
     /// confirm and the delete all count this one set (C11).
-    var selectedIds: Set<String> = []
+    var selectedIds: Set<String> = [] {
+        didSet { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+    }
 
     var totalSelectedCount: Int { selectedIds.count }
 
@@ -242,7 +252,67 @@ final class SmartCategoriesViewModel {
             activeCategory = first
         }
         scanState = .completed
+        scannedAt = .now
+        savedScanDate = nil
+        saveScan()
         ScanResults.record(.smartCategories, count: categorizedPhotos.count, epoch: scanEpoch)
+    }
+
+    // MARK: - Saved scan
+
+    /// One saved result. The summary is read again from the library on restore.
+    struct SavedPhoto: Codable {
+        let id: String
+        let categories: Set<PhotoCategory>
+        let contentLabels: [String: Float]
+        let wasAnalyzed: Bool
+    }
+
+    struct SavedScan: Codable {
+        let scannedAt: Date
+        let photos: [SavedPhoto]
+        let skippedAnalysisCount: Int
+        let analyzedPhotoCount: Int
+    }
+
+    private func saveScan() {
+        let photos = categorizedPhotos.map {
+            SavedPhoto(id: $0.id, categories: $0.categories, contentLabels: $0.contentLabels, wasAnalyzed: $0.wasAnalyzed)
+        }
+        SavedScanStore.save(
+            SavedScan(scannedAt: scannedAt, photos: photos, skippedAnalysisCount: skippedAnalysisCount,
+                      analyzedPhotoCount: analyzedPhotoCount),
+            name: Self.savedName,
+            stamp: sensitivity.rawValue
+        )
+    }
+
+    /// Shows the last saved scan when nothing is on screen. Photos deleted since
+    /// drop out, and so do picks that are no longer listed.
+    func restoreSavedScan() async {
+        guard scanState == .idle, categorizedPhotos.isEmpty,
+              let saved = SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: sensitivity.rawValue) else { return }
+        let summaries = await SavedScanStore.summaries(for: saved.payload.photos.map(\.id))
+        // A scan the user started meanwhile wins.
+        guard scanState == .idle, categorizedPhotos.isEmpty else { return }
+        let restored = saved.payload.photos.compactMap { photo in
+            summaries[photo.id].map {
+                CategorizedPhoto(id: photo.id, asset: $0, categories: photo.categories,
+                                 contentLabels: photo.contentLabels, wasAnalyzed: photo.wasAnalyzed)
+            }
+        }
+        guard !restored.isEmpty else { return }
+        let picks = SavedScanStore.selection(name: Self.savedName)
+        scannedAt = saved.payload.scannedAt
+        savedScanDate = saved.payload.scannedAt
+        skippedAnalysisCount = saved.payload.skippedAnalysisCount
+        analyzedPhotoCount = saved.payload.analyzedPhotoCount
+        scanState = .completed
+        categorizedPhotos = restored
+        if !nonEmptyCategories.contains(activeCategory), let first = nonEmptyCategories.first {
+            activeCategory = first
+        }
+        selectedIds = picks.intersection(restored.map(\.id))
     }
 
     /// D-06: the "Saved from Apps" bucket is recall-heavy by design (filename

@@ -9,8 +9,13 @@ final class LargeFilesViewModel {
     var isLoading = true
     private(set) var hasLoadedAssets = false
     var selectedIds: Set<String> = [] {
-        didSet { refreshTotals() }
+        didSet {
+            refreshTotals()
+            if hasLoadedAssets { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+        }
     }
+    /// Checked files survive a quit (Settings > Clear Saved Scans removes them).
+    static let savedName = "largeFiles"
     var mediaFilter: MediaFilter = .all {
         didSet {
             if mediaFilter == .photos, sortOrder == .longest { sortOrder = .largest }
@@ -223,6 +228,9 @@ final class LargeFilesViewModel {
         let existingIds = Set(newAssets.lazy.map(\.id))
         // Only below-threshold picks need explaining; a pick whose file is gone
         // from the library is self-evident.
+        // The first load after a launch brings back the saved picks; the rules
+        // below then drop the ones that no longer apply.
+        if !hasLoadedAssets { selectedIds = SavedScanStore.selection(name: Self.savedName) }
         let clearedBelowThreshold = selectedIds.intersection(existingIds).subtracting(displayableIds).count
         selectedIds.formIntersection(displayableIds)
         droppedSelectionNotice = clearedBelowThreshold == 0

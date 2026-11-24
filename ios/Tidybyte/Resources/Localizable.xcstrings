@@ -34861,6 +34861,136 @@
         }
       }
     },
+    "Cleanup tools forget their last scan results and checked items, and scan again next time. No photo is deleted.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup tools forget their last scan results and checked items, and scan again next time. No photo is deleted."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्लीनअप टूल पिछले स्कैन के नतीजे और चुने गए आइटम भूल जाएँगे, और अगली बार फिर से स्कैन करेंगे. कोई फ़ोटो नहीं हटेगी."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিষ্কার টুলগুলো শেষ স্ক্যানের ফলাফল ও বেছে নেওয়া আইটেম ভুলে যাবে, এবং পরের বার আবার স্ক্যান করবে. কোনো ফটো মোছা হবে না."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "சுத்தம் கருவிகள் கடைசி ஸ்கேன் முடிவுகளையும் தேர்ந்தெடுத்த உருப்படிகளையும் மறந்து, அடுத்த முறை மீண்டும் ஸ்கேன் செய்யும். எந்தப் புகைப்படமும் நீக்கப்படாது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "క్లీన్‌అప్ సాధనాలు చివరి స్కాన్ ఫలితాలను, ఎంచుకున్న అంశాలను మర్చిపోయి, తర్వాతిసారి మళ్లీ స్కాన్ చేస్తాయి. ఏ ఫోటో తొలగించబడదు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्लीनअप साधने शेवटच्या स्कॅनचे निकाल आणि निवडलेले आयटम विसरतील, आणि पुढच्या वेळी पुन्हा स्कॅन करतील. कोणताही फोटो हटवला जाणार नाही."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ક્લીનઅપ ટૂલ્સ છેલ્લા સ્કેનના પરિણામો અને પસંદ કરેલી આઇટમ ભૂલી જશે, અને આગલી વખતે ફરી સ્કેન કરશે. કોઈ ફોટો ડિલીટ નહીં થાય."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಕ್ಲೀನ್‌ಅಪ್ ಪರಿಕರಗಳು ಕೊನೆಯ ಸ್ಕ್ಯಾನ್ ಫಲಿತಾಂಶಗಳು ಮತ್ತು ಆಯ್ಕೆ ಮಾಡಿದ ಐಟಂಗಳನ್ನು ಮರೆಯುತ್ತವೆ, ಮತ್ತು ಮುಂದಿನ ಬಾರಿ ಮತ್ತೆ ಸ್ಕ್ಯಾನ್ ಮಾಡುತ್ತವೆ. ಯಾವುದೇ ಫೋಟೋ ಅಳಿಸಲಾಗುವುದಿಲ್ಲ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ക്ലീനപ്പ് ടൂളുകൾ അവസാന സ്കാനിന്റെ ഫലങ്ങളും തിരഞ്ഞെടുത്ത ഇനങ്ങളും മറക്കും, അടുത്ത തവണ വീണ്ടും സ്കാൻ ചെയ്യും. ഒരു ഫോട്ടോയും ഇല്ലാതാക്കില്ല."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਫ਼ਾਈ ਟੂਲ ਆਖਰੀ ਸਕੈਨ ਦੇ ਨਤੀਜੇ ਅਤੇ ਚੁਣੀਆਂ ਆਈਟਮਾਂ ਭੁੱਲ ਜਾਣਗੇ, ਅਤੇ ਅਗਲੀ ਵਾਰ ਦੁਬਾਰਾ ਸਕੈਨ ਕਰਨਗੇ. ਕੋਈ ਫ਼ੋਟੋ ਨਹੀਂ ਮਿਟਾਈ ਜਾਵੇਗੀ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las herramientas de limpieza olvidan los resultados del último análisis y los elementos marcados, y vuelven a analizar la próxima vez. No se elimina ninguna foto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les outils de nettoyage oublient les résultats de la dernière analyse et les éléments cochés, et relancent l'analyse la prochaine fois. Aucune photo n'est supprimée."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereinigungstools vergessen die Ergebnisse des letzten Scans und die ausgewählten Objekte und scannen beim nächsten Mal neu. Kein Foto wird gelöscht."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As ferramentas de limpeza esquecem os resultados da última varredura e os itens marcados, e fazem uma nova varredura na próxima vez. Nenhuma foto é apagada."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli strumenti di pulizia dimenticano i risultati dell'ultima scansione e gli elementi selezionati, e la prossima volta eseguono una nuova scansione. Nessuna foto viene eliminata."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリーンアップツールは前回のスキャン結果と選択した項目を消去し、次回もう一度スキャンします。写真は削除されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정리 도구가 마지막 스캔 결과와 선택한 항목을 잊고 다음에 다시 스캔합니다. 사진은 삭제되지 않습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理工具会忘记上次扫描的结果和已勾选的项目，下次重新扫描。不会删除任何照片。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Инструменты очистки забудут результаты последнего сканирования и отмеченные объекты и в следующий раз просканируют снова. Ни одно фото не удаляется."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنسى أدوات التنظيف نتائج آخر فحص والعناصر المحددة، وتفحص من جديد في المرة القادمة. لا تُحذف أي صورة."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כלי הניקוי ישכחו את תוצאות הסריקה האחרונה ואת הפריטים המסומנים, ויסרקו שוב בפעם הבאה. אף תמונה לא תימחק."
+          }
+        }
+      }
+    },
     "Clear": {
       "localizations": {
         "en": {
@@ -34987,6 +35117,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "נקה"
+          }
+        }
+      }
+    },
+    "Clear Saved Scans": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Saved Scans"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहेजे गए स्कैन साफ़ करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সংরক্ষিত স্ক্যান সাফ করুন"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "சேமித்த ஸ்கேன்களை அழி"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "సేవ్ చేసిన స్కాన్‌లను క్లియర్ చేయి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जतन केलेले स्कॅन साफ करा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સાચવેલા સ્કેન સાફ કરો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಉಳಿಸಿದ ಸ್ಕ್ಯಾನ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സേവ് ചെയ്ത സ്കാനുകൾ മായ്ക്കുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸੰਭਾਲੇ ਸਕੈਨ ਸਾਫ਼ ਕਰੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar análisis guardados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer les analyses enregistrées"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Scans löschen"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar varreduras salvas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella scansioni salvate"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存したスキャンを消去"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 스캔 지우기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除已保存的扫描"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить сохранённые сканирования"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسح عمليات الفحص المحفوظة"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נקה סריקות שמורות"
           }
         }
       }
@@ -64637,6 +64897,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "סריקה אחרונה, %@: %@ לבדיקה."
+          }
+        }
+      }
+    },
+    "Last scan: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last scan: %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछला स्कैन: %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ স্ক্যান: %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "கடைசி ஸ்கேன்: %@"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "చివరి స్కాన్: %@"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेवटचा स्कॅन: %@"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "છેલ્લું સ્કેન: %@"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್: %@"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "അവസാന സ്കാൻ: %@"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਆਖਰੀ ਸਕੈਨ: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último análisis: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière analyse : %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Scan: %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última varredura: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultima scansione: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回のスキャン：%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마지막 스캔: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次扫描：%@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последнее сканирование: %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر فحص: %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סריקה אחרונה: %@"
           }
         }
       }
@@ -98217,6 +98607,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "נשמרו מאפליקציות"
+          }
+        }
+      }
+    },
+    "Saved scans cleared": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved scans cleared"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहेजे गए स्कैन साफ़ किए गए"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সংরক্ষিত স্ক্যান সাফ করা হয়েছে"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "சேமித்த ஸ்கேன்கள் அழிக்கப்பட்டன"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "సేవ్ చేసిన స్కాన్‌లు క్లియర్ చేయబడ్డాయి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जतन केलेले स्कॅन साफ केले"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સાચવેલા સ્કેન સાફ કર્યા"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಉಳಿಸಿದ ಸ್ಕ್ಯಾನ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಲಾಗಿದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സേവ് ചെയ്ത സ്കാനുകൾ മായ്ച്ചു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸੰਭਾਲੇ ਸਕੈਨ ਸਾਫ਼ ਕੀਤੇ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Análisis guardados borrados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyses enregistrées effacées"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Scans gelöscht"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varreduras salvas apagadas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scansioni salvate cancellate"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存したスキャンを消去しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 스캔을 지웠습니다"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已清除保存的扫描"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранённые сканирования очищены"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم مسح عمليات الفحص المحفوظة"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הסריקות השמורות נוקו"
           }
         }
       }

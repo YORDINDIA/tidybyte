@@ -6,7 +6,7 @@ import Vision
 /// already decoded for the Vision feature print) and carried on the group so the
 /// keeper recommendation, the "why" badge, and the per-thumbnail chips can all be
 /// derived without re-analyzing images.
-struct AssetQuality: Sendable, Hashable {
+struct AssetQuality: Sendable, Hashable, Codable {
     let assetId: String
     let sharpness: Float        // 1 - blurScore; higher = sharper
     let luminance: Float        // 0...1 mean luminance
@@ -21,7 +21,7 @@ struct AssetQuality: Sendable, Hashable {
 
 /// The single dominant reason a photo was recommended as the keeper, surfaced to
 /// the user so the auto-pick isn't a black box.
-enum BestReason: String, Sendable {
+enum BestReason: String, Sendable, Codable {
     case sharpest = "Sharpest"
     case bestExposed = "Best exposed"
     case favorite = "Favorite"
@@ -64,8 +64,16 @@ final class SimilarPhotosViewModel {
         didSet {
             updateSuggestedIds()
             refreshSortedGroups()
+            if scanState == .completed { saveScan() }
         }
     }
+    /// When the results on screen were scanned, if they came from a saved scan.
+    private(set) var savedScanDate: Date?
+    /// When the results were scanned. A re-save after a delete keeps it.
+    private var scannedAt = Date.now
+    /// The time window of the scan on screen: the stamp of its saved copy.
+    private var scanTimeWindow: Double = 0
+    static let savedName = "similar"
     /// Display order. Oldest matches the scan's order; the sort is stable.
     var groupSortOrder: GroupSortOrder = .oldest {
         didSet { refreshSortedGroups() }
@@ -78,7 +86,9 @@ final class SimilarPhotosViewModel {
         sortedGroups = groupSortOrder.sorted(groups) { $0.assets }
     }
     var scanState: ScanState = .idle
-    var selectedForDeletion: Set<String> = []
+    var selectedForDeletion: Set<String> = [] {
+        didSet { SavedScanStore.saveSelection(selectedForDeletion, name: Self.savedName) }
+    }
     var errorMessage: String?
     var isDeleting = false
     /// DUP-04/DUP-09: how many items the last delete actually removed, so the
@@ -211,12 +221,70 @@ final class SimilarPhotosViewModel {
 
         groups = foundGroups
         scanState = .completed
+        scannedAt = .now
+        scanTimeWindow = timeWindow
+        savedScanDate = nil
+        saveScan()
         ScanResults.record(.similar, count: totalDuplicateCount, epoch: scanEpoch)
 
         // Similar shots are different photos: start with nothing selected.
         // "Select All" applies the suggestion (all but each keeper, never a
         // favorite).
         selectedForDeletion.removeAll()
+    }
+
+    // MARK: - Saved scan
+
+    /// One saved group. The summaries are read again from the library on restore.
+    struct SavedGroup: Codable {
+        let id: String
+        let assetIds: [String]
+        let bestAssetId: String
+        let qualityScores: [String: AssetQuality]
+        let bestReason: BestReason
+    }
+
+    struct SavedScan: Codable {
+        let scannedAt: Date
+        let groups: [SavedGroup]
+    }
+
+    /// The stamp: a scan made with another time window groups photos differently.
+    private static func stamp(_ timeWindow: Double) -> String { String(timeWindow) }
+
+    private func saveScan() {
+        let saved = groups.map {
+            SavedGroup(id: $0.id, assetIds: $0.assets.map(\.id), bestAssetId: $0.bestAssetId,
+                       qualityScores: $0.qualityScores, bestReason: $0.bestReason)
+        }
+        SavedScanStore.save(SavedScan(scannedAt: scannedAt, groups: saved), name: Self.savedName, stamp: Self.stamp(scanTimeWindow))
+    }
+
+    /// Shows the last saved scan when nothing is on screen. Photos deleted since
+    /// drop out, a group left with one photo goes, and picks that are no longer
+    /// listed are dropped. The saved picks are used as they are: no suggestion
+    /// runs over them.
+    func restoreSavedScan(timeWindow: Double) async {
+        guard scanState == .idle, groups.isEmpty,
+              let saved = SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: Self.stamp(timeWindow)) else { return }
+        let summaries = await SavedScanStore.summaries(for: saved.payload.groups.flatMap(\.assetIds))
+        // A scan the user started meanwhile wins.
+        guard scanState == .idle, groups.isEmpty else { return }
+        let restored: [SimilarGroup] = saved.payload.groups.compactMap { group in
+            let assets = group.assetIds.compactMap { summaries[$0] }
+            guard assets.count >= 2 else { return nil }
+            let best = assets.contains { $0.id == group.bestAssetId } ? group.bestAssetId : assets[0].id
+            return SimilarGroup(id: group.id, assets: assets, bestAssetId: best,
+                                qualityScores: group.qualityScores, bestReason: group.bestReason)
+        }
+        guard !restored.isEmpty else { return }
+        let picks = SavedScanStore.selection(name: Self.savedName)
+        scannedAt = saved.payload.scannedAt
+        savedScanDate = saved.payload.scannedAt
+        scanTimeWindow = timeWindow
+        scanState = .completed
+        groups = restored
+        selectedForDeletion = picks.intersection(restored.flatMap { $0.assets.map(\.id) })
     }
 
     // MARK: - Scan lifecycle (DUP-02/C1)

@@ -7,6 +7,7 @@ final class BurstCleanerViewModel {
         didSet {
             updateDerivedTotals()
             refreshSortedGroups()
+            saveChoices()
         }
     }
     /// Display order. The sort is stable, so Most Items keeps the stored
@@ -23,7 +24,9 @@ final class BurstCleanerViewModel {
     }
     var isLoading = true
     private(set) var hasLoadedGroups = false
-    var selectedForDeletion: Set<String> = []
+    var selectedForDeletion: Set<String> = [] {
+        didSet { saveChoices() }
+    }
     var errorMessage: String?
     var statusMessage: String?
     var isDeleting = false
@@ -31,12 +34,64 @@ final class BurstCleanerViewModel {
     /// Group ids where the user explicitly picked a best frame via `setBest`.
     /// `refresh()` keeps those stored picks instead of recomputing them
     /// (LF-01); `BestAssetSelector` remains the fallback for untouched groups.
-    private(set) var manuallySetBest: Set<String> = []
+    private(set) var manuallySetBest: Set<String> = [] {
+        didSet { saveChoices() }
+    }
 
     /// Group ids where the user interacted (toggled selection or set best).
     /// `deleteSelected()`/`refresh()` only re-arm non-best frames for groups the
     /// user never touched, so explicit keep/deselect choices survive (LF-02).
-    private(set) var touchedGroups: Set<String> = []
+    private(set) var touchedGroups: Set<String> = [] {
+        didSet { saveChoices() }
+    }
+
+    // MARK: - Saved choices
+
+    static let savedName = "bursts"
+
+    /// The user's choices. Bursts are read again from the library on every
+    /// load (it is fast), so only the choices are saved.
+    struct SavedChoices: Codable {
+        let selected: Set<String>
+        let touchedGroups: Set<String>
+        /// Group id → the best frame the user picked.
+        let manualBests: [String: String]
+    }
+
+    private func saveChoices() {
+        // Nothing is decided before the first load; saving then would wipe the file.
+        guard hasLoadedGroups else { return }
+        let bests = Dictionary(
+            groups.filter { manuallySetBest.contains($0.id) }.map { ($0.id, $0.bestAssetId) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        SavedScanStore.save(
+            SavedChoices(selected: selectedForDeletion, touchedGroups: touchedGroups, manualBests: bests),
+            name: Self.savedName
+        )
+    }
+
+    /// The first load after a launch puts the saved choices back: picked best
+    /// frames that still exist, and the picks of groups the user touched.
+    /// Untouched groups get the usual suggestion, as on a refresh.
+    private func applySavedChoices(_ saved: SavedChoices) {
+        let groupIds = Set(groups.map(\.id))
+        groups = groups.map { group in
+            var group = group
+            if let best = saved.manualBests[group.id], group.assets.contains(where: { $0.id == best }) {
+                group.bestAssetId = best
+            }
+            return group
+        }
+        manuallySetBest = Set(saved.manualBests.keys).intersection(groupIds)
+        touchedGroups = saved.touchedGroups.intersection(groupIds)
+        selectedForDeletion = Self.mergedSelection(
+            oldSelection: saved.selected,
+            survivingIds: Set(groups.flatMap { $0.assets.map(\.id) }),
+            touchedGroups: touchedGroups,
+            groups: groups
+        )
+    }
 
     private let fetchBursts: @Sendable () async -> [String: [AssetSummary]]
     /// The in-flight load or refresh. A second call waits for it instead of
@@ -176,7 +231,11 @@ final class BurstCleanerViewModel {
     private func apply(_ newGroups: [BurstGroup], preservingUserState: Bool) {
         guard preservingUserState else {
             groups = newGroups
-            selectNonBestFrames()
+            if !hasLoadedGroups, let saved = SavedScanStore.load(SavedChoices.self, name: Self.savedName) {
+                applySavedChoices(saved.payload)
+            } else {
+                selectNonBestFrames()
+            }
             return
         }
         let oldGroups = groups

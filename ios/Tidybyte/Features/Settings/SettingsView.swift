@@ -45,6 +45,7 @@ struct SettingsView: View {
     @AppStorage(AppPreferences.Key.reminderWeekday) private var reminderWeekday: Int = 1 // Sunday
 
     @State private var showResetConfirm = false
+    @State private var showClearScansConfirm = false
     @State private var toast: ToastMessage?
     @State private var showResetErrorAlert = false
     @State private var swipedRecordCount = 0
@@ -461,6 +462,10 @@ struct SettingsView: View {
                     }
                 }
 
+                Button("Clear Saved Scans", role: .destructive) {
+                    showClearScansConfirm = true
+                }
+
                 Button {
                     showOnboardingGuide = true
                 } label: {
@@ -570,6 +575,15 @@ struct SettingsView: View {
             }
         } message: {
             Text("This clears your swipe history and every saved swipe session, including the Live Photo review. Photos marked for deletion are unmarked; no photo is deleted. All photos appear as \"Not Swiped Yet\" again. This cannot be undone.")
+        }
+        .alert("Clear Saved Scans", isPresented: $showClearScansConfirm) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                SavedScanStore.removeAll()
+                toast = ToastMessage.success(text: L10n.string("Saved scans cleared"))
+            }
+        } message: {
+            Text("Cleanup tools forget their last scan results and checked items, and scan again next time. No photo is deleted.")
         }
         .alert("Notifications Disabled", isPresented: $showNotificationDeniedAlert) {
             Button("Open Settings") { openSystemSettings() }

@@ -137,6 +137,9 @@ struct SimilarPhotosView: View {
         }
         // DUP-02: leaving the screen must stop the scan.
         // Items deleted elsewhere leave their groups when the library changes.
+        .task {
+            await viewModel.restoreSavedScan(timeWindow: timeWindow)
+        }
         .task(id: libraryMonitor.generation) {
             await viewModel.pruneDeleted()
         }
@@ -225,6 +228,9 @@ struct SimilarPhotosView: View {
                                         .font(.caption2)
                                         .foregroundStyle(.secondary)
                                         .padding(.horizontal, Spacing.xs)
+                                }
+                                if let date = viewModel.savedScanDate {
+                                    SavedScanNote(date: date, inset: Spacing.xs)
                                 }
                             }
                             .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.lg, bottom: Spacing.sm, trailing: Spacing.lg))

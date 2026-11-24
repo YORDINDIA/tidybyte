@@ -133,6 +133,9 @@ struct DuplicateFinderView: View {
         // DUP-02: leaving the screen must stop the scan (it would otherwise run
         // to completion in the background and re-enter on return).
         // Items deleted elsewhere leave their groups when the library changes.
+        .task {
+            await viewModel.restoreSavedScan()
+        }
         .task(id: libraryMonitor.generation) {
             await viewModel.pruneDeleted()
         }
@@ -207,6 +210,9 @@ struct DuplicateFinderView: View {
                             headline: Text(L10n.format("%lld group", fallback: "%lld groups", viewModel.allGroups.count)),
                             subtitle: Text("\(viewModel.totalDuplicateCount) duplicates · \(viewModel.selectedSavingsBytes.formattedFileSize) selected")
                         )
+                        if let date = viewModel.savedScanDate {
+                            SavedScanNote(date: date, inset: Spacing.xs)
+                        }
                         if viewModel.skippedICloudCount > 0 {
                             Text(L10n.format("%lld iCloud-only photo skipped (not on this device)",
                                              fallback: "%lld iCloud-only photos skipped (not on this device)",

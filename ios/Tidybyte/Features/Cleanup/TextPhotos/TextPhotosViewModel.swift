@@ -2,7 +2,7 @@ import SwiftUI
 
 /// How old a text photo must be to show. Notes, tickets, receipts and boards
 /// go out of date within weeks, so the results start a month back by default.
-enum TextPhotoAge: String, CaseIterable, Sendable {
+enum TextPhotoAge: String, CaseIterable, Sendable, Codable {
     case twoWeeks, oneMonth, threeMonths, oneYear
 
     var displayName: String {
@@ -71,7 +71,9 @@ final class TextPhotosViewModel {
     static let sortOptions: [MediaSortOrder] = [.oldest, .newest, .largest]
     var errorMessage: String?
     var isDeleting = false
-    var selectedIds: Set<String> = []
+    var selectedIds: Set<String> = [] {
+        didSet { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+    }
     private(set) var deletedCount = 0
     private(set) var skippedAnalysisCount = 0
     /// Photos whose text recognition failed, so they could not be judged.
@@ -84,6 +86,11 @@ final class TextPhotosViewModel {
     private let visionService = VisionAnalysisService()
     /// Fixed for a scan's results, so the age choice compares against one moment.
     private var scanDate = Date()
+    /// When the results on screen were scanned, if they came from a saved scan.
+    private(set) var savedScanDate: Date?
+    /// When the results were scanned. A re-save after a delete keeps it.
+    private var scannedAt = Date.now
+    static let savedName = "textPhotos"
 
     var selectedSize: Int64 {
         visiblePhotos.totalFileSize(selectedIds: selectedIds, idOf: \.id, sizeOf: { $0.asset.fileSize })
@@ -103,7 +110,48 @@ final class TextPhotosViewModel {
         visiblePhotos = Self.visible(photos, age: age, now: scanDate, order: sortOrder)
         // A pick the age filter hides must not be deleted unseen.
         selectedIds.formIntersection(visiblePhotos.map(\.id))
-        if scanState == .completed { ScanResults.record(.textPhotos, count: visiblePhotos.count) }
+        if scanState == .completed {
+            ScanResults.record(.textPhotos, count: visiblePhotos.count)
+            saveScan()
+        }
+    }
+
+    // MARK: - Saved scan
+
+    struct SavedScan: Codable {
+        let scannedAt: Date
+        let age: TextPhotoAge
+        /// Id → recognized characters. The summary is read again on restore.
+        let characterCounts: [String: Int]
+    }
+
+    private func saveScan() {
+        let counts = Dictionary(photos.map { ($0.id, $0.characterCount) }, uniquingKeysWith: { first, _ in first })
+        SavedScanStore.save(SavedScan(scannedAt: scannedAt, age: age, characterCounts: counts), name: Self.savedName)
+    }
+
+    /// Shows the last saved scan when nothing is on screen. Photos deleted since
+    /// drop out, and so do picks that are no longer listed.
+    func restoreSavedScan() async {
+        guard scanState == .idle, photos.isEmpty,
+              let saved = SavedScanStore.load(SavedScan.self, name: Self.savedName) else { return }
+        let counts = saved.payload.characterCounts
+        let summaries = await SavedScanStore.summaries(for: Array(counts.keys))
+        // A scan the user started meanwhile wins.
+        guard scanState == .idle, photos.isEmpty else { return }
+        let restored = counts.compactMap { id, count in
+            summaries[id].map { TextPhoto(id: id, asset: $0, characterCount: count) }
+        }
+        guard !restored.isEmpty else { return }
+        let picks = SavedScanStore.selection(name: Self.savedName)
+        // Ages compare against today: the photos kept aging since the scan.
+        scanDate = Date()
+        scannedAt = saved.payload.scannedAt
+        savedScanDate = saved.payload.scannedAt
+        age = saved.payload.age
+        scanState = .completed
+        photos = restored
+        selectedIds = picks.intersection(visiblePhotos.map(\.id))
     }
 
     func startScan() {
@@ -172,6 +220,8 @@ final class TextPhotosViewModel {
         }
         scanState = .scanning(1.0)
         scanState = .completed
+        scannedAt = .now
+        savedScanDate = nil
         // Assigned after `.completed`, so the didSet records the derived count.
         photos = found
         if pendingPrune {

@@ -25,8 +25,13 @@ final class ScreenshotCleanerViewModel {
     var isLoading = true
     private(set) var hasLoadedScreenshots = false
     var selectedIds: Set<String> = [] {
-        didSet { recomputeSelectedSize() }
+        didSet {
+            recomputeSelectedSize()
+            if hasLoadedScreenshots { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
+        }
     }
+    /// Checked screenshots survive a quit (Settings > Clear Saved Scans removes them).
+    static let savedName = "screenshots"
     var sortOrder: ScreenshotSortOrder = .newest {
         didSet { recomputeSorted() }
     }
@@ -139,6 +144,8 @@ final class ScreenshotCleanerViewModel {
         // previously Cancel was cosmetic for this tool.
         guard !Task.isCancelled else { return }
         screenshots = fetched
+        // The first load after a launch brings back the saved picks.
+        if !hasLoadedScreenshots { selectedIds = SavedScanStore.selection(name: Self.savedName) }
         selectedIds.formIntersection(Set(fetched.map(\.id)))
         // A library change that landed mid-fetch: the snapshot above
         // predates it, so prune now that publishing can't overwrite it.
