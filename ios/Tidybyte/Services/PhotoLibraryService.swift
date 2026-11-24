@@ -457,15 +457,34 @@ actor PhotoLibraryService {
 
     // MARK: - Image Loading
 
-    func loadImage(for assetId: String, targetSize: CGSize, contentMode: PHImageContentMode = .aspectFill) async -> UIImage? {
+    /// `targetSize` is in pixels (points × display scale). `resizeMode` `.none`
+    /// can return the full original (a 12 MP photo is a ~48 MB decode); pass
+    /// `.exact` to cap the decode at `targetSize`.
+    func loadImage(
+        for assetId: String,
+        targetSize: CGSize,
+        contentMode: PHImageContentMode = .aspectFill,
+        resizeMode: PHImageRequestOptionsResizeMode = .none
+    ) async -> UIImage? {
         guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: allAssetsFetchOptions()).firstObject else {
             return nil
         }
-        return await loadImage(for: asset, targetSize: targetSize, contentMode: contentMode)
+        return await loadImage(for: asset, targetSize: targetSize, contentMode: contentMode, resizeMode: resizeMode)
     }
 
-    func loadImage(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode = .aspectFill) async -> UIImage? {
-        await requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, deliveryMode: .highQualityFormat)
+    func loadImage(
+        for asset: PHAsset,
+        targetSize: CGSize,
+        contentMode: PHImageContentMode = .aspectFill,
+        resizeMode: PHImageRequestOptionsResizeMode = .none
+    ) async -> UIImage? {
+        await requestImage(
+            for: asset,
+            targetSize: targetSize,
+            contentMode: contentMode,
+            deliveryMode: .highQualityFormat,
+            resizeMode: resizeMode
+        )
     }
 
     func loadThumbnail(

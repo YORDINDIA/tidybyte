@@ -140,7 +140,7 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
             TabView(selection: $currentPage) {
                 ForEach(Array(group.assets.enumerated()), id: \.element.id) { index, asset in
                     ScrollView {
-                        assetDetailCard(asset)
+                        assetDetailCard(asset, isActive: index == currentPage)
                             .padding(.vertical, Spacing.sm)
                             .readableWidth()
                     }
@@ -235,19 +235,23 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
         .accessibilityHint(isMarked ? "Removes this photo from the delete list" : "Adds this photo to the delete list")
     }
 
-    private func assetDetailCard(_ asset: AssetSummary) -> some View {
+    private func assetDetailCard(_ asset: AssetSummary, isActive: Bool) -> some View {
         VStack(spacing: 0) {
             // Image — fit uncropped inside a subtle frame so portraits and wide shots
             // can be compared corner-to-corner.
             Color.cardSurface
                 .aspectRatio(1, contentMode: .fit)
                 .overlay {
-                    AsyncThumbnailView(
-                        assetId: asset.id,
-                        photoService: photoService,
-                        targetSize: CGSize(width: 600, height: 600),
-                        contentMode: .fit
-                    )
+                    ZStack {
+                        // Instant placeholder from the thumbnail cache.
+                        AsyncThumbnailView(
+                            assetId: asset.id,
+                            photoService: photoService,
+                            targetSize: CGSize(width: 600, height: 600),
+                            contentMode: .fit
+                        )
+                        SharpPhotoLayer(assetId: asset.id, isActive: isActive, photoService: photoService)
+                    }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium))
                 .contentShape(Rectangle())
@@ -365,6 +369,68 @@ struct GroupComparisonView<G: ComparisonGroup, Detail: View>: View {
         .background(color)
         .clipShape(Capsule())
         .padding(padding)
+    }
+}
+
+/// Card-sized, high-quality decode drawn over the thumbnail placeholder. The
+/// thumbnail loader uses `.fastFormat`, which returns PhotoKit's small cached
+/// thumbnail, so a full-width card looked blurred while the full-screen
+/// preview was sharp. Loads only for the visible page: off-screen pager pages
+/// are not torn down (COMP-14 in `MediaPreviewView`), so each would otherwise
+/// hold its own decode.
+private struct SharpPhotoLayer: View {
+    let assetId: String
+    let isActive: Bool
+    let photoService: PhotoLibraryService
+
+    @Environment(\.displayScale) private var displayScale
+    @State private var size: CGSize = .zero
+    @State private var image: UIImage?
+
+    private struct LoadKey: Equatable {
+        let assetId: String
+        let size: CGSize
+        let isActive: Bool
+    }
+
+    var body: some View {
+        // `Color.clear` gives the layer a frame to measure before any image
+        // exists; an empty conditional is never laid out.
+        Color.clear
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .transition(.opacity)
+                }
+            }
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .task(id: LoadKey(assetId: assetId, size: size, isActive: isActive)) {
+                guard isActive else {
+                    image = nil
+                    return
+                }
+                // Unmeasured: a request now would decode a 64 px image.
+                guard size != .zero else { return }
+                // A live resize sends many sizes; wait for it to settle before
+                // a reload. A new size cancels this task during the wait.
+                if image != nil {
+                    try? await Task.sleep(for: .milliseconds(200))
+                    guard !Task.isCancelled else { return }
+                }
+                let target = CardImageRequest.size(deckTarget: .zero, frame: size, displayScale: displayScale)
+                // `.exact` caps the decode at the card's pixels; `.none` returns the
+                // full original. A failed load keeps what is on screen.
+                let loaded = await photoService.loadImage(
+                    for: assetId,
+                    targetSize: target,
+                    contentMode: .aspectFit,
+                    resizeMode: .exact
+                )
+                guard !Task.isCancelled, let loaded else { return }
+                withAnimation(.easeIn(duration: 0.2)) { image = loaded }
+            }
     }
 }
 
