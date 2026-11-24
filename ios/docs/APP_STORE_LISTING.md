@@ -1,6 +1,6 @@
 # App Store Connect Listing — TidyByte
 
-> **Status (2026-11-24):** 1.3.0 (build 13) is live. 1.4.0 (build 14) is the
+> **Status (2026-11-24):** 1.3.0 (build 13) is live. 1.4.0 (build 15) is the
 > next release; its copy is below and in `docs/appstore/listings.json`.
 > When App Review approves 1.4.0, set `IOS_VERSION` and `IOS_BUILD` in
 > `website/src/data/releases.ts`, add a 1.4.0 entry to
@@ -371,7 +371,7 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 
 | Version | Build | Release notes source |
 |---|---|---|
-| 1.4.0 | 14 | §12 above. Batches survive leaving the app (BGContinuedProcessingTask on iOS 26, resume on return before; Stop deletes originals again), saved swipe sessions (Swipe tab, Cleanup review and Live Photo decks) with Keep for Later, Start Over on finished saved decks (not Not Swiped Yet or Largest First), Undo in the button row, Reduce Swipe Motion, and saved scans and picks in the Cleanup tools. |
+| 1.4.0 | 15 | §12 above. Build 14 was uploaded but never submitted; build 15 adds #42. Batches survive leaving the app (BGContinuedProcessingTask on iOS 26, resume on return before; Stop deletes originals again), saved swipe sessions (Swipe tab, Cleanup review and Live Photo decks) with Keep for Later, Start Over on finished saved decks (not Not Swiped Yet or Largest First), Undo in the button row, Reduce Swipe Motion, and saved scans and picks in the Cleanup tools. |
 | 1.3.0 | 13 | §12, "v1.3.0 release notes, for the record". Live Photo swipe review (marked photos convert in one batch, one iOS delete prompt), the Text Photos tool, sort options in every Cleanup tool, and the Largest First swipe deck. |
 | 1.2.1 | 12 | §12, "v1.2.1 release notes, for the record". Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
 | 1.2.0 | 11 | §12 above. Delete-prompt fixes (#24), whole-photo swipe cards, compression, accessibility-layout and data-safety fixes (#27). Google Photos stays hidden (no OAuth client ID). |
