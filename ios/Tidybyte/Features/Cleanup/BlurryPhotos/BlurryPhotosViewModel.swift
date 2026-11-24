@@ -297,6 +297,8 @@ final class BlurryPhotosViewModel {
     }
 
     private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
         let photos = analyzedPhotos.map {
             SavedPhoto(id: $0.id, blurScore: $0.blurScore, luminance: $0.luminance,
                        categories: $0.categories, smudgeConfidence: $0.smudgeConfidence,

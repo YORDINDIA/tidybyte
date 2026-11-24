@@ -90,9 +90,13 @@ final class VideoCompressionViewModel {
         // The first load after a launch brings back the saved picks still listed,
         // and saves them back pruned.
         if !hasLoadedVideos {
-            selectedIds = await SavedScanStore.selection(name: Self.savedName).intersection(videos.map(\.id))
-            hasLoadedVideos = true
-            SavedScanStore.saveSelection(selectedIds, name: Self.savedName)
+            let saved = await SavedScanStore.selection(name: Self.savedName)
+            // A cancelled load, or one another load finished first, leaves the picks alone.
+            if !Task.isCancelled, !hasLoadedVideos {
+                selectedIds = saved.intersection(videos.map(\.id))
+                hasLoadedVideos = true
+                SavedScanStore.saveSelection(selectedIds, name: Self.savedName)
+            }
         }
         hasLoadedVideos = true
         isLoading = false

@@ -132,6 +132,8 @@ final class TextPhotosViewModel {
     }
 
     private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
         let saved = Dictionary(
             photos.map { ($0.id, SavedPhoto(characterCount: $0.characterCount, modified: $0.asset.modificationDate)) },
             uniquingKeysWith: { first, _ in first }

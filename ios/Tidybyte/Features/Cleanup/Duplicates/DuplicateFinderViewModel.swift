@@ -214,6 +214,8 @@ final class DuplicateFinderViewModel {
     }
 
     private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
         let save = { (groups: [DuplicateGroup]) in
             groups.map { SavedGroup(id: $0.id, assetIds: $0.assets.map(\.id), bestAssetId: $0.bestAssetId) }
         }

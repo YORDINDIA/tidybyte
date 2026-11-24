@@ -108,6 +108,8 @@ final class SavedScanStoreTests: XCTestCase {
         let restored = try XCTUnwrap(loadedBlurry?.payload)
         XCTAssertEqual(restored.photos.first?.categories, [.blurry, .tooDark])
         XCTAssertEqual(restored.photos.first?.modified, Date(timeIntervalSince1970: 500))
+        XCTAssertEqual(restored.skippedScreenshotCount, 2)
+        XCTAssertEqual(restored.skippedAnalysisCount, 1)
         XCTAssertEqual(restored.skippedSmudgeCount, 3)
 
         let text = TextPhotosViewModel.SavedScan(scannedAt: .now, age: .threeMonths, photos: ["a": .init(characterCount: 120, modified: nil)])

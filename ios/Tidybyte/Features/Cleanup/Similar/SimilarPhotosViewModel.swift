@@ -253,6 +253,8 @@ final class SimilarPhotosViewModel {
     private static func stamp(_ timeWindow: Double) -> String { String(timeWindow) }
 
     private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
         let saved = groups.map {
             SavedGroup(id: $0.id, assetIds: $0.assets.map(\.id), bestAssetId: $0.bestAssetId,
                        qualityScores: $0.qualityScores, bestReason: $0.bestReason)

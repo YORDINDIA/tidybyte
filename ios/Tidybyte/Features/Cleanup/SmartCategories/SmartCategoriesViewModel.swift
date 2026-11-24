@@ -281,6 +281,8 @@ final class SmartCategoriesViewModel {
     }
 
     private func saveScan() {
+        // A scan made with limited access covers part of the library only.
+        guard SavedScanStore.canTrustLibrary() else { return }
         let photos = categorizedPhotos.map {
             SavedPhoto(id: $0.id, categories: $0.categories, contentLabels: $0.contentLabels,
                        wasAnalyzed: $0.wasAnalyzed, modified: $0.asset.modificationDate)

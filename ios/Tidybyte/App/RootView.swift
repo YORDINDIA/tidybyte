@@ -300,13 +300,15 @@ struct RootView: View {
 
     /// iOS can end the app while it is in the background. Write the cached
     /// library reads first, so the next launch does not read every asset again
-    /// (docs/large-library-performance.md). The write runs off the main
-    /// thread, under a background-task assertion so iOS lets it finish.
+    /// (docs/large-library-performance.md), and finish the saved-scan writes
+    /// still queued. Both run off the main thread, under a background-task
+    /// assertion so iOS lets them finish.
     private func saveCachedLibraryReads() {
         let task = BackgroundTaskAssertion()
         task.id = UIApplication.shared.beginBackgroundTask(withName: "TidyByte library cache") { task.end() }
         Task.detached(priority: .utility) {
             PhotoLibraryService.shared.saveCachedResources()
+            await SavedScanStore.flush()
             await task.end()
         }
     }

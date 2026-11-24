@@ -33,7 +33,7 @@ enum SavedScanStore {
         CompressionJournal.canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite))
     }
 
-    private static let queue = DispatchQueue(label: "SavedScanStore", qos: .utility)
+    private nonisolated static let queue = DispatchQueue(label: "SavedScanStore", qos: .utility)
 
     private struct Envelope<Payload: Codable>: Codable {
         let version: Int
@@ -90,6 +90,14 @@ enum SavedScanStore {
     static func summaries(for ids: [String]) async -> [String: AssetSummary] {
         let service = PhotoLibraryService.shared
         return await Task.detached(priority: .userInitiated) { service.fetchSummaries(for: ids) }.value
+    }
+
+    /// Returns once every queued write is on disk. The app calls it, under a
+    /// background-task assertion, when it moves to the background.
+    nonisolated static func flush() async {
+        await withCheckedContinuation { continuation in
+            queue.async { continuation.resume() }
+        }
     }
 
     /// Settings > Clear Saved Scans.

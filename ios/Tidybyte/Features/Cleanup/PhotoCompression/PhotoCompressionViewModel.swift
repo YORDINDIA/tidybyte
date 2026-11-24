@@ -168,9 +168,13 @@ final class PhotoCompressionViewModel {
         // The first load after a launch brings back the saved picks still listed,
         // and saves them back pruned.
         if !hasLoadedPhotos {
-            selectedIds = await SavedScanStore.selection(name: Self.savedName).intersection(photos.map(\.id))
-            hasLoadedPhotos = true
-            SavedScanStore.saveSelection(selectedIds, name: Self.savedName)
+            let saved = await SavedScanStore.selection(name: Self.savedName)
+            // A cancelled load, or one another load finished first, leaves the picks alone.
+            if !Task.isCancelled, !hasLoadedPhotos {
+                selectedIds = saved.intersection(photos.map(\.id))
+                hasLoadedPhotos = true
+                SavedScanStore.saveSelection(selectedIds, name: Self.savedName)
+            }
         }
         hasLoadedPhotos = true
     }

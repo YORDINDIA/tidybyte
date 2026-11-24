@@ -201,7 +201,8 @@ final class LargeFilesViewModel {
         let allAssets = await photoService.fetchAssets(filter: .allMedia)
         // The first load after a launch brings back the saved picks.
         let savedPicks = hasLoadedAssets ? nil : await SavedScanStore.selection(name: Self.savedName)
-        apply(allAssets, restoring: savedPicks)
+        // A load another one already finished must not replace the picks.
+        apply(allAssets, restoring: hasLoadedAssets ? nil : savedPicks)
         isLoading = false
     }
 
