@@ -148,7 +148,7 @@ struct TextPhotosView: View {
     }
 
     private func startSwipeReview() {
-        selectedSwipeRoute = SwipeSessionRoute(filter: .customAssetIds(viewModel.visiblePhotos.map(\.id)))
+        selectedSwipeRoute = SwipeSessionRoute(filter: .customAssetIds(viewModel.visiblePhotos.map(\.id)), deckKey: "textPhotos.\(viewModel.age.rawValue)")
     }
 
     // MARK: - Idle

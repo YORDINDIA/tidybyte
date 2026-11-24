@@ -209,7 +209,12 @@ struct SmartCategoriesView: View {
     }
 
     private func startSwipeReview(with filter: SwipeFilter) {
-        selectedSwipeRoute = SwipeSessionRoute(filter: filter)
+        // Search results span categories, so a search review is not saved under
+        // the active category's deck.
+        selectedSwipeRoute = SwipeSessionRoute(
+            filter: filter,
+            deckKey: viewModel.isSearchActive ? nil : "smartCategory.\(viewModel.activeCategory.rawValue)"
+        )
     }
 
     // MARK: - Idle View

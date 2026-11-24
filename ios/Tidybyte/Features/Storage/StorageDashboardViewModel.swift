@@ -12,7 +12,8 @@ struct StorageCategory: Identifiable, Sendable {
 /// Unified action for Storage row taps — cleanup tools or swipe sessions.
 enum StorageAction: Sendable {
     case cleanup(CleanupTool)
-    case swipe(SwipeFilter)
+    /// `deckKey` names the saved swipe deck the row resumes.
+    case swipe(SwipeFilter, deckKey: String? = nil)
     case activity
 }
 
@@ -221,7 +222,8 @@ final class StorageDashboardViewModel {
                 title = L10n.format("%lld saved from apps", bucket.count)
                 detail = L10n.format("%@ total", bucket.bytes.formattedFileSize)
                 color = .orange
-                action = .swipe(.customAssetIds(bucket.ids))
+                // The same deck as the Saved from Apps row of the breakdown.
+                action = .swipe(.customAssetIds(bucket.ids), deckKey: "storage.\(AssetOrigin.savedFromApp.rawValue)")
             case "largeFiles":
                 title = L10n.format("%lld large file", fallback: "%lld large files", bucket.count)
                 detail = L10n.format("%@ total", bucket.bytes.formattedFileSize)
@@ -292,7 +294,9 @@ final class StorageDashboardViewModel {
         }.map { year, value in
             let label = year == 0 ? L10n.string("Unknown") : "\(year)"
             return StorageBreakdownBucket(
-                id: label,
+                // Stable across languages (the label is not), and distinct from
+                // the source buckets' ids: it also names the bucket's swipe deck.
+                id: "year.\(year)",
                 label: label,
                 bytes: value.bytes,
                 count: value.count,

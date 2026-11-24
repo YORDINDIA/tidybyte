@@ -170,7 +170,7 @@ struct BlurryPhotosView: View {
     }
 
     private func startSwipeReview(with filter: SwipeFilter) {
-        selectedSwipeRoute = SwipeSessionRoute(filter: filter)
+        selectedSwipeRoute = SwipeSessionRoute(filter: filter, deckKey: "blurry")
     }
 
     // MARK: - Idle View

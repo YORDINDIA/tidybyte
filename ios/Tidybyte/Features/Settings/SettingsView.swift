@@ -17,6 +17,9 @@ struct SettingsView: View {
 
     // Haptics
     @AppStorage(AppPreferences.Key.hapticsEnabled) private var hapticsEnabled: Bool = true
+    /// Nil until the user picks: the toggle then shows iOS Reduce Motion.
+    @AppStorage(AppPreferences.Key.reduceSwipeMotion) private var reduceSwipeMotionChoice: Bool?
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
     // Similar Photos
     @AppStorage(AppPreferences.Key.similarPhotoTimeWindow) private var timeWindow: Double = AppPreferences.Default.similarPhotoTimeWindow
@@ -265,12 +268,20 @@ struct SettingsView: View {
             }
 
             // MARK: - Swipe Settings
-            Section("Swipe") {
+            Section {
                 Picker("Default Filter", selection: $defaultSwipeFilter) {
                     ForEach(DefaultSwipeFilterPreference.allCases, id: \.self) { filter in
                         Text(LocalizedStringKey(filter.title)).tag(filter.rawValue)
                     }
                 }
+                Toggle("Reduce Swipe Motion", isOn: Binding(
+                    get: { reduceSwipeMotionChoice ?? systemReduceMotion },
+                    set: { reduceSwipeMotionChoice = $0 }
+                ))
+            } header: {
+                Text("Swipe")
+            } footer: {
+                Text("Photos move less and do not tilt when you swipe. After you decide, the photo fades out.")
             }
 
             // MARK: - Cleanup Settings
@@ -440,7 +451,7 @@ struct SettingsView: View {
                     showResetConfirm = true
                 } label: {
                     HStack {
-                        Text("Reset Swipe History")
+                        Text("Reset Swipe Sessions")
                         Spacer()
                         if swipedRecordCount > 0 {
                             Text(verbatim: "\(swipedRecordCount)")
@@ -552,13 +563,13 @@ struct SettingsView: View {
         // No pull-to-refresh (E8): Settings shows only `@AppStorage`-backed
         // controls and inline `Bundle.main` reads — synchronous and always
         // current — so the gesture could only fake work.
-        .alert("Reset Swipe History", isPresented: $showResetConfirm) {
+        .alert("Reset Swipe Sessions", isPresented: $showResetConfirm) {
             Button("Cancel", role: .cancel) { }
             Button("Reset", role: .destructive) {
                 resetSwipeHistory()
             }
         } message: {
-            Text("This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.")
+            Text("This clears your swipe history and every saved swipe session, including the Live Photo review. Photos marked for deletion are unmarked; no photo is deleted. All photos appear as \"Not Swiped Yet\" again. This cannot be undone.")
         }
         .alert("Notifications Disabled", isPresented: $showNotificationDeniedAlert) {
             Button("Open Settings") { openSystemSettings() }
@@ -644,9 +655,10 @@ struct SettingsView: View {
     private func resetSwipeHistory() {
         do {
             try modelContext.delete(model: SwipeRecord.self)
+            try modelContext.delete(model: SwipeDeckEntry.self)
             try modelContext.save()
             swipedRecordCount = 0
-            toast = ToastMessage.success(text: L10n.string("Swipe history cleared"))
+            toast = ToastMessage.success(text: L10n.string("Swipe sessions cleared"))
         } catch {
             AppLog.data.error("Failed to reset swipe history: \(error.localizedDescription, privacy: .public)")
             showResetErrorAlert = true

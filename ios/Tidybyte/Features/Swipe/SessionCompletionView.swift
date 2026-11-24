@@ -175,6 +175,14 @@ struct SessionCompletionView: View {
                     commitAndExit(to: destination)
                 }
             }
+            if viewModel.deckKey != nil {
+                // The deck is saved: the marks wait for the next visit.
+                Button("Keep for Later") {
+                    if let destination = pendingExit {
+                        keepForLaterAndExit(to: destination)
+                    }
+                }
+            }
             Button("Keep All Items") {
                 if let destination = pendingExit {
                     discardAndExit(to: destination)
@@ -266,7 +274,7 @@ struct SessionCompletionView: View {
     /// commit/discard/cancel dialog first and stays on the review screen on
     /// cancel.
     private func requestExit(_ destination: ExitDestination) {
-        guard viewModel.hasPendingDeletions else {
+        guard viewModel.needsDeletionDecision else {
             performExit(to: destination)
             return
         }
@@ -291,6 +299,12 @@ struct SessionCompletionView: View {
             guard !viewModel.hasPendingDeletions else { return }
             performExit(to: destination)
         }
+    }
+
+    private func keepForLaterAndExit(to destination: ExitDestination) {
+        pendingExit = nil
+        viewModel.keepMarksForLater()
+        performExit(to: destination)
     }
 
     private func discardAndExit(to destination: ExitDestination) {

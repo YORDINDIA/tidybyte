@@ -1,3 +1,4 @@
+import Photos
 import SwiftUI
 import SwiftData
 
@@ -9,6 +10,8 @@ struct LivePhotosConverterView: View {
     /// The open swipe review. Its Convert closes it, then converts the marked
     /// photos in one batch, so iOS asks once for the whole review.
     @State private var review: ReviewStart?
+    /// Photos the saved review marked to convert that are still waiting.
+    @State private var savedMarkedIds: Set<String> = []
     @State private var isCelebrating = false
     @State private var celebrationStatLine: String?
     private let photoService = PhotoLibraryService.shared
@@ -34,6 +37,7 @@ struct LivePhotosConverterView: View {
                     Task {
                         await viewModel.refresh()
                         await viewModel.markAlreadyConverted(modelContext: modelContext)
+                        refreshSavedMarks()
                     }
                 }
             } else {
@@ -125,6 +129,7 @@ struct LivePhotosConverterView: View {
             LivePhotoSwipeReviewView(
                 items: viewModel.items,
                 startId: start.itemId,
+                saved: start.saved,
                 photoService: photoService
             ) { marked in
                 review = nil
@@ -138,6 +143,35 @@ struct LivePhotosConverterView: View {
             await CompressionJournal.reconcile(modelContext: modelContext)
             await viewModel.loadIfNeeded()
             await viewModel.markAlreadyConverted(modelContext: modelContext)
+            refreshSavedMarks()
+        }
+        .onChange(of: review == nil) { _, closed in
+            if closed { refreshSavedMarks() }
+        }
+        .onChange(of: viewModel.convertingAll) { _, converting in
+            if !converting { refreshSavedMarks() }
+        }
+    }
+
+    /// The saved review's decisions for photos still in the list. A converted
+    /// or deleted Live Photo has left the library, so its decision goes too.
+    private func savedReviewDecisions() -> [String: Bool] {
+        let key = SwipeDeckStore.livePhotosKey
+        let entries = SwipeDeckStore.decisions(deckKey: key, context: modelContext)
+        let listed = Set(viewModel.items.map(\.id))
+        // Missing from the list means gone only when the whole library is
+        // readable: limited access hides Live Photos that still exist.
+        if viewModel.hasLoadedItems, CompressionJournal.canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite)) {
+            let gone = Set(entries.map(\.assetLocalIdentifier)).subtracting(listed)
+            SwipeDeckStore.remove(assetIds: gone, deckKey: key, context: modelContext)
+        }
+        return entries.reduce(into: [:]) { result, entry in
+            guard listed.contains(entry.assetLocalIdentifier) else { return }
+            switch entry.deckDecision {
+            case .convert: result[entry.assetLocalIdentifier] = true
+            case .keepLive: result[entry.assetLocalIdentifier] = false
+            default: break
+            }
         }
     }
 
@@ -159,6 +193,10 @@ struct LivePhotosConverterView: View {
             summaryHeader
                 .fadeSlideIn()
 
+            if !savedMarkedIds.isEmpty, !viewModel.convertingAll, viewModel.phase == .idle {
+                savedMarksRow
+            }
+
             List {
                 ForEach(Array(viewModel.items.enumerated()), id: \.element.id) { index, item in
                     livePhotoRow(item)
@@ -169,6 +207,7 @@ struct LivePhotosConverterView: View {
             .pullToRefresh {
                 await viewModel.refresh()
                 await viewModel.markAlreadyConverted(modelContext: modelContext)
+                refreshSavedMarks()
             }
 
             // Bottom action bar
@@ -215,7 +254,7 @@ struct LivePhotosConverterView: View {
 
                         Button {
                             HapticHelper.impact(.light)
-                            review = ReviewStart(itemId: nil)
+                            review = ReviewStart(itemId: nil, saved: savedReviewDecisions())
                         } label: {
                             Label("Review with Swipe", systemImage: "hand.draw")
                                 .font(.headline)
@@ -232,6 +271,37 @@ struct LivePhotosConverterView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Saved marks
+
+    /// The photos a review marked and that wait for Convert: after Keep for
+    /// Later, a Stop, or a quit. One tap converts them in one batch.
+    private var savedMarksRow: some View {
+        AdaptiveRow(spacing: Spacing.md) {
+            Label(
+                L10n.format("%lld Live Photo to convert", fallback: "%lld Live Photos to convert", savedMarkedIds.count),
+                systemImage: "livephoto.slash"
+            )
+            .font(.subheadline.weight(.semibold))
+            AdaptiveSpacer()
+            Button("Convert Now") {
+                HapticHelper.impact(.medium)
+                viewModel.startConvertAll(ids: savedMarkedIds, modelContext: modelContext)
+            }
+            .font(.subheadline.weight(.semibold))
+            .frame(minHeight: 44)
+            .disabled(viewModel.isBusy)
+        }
+        .padding(.horizontal, Spacing.lg)
+    }
+
+    private func refreshSavedMarks() {
+        let marked = SwipeDeckStore.decisions(deckKey: SwipeDeckStore.livePhotosKey, context: modelContext)
+            .filter { $0.deckDecision == .convert }
+            .map(\.assetLocalIdentifier)
+        let waiting = Set(LivePhotosConverterViewModel.eligibleIds(items: viewModel.items, accepted: nil))
+        savedMarkedIds = Set(marked).intersection(waiting)
     }
 
     // MARK: - Summary Header
@@ -258,7 +328,7 @@ struct LivePhotosConverterView: View {
         return layout {
             Button {
                 HapticHelper.impact(.light)
-                review = ReviewStart(itemId: item.id)
+                review = ReviewStart(itemId: item.id, saved: savedReviewDecisions())
             } label: {
                 HStack(spacing: Spacing.md) {
                     AsyncThumbnailView(assetId: item.id, photoService: photoService)
@@ -355,8 +425,11 @@ enum LivePhotoConvertExplainer {
     }
 }
 
-/// Where a swipe review starts: a tapped row, or the first idle photo.
+/// Where a swipe review starts: a tapped row, or the first idle photo, plus
+/// the decisions the saved review already holds.
 private struct ReviewStart: Identifiable {
     let id = UUID()
     let itemId: String?
+    /// True = convert, false = keep the Live Photo.
+    let saved: [String: Bool]
 }

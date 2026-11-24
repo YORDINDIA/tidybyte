@@ -14,6 +14,8 @@ final class AppNavigation {
     /// One‑shot channel for external tabs (e.g., Storage) to launch a Swipe session
     /// with a custom filter. SwipeHomeView consumes this via `consumePendingSwipeFilter()`.
     private(set) var pendingSwipeFilter: SwipeFilter?
+    /// The saved deck of `pendingSwipeFilter`, set with it.
+    private(set) var pendingSwipeDeckKey: String?
 
     /// A navigation request parked because a mounted session still holds
     /// uncommitted deletions. See `parkIfSessionHasPendingDeletions`.
@@ -91,6 +93,7 @@ final class AppNavigation {
         // starting on a filter they never chose.
         deferredLink = nil
         pendingSwipeFilter = nil
+        pendingSwipeDeckKey = nil
         selectedTab = tab
     }
 
@@ -116,7 +119,7 @@ final class AppNavigation {
     /// parked earlier is superseded: the newest destination wins, and replaying
     /// the old one afterwards would override the choice the user just made.
     private func parkIfSessionHasPendingDeletions(_ link: DeepLink) -> Bool {
-        if let session = activeSwipeSession, session.hasPendingDeletions {
+        if let session = activeSwipeSession, session.needsDeletionDecision {
             deferredLink = link
             // The review is presented by the session view, and a session started
             // from a cleanup tool lives on the Cleanup tab. Parking without
@@ -138,7 +141,8 @@ final class AppNavigation {
     /// Safe to call at any time; a no-op otherwise.
     ///
     /// Two deliberate waits:
-    /// - Re-checks `hasPendingDeletions` instead of trusting the caller's timing:
+    /// - Re-checks `needsDeletionDecision` instead of trusting the caller's timing
+    ///   (marks kept for later in a saved deck no longer hold the replay):
     ///   the session view can disappear without being destroyed (a tab switch, a
     ///   sheet), and replaying then would be the very teardown this prevents.
     /// - Holds while the completion review is on screen. Its exit buttons are an
@@ -147,7 +151,7 @@ final class AppNavigation {
     ///   surprise this fix exists to remove.
     func applyDeferredLinkIfPossible() {
         guard let link = deferredLink else { return }
-        if let session = activeSwipeSession, session.hasPendingDeletions { return }
+        if let session = activeSwipeSession, session.needsDeletionDecision { return }
         guard !isShowingSwipeCompletion else { return }
         deferredLink = nil
         handle(link)
@@ -161,7 +165,7 @@ final class AppNavigation {
     /// Switches to the Swipe tab and stores the filter for SwipeHomeView to consume.
     /// Note: deliberately does NOT call `requestSwipeDismissal()` — that handler nils
     /// `selectedRoute`, which would race with the pending-filter push and cancel the session.
-    func showSwipeSession(filter: SwipeFilter) {
+    func showSwipeSession(filter: SwipeFilter, deckKey: String? = nil) {
         // Diagnostic only — no behavior change. Large deep-links (e.g. tapping a
         // by-year bucket spanning thousands of assets) are the one heavy payload on
         // this path; logging the size makes a stall diagnosable without capping it
@@ -172,7 +176,8 @@ final class AppNavigation {
         // A mounted session with uncommitted deletions must not be torn down
         // blindly — surface its completion review instead; the queued filter
         // replays when the user next lands on the swipe home (A1).
-        if let session = activeSwipeSession, session.hasPendingDeletions {
+        pendingSwipeDeckKey = deckKey
+        if let session = activeSwipeSession, session.needsDeletionDecision {
             pendingSwipeFilter = filter
             // Switch to the tab that hosts the session. The review is requested
             // on that session, so switching to `.swipe` would show nothing.
@@ -186,7 +191,10 @@ final class AppNavigation {
 
     /// Consumes the pending filter (called by SwipeHomeView). Returns nil after first call.
     func consumePendingSwipeFilter() -> SwipeFilter? {
-        defer { pendingSwipeFilter = nil }
+        defer {
+            pendingSwipeFilter = nil
+            pendingSwipeDeckKey = nil
+        }
         return pendingSwipeFilter
     }
 }

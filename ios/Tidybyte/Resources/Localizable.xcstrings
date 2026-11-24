@@ -38321,6 +38321,136 @@
         }
       }
     },
+    "Convert Now": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convert Now"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी कन्वर्ट करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনই রূপান্তর করুন"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இப்போது மாற்று"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఇప్పుడే మార్చు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आता रूपांतरित करा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "હમણાં કન્વર્ટ કરો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಈಗ ಪರಿವರ್ತಿಸಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഇപ്പോൾ കൺവേർട്ട് ചെയ്യുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਹੁਣੇ ਕਨਵਰਟ ਕਰੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convertir ahora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convertir maintenant"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt konvertieren"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converter agora"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converti ora"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐ変換"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금 변환"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即转换"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Преобразовать сейчас"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التحويل الآن"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "המר עכשיו"
+          }
+        }
+      }
+    },
     "Convert to stills & save space": {
       "localizations": {
         "en": {
@@ -50041,136 +50171,6 @@
         }
       }
     },
-    "Discard your choices?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Discard your choices?"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "अपने चुनाव छोड़ दें?"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "আপনার বাছাই বাতিল করবেন?"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "உங்கள் தேர்வுகளை நிராகரிக்கவா?"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "మీ ఎంపికలను వదిలేయాలా?"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "तुमच्या निवडी रद्द करायच्या?"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "તમારી પસંદગીઓ રદ કરવી છે?"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ನಿಮ್ಮ ಆಯ್ಕೆಗಳನ್ನು ತ್ಯಜಿಸಬೇಕೆ?"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "നിങ്ങളുടെ തിരഞ്ഞെടുപ്പുകൾ ഉപേക്ഷിക്കണോ?"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਕੀ ਆਪਣੀਆਂ ਚੋਣਾਂ ਰੱਦ ਕਰਨੀਆਂ ਹਨ?"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¿Descartar tus elecciones?"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abandonner vos choix ?"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deine Auswahl verwerfen?"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Descartar suas escolhas?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annullare le tue scelte?"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選択内容を破棄しますか？"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 내용을 버릴까요?"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "放弃你的选择？"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Отменить ваш выбор?"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تجاهل اختياراتك؟"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "לבטל את הבחירות שלך?"
-          }
-        }
-      }
-    },
     "Dismiss": {
       "localizations": {
         "en": {
@@ -51597,6 +51597,396 @@
           "stringUnit": {
             "state": "translated",
             "value": "נהנה מ-TidyByte?"
+          }
+        }
+      }
+    },
+    "Every Live Photo shows again, including the ones you kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every Live Photo shows again, including the ones you kept."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रखी गई फ़ोटो समेत सभी Live Photos फिर से दिखेंगी."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রাখা ফটোসহ সব Live Photos আবার দেখাবে."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "நீங்கள் வைத்தவை உட்பட எல்லா Live Photos-உம் மீண்டும் தோன்றும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మీరు ఉంచినవాటితో సహా అన్ని Live Photos మళ్లీ కనిపిస్తాయి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ठेवलेल्या फोटोंसह सर्व Live Photos पुन्हा दिसतील."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "રાખેલા સહિત બધા Live Photos ફરી દેખાશે."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನೀವು ಇರಿಸಿದವು ಸೇರಿದಂತೆ ಎಲ್ಲಾ Live Photos ಮತ್ತೆ ಕಾಣಿಸುತ್ತವೆ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "നിങ്ങൾ നിലനിർത്തിയവ ഉൾപ്പെടെ എല്ലാ Live Photos-ഉം വീണ്ടും കാണിക്കും."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਰੱਖੀਆਂ ਹੋਈਆਂ ਸਮੇਤ ਸਾਰੀਆਂ Live Photos ਦੁਬਾਰਾ ਦਿਖਣਗੀਆਂ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las Live Photos vuelven a aparecer, incluidas las que conservaste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les Live Photos réapparaissent, y compris celles que vous avez gardées."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedes Live Photo erscheint wieder, auch die behaltenen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as Live Photos aparecem de novo, incluindo as que você manteve."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni Live Photo riappare, comprese quelle che hai tenuto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "残したものも含め、すべてのLive Photoが再び表示されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "남긴 사진을 포함해 모든 Live Photo가 다시 표시됩니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有 Live Photos 都会再次显示，包括你保留的。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все Live Photos появятся снова, включая оставленные."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ستظهر كل Live Photos مرة أخرى، بما فيها التي احتفظت بها."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כל ה-Live Photos יופיעו שוב, כולל אלה ששמרת."
+          }
+        }
+      }
+    },
+    "Every photo and video, including ones you skipped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every photo and video, including ones you skipped"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी फ़ोटो और वीडियो, स्किप किए गए भी"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সব ফটো ও ভিডিও, এড়িয়ে যাওয়াগুলোসহ"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "நீங்கள் தவிர்த்தவை உட்பட எல்லா புகைப்படங்களும் வீடியோக்களும்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మీరు దాటవేసినవాటితో సహా అన్ని ఫోటోలు మరియు వీడియోలు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वगळलेल्यांसह सर्व फोटो आणि व्हिडिओ"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "બધા ફોટા અને વિડિયો, છોડેલા સહિત"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನೀವು ಬಿಟ್ಟುಬಿಟ್ಟವು ಸೇರಿದಂತೆ ಎಲ್ಲಾ ಫೋಟೋಗಳು ಮತ್ತು ವೀಡಿಯೊಗಳು"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഒഴിവാക്കിയവ ഉൾപ്പെടെ എല്ലാ ഫോട്ടോകളും വീഡിയോകളും"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਛੱਡੀਆਂ ਸਮੇਤ ਸਾਰੀਆਂ ਫ਼ੋਟੋਆਂ ਅਤੇ ਵੀਡੀਓ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las fotos y vídeos, incluidos los que omitiste"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les photos et vidéos, y compris celles ignorées"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Fotos und Videos, auch übersprungene"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as fotos e vídeos, incluindo os que você pulou"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutte le foto e i video, anche quelli saltati"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スキップしたものを含む、すべての写真とビデオ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "건너뛴 항목을 포함한 모든 사진과 동영상"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有照片和视频，包括你跳过的"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все фото и видео, включая пропущенные"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كل صورة وفيديو، بما فيها التي تخطيتها"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כל התמונות והסרטונים, כולל אלה שדילגת עליהם"
+          }
+        }
+      }
+    },
+    "Every photo in this deck has a decision. Start over to review them again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every photo in this deck has a decision. Start over to review them again."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस डेक की हर फ़ोटो पर फ़ैसला हो चुका है. फिर से देखने के लिए फिर से शुरू करें."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ডেকের প্রতিটি ফটোর সিদ্ধান্ত নেওয়া হয়েছে. আবার দেখতে আবার শুরু করুন."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இந்த அடுக்கில் ஒவ்வொரு புகைப்படத்திற்கும் முடிவு உள்ளது. மீண்டும் பார்க்க மீண்டும் தொடங்கு."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఈ డెక్‌లోని ప్రతి ఫోటోకు నిర్ణయం ఉంది. మళ్లీ సమీక్షించడానికి మళ్లీ మొదలుపెట్టండి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "या डेकमधील प्रत्येक फोटोचा निर्णय झाला आहे. पुन्हा पुनरावलोकनासाठी सुरुवातीपासून सुरू करा."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "આ ડેકના દરેક ફોટાનો નિર્ણય થઈ ગયો છે. ફરી સમીક્ષા કરવા શરૂઆતથી શરૂ કરો."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಈ ಡೆಕ್‌ನ ಪ್ರತಿ ಫೋಟೋಗೂ ನಿರ್ಧಾರವಿದೆ. ಮತ್ತೆ ಪರಿಶೀಲಿಸಲು ಮತ್ತೆ ಪ್ರಾರಂಭಿಸಿ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഈ ഡെക്കിലെ ഓരോ ഫോട്ടോയ്ക്കും തീരുമാനമുണ്ട്. വീണ്ടും പരിശോധിക്കാൻ വീണ്ടും ആരംഭിക്കുക."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਇਸ ਡੈੱਕ ਦੀ ਹਰ ਫ਼ੋਟੋ ਦਾ ਫ਼ੈਸਲਾ ਹੋ ਚੁੱਕਾ ਹੈ. ਦੁਬਾਰਾ ਸਮੀਖਿਆ ਲਈ ਸ਼ੁਰੂ ਤੋਂ ਸ਼ੁਰੂ ਕਰੋ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada foto de este mazo tiene una decisión. Empieza de nuevo para revisarlas otra vez."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque photo de cette pile a une décision. Recommencez pour les revoir."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedes Foto in diesem Stapel hat eine Entscheidung. Beginne neu, um sie erneut zu prüfen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada foto deste conjunto tem uma decisão. Recomece para revisá-las de novo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni foto di questo mazzo ha una decisione. Ricomincia per esaminarle di nuovo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデッキのすべての写真で選択が済んでいます。もう一度確認するには最初からやり直してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 덱의 모든 사진에 결정이 있습니다. 다시 검토하려면 처음부터 다시 시작하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一组中的每张照片都已有决定。重新开始即可再次查看。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У каждого фото в этой подборке есть решение. Начните заново, чтобы просмотреть их снова."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لكل صورة في هذه المجموعة قرار. ابدأ من جديد لمراجعتها مرة أخرى."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לכל תמונה בחבילה הזו יש החלטה. התחל מחדש כדי לסקור אותן שוב."
           }
         }
       }
@@ -61387,6 +61777,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "שמור הכול ותפוס פחות מקום"
+          }
+        }
+      }
+    },
+    "Keep for Later": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep for Later"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाद में तय करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরে ঠিক করুন"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "பின்னர் முடிவு செய்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "తర్వాత నిర్ణయించు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नंतर ठरवा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "પછી નક્કી કરો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ನಂತರ ನಿರ್ಧರಿಸಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "പിന്നീട് തീരുമാനിക്കുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਬਾਅਦ ਵਿੱਚ ਫ਼ੈਸਲਾ ਕਰੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dejar para más tarde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder pour plus tard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für später behalten"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deixar para depois"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni per dopo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "後で決める"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나중에 결정"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稍后决定"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оставить на потом"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تأجيل القرار"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "החלט מאוחר יותר"
           }
         }
       }
@@ -86911,6 +87431,136 @@
         }
       }
     },
+    "Photos move less and do not tilt when you swipe. After you decide, the photo fades out.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos move less and do not tilt when you swipe. After you decide, the photo fades out."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप करते समय फ़ोटो कम हिलती हैं और झुकती नहीं. फ़ैसला करने के बाद फ़ोटो धीरे से गायब होती है."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সোয়াইপ করার সময় ফটো কম নড়ে এবং হেলে না. সিদ্ধান্ত নেওয়ার পর ফটোটি ধীরে মিলিয়ে যায়."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஸ்வைப் செய்யும்போது புகைப்படங்கள் குறைவாக நகரும், சாயாது. நீங்கள் முடிவு செய்த பிறகு புகைப்படம் மெதுவாக மறையும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "స్వైప్ చేసేటప్పుడు ఫోటోలు తక్కువగా కదులుతాయి, వంగవు. మీరు నిర్ణయించిన తర్వాత ఫోటో నెమ్మదిగా మాయమవుతుంది."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप करताना फोटो कमी हलतात आणि झुकत नाहीत. तुम्ही निर्णय घेतल्यावर फोटो हळूहळू नाहीसा होतो."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સ્વાઇપ કરતી વખતે ફોટા ઓછા ખસે છે અને નમતા નથી. તમે નક્કી કરો પછી ફોટો ધીમે ધીમે ઝાંખો થાય છે."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸ್ವೈಪ್ ಮಾಡುವಾಗ ಫೋಟೋಗಳು ಕಡಿಮೆ ಚಲಿಸುತ್ತವೆ ಮತ್ತು ಓರೆಯಾಗುವುದಿಲ್ಲ. ನೀವು ನಿರ್ಧರಿಸಿದ ನಂತರ ಫೋಟೋ ಮಸುಕಾಗಿ ಮರೆಯಾಗುತ್ತದೆ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സ്വൈപ്പ് ചെയ്യുമ്പോൾ ഫോട്ടോകൾ കുറച്ച് മാത്രം നീങ്ങും, ചരിയില്ല. നിങ്ങൾ തീരുമാനിച്ച ശേഷം ഫോട്ടോ മങ്ങി മറയും."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਵਾਈਪ ਕਰਦੇ ਸਮੇਂ ਫ਼ੋਟੋਆਂ ਘੱਟ ਹਿੱਲਦੀਆਂ ਹਨ ਅਤੇ ਝੁਕਦੀਆਂ ਨਹੀਂ. ਤੁਹਾਡੇ ਫ਼ੈਸਲੇ ਤੋਂ ਬਾਅਦ ਫ਼ੋਟੋ ਹੌਲੀ-ਹੌਲੀ ਗਾਇਬ ਹੁੰਦੀ ਹੈ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las fotos se mueven menos y no se inclinan al deslizar. Cuando decides, la foto se desvanece."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les photos bougent moins et ne pivotent pas quand vous balayez. Une fois votre choix fait, la photo s'efface en fondu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos bewegen sich beim Wischen weniger und kippen nicht. Nach deiner Entscheidung wird das Foto ausgeblendet."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As fotos se movem menos e não inclinam ao deslizar. Depois que você decide, a foto desaparece aos poucos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le foto si muovono meno e non si inclinano quando scorri. Dopo la tua scelta, la foto svanisce."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワイプ時に写真があまり動かず、傾きません。選択すると、写真はフェードアウトします。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스와이프할 때 사진이 덜 움직이고 기울지 않습니다. 결정하면 사진이 서서히 사라집니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "滑动时照片移动更少且不倾斜。你做出决定后，照片会淡出。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото меньше двигаются и не наклоняются при свайпе. После вашего решения фото плавно исчезает."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتحرك الصور أقل ولا تميل عند السحب. بعد أن تقرر، تتلاشى الصورة."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התמונות זזות פחות ולא נוטות בזמן ההחלקה. אחרי שתחליט, התמונה נמוגה."
+          }
+        }
+      }
+    },
     "Photos not organized into your albums": {
       "localizations": {
         "en": {
@@ -87297,6 +87947,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "תמונות שעוד לא סקרת"
+          }
+        }
+      }
+    },
+    "Photos you kept, skipped or added to albums here show again. Photos marked for deletion stay marked.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos you kept, skipped or added to albums here show again. Photos marked for deletion stay marked."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यहाँ रखी, छोड़ी या एल्बम में जोड़ी गई फ़ोटो फिर से दिखेंगी. हटाने के लिए चिह्नित फ़ोटो चिह्नित रहेंगी."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখানে রাখা, এড়িয়ে যাওয়া বা অ্যালবামে যোগ করা ফটো আবার দেখাবে. মুছে ফেলার জন্য চিহ্নিত ফটো চিহ্নিতই থাকবে."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இங்கே நீங்கள் வைத்த, தவிர்த்த அல்லது ஆல்பங்களில் சேர்த்த புகைப்படங்கள் மீண்டும் தோன்றும். நீக்கக் குறிக்கப்பட்ட புகைப்படங்கள் குறிக்கப்பட்டபடியே இருக்கும்."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఇక్కడ మీరు ఉంచిన, దాటవేసిన లేదా ఆల్బమ్‌లకు జోడించిన ఫోటోలు మళ్లీ కనిపిస్తాయి. తొలగించడానికి గుర్తు పెట్టిన ఫోటోలు గుర్తుతోనే ఉంటాయి."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "येथे ठेवलेले, वगळलेले किंवा अल्बममध्ये जोडलेले फोटो पुन्हा दिसतील. हटवण्यासाठी चिन्हांकित फोटो चिन्हांकितच राहतील."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "અહીં રાખેલા, છોડેલા અથવા આલ્બમમાં ઉમેરેલા ફોટા ફરી દેખાશે. ડિલીટ કરવા માર્ક કરેલા ફોટા માર્ક થયેલા જ રહેશે."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಇಲ್ಲಿ ನೀವು ಇರಿಸಿದ, ಸ್ಕಿಪ್ ಮಾಡಿದ ಅಥವಾ ಆಲ್ಬಮ್‌ಗೆ ಸೇರಿಸಿದ ಫೋಟೋಗಳು ಮತ್ತೆ ಕಾಣಿಸುತ್ತವೆ. ಅಳಿಸಲು ಗುರುತಿಸಿದ ಫೋಟೋಗಳು ಗುರುತಿನಲ್ಲೇ ಇರುತ್ತವೆ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഇവിടെ നിങ്ങൾ നിലനിർത്തിയതോ ഒഴിവാക്കിയതോ ആൽബങ്ങളിൽ ചേർത്തതോ ആയ ഫോട്ടോകൾ വീണ്ടും കാണിക്കും. ഇല്ലാതാക്കാൻ അടയാളപ്പെടുത്തിയ ഫോട്ടോകൾ അടയാളപ്പെടുത്തിയ നിലയിൽ തുടരും."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਇੱਥੇ ਰੱਖੀਆਂ, ਛੱਡੀਆਂ ਜਾਂ ਐਲਬਮਾਂ ਵਿੱਚ ਜੋੜੀਆਂ ਫ਼ੋਟੋਆਂ ਦੁਬਾਰਾ ਦਿਖਣਗੀਆਂ. ਮਿਟਾਉਣ ਲਈ ਨਿਸ਼ਾਨਬੱਧ ਫ਼ੋਟੋਆਂ ਨਿਸ਼ਾਨਬੱਧ ਹੀ ਰਹਿਣਗੀਆਂ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las fotos que conservaste, omitiste o añadiste a álbumes aquí vuelven a aparecer. Las fotos marcadas para eliminación siguen marcadas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les photos que vous avez gardées, ignorées ou ajoutées à des albums ici réapparaissent. Les photos marquées pour suppression restent marquées."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos, die du hier behalten, übersprungen oder Alben hinzugefügt hast, erscheinen wieder. Zum Löschen markierte Fotos bleiben markiert."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As fotos que você manteve, pulou ou adicionou a álbuns aqui aparecem de novo. As fotos marcadas para exclusão continuam marcadas."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le foto che qui hai tenuto, saltato o aggiunto agli album riappaiono. Le foto contrassegnate per l'eliminazione restano contrassegnate."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ここで残した写真、スキップした写真、アルバムに追加した写真が再び表示されます。削除対象としてマークした写真はマークされたままです。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "여기서 남기거나 건너뛰거나 앨범에 추가한 사진이 다시 표시됩니다. 삭제 표시한 사진은 표시된 상태로 남습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你在这里保留、跳过或添加到相簿的照片会再次显示。标记为删除的照片仍保持标记。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото, которые вы здесь оставили, пропустили или добавили в альбомы, появятся снова. Фото, помеченные для удаления, останутся помеченными."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ستظهر مرة أخرى الصور التي احتفظت بها أو تخطيتها أو أضفتها إلى ألبومات هنا. تبقى الصور المحددة للحذف محددة."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תמונות ששמרת, דילגת עליהן או הוספת לאלבומים כאן יופיעו שוב. תמונות שסומנו למחיקה יישארו מסומנות."
           }
         }
       }
@@ -91851,6 +92631,136 @@
         }
       }
     },
+    "Reduce Swipe Motion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce Swipe Motion"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप मोशन कम करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সোয়াইপের নড়াচড়া কমান"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஸ்வைப் இயக்கத்தைக் குறை"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "స్వైప్ కదలికను తగ్గించు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप हालचाल कमी करा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સ્વાઇપ ગતિ ઘટાડો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸ್ವೈಪ್ ಚಲನೆ ಕಡಿಮೆ ಮಾಡಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സ്വൈപ്പ് ചലനം കുറയ്ക്കുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਵਾਈਪ ਹਿਲਜੁਲ ਘਟਾਓ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reducir movimiento al deslizar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réduire le mouvement du balayage"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wischbewegung reduzieren"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduzir movimento ao deslizar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riduci movimento scorrimento"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワイプの動きを減らす"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스와이프 동작 줄이기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "减少滑动动画"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Меньше движения при свайпе"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تقليل حركة السحب"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הפחת תנועת החלקה"
+          }
+        }
+      }
+    },
     "Refresh": {
       "localizations": {
         "en": {
@@ -93281,132 +94191,132 @@
         }
       }
     },
-    "Reset Swipe History": {
+    "Reset Swipe Sessions": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reset Swipe History"
+            "value": "Reset Swipe Sessions"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप इतिहास रीसेट करें"
+            "value": "स्वाइप सेशन रीसेट करें"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "সোয়াইপ ইতিহাস রিসেট করুন"
+            "value": "সোয়াইপ সেশন রিসেট করুন"
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "ஸ்வைப் வரலாற்றை மீட்டமை"
+            "value": "ஸ்வைப் அமர்வுகளை மீட்டமை"
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "స్వైప్ చరిత్రను రీసెట్ చేయి"
+            "value": "స్వైప్ సెషన్‌లను రీసెట్ చేయి"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्वाइप इतिहास रीसेट करा"
+            "value": "स्वाइप सत्रे रीसेट करा"
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "સ્વાઇપ ઇતિહાસ રીસેટ કરો"
+            "value": "સ્વાઇપ સત્રો રીસેટ કરો"
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ಸ್ವೈಪ್ ಇತಿಹಾಸ ಮರುಹೊಂದಿಸಿ"
+            "value": "ಸ್ವೈಪ್ ಸೆಷನ್‌ಗಳನ್ನು ಮರುಹೊಂದಿಸಿ"
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "സ്വൈപ്പ് ചരിത്രം റീസെറ്റ് ചെയ്യുക"
+            "value": "സ്വൈപ്പ് സെഷനുകൾ റീസെറ്റ് ചെയ്യുക"
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਸਵਾਈਪ ਇਤਿਹਾਸ ਰੀਸੈੱਟ ਕਰੋ"
+            "value": "ਸਵਾਈਪ ਸੈਸ਼ਨ ਰੀਸੈੱਟ ਕਰੋ"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restablecer historial de deslizamientos"
+            "value": "Restablecer sesiones de deslizamiento"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Réinitialiser l'historique des balayages"
+            "value": "Réinitialiser les sessions de balayage"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wischverlauf zurücksetzen"
+            "value": "Wischsitzungen zurücksetzen"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redefinir histórico de deslizes"
+            "value": "Redefinir sessões de deslizes"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reimposta cronologia scorrimenti"
+            "value": "Reimposta sessioni di scorrimento"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スワイプ履歴をリセット"
+            "value": "スワイプセッションをリセット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스와이프 기록 재설정"
+            "value": "스와이프 세션 재설정"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重置滑动记录"
+            "value": "重置滑动会话"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сбросить историю свайпов"
+            "value": "Сбросить сеансы свайпов"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "إعادة تعيين سجل السحب"
+            "value": "إعادة تعيين جلسات السحب"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אפס היסטוריית החלקות"
+            "value": "אפס הפעלות החלקה"
           }
         }
       }
@@ -108361,6 +109271,136 @@
         }
       }
     },
+    "Start Over": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Over"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फिर से शुरू करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আবার শুরু করুন"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மீண்டும் தொடங்கு"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "మళ్లీ మొదలుపెట్టు"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सुरुवातीपासून सुरू करा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "શરૂઆતથી શરૂ કરો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಮತ್ತೆ ಪ್ರಾರಂಭಿಸಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "വീണ്ടും ആരംഭിക്കുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸ਼ੁਰੂ ਤੋਂ ਸ਼ੁਰੂ ਕਰੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommencer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu beginnen"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recomeçar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ricomincia"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最初からやり直す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "처음부터 다시"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新开始"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать заново"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البدء من جديد"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחל מחדש"
+          }
+        }
+      }
+    },
     "Start Scan": {
       "localizations": {
         "en": {
@@ -108621,136 +109661,6 @@
         }
       }
     },
-    "Start from the beginning — includes skipped items": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start from the beginning — includes skipped items"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "शुरुआत से शुरू करें — स्किप किए गए आइटम सहित"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "শুরু থেকে দেখুন — এড়িয়ে যাওয়া আইটেমসহ"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "தொடக்கத்திலிருந்து தொடங்கு — தவிர்த்தவை உட்பட"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "మొదటి నుండి ప్రారంభించు — దాటవేసిన అంశాలతో సహా"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "सुरुवातीपासून सुरू करा — वगळलेले आयटम समाविष्ट आहेत"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "શરૂઆતથી જુઓ — છોડેલી આઇટમ્સ સહિત"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಪ್ರಾರಂಭದಿಂದ ನೋಡಿ — ಬಿಟ್ಟುಬಿಟ್ಟ ಐಟಂಗಳು ಸೇರಿವೆ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ആദ്യം മുതൽ തുടങ്ങുക — ഒഴിവാക്കിയവ ഉൾപ്പെടെ"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸ਼ੁਰੂ ਤੋਂ ਸ਼ੁਰੂ ਕਰੋ — ਛੱਡੀਆਂ ਆਈਟਮਾਂ ਸਮੇਤ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Empezar desde el principio — incluye elementos omitidos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recommencer depuis le début — inclut les éléments ignorés"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Von vorn beginnen — enthält übersprungene Objekte"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Começar do início — inclui itens pulados"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizia dall'inizio — include gli elementi saltati"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最初からやり直す — スキップした項目も含む"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "처음부터 시작 — 건너뛴 항목 포함"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从头开始浏览 — 包含已跳过的项目"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Начать сначала — включая пропущенные объекты"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "البدء من البداية — يتضمن العناصر المتخطاة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התחל מההתחלה — כולל פריטים שדולגו"
-          }
-        }
-      }
-    },
     "Start here": {
       "localizations": {
         "en": {
@@ -109007,6 +109917,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "התחל כאן. "
+          }
+        }
+      }
+    },
+    "Start this deck over?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start this deck over?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह डेक फिर से शुरू करें?"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ডেক আবার শুরু করবেন?"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இந்த அடுக்கை மீண்டும் தொடங்கவா?"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఈ డెక్‌ను మళ్లీ మొదలుపెట్టాలా?"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हा डेक सुरुवातीपासून सुरू करायचा?"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "આ ડેક શરૂઆતથી શરૂ કરીએ?"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಈ ಡೆಕ್ ಅನ್ನು ಮತ್ತೆ ಪ್ರಾರಂಭಿಸಬೇಕೇ?"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഈ ഡെക്ക് വീണ്ടും ആരംഭിക്കണോ?"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਕੀ ਇਹ ਡੈੱਕ ਸ਼ੁਰੂ ਤੋਂ ਸ਼ੁਰੂ ਕਰਨਾ ਹੈ?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Empezar este mazo de nuevo?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommencer cette pile ?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Stapel neu beginnen?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recomeçar este conjunto?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ricominciare questo mazzo?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデッキを最初からやり直しますか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 덱을 처음부터 다시 시작할까요?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要重新开始这一组吗？"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать эту подборку заново?"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هل تريد بدء هذه المجموعة من جديد؟"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "להתחיל את החבילה הזו מחדש?"
           }
         }
       }
@@ -111091,136 +112131,6 @@
         }
       }
     },
-    "Swipe history cleared": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Swipe history cleared"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "स्वाइप इतिहास साफ़ किया गया"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "সোয়াইপ ইতিহাস সাফ করা হয়েছে"
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ஸ்வைப் வரலாறு அழிக்கப்பட்டது"
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "స్వైప్ చరిత్ర క్లియర్ చేయబడింది"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "स्वाइप इतिहास साफ केला"
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "સ્વાઇપ ઇતિહાસ સાફ કર્યો"
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಸ್ವೈಪ್ ಇತಿಹಾಸ ತೆರವುಗೊಳಿಸಲಾಗಿದೆ"
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "സ്വൈപ്പ് ചരിത്രം മായ്ച്ചു"
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਸਵਾਈਪ ਇਤਿਹਾਸ ਸਾਫ਼ ਕੀਤਾ"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Historial de deslizamientos borrado"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Historique des balayages effacé"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wischverlauf gelöscht"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Histórico de deslizes apagado"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cronologia delle scorrite cancellata"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スワイプ履歴を消去しました"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "스와이프 기록을 지웠습니다"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已清除滑动记录"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "История свайпов очищена"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تم مسح سجل السحب"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "היסטוריית ההחלקות נוקתה"
-          }
-        }
-      }
-    },
     "Swipe session": {
       "localizations": {
         "en": {
@@ -111347,6 +112257,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "הפעלת החלקה"
+          }
+        }
+      }
+    },
+    "Swipe sessions cleared": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe sessions cleared"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप सेशन साफ़ किए गए"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সোয়াইপ সেশন সাফ করা হয়েছে"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஸ்வைப் அமர்வுகள் அழிக்கப்பட்டன"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "స్వైప్ సెషన్‌లు క్లియర్ చేయబడ్డాయి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वाइप सत्रे साफ केली"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "સ્વાઇપ સત્રો સાફ કર્યા"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಸ್ವೈಪ್ ಸೆಷನ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಲಾಗಿದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "സ്വൈപ്പ് സെഷനുകൾ മായ്ച്ചു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਸਵਾਈਪ ਸੈਸ਼ਨ ਸਾਫ਼ ਕੀਤੇ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesiones de deslizamiento borradas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessions de balayage effacées"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wischsitzungen gelöscht"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessões de deslizes apagadas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessioni di scorrimento cancellate"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワイプセッションを消去しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스와이프 세션을 지웠습니다"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已清除滑动会话"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сеансы свайпов очищены"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم مسح جلسات السحب"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הפעלות ההחלקה נוקו"
           }
         }
       }
@@ -114471,6 +115511,136 @@
         }
       }
     },
+    "This clears your swipe history and every saved swipe session, including the Live Photo review. Photos marked for deletion are unmarked; no photo is deleted. All photos appear as \"Not Swiped Yet\" again. This cannot be undone.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This clears your swipe history and every saved swipe session, including the Live Photo review. Photos marked for deletion are unmarked; no photo is deleted. All photos appear as \"Not Swiped Yet\" again. This cannot be undone."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह आपका स्वाइप इतिहास और Live Photo समीक्षा सहित हर सहेजा गया स्वाइप सेशन साफ़ कर देगा. हटाने के लिए चिह्नित फ़ोटो का चिह्न हट जाएगा; कोई फ़ोटो नहीं हटेगी. सभी फ़ोटो फिर से \"अभी स्वाइप नहीं किया\" दिखेंगी. इसे पूर्ववत नहीं किया जा सकता."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এটি আপনার সোয়াইপ ইতিহাস এবং Live Photo পর্যালোচনাসহ সব সংরক্ষিত সোয়াইপ সেশন মুছে দেবে. মুছে ফেলার চিহ্ন সরানো হবে; কোনো ফটো মোছা হবে না. সব ফটো আবার \"এখনও সোয়াইপ করা হয়নি\" দেখাবে. এটি ফিরিয়ে আনা যায় না."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இது உங்கள் ஸ்வைப் வரலாற்றையும் Live Photo மதிப்பாய்வு உட்பட சேமித்த எல்லா ஸ்வைப் அமர்வுகளையும் அழிக்கும். நீக்கக் குறிகள் அகற்றப்படும்; எந்தப் புகைப்படமும் நீக்கப்படாது. எல்லா புகைப்படங்களும் மீண்டும் \"இன்னும் ஸ்வைப் செய்யப்படவில்லை\" எனத் தோன்றும். இதை மீளச் செய்ய முடியாது."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఇది మీ స్వైప్ చరిత్రను, Live Photo సమీక్షతో సహా సేవ్ చేసిన ప్రతి స్వైప్ సెషన్‌ను క్లియర్ చేస్తుంది. తొలగింపు గుర్తులు తీసివేయబడతాయి; ఏ ఫోటో తొలగించబడదు. అన్ని ఫోటోలు మళ్లీ \"ఇంకా స్వైప్ చేయలేదు\" అని కనిపిస్తాయి. దీన్ని వెనక్కి తీసుకోలేరు."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यामुळे तुमचा स्वाइप इतिहास आणि Live Photo पुनरावलोकनासह प्रत्येक जतन केलेले स्वाइप सत्र साफ होईल. हटवण्याच्या खुणा काढल्या जातील; कोणताही फोटो हटवला जाणार नाही. सर्व फोटो पुन्हा \"अजून स्वाइप केलेले नाही\" म्हणून दिसतील. हे पूर्ववत करता येणार नाही."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "આનાથી તમારો સ્વાઇપ ઇતિહાસ અને Live Photo સમીક્ષા સહિત દરેક સાચવેલું સ્વાઇપ સત્ર સાફ થશે. ડિલીટ માટેના માર્ક દૂર થશે; કોઈ ફોટો ડિલીટ નહીં થાય. બધા ફોટા ફરી \"હજી સ્વાઇપ કરેલું નથી\" તરીકે દેખાશે. આ પૂર્વવત્ કરી શકાશે નહીં."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಇದು ನಿಮ್ಮ ಸ್ವೈಪ್ ಇತಿಹಾಸ ಮತ್ತು Live Photo ಪರಿಶೀಲನೆ ಸೇರಿದಂತೆ ಉಳಿಸಿದ ಪ್ರತಿ ಸ್ವೈಪ್ ಸೆಷನ್ ಅನ್ನು ತೆರವುಗೊಳಿಸುತ್ತದೆ. ಅಳಿಸುವ ಗುರುತುಗಳನ್ನು ತೆಗೆಯಲಾಗುತ್ತದೆ; ಯಾವುದೇ ಫೋಟೋ ಅಳಿಸಲಾಗುವುದಿಲ್ಲ. ಎಲ್ಲಾ ಫೋಟೋಗಳು ಮತ್ತೆ \"ಇನ್ನೂ ಸ್ವೈಪ್ ಮಾಡಿಲ್ಲ\" ಎಂದು ಕಾಣಿಸುತ್ತವೆ. ಇದನ್ನು ಹಿಂತಿರುಗಿಸಲಾಗುವುದಿಲ್ಲ."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ഇത് നിങ്ങളുടെ സ്വൈപ്പ് ചരിത്രവും Live Photo പരിശോധന ഉൾപ്പെടെ സേവ് ചെയ്ത എല്ലാ സ്വൈപ്പ് സെഷനുകളും മായ്ക്കും. ഇല്ലാതാക്കാനുള്ള അടയാളങ്ങൾ നീക്കും; ഒരു ഫോട്ടോയും ഇല്ലാതാക്കില്ല. എല്ലാ ഫോട്ടോകളും വീണ്ടും \"ഇതുവരെ സ്വൈപ്പ് ചെയ്തിട്ടില്ല\" എന്ന് കാണിക്കും. ഇത് പഴയപടിയാക്കാനാകില്ല."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਇਹ ਤੁਹਾਡਾ ਸਵਾਈਪ ਇਤਿਹਾਸ ਅਤੇ Live Photo ਸਮੀਖਿਆ ਸਮੇਤ ਹਰ ਸੰਭਾਲਿਆ ਸਵਾਈਪ ਸੈਸ਼ਨ ਸਾਫ਼ ਕਰ ਦੇਵੇਗਾ. ਮਿਟਾਉਣ ਦੇ ਨਿਸ਼ਾਨ ਹਟਾ ਦਿੱਤੇ ਜਾਣਗੇ; ਕੋਈ ਫ਼ੋਟੋ ਨਹੀਂ ਮਿਟਾਈ ਜਾਵੇਗੀ. ਸਾਰੀਆਂ ਫ਼ੋਟੋਆਂ ਦੁਬਾਰਾ \"ਹਾਲੇ ਸਵਾਈਪ ਨਹੀਂ ਕੀਤੀ\" ਵਜੋਂ ਦਿਖਣਗੀਆਂ. ਇਹ ਵਾਪਸ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto borra tu historial de deslizamientos y todas las sesiones guardadas, incluida la revisión de Live Photos. Las fotos marcadas para eliminación se desmarcan; no se elimina ninguna foto. Todas las fotos volverán a aparecer como \"Aún no deslizada\". No se puede deshacer."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela efface l'historique des balayages et toutes les sessions enregistrées, y compris la revue des Live Photos. Les photos marquées pour suppression ne sont plus marquées ; aucune photo n'est supprimée. Toutes les photos réapparaîtront comme \"Pas encore balayée\". Cette action est irréversible."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies löscht deinen Wischverlauf und jede gespeicherte Wischsitzung, auch die Live Photo-Prüfung. Zum Löschen markierte Fotos werden nicht mehr markiert; kein Foto wird gelöscht. Alle Fotos erscheinen wieder als \"Noch nicht gewischt\". Das kann nicht rückgängig gemacht werden."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso limpa o histórico de deslizes e todas as sessões salvas, incluindo a revisão de Live Photos. As fotos marcadas para exclusão são desmarcadas; nenhuma foto é apagada. Todas as fotos aparecerão como \"Ainda não avaliada\" novamente. Não é possível desfazer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo cancella la cronologia degli scorrimenti e ogni sessione salvata, compresa la revisione delle Live Photo. Le foto contrassegnate per l'eliminazione non sono più contrassegnate; nessuna foto viene eliminata. Tutte le foto appariranno di nuovo come \"Non ancora scorrite\". Non può essere annullato."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワイプ履歴と、Live Photoの確認を含む保存済みのすべてのスワイプセッションを消去します。削除対象のマークは解除され、写真は削除されません。すべての写真が再び「未スワイプ」として表示されます。この操作は取り消せません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스와이프 기록과 Live Photo 검토를 포함한 저장된 모든 스와이프 세션이 지워집니다. 삭제 표시가 해제되며 사진은 삭제되지 않습니다. 모든 사진이 다시 \"아직 스와이프 안 함\"으로 표시됩니다. 이 작업은 되돌릴 수 없습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这将清除你的滑动记录和所有已保存的滑动会话，包括 Live Photo 检查。标记为删除的照片会取消标记，不会删除任何照片。所有照片都会再次显示为“尚未滑动”。此操作无法撤销。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это очистит историю свайпов и все сохранённые сеансы, включая просмотр Live Photos. С фото, помеченных для удаления, снимается пометка; ни одно фото не удаляется. Все фото снова будут показаны как «Не просмотрено». Действие нельзя отменить."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سيؤدي هذا إلى مسح سجل السحب وكل جلسات السحب المحفوظة، بما فيها مراجعة Live Photos. يُلغى تحديد الصور المحددة للحذف؛ ولا تُحذف أي صورة. ستظهر كل الصور مرة أخرى كـ «لم يتم السحب بعد». لا يمكن التراجع عن هذا."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פעולה זו תנקה את היסטוריית ההחלקות ואת כל הפעלות ההחלקה השמורות, כולל סקירת ה-Live Photos. הסימון למחיקה יוסר מהתמונות; אף תמונה לא תימחק. כל התמונות יופיעו שוב כ\"טרם הוחלק\". לא ניתן לבטל פעולה זו."
+          }
+        }
+      }
+    },
     "This deletes this item from your photo library. %@": {
       "localizations": {
         "en": {
@@ -116027,136 +117197,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "צילום מסך זה יימחק מהתמונות."
-          }
-        }
-      }
-    },
-    "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This will clear all swipe records. All photos will appear as \"Not Swiped Yet\" again. This cannot be undone."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "यह सभी स्वाइप रिकॉर्ड साफ़ कर देगा. सभी फ़ोटो फिर से \"अभी स्वाइप नहीं किया\" दिखेंगी. इसे पूर्ववत नहीं किया जा सकता."
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "এটি সব সোয়াইপ রেকর্ড মুছে দেবে. সব ফটো আবার \"এখনও সোয়াইপ করা হয়নি\" দেখাবে. এটি ফিরিয়ে আনা যায় না."
-          }
-        },
-        "ta": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "இது எல்லா ஸ்வைப் பதிவுகளையும் அழிக்கும். எல்லா புகைப்படங்களும் மீண்டும் \"இன்னும் ஸ்வைப் செய்யப்படவில்லை\" எனத் தோன்றும். இதை மீளச் செய்ய முடியாது."
-          }
-        },
-        "te": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ఇది అన్ని స్వైప్ రికార్డులను క్లియర్ చేస్తుంది. అన్ని ఫోటోలు మళ్లీ \"ఇంకా స్వైప్ చేయలేదు\" అని కనిపిస్తాయి. దీన్ని వెనక్కి తీసుకోలేరు."
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "यामुळे सर्व स्वाइप नोंदी साफ होतील. सर्व फोटो पुन्हा \"अजून स्वाइप केलेले नाही\" म्हणून दिसतील. हे पूर्ववत करता येणार नाही."
-          }
-        },
-        "gu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "આનાથી બધા સ્વાઇપ રેકોર્ડ સાફ થશે. બધા ફોટા ફરી \"હજી સ્વાઇપ કરેલું નથી\" તરીકે દેખાશે. આ પૂર્વવત્ કરી શકાશે નહીં."
-          }
-        },
-        "kn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ಇದು ಎಲ್ಲಾ ಸ್ವೈಪ್ ದಾಖಲೆಗಳನ್ನು ತೆರವುಗೊಳಿಸುತ್ತದೆ. ಎಲ್ಲಾ ಫೋಟೋಗಳು ಮತ್ತೆ \"ಇನ್ನೂ ಸ್ವೈಪ್ ಮಾಡಿಲ್ಲ\" ಎಂದು ಕಾಣಿಸುತ್ತವೆ. ಇದನ್ನು ಹಿಂತಿರುಗಿಸಲಾಗುವುದಿಲ್ಲ."
-          }
-        },
-        "ml": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ഇത് എല്ലാ സ്വൈപ്പ് രേഖകളും മായ്ക്കും. എല്ലാ ഫോട്ടോകളും വീണ്ടും \"ഇതുവരെ സ്വൈപ്പ് ചെയ്തിട്ടില്ല\" എന്ന് കാണിക്കും. ഇത് പഴയപടിയാക്കാനാകില്ല."
-          }
-        },
-        "pa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ਇਹ ਸਾਰੇ ਸਵਾਈਪ ਰਿਕਾਰਡ ਸਾਫ਼ ਕਰ ਦੇਵੇਗਾ. ਸਾਰੀਆਂ ਫ਼ੋਟੋਆਂ ਦੁਬਾਰਾ \"ਹਾਲੇ ਸਵਾਈਪ ਨਹੀਂ ਕੀਤੀ\" ਵਜੋਂ ਦਿਖਣਗੀਆਂ. ਇਹ ਵਾਪਸ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esto borrará todos los registros de deslizamiento. Todas las fotos volverán a aparecer como \"Aún no deslizada\". No se puede deshacer."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cela effacera tous les enregistrements de balayage. Toutes les photos réapparaîtront comme \"Pas encore balayée\". Cette action est irréversible."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dies löscht alle Wisch-Einträge. Alle Fotos erscheinen wieder als \"Noch nicht gewischt\". Das kann nicht rückgängig gemacht werden."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Isso limpará todos os registros de deslizes. Todas as fotos aparecerão como \"Ainda não avaliada\" novamente. Não é possível desfazer."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Questo cancellerà tutti i record degli scorrimenti. Tutte le foto appariranno di nuovo come \"Non ancora scorrite\". Non può essere annullato."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "すべてのスワイプ記録を消去します。すべての写真が再び「未スワイプ」として表示されます。この操作は取り消せません。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모든 스와이프 기록이 지워집니다. 모든 사진이 다시 \"아직 스와이프 안 함\"으로 표시됩니다. 이 작업은 되돌릴 수 없습니다."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这将清除所有滑动记录。所有照片都会再次显示为“尚未滑动”。此操作无法撤销。"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Это очистит все записи свайпов. Все фото снова будут показаны как «Не просмотрено». Действие нельзя отменить."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "سيؤدي هذا إلى مسح كل سجلات السحب. ستظهر كل الصور مرة أخرى كـ «لم يتم السحب بعد». لا يمكن التراجع عن هذا."
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "פעולה זו תנקה את כל רשומות ההחלקה. כל התמונות יופיעו שוב כ\"טרם הוחלק\". לא ניתן לבטל פעולה זו."
           }
         }
       }
@@ -126901,132 +127941,132 @@
         }
       }
     },
-    "You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe history in Settings.": {
+    "You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe sessions in Settings.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe history in Settings."
+            "value": "You've already swiped through all your photos. Try \"All Media\" to review again, or reset swipe sessions in Settings."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आप अपनी सभी फ़ोटो स्वाइप कर चुके हैं. फिर से समीक्षा करने के लिए \"सभी मीडिया\" आज़माएँ, या सेटिंग्स में स्वाइप इतिहास रीसेट करें."
+            "value": "आप अपनी सभी फ़ोटो स्वाइप कर चुके हैं. फिर से समीक्षा करने के लिए \"सभी मीडिया\" आज़माएँ, या सेटिंग्स में स्वाइप सेशन रीसेट करें."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনি আপনার সব ফটো সোয়াইপ করে ফেলেছেন. আবার দেখতে \"সব মিডিয়া\" চেষ্টা করুন, বা সেটিংসে সোয়াইপ ইতিহাস রিসেট করুন."
+            "value": "আপনি আপনার সব ফটো সোয়াইপ করে ফেলেছেন. আবার দেখতে \"সব মিডিয়া\" চেষ্টা করুন, বা সেটিংসে সোয়াইপ সেশন রিসেট করুন."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "உங்கள் எல்லா புகைப்படங்களையும் ஏற்கனவே ஸ்வைப் செய்துவிட்டீர்கள். மீண்டும் பார்க்க \"எல்லா மீடியாவும்\" என்பதை முயற்சிக்கவும், அல்லது அமைப்புகளில் ஸ்வைப் வரலாற்றை மீட்டமைக்கவும்."
+            "value": "உங்கள் எல்லா புகைப்படங்களையும் ஏற்கனவே ஸ்வைப் செய்துவிட்டீர்கள். மீண்டும் பார்க்க \"எல்லா மீடியாவும்\" என்பதை முயற்சிக்கவும், அல்லது அமைப்புகளில் ஸ்வைப் அமர்வுகளை மீட்டமைக்கவும்."
           }
         },
         "te": {
           "stringUnit": {
             "state": "translated",
-            "value": "మీరు మీ అన్ని ఫోటోలను ఇప్పటికే స్వైప్ చేశారు. మళ్లీ సమీక్షించడానికి \"మొత్తం మీడియా\" ప్రయత్నించండి, లేదా సెట్టింగ్లలో స్వైప్ చరిత్రను రీసెట్ చేయండి."
+            "value": "మీరు మీ అన్ని ఫోటోలను ఇప్పటికే స్వైప్ చేశారు. మళ్లీ సమీక్షించడానికి \"మొత్తం మీడియా\" ప్రయత్నించండి, లేదా సెట్టింగ్‌లలో స్వైప్ సెషన్‌లను రీసెట్ చేయండి."
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "तुम्ही आधीच सर्व फोटो स्वाइप केले आहेत. पुन्हा पुनरावलोकनासाठी \"सर्व मीडिया\" वापरून पहा, किंवा सेटिंग्जमध्ये स्वाइप इतिहास रीसेट करा."
+            "value": "तुम्ही आधीच सर्व फोटो स्वाइप केले आहेत. पुन्हा पुनरावलोकनासाठी \"सर्व मीडिया\" वापरून पहा, किंवा सेटिंग्जमध्ये स्वाइप सत्रे रीसेट करा."
           }
         },
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "તમે પહેલેથી જ બધા ફોટા સ્વાઇપ કરી લીધા છે. ફરી સમીક્ષા કરવા \"બધું મીડિયા\" અજમાવો, અથવા સેટિંગ્સમાં સ્વાઇપ ઇતિહાસ રીસેટ કરો."
+            "value": "તમે પહેલેથી જ બધા ફોટા સ્વાઇપ કરી લીધા છે. ફરી સમીક્ષા કરવા \"બધું મીડિયા\" અજમાવો, અથવા સેટિંગ્સમાં સ્વાઇપ સત્રો રીસેટ કરો."
           }
         },
         "kn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ನೀವು ಈಗಾಗಲೇ ಎಲ್ಲಾ ಫೋಟೋಗಳನ್ನು ಸ್ವೈಪ್ ಮಾಡಿದ್ದೀರಿ. ಮತ್ತೆ ಪರಿಶೀಲಿಸಲು \"ಎಲ್ಲಾ ಮೀಡಿಯಾ\" ಪ್ರಯತ್ನಿಸಿ, ಅಥವಾ ಸೆಟ್ಟಿಂಗ್ಗಳಲ್ಲಿ ಸ್ವೈಪ್ ಇತಿಹಾಸ ಮರುಹೊಂದಿಸಿ."
+            "value": "ನೀವು ಈಗಾಗಲೇ ಎಲ್ಲಾ ಫೋಟೋಗಳನ್ನು ಸ್ವೈಪ್ ಮಾಡಿದ್ದೀರಿ. ಮತ್ತೆ ಪರಿಶೀಲಿಸಲು \"ಎಲ್ಲಾ ಮೀಡಿಯಾ\" ಪ್ರಯತ್ನಿಸಿ, ಅಥವಾ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಸ್ವೈಪ್ ಸೆಷನ್‌ಗಳನ್ನು ಮರುಹೊಂದಿಸಿ."
           }
         },
         "ml": {
           "stringUnit": {
             "state": "translated",
-            "value": "നിങ്ങൾ ഇതിനകം എല്ലാ ഫോട്ടോകളും സ്വൈപ്പ് ചെയ്തു. വീണ്ടും പരിശോധിക്കാൻ \"എല്ലാ മീഡിയയും\" പരീക്ഷിക്കുക, അല്ലെങ്കിൽ സെറ്റിംഗ്സിൽ സ്വൈപ്പ് ചരിത്രം റീസെറ്റ് ചെയ്യുക."
+            "value": "നിങ്ങൾ ഇതിനകം എല്ലാ ഫോട്ടോകളും സ്വൈപ്പ് ചെയ്തു. വീണ്ടും പരിശോധിക്കാൻ \"എല്ലാ മീഡിയയും\" പരീക്ഷിക്കുക, അല്ലെങ്കിൽ സെറ്റിംഗ്സിൽ സ്വൈപ്പ് സെഷനുകൾ റീസെറ്റ് ചെയ്യുക."
           }
         },
         "pa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ਤੁਸੀਂ ਪਹਿਲਾਂ ਹੀ ਸਾਰੀਆਂ ਫ਼ੋਟੋਆਂ ਸਵਾਈਪ ਕਰ ਚੁੱਕੇ ਹੋ. ਦੁਬਾਰਾ ਸਮੀਖਿਆ ਲਈ \"ਸਾਰਾ ਮੀਡੀਆ\" ਅਜ਼ਮਾਓ, ਜਾਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਸਵਾਈਪ ਇਤਿਹਾਸ ਰੀਸੈਟ ਕਰੋ."
+            "value": "ਤੁਸੀਂ ਪਹਿਲਾਂ ਹੀ ਸਾਰੀਆਂ ਫ਼ੋਟੋਆਂ ਸਵਾਈਪ ਕਰ ਚੁੱਕੇ ਹੋ. ਦੁਬਾਰਾ ਸਮੀਖਿਆ ਲਈ \"ਸਾਰਾ ਮੀਡੀਆ\" ਅਜ਼ਮਾਓ, ਜਾਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਸਵਾਈਪ ਸੈਸ਼ਨ ਰੀਸੈਟ ਕਰੋ."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ya has deslizado por todas tus fotos. Prueba \"Todos los elementos\" para revisarlas de nuevo o restablece el historial de deslizamientos en Ajustes."
+            "value": "Ya has deslizado por todas tus fotos. Prueba \"Todos los elementos\" para revisarlas de nuevo o restablece las sesiones de deslizamiento en Ajustes."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vous avez déjà balayé toutes vos photos. Essayez \"Tous les éléments\" pour les revoir, ou réinitialisez l'historique des balayages dans Réglages."
+            "value": "Vous avez déjà balayé toutes vos photos. Essayez \"Tous les éléments\" pour les revoir, ou réinitialisez les sessions de balayage dans Réglages."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du hast bereits alle Fotos durchgewischt. Versuche \"Alle Medien\", um sie erneut zu prüfen, oder setze den Wischverlauf in Einstellungen zurück."
+            "value": "Du hast bereits alle Fotos durchgewischt. Versuche \"Alle Medien\", um sie erneut zu prüfen, oder setze die Wischsitzungen in Einstellungen zurück."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Você já deslizou por todas as suas fotos. Tente \"Todas as mídias\" para revisar de novo ou redefina o histórico de deslizes em Ajustes."
+            "value": "Você já deslizou por todas as suas fotos. Tente \"Todas as mídias\" para revisar de novo ou redefina as sessões de deslizes em Ajustes."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hai già scorso tutte le tue foto. Prova \"Tutti i contenuti\" per esaminarle di nuovo o reimposta la cronologia degli scorrimenti in Impostazioni."
+            "value": "Hai già scorso tutte le tue foto. Prova \"Tutti i contenuti\" per esaminarle di nuovo o reimposta le sessioni di scorrimento in Impostazioni."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "すべての写真をスワイプ済みです。もう一度確認するには「すべてのメディア」を試すか、設定でスワイプ履歴をリセットしてください。"
+            "value": "すべての写真をスワイプ済みです。もう一度確認するには「すべてのメディア」を試すか、設定でスワイプセッションをリセットしてください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "모든 사진을 이미 스와이프했습니다. 다시 검토하려면 \"모든 미디어\"를 사용하거나 설정에서 스와이프 기록을 재설정하세요."
+            "value": "모든 사진을 이미 스와이프했습니다. 다시 검토하려면 \"모든 미디어\"를 사용하거나 설정에서 스와이프 세션을 재설정하세요."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你已经滑动浏览完所有照片。可尝试“所有媒体”再次查看，或在“设置”中重置滑动记录。"
+            "value": "你已经滑动浏览完所有照片。可尝试“所有媒体”再次查看，或在“设置”中重置滑动会话。"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вы уже просмотрели все фото свайпами. Попробуйте «Все медиафайлы», чтобы просмотреть снова, или сбросьте историю свайпов в «Настройках»."
+            "value": "Вы уже просмотрели все фото свайпами. Попробуйте «Все медиафайлы», чтобы просмотреть снова, или сбросьте сеансы свайпов в «Настройках»."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لقد سحبت عبر كل صورك بالفعل. جرّب «كل الوسائط» للمراجعة مرة أخرى، أو أعد تعيين سجل السحب في «الإعدادات»."
+            "value": "لقد سحبت عبر كل صورك بالفعل. جرّب «كل الوسائط» للمراجعة مرة أخرى، أو أعد تعيين جلسات السحب في «الإعدادات»."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "כבר החלקת על כל התמונות שלך. נסה את \"כל המדיה\" כדי לסקור שוב, או אפס את היסטוריית ההחלקות בהגדרות."
+            "value": "כבר החלקת על כל התמונות שלך. נסה את \"כל המדיה\" כדי לסקור שוב, או אפס את הפעלות ההחלקה בהגדרות."
           }
         }
       }

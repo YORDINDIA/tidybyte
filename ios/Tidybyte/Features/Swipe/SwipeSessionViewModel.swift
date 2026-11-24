@@ -93,6 +93,36 @@ final class SwipeSessionViewModel {
         !pendingDeletionIds.isEmpty
     }
 
+    /// The user chose "Keep for Later": the marks stay saved with the deck, so
+    /// leaving no longer needs a Delete or Keep All Items decision.
+    private(set) var marksSavedForLater = false
+
+    /// True when leaving would need the user to decide on the marked photos.
+    /// A saved deck keeps its marks across quits, so "Keep for Later" ends the
+    /// need; an unsaved deck (no `deckKey`) would lose them.
+    var needsDeletionDecision: Bool {
+        hasPendingDeletions && !(marksSavedForLater && deckKey != nil)
+    }
+
+    func keepMarksForLater() {
+        marksSavedForLater = true
+    }
+
+    /// Every photo in this saved deck has a decision. Reopening shows the
+    /// finished state with Start Over instead of the cards.
+    private(set) var deckFinished = false
+
+    /// A saved deck with nothing left to swipe, that Start Over can refill.
+    /// Not Swiped Yet and Largest First hide photos by the app-wide swipe
+    /// history, which only Settings resets.
+    var canStartOver: Bool {
+        guard deckKey != nil, filter != .notSwipedYet, filter != .largestFirst else { return false }
+        return deckFinished || (!assets.isEmpty && !hasMoreCards)
+    }
+    /// Marks are read back from the store once per session; later loads keep
+    /// the in-memory list, which the store mirrors.
+    private var restoredSavedMarks = false
+
     /// Set when an external launch (deep link / widget / intent) asked for a new
     /// session while this one still held uncommitted deletions. SwipeSessionView
     /// observes it and pushes the completion review instead of tearing the
@@ -157,6 +187,8 @@ final class SwipeSessionViewModel {
     /// Complete summaries for deck ids. Reads PhotoKit; replaced in tests.
     var loadDetails: @Sendable ([String]) -> [String: AssetSummary]
     let filter: SwipeFilter
+    /// The saved deck this session reads and writes. Nil: memory only.
+    let deckKey: String?
     let photoService: PhotoLibraryService
     let modelContext: ModelContext
 
@@ -176,8 +208,9 @@ final class SwipeSessionViewModel {
         return Array(assets[start..<end])
     }
 
-    init(filter: SwipeFilter, photoService: PhotoLibraryService, modelContext: ModelContext) {
+    init(filter: SwipeFilter, deckKey: String? = nil, photoService: PhotoLibraryService, modelContext: ModelContext) {
         self.filter = filter
+        self.deckKey = deckKey
         self.photoService = photoService
         self.modelContext = modelContext
         self.loadDetails = { [photoService] ids in photoService.fetchSummaries(for: ids) }
@@ -273,7 +306,19 @@ final class SwipeSessionViewModel {
             deck = Self.collapsingBursts(fetched)
         }
         guard !Task.isCancelled, token == loadGeneration else { return }
-        var listed = Self.deckAssets(deck, excludingPending: pendingDeletionIds)
+        // A saved deck resumes: photos it already decided stay out, and its
+        // delete marks come back as pending.
+        var undecided = deck
+        if let deckKey {
+            let saved = SwipeDeckStore.decisions(deckKey: deckKey, context: modelContext)
+            if !restoredSavedMarks {
+                await restoreSavedMarks(saved)
+                guard !Task.isCancelled, token == loadGeneration else { return }
+            }
+            undecided = Self.undecidedDeck(deck, decided: Set(saved.map(\.assetLocalIdentifier)))
+            deckFinished = !deck.isEmpty && undecided.isEmpty
+        }
+        var listed = Self.deckAssets(undecided, excludingPending: pendingDeletionIds)
         // Only ask PhotoKit for a census when the deck came out empty: on a deck
         // with cards the answer cannot change anything, and the count is a real
         // fetch. This is the one place that can tell "no photos left to review"
@@ -322,6 +367,69 @@ final class SwipeSessionViewModel {
     func cancelLoading() {
         loadGeneration += 1
         isLoading = false
+    }
+
+    /// The deck without the photos this saved deck already decided.
+    nonisolated static func undecidedDeck(_ deck: [AssetSummary], decided: Set<String>) -> [AssetSummary] {
+        guard !decided.isEmpty else { return deck }
+        return deck.filter { !decided.contains($0.id) }
+    }
+
+    /// Puts the deck's saved delete marks back on the pending list and rebuilds
+    /// the tally. A marked photo that is gone from the library is dropped.
+    private func restoreSavedMarks(_ saved: [SwipeDeckEntry]) async {
+        restoredSavedMarks = true
+        guard deckKey != nil else { return }
+        let markedIds = saved.filter { $0.deckDecision == .marked }.map(\.assetLocalIdentifier)
+        let summaries = markedIds.isEmpty ? [:] : await fetchDetails(for: markedIds)
+        // A missing summary means deleted only when the whole library is
+        // readable: limited access hides photos that still exist.
+        if CompressionJournal.canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite)) {
+            SwipeDeckStore.removeEverywhere(assetIds: Set(markedIds).subtracting(summaries.keys), context: modelContext)
+        }
+        for id in markedIds where !pendingDeletionIds.contains(id) {
+            guard let summary = summaries[id] else { continue }
+            pendingDeletionIds.append(id)
+            pendingDeletionSizeById[id] = summary.fileSize
+            pendingDeletionAssetById[id] = summary
+        }
+        let counts = saved.reduce(into: [SwipeDeckDecision: Int]()) { counts, entry in
+            if let kind = entry.deckDecision { counts[kind, default: 0] += 1 }
+        }
+        sessionStats.deletedCount = pendingDeletionIds.count
+        sessionStats.deletedBytes = pendingDeletionBytes
+        sessionStats.keptCount = counts[.keep] ?? 0
+        sessionStats.organizedCount = counts[.album] ?? 0
+        sessionStats.skippedCount = counts[.skip] ?? 0
+    }
+
+    /// Writes one decision to the saved deck. No-op for an unsaved deck.
+    private func remember(_ decision: SwipeDeckDecision, _ assetId: String) {
+        guard let deckKey else { return }
+        if !SwipeDeckStore.record(decision, assetId: assetId, deckKey: deckKey, context: modelContext) {
+            errorMessage = L10n.string("Couldn't save your changes. Please try again.")
+        }
+    }
+
+    /// Drops decisions from the saved deck (undo, unmark).
+    private func forget(_ assetIds: Set<String>) {
+        guard let deckKey else { return }
+        if !SwipeDeckStore.remove(assetIds: assetIds, deckKey: deckKey, context: modelContext) {
+            errorMessage = L10n.string("Couldn't save your changes. Please try again.")
+        }
+    }
+
+    /// "Start Over" on a finished deck: its keep, skip and album decisions go,
+    /// so every photo shows again. Delete marks stay until the user decides.
+    func startOver() async {
+        guard let deckKey else { return }
+        SwipeDeckStore.remove([.keep, .skip, .album], deckKey: deckKey, context: modelContext)
+        sessionStats.keptCount = 0
+        sessionStats.organizedCount = 0
+        sessionStats.skippedCount = 0
+        deckFinished = false
+        retryLoad()
+        await loadAssetsIfNeeded()
     }
 
     nonisolated static func isWorstShotCandidate(_ asset: AssetSummary) -> Bool {
@@ -379,6 +487,7 @@ final class SwipeSessionViewModel {
     /// Removes the given IDs from the pending deletion batch without marking them as skipped.
     func applyDeletionReview(keeping keptIds: Set<String>) {
         guard !keptIds.isEmpty else { return }
+        forget(keptIds)
         for id in keptIds {
             guard let removedSize = pendingDeletionSizeById.removeValue(forKey: id) else { continue }
             pendingDeletionAssetById.removeValue(forKey: id)
@@ -445,10 +554,11 @@ final class SwipeSessionViewModel {
 
     func swipeLeft() {
         guard let asset = currentAsset, !isPerformingMutation else { return }
-        // Deletions are deferred and only persisted/committed at session end. We
-        // intentionally do NOT write a SwipeRecord here: if the user exits without
-        // committing, the photo was never deleted and must reappear next session
-        // rather than being silently hidden by the "Not Swiped Yet" filter.
+        // Deletions are deferred and only committed when the user confirms. We
+        // intentionally do NOT write a SwipeRecord here: if the user discards the
+        // mark, the photo was never deleted and must reappear next session rather
+        // than being silently hidden by the "Not Swiped Yet" filter. The saved
+        // deck keeps the mark itself (`remember(.marked, ...)`).
         if !pendingDeletionIds.contains(asset.id) {
             pendingDeletionIds.append(asset.id)
             pendingDeletionSizeById[asset.id] = asset.fileSize
@@ -456,6 +566,8 @@ final class SwipeSessionViewModel {
             sessionStats.deletedCount += 1
             sessionStats.deletedBytes += asset.fileSize
             undoStack.append(SwipeUndoEntry(asset: asset, decision: .deleted, albumId: nil))
+            remember(.marked, asset.id)
+            marksSavedForLater = false
         }
         advance()
     }
@@ -470,6 +582,7 @@ final class SwipeSessionViewModel {
         sessionStats.keptCount += 1
         undoStack.append(SwipeUndoEntry(asset: asset, decision: .kept, albumId: nil))
         upsertSwipeRecord(asset: asset, decision: .kept)
+        remember(.keep, asset.id)
         advance()
     }
 
@@ -503,6 +616,7 @@ final class SwipeSessionViewModel {
             sessionStats.organizedCount += 1
             undoStack.append(SwipeUndoEntry(asset: asset, decision: .addedToAlbum, albumId: albumId))
             upsertSwipeRecord(asset: asset, decision: .addedToAlbum, albumId: albumId)
+            remember(.album, asset.id)
             pendingKeepAsset = nil
             showAlbumPicker = false
             advance()
@@ -531,6 +645,7 @@ final class SwipeSessionViewModel {
         sessionStats.keptCount += 1
         undoStack.append(SwipeUndoEntry(asset: asset, decision: .kept, albumId: nil))
         upsertSwipeRecord(asset: asset, decision: .kept)
+        remember(.keep, asset.id)
         pendingKeepAsset = nil
         showAlbumPicker = false
         advance()
@@ -542,6 +657,7 @@ final class SwipeSessionViewModel {
         sessionStats.skippedCount += 1
         undoStack.append(SwipeUndoEntry(asset: asset, decision: .skipped, albumId: nil))
         upsertSwipeRecord(asset: asset, decision: .skipped)
+        remember(.skip, asset.id)
         advance()
     }
 
@@ -565,6 +681,7 @@ final class SwipeSessionViewModel {
             unmarkPendingDeletion(entry.asset)
             currentIndex = max(0, currentIndex - 1)
             // No SwipeRecord was written for a pending deletion, so nothing to remove.
+            forget([entry.asset.id])
         case .addedToAlbum:
             guard let albumId = entry.albumId else { return }
             isPerformingMutation = true
@@ -575,6 +692,7 @@ final class SwipeSessionViewModel {
                 sessionStats.organizedCount = max(0, sessionStats.organizedCount - 1)
                 currentIndex = max(0, currentIndex - 1)
                 deleteSwipeRecord(for: entry.asset.id)
+                forget([entry.asset.id])
             } catch {
                 errorMessage = L10n.format("Failed to undo album change: %@", error.localizedDescription)
             }
@@ -583,15 +701,23 @@ final class SwipeSessionViewModel {
             sessionStats.skippedCount = max(0, sessionStats.skippedCount - 1)
             currentIndex = max(0, currentIndex - 1)
             deleteSwipeRecord(for: entry.asset.id)
+            forget([entry.asset.id])
         case .kept:
             undoStack.removeLast()
             sessionStats.keptCount = max(0, sessionStats.keptCount - 1)
             currentIndex = max(0, currentIndex - 1)
             deleteSwipeRecord(for: entry.asset.id)
+            forget([entry.asset.id])
         }
     }
 
     func commitDeletions() async {
+        // A saved deck's marks can change in another deck while this one waits:
+        // a keep there clears the mark here. Delete only what is still marked.
+        if let deckKey {
+            let stillMarked = SwipeDeckStore.markedIds(deckKey: deckKey, context: modelContext)
+            applyDeletionReview(keeping: Set(pendingDeletionIds).subtracting(stillMarked))
+        }
         guard !pendingDeletionIds.isEmpty, !isDeletingBatch else { return }
         isDeletingBatch = true
         // Sizes come from the in-memory session assets (no re-fetch): only ids
@@ -664,6 +790,10 @@ final class SwipeSessionViewModel {
         } catch {
             deletionErrorMessage = Self.deletionFailureMessage(count: pendingDeletionIds.count, error: error)
         }
+        // Deleted photos leave every saved deck; the rest stay marked.
+        if deckKey != nil {
+            SwipeDeckStore.removeEverywhere(assetIds: requestedIds.subtracting(pendingDeletionIds), context: modelContext)
+        }
         isDeletingBatch = false
     }
 
@@ -680,11 +810,12 @@ final class SwipeSessionViewModel {
     }
 
     func discardPendingDeletions() {
-        // Pending deletions were never persisted, so there are no swipe records to
-        // remove — just clear the in-memory state. Deletions the library already
-        // confirmed stay in the stats; only the optimistic pending tally goes.
+        // Pending deletions have no swipe records, only the saved deck's marks,
+        // which go with them. Deletions the library already confirmed stay in
+        // the stats; only the optimistic pending tally goes.
         sessionStats.deletedCount = committedDeletionCount
         sessionStats.deletedBytes = committedDeletionBytes
+        forget(Set(pendingDeletionIds))
         pendingDeletionIds.removeAll()
         pendingDeletionSizeById.removeAll()
         pendingDeletionAssetById.removeAll()

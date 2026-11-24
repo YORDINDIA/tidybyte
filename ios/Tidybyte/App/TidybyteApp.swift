@@ -53,6 +53,7 @@ struct TidybyteApp: App {
     private static func makeModelContainer() -> ModelContainer? {
         let schema = Schema([
             SwipeRecord.self,
+            SwipeDeckEntry.self,
             CompressionRecord.self,
             StorageSnapshot.self,
             CleanupActivityRecord.self
