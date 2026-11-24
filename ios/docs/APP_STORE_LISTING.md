@@ -1,11 +1,11 @@
 # App Store Connect Listing — TidyByte
 
-> **Status (2026-11-24):** 1.3.0 (build 13) is live. 1.4.0 (build 15) is the
-> next release; its copy is below and in `docs/appstore/listings.json`.
-> When App Review approves 1.4.0, set `IOS_VERSION` and `IOS_BUILD` in
-> `website/src/data/releases.ts`, add a 1.4.0 entry to
-> `website/src/content/pages/changelog.html`, and move the "Latest iPhone
-> release" badge to it.
+> **Status (2026-11-24):** 1.3.0 (build 13) is live. 1.4.0 (build 15) is in
+> App Review and releases automatically on approval; its copy is below and in
+> `docs/appstore/listings.json`. The website already shows 1.4.0
+> (`website/src/data/releases.ts`) and has its changelog entry with the
+> "Latest iPhone release" badge. If App Review rejects 1.4.0, set the site
+> back to 1.3.0 (build 13) and move the badge back.
 > The site's `/changelog` is the canonical version history.
 
 Paste-ready copy for App Store Connect. Char-count annotations are inline. Anything marked **TODO** needs a human decision before submission.
