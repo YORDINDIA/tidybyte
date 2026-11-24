@@ -118,40 +118,56 @@ final class TextPhotosViewModel {
 
     // MARK: - Saved scan
 
-    struct SavedScan: Codable {
+    /// One saved result. The summary is read again from the library on restore.
+    struct SavedPhoto: Codable, Sendable {
+        let characterCount: Int
+        /// A photo edited since the scan is not restored: its text may differ.
+        let modified: Date?
+    }
+
+    struct SavedScan: Codable, Sendable {
         let scannedAt: Date
         let age: TextPhotoAge
-        /// Id → recognized characters. The summary is read again on restore.
-        let characterCounts: [String: Int]
+        let photos: [String: SavedPhoto]
     }
 
     private func saveScan() {
-        let counts = Dictionary(photos.map { ($0.id, $0.characterCount) }, uniquingKeysWith: { first, _ in first })
-        SavedScanStore.save(SavedScan(scannedAt: scannedAt, age: age, characterCounts: counts), name: Self.savedName)
+        let saved = Dictionary(
+            photos.map { ($0.id, SavedPhoto(characterCount: $0.characterCount, modified: $0.asset.modificationDate)) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        SavedScanStore.save(SavedScan(scannedAt: scannedAt, age: age, photos: saved), name: Self.savedName)
     }
 
-    /// Shows the last saved scan when nothing is on screen. Photos deleted since
-    /// drop out, and so do picks that are no longer listed.
+    /// Shows the last saved scan when nothing is on screen. Photos deleted or
+    /// edited since drop out, and so do photos the tool now excludes (a new
+    /// favorite) and picks that are no longer listed.
     func restoreSavedScan() async {
-        guard scanState == .idle, photos.isEmpty,
-              let saved = SavedScanStore.load(SavedScan.self, name: Self.savedName) else { return }
-        let counts = saved.payload.characterCounts
-        let summaries = await SavedScanStore.summaries(for: Array(counts.keys))
-        // A scan the user started meanwhile wins.
-        guard scanState == .idle, photos.isEmpty else { return }
-        let restored = counts.compactMap { id, count in
-            summaries[id].map { TextPhoto(id: id, asset: $0, characterCount: count) }
+        guard scanState == .idle, photos.isEmpty, SavedScanStore.canTrustLibrary(),
+              let saved = await SavedScanStore.load(SavedScan.self, name: Self.savedName) else { return }
+        let epoch = ScanResults.epoch
+        let summaries = await SavedScanStore.summaries(for: Array(saved.payload.photos.keys))
+        let picks = await SavedScanStore.selection(name: Self.savedName)
+        // The user left, or started a scan meanwhile: that wins.
+        guard !Task.isCancelled, scanState == .idle, photos.isEmpty else { return }
+        let now = Date()
+        let cutoff = TextPhotoPolicy.scanAge.cutoff(from: now)
+        let restored = saved.payload.photos.compactMap { id, photo -> TextPhoto? in
+            guard let asset = summaries[id], asset.modificationDate == photo.modified,
+                  TextPhotoPolicy.isCandidate(asset, cutoff: cutoff) else { return nil }
+            return TextPhoto(id: id, asset: asset, characterCount: photo.characterCount)
         }
         guard !restored.isEmpty else { return }
-        let picks = SavedScanStore.selection(name: Self.savedName)
         // Ages compare against today: the photos kept aging since the scan.
-        scanDate = Date()
+        scanDate = now
         scannedAt = saved.payload.scannedAt
         savedScanDate = saved.payload.scannedAt
         age = saved.payload.age
         scanState = .completed
         photos = restored
         selectedIds = picks.intersection(visiblePhotos.map(\.id))
+        // The library changed while the summaries loaded: drop what it removed.
+        if epoch != ScanResults.epoch { await pruneDeleted() }
     }
 
     func startScan() {

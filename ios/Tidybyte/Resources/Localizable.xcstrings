@@ -34902,7 +34902,7 @@
         "gu": {
           "stringUnit": {
             "state": "translated",
-            "value": "ક્લીનઅપ ટૂલ્સ છેલ્લા સ્કેનના પરિણામો અને પસંદ કરેલી આઇટમ ભૂલી જશે, અને આગલી વખતે ફરી સ્કેન કરશે. કોઈ ફોટો ડિલીટ નહીં થાય."
+            "value": "ક્લીનઅપ ટૂલ્સ છેલ્લા સ્કેનના પરિણામો અને પસંદ કરેલી આઇટમો ભૂલી જશે, અને આગલી વખતે ફરી સ્કેન કરશે. કોઈ ફોટો ડિલીટ નહીં થાય."
           }
         },
         "kn": {
@@ -64936,7 +64936,7 @@
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "शेवटचा स्कॅन: %@"
+            "value": "शेवटचे स्कॅन: %@"
           }
         },
         "gu": {
@@ -64984,13 +64984,13 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Última varredura: %@"
+            "value": "Última análise: %@"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ultima scansione: %@"
+            "value": "Ultima analisi: %@"
           }
         },
         "ja": {

@@ -236,7 +236,7 @@ final class SimilarPhotosViewModel {
     // MARK: - Saved scan
 
     /// One saved group. The summaries are read again from the library on restore.
-    struct SavedGroup: Codable {
+    struct SavedGroup: Codable, Sendable {
         let id: String
         let assetIds: [String]
         let bestAssetId: String
@@ -244,7 +244,7 @@ final class SimilarPhotosViewModel {
         let bestReason: BestReason
     }
 
-    struct SavedScan: Codable {
+    struct SavedScan: Codable, Sendable {
         let scannedAt: Date
         let groups: [SavedGroup]
     }
@@ -262,29 +262,38 @@ final class SimilarPhotosViewModel {
 
     /// Shows the last saved scan when nothing is on screen. Photos deleted since
     /// drop out, a group left with one photo goes, and picks that are no longer
-    /// listed are dropped. The saved picks are used as they are: no suggestion
-    /// runs over them.
+    /// listed are dropped. The saved picks are used as they are (no suggestion
+    /// runs over them), except that a keeper is never checked.
     func restoreSavedScan(timeWindow: Double) async {
-        guard scanState == .idle, groups.isEmpty,
-              let saved = SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: Self.stamp(timeWindow)) else { return }
+        guard scanState == .idle, groups.isEmpty, SavedScanStore.canTrustLibrary(),
+              let saved = await SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: Self.stamp(timeWindow)) else { return }
+        let epoch = ScanResults.epoch
         let summaries = await SavedScanStore.summaries(for: saved.payload.groups.flatMap(\.assetIds))
-        // A scan the user started meanwhile wins.
-        guard scanState == .idle, groups.isEmpty else { return }
+        let picks = await SavedScanStore.selection(name: Self.savedName)
+        // The user left, or started a scan meanwhile: that wins.
+        guard !Task.isCancelled, scanState == .idle, groups.isEmpty else { return }
         let restored: [SimilarGroup] = saved.payload.groups.compactMap { group in
             let assets = group.assetIds.compactMap { summaries[$0] }
             guard assets.count >= 2 else { return nil }
-            let best = assets.contains { $0.id == group.bestAssetId } ? group.bestAssetId : assets[0].id
-            return SimilarGroup(id: group.id, assets: assets, bestAssetId: best,
-                                qualityScores: group.qualityScores, bestReason: group.bestReason)
+            // The saved keeper is gone: the first photo stands in, without the
+            // old keeper's reason.
+            let keeperStays = assets.contains { $0.id == group.bestAssetId }
+            return SimilarGroup(id: group.id, assets: assets,
+                                bestAssetId: keeperStays ? group.bestAssetId : assets[0].id,
+                                qualityScores: group.qualityScores,
+                                bestReason: keeperStays ? group.bestReason : .bestOverall)
         }
         guard !restored.isEmpty else { return }
-        let picks = SavedScanStore.selection(name: Self.savedName)
         scannedAt = saved.payload.scannedAt
         savedScanDate = saved.payload.scannedAt
         scanTimeWindow = timeWindow
         scanState = .completed
         groups = restored
-        selectedForDeletion = picks.intersection(restored.flatMap { $0.assets.map(\.id) })
+        selectedForDeletion = picks
+            .intersection(restored.flatMap { $0.assets.map(\.id) })
+            .subtracting(restored.map(\.bestAssetId))
+        // The library changed while the summaries loaded: drop what it removed.
+        if epoch != ScanResults.epoch { await pruneDeleted() }
     }
 
     // MARK: - Scan lifecycle (DUP-02/C1)

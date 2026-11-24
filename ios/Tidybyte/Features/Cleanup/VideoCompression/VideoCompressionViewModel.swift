@@ -87,8 +87,13 @@ final class VideoCompressionViewModel {
         isLoading = true
         errorMessage = nil
         videos = await candidateVideos(presets: [:], modelContext: modelContext)
-        // The first load after a launch brings back the saved picks still listed.
-        if !hasLoadedVideos { selectedIds = SavedScanStore.selection(name: Self.savedName).intersection(videos.map(\.id)) }
+        // The first load after a launch brings back the saved picks still listed,
+        // and saves them back pruned.
+        if !hasLoadedVideos {
+            selectedIds = await SavedScanStore.selection(name: Self.savedName).intersection(videos.map(\.id))
+            hasLoadedVideos = true
+            SavedScanStore.saveSelection(selectedIds, name: Self.savedName)
+        }
         hasLoadedVideos = true
         isLoading = false
     }

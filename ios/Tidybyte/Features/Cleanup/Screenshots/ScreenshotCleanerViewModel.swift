@@ -143,9 +143,11 @@ final class ScreenshotCleanerViewModel {
         // C15: a cancelled fetch must not publish results or clear state —
         // previously Cancel was cosmetic for this tool.
         guard !Task.isCancelled else { return }
-        screenshots = fetched
         // The first load after a launch brings back the saved picks.
-        if !hasLoadedScreenshots { selectedIds = SavedScanStore.selection(name: Self.savedName) }
+        let savedPicks = hasLoadedScreenshots ? nil : await SavedScanStore.selection(name: Self.savedName)
+        guard !Task.isCancelled else { return }
+        screenshots = fetched
+        if let savedPicks { selectedIds = savedPicks }
         selectedIds.formIntersection(Set(fetched.map(\.id)))
         // A library change that landed mid-fetch: the snapshot above
         // predates it, so prune now that publishing can't overwrite it.
@@ -158,6 +160,8 @@ final class ScreenshotCleanerViewModel {
             await pruneNow()
         }
         hasLoadedScreenshots = true
+        // Keep the saved picks in step with the ones that survived.
+        if savedPicks != nil { SavedScanStore.saveSelection(selectedIds, name: Self.savedName) }
         if showsLoading { isLoading = false }
     }
 

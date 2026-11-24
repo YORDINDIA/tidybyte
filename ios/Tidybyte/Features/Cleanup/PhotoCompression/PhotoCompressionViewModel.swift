@@ -165,8 +165,13 @@ final class PhotoCompressionViewModel {
         allPhotoAssets = await photoService.fetchAllPhotos(sortByCreationDate: false)
         eligibleCount = PhotoCompressionPolicy.candidates(from: allPhotoAssets, excluding: compressedCopyIds, showAll: true).count
         applyFilter()
-        // The first load after a launch brings back the saved picks still listed.
-        if !hasLoadedPhotos { selectedIds = SavedScanStore.selection(name: Self.savedName).intersection(photos.map(\.id)) }
+        // The first load after a launch brings back the saved picks still listed,
+        // and saves them back pruned.
+        if !hasLoadedPhotos {
+            selectedIds = await SavedScanStore.selection(name: Self.savedName).intersection(photos.map(\.id))
+            hasLoadedPhotos = true
+            SavedScanStore.saveSelection(selectedIds, name: Self.savedName)
+        }
         hasLoadedPhotos = true
     }
 

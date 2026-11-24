@@ -1,4 +1,5 @@
 import Foundation
+import Photos
 
 /// Keeps a Cleanup tool's last scan and its checked items on disk, so both
 /// survive a quit. One JSON file per name in Application Support (iOS may purge
@@ -8,6 +9,9 @@ import Foundation
 /// sensitivity). A load with a different stamp, or from an older file format,
 /// returns nil, so a tool never shows results its current settings would not
 /// produce.
+///
+/// Encoding, writing and reading run on one serial queue, off the main thread
+/// and in call order: a load always sees every save made before it.
 @MainActor
 enum SavedScanStore {
     /// Bump when a payload changes shape: older files then stop loading.
@@ -21,6 +25,16 @@ enum SavedScanStore {
     /// with a temporary `directory`.
     static var isEnabled = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
 
+    /// True when PhotoKit sees the whole library. With limited access a photo
+    /// missing from a read may still exist, so nothing is restored (a restore
+    /// drops missing photos and saves the shorter list) and picks are not
+    /// saved (the visible picks would replace the full set). Tests replace it.
+    static var canTrustLibrary: () -> Bool = {
+        CompressionJournal.canReadLibrary(PHPhotoLibrary.authorizationStatus(for: .readWrite))
+    }
+
+    private static let queue = DispatchQueue(label: "SavedScanStore", qos: .utility)
+
     private struct Envelope<Payload: Codable>: Codable {
         let version: Int
         let savedAt: Date
@@ -28,33 +42,47 @@ enum SavedScanStore {
         let payload: Payload
     }
 
-    static func save<Payload: Codable>(_ payload: Payload, name: String, stamp: String = "") {
+    static func save<Payload: Codable & Sendable>(_ payload: Payload, name: String, stamp: String = "") {
         guard isEnabled else { return }
-        let envelope = Envelope(version: formatVersion, savedAt: .now, stamp: stamp, payload: payload)
-        do {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try JSONEncoder().encode(envelope).write(to: url(name), options: [.atomic])
-        } catch {
-            AppLog.data.error("Saving \(name, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+        let folder = directory, file = url(name), version = formatVersion
+        queue.async {
+            let envelope = Envelope(version: version, savedAt: .now, stamp: stamp, payload: payload)
+            do {
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                try JSONEncoder().encode(envelope).write(to: file, options: [.atomic])
+            } catch {
+                AppLog.data.error("Saving \(name, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+            }
         }
     }
 
     /// The saved payload and when it was saved, or nil when there is none, it
-    /// cannot be read, or it was made with other settings.
-    static func load<Payload: Codable>(_ type: Payload.Type, name: String, stamp: String = "") -> (payload: Payload, savedAt: Date)? {
-        guard isEnabled, let data = try? Data(contentsOf: url(name)),
-              let envelope = try? JSONDecoder().decode(Envelope<Payload>.self, from: data),
-              envelope.version == formatVersion, envelope.stamp == stamp else { return nil }
-        return (envelope.payload, envelope.savedAt)
+    /// cannot be read, or it was made with other settings or an older format.
+    static func load<Payload: Codable & Sendable>(_ type: Payload.Type, name: String, stamp: String = "") async -> (payload: Payload, savedAt: Date)? {
+        guard isEnabled else { return nil }
+        let file = url(name), version = formatVersion
+        return await withCheckedContinuation { continuation in
+            queue.async {
+                guard let data = try? Data(contentsOf: file),
+                      let envelope = try? JSONDecoder().decode(Envelope<Payload>.self, from: data),
+                      envelope.version == version, envelope.stamp == stamp else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(returning: (envelope.payload, envelope.savedAt))
+            }
+        }
     }
 
     /// The checked items of a tool, saved on every change.
     static func saveSelection(_ ids: Set<String>, name: String) {
+        guard canTrustLibrary() else { return }
         save(ids.sorted(), name: "\(name).selection")
     }
 
-    static func selection(name: String) -> Set<String> {
-        Set(load([String].self, name: "\(name).selection")?.payload ?? [])
+    static func selection(name: String) async -> Set<String> {
+        guard canTrustLibrary() else { return [] }
+        return Set(await load([String].self, name: "\(name).selection")?.payload ?? [])
     }
 
     /// Complete summaries for saved ids, read off the main thread. Ids no longer
@@ -64,13 +92,10 @@ enum SavedScanStore {
         return await Task.detached(priority: .userInitiated) { service.fetchSummaries(for: ids) }.value
     }
 
-    static func remove(name: String) {
-        try? FileManager.default.removeItem(at: url(name))
-    }
-
     /// Settings > Clear Saved Scans.
     static func removeAll() {
-        try? FileManager.default.removeItem(at: directory)
+        let folder = directory
+        queue.async { try? FileManager.default.removeItem(at: folder) }
     }
 
     private static func url(_ name: String) -> URL {

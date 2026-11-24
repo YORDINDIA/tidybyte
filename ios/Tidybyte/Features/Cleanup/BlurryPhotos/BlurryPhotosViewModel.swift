@@ -32,6 +32,8 @@ final class BlurryPhotosViewModel {
     private(set) var savedScanDate: Date?
     /// When the results were scanned. A re-save after a delete keeps it.
     private var scannedAt = Date.now
+    /// The sensitivity the results were scanned with: their saved stamp.
+    private var scanStamp = ""
     static let savedName = "blurry"
     var scanState: ScanState = .idle
     var activeTab: BlurryTab = .blurry
@@ -260,6 +262,7 @@ final class BlurryPhotosViewModel {
         scanState = .scanning(1.0)
         scanState = .completed
         scannedAt = .now
+        scanStamp = sensitivity.rawValue
         savedScanDate = nil
         saveScan()
         // A library change that landed mid-scan: prune now that publishing
@@ -274,50 +277,62 @@ final class BlurryPhotosViewModel {
     // MARK: - Saved scan
 
     /// One saved result. The summary is read again from the library on restore.
-    struct SavedPhoto: Codable {
+    struct SavedPhoto: Codable, Sendable {
         let id: String
         let blurScore: Float
         let luminance: Float
         let categories: Set<BlurryTab>
         let smudgeConfidence: Float?
+        /// A photo edited since the scan is not restored: its scores may be wrong.
+        let modified: Date?
     }
 
-    struct SavedScan: Codable {
+    struct SavedScan: Codable, Sendable {
         let scannedAt: Date
         let photos: [SavedPhoto]
         let supportsLensSmudge: Bool
         let skippedScreenshotCount: Int
+        let skippedAnalysisCount: Int
+        let skippedSmudgeCount: Int
     }
 
     private func saveScan() {
         let photos = analyzedPhotos.map {
             SavedPhoto(id: $0.id, blurScore: $0.blurScore, luminance: $0.luminance,
-                       categories: $0.categories, smudgeConfidence: $0.smudgeConfidence)
+                       categories: $0.categories, smudgeConfidence: $0.smudgeConfidence,
+                       modified: $0.asset.modificationDate)
         }
-        let scan = SavedScan(scannedAt: scannedAt, photos: photos, supportsLensSmudge: supportsLensSmudge, skippedScreenshotCount: skippedScreenshotCount)
-        SavedScanStore.save(scan, name: Self.savedName, stamp: sensitivity.rawValue)
+        let scan = SavedScan(scannedAt: scannedAt, photos: photos, supportsLensSmudge: supportsLensSmudge,
+                             skippedScreenshotCount: skippedScreenshotCount,
+                             skippedAnalysisCount: skippedAnalysisCount, skippedSmudgeCount: skippedSmudgeCount)
+        // The sensitivity of the scan on screen, not today's setting.
+        SavedScanStore.save(scan, name: Self.savedName, stamp: scanStamp)
     }
 
-    /// Shows the last saved scan when nothing is on screen. Photos deleted since
-    /// drop out, and so do picks that are no longer listed.
+    /// Shows the last saved scan when nothing is on screen. Photos deleted or
+    /// edited since drop out, and so do picks that are no longer listed.
     func restoreSavedScan() async {
-        guard scanState == .idle, analyzedPhotos.isEmpty,
-              let saved = SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: sensitivity.rawValue) else { return }
+        guard scanState == .idle, analyzedPhotos.isEmpty, SavedScanStore.canTrustLibrary() else { return }
+        let stamp = sensitivity.rawValue
+        guard let saved = await SavedScanStore.load(SavedScan.self, name: Self.savedName, stamp: stamp) else { return }
+        let epoch = ScanResults.epoch
         let summaries = await SavedScanStore.summaries(for: saved.payload.photos.map(\.id))
-        // A scan the user started meanwhile wins.
-        guard scanState == .idle, analyzedPhotos.isEmpty else { return }
-        let restored = saved.payload.photos.compactMap { photo in
-            summaries[photo.id].map {
-                AnalyzedPhoto(id: photo.id, asset: $0, blurScore: photo.blurScore, luminance: photo.luminance,
-                              categories: photo.categories, smudgeConfidence: photo.smudgeConfidence)
-            }
+        let picks = await SavedScanStore.selection(name: Self.savedName)
+        // The user left, or started a scan meanwhile: that wins.
+        guard !Task.isCancelled, scanState == .idle, analyzedPhotos.isEmpty else { return }
+        let restored = saved.payload.photos.compactMap { photo -> AnalyzedPhoto? in
+            guard let asset = summaries[photo.id], asset.modificationDate == photo.modified else { return nil }
+            return AnalyzedPhoto(id: photo.id, asset: asset, blurScore: photo.blurScore, luminance: photo.luminance,
+                                 categories: photo.categories, smudgeConfidence: photo.smudgeConfidence)
         }
         guard !restored.isEmpty else { return }
-        let picks = SavedScanStore.selection(name: Self.savedName)
         supportsLensSmudge = saved.payload.supportsLensSmudge
         skippedScreenshotCount = saved.payload.skippedScreenshotCount
+        skippedAnalysisCount = saved.payload.skippedAnalysisCount
+        skippedSmudgeCount = saved.payload.skippedSmudgeCount
         scannedAt = saved.payload.scannedAt
         savedScanDate = saved.payload.scannedAt
+        scanStamp = stamp
         scanState = .completed
         analyzedPhotos = restored
         selectedIds = picks.intersection(restored.map(\.id))
@@ -325,6 +340,8 @@ final class BlurryPhotosViewModel {
            let first = BlurryTab.allCases.first(where: { tab in restored.contains { $0.categories.contains(tab) } }) {
             activeTab = first
         }
+        // The library changed while the summaries loaded: drop what it removed.
+        if epoch != ScanResults.epoch { await pruneDeleted() }
     }
 
     /// Drops results deleted elsewhere (Swipe Review, the Photos app).

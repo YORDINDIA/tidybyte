@@ -51,7 +51,7 @@ final class BurstCleanerViewModel {
 
     /// The user's choices. Bursts are read again from the library on every
     /// load (it is fast), so only the choices are saved.
-    struct SavedChoices: Codable {
+    struct SavedChoices: Codable, Sendable {
         let selected: Set<String>
         let touchedGroups: Set<String>
         /// Group id → the best frame the user picked.
@@ -59,8 +59,9 @@ final class BurstCleanerViewModel {
     }
 
     private func saveChoices() {
-        // Nothing is decided before the first load; saving then would wipe the file.
-        guard hasLoadedGroups else { return }
+        // Nothing is decided before the first load; saving then would wipe the
+        // file. Limited access shows only some bursts: saving that would too.
+        guard hasLoadedGroups, SavedScanStore.canTrustLibrary() else { return }
         let bests = Dictionary(
             groups.filter { manuallySetBest.contains($0.id) }.map { ($0.id, $0.bestAssetId) },
             uniquingKeysWith: { first, _ in first }
@@ -76,14 +77,17 @@ final class BurstCleanerViewModel {
     /// Untouched groups get the usual suggestion, as on a refresh.
     private func applySavedChoices(_ saved: SavedChoices) {
         let groupIds = Set(groups.map(\.id))
+        // Only a picked frame that is still in its group stays the user's pick.
+        var pickedGroups: Set<String> = []
         groups = groups.map { group in
             var group = group
             if let best = saved.manualBests[group.id], group.assets.contains(where: { $0.id == best }) {
                 group.bestAssetId = best
+                pickedGroups.insert(group.id)
             }
             return group
         }
-        manuallySetBest = Set(saved.manualBests.keys).intersection(groupIds)
+        manuallySetBest = pickedGroups
         touchedGroups = saved.touchedGroups.intersection(groupIds)
         selectedForDeletion = Self.mergedSelection(
             oldSelection: saved.selected,
@@ -216,7 +220,11 @@ final class BurstCleanerViewModel {
             if showsLoading { isLoading = true }
             errorMessage = nil
             let burstGroups = await fetchBursts()
-            apply(BurstSelectionPolicy.rebuildGroups(from: burstGroups), preservingUserState: preservingUserState)
+            // The first load after a launch puts the saved choices back.
+            let saved = hasLoadedGroups || !SavedScanStore.canTrustLibrary()
+                ? nil
+                : await SavedScanStore.load(SavedChoices.self, name: Self.savedName)?.payload
+            apply(BurstSelectionPolicy.rebuildGroups(from: burstGroups), preservingUserState: preservingUserState, saved: saved)
             hasLoadedGroups = true
             isLoading = false
         }
@@ -228,11 +236,11 @@ final class BurstCleanerViewModel {
     /// Shared load/refresh pipeline (de-slop D3). On a fresh load, non-best
     /// frames are pre-selected. On a refresh, selection is merged against the
     /// previous state so explicit deselects/selects survive (LF-01).
-    private func apply(_ newGroups: [BurstGroup], preservingUserState: Bool) {
+    private func apply(_ newGroups: [BurstGroup], preservingUserState: Bool, saved: SavedChoices? = nil) {
         guard preservingUserState else {
             groups = newGroups
-            if !hasLoadedGroups, let saved = SavedScanStore.load(SavedChoices.self, name: Self.savedName) {
-                applySavedChoices(saved.payload)
+            if let saved {
+                applySavedChoices(saved)
             } else {
                 selectNonBestFrames()
             }
