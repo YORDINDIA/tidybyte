@@ -1,5 +1,6 @@
 import XCTest
 import SwiftData
+import UIKit
 @testable import Tidybyte
 
 /// Regression coverage for the audit fixes. Each test names the defect it pins,
@@ -166,6 +167,61 @@ final class AuditRegressionTests: XCTestCase {
         XCTAssertEqual(result.idsWithoutRow, ["vanished"])
         XCTAssertEqual(result.summary.skipped, 2, "the vanished id still lands in the tally")
         XCTAssertEqual(result.summary.completed, 0)
+    }
+
+    /// Records a batch's calls and plays the app going off screen.
+    @MainActor
+    private final class OffScreenProbe {
+        var calls: [String] = []
+        var appActive = false
+    }
+
+    /// Runs "a" (larger, so first) and "b". "a" throws on its first try while
+    /// the app is off screen; `failAgain` makes it throw on its last try too.
+    /// The probe brings the app back once "a" is set aside.
+    private func runOffScreenBatch(failAgain: Bool) async throws -> (CompressionBatchRunner.Result, [String]) {
+        let container = try makeContainer([CompressionRecord.self])
+        let probe = OffScreenProbe()
+        CompressionSession.isAppActive = { probe.appActive }
+        defer { CompressionSession.isAppActive = { UIApplication.shared.applicationState == .active } }
+        let result = await CompressionBatchRunner.run(
+            title: "Test batch",
+            selected: ["a", "b"],
+            fileSizes: ["a": 2_000, "b": 1_000],
+            indexById: ["a": 0, "b": 1],
+            alreadyCompletedIds: [],
+            isCancelled: { false },
+            isSizeUnknown: { _ in false },
+            modelContext: container.mainContext,
+            handlers: .init(setState: { _, state in
+                // "a" was set aside: the app comes back before the final pass.
+                if case .waiting = state { probe.appActive = true }
+            }, setPhase: { _ in }),
+            execute: { id, _, _ in
+                probe.calls.append(id)
+                let tries = probe.calls.filter { $0 == id }.count
+                if id == "a", tries == 1 || failAgain { throw NSError(domain: "test", code: 1) }
+                return .skipped
+            }
+        )
+        return (result, probe.calls)
+    }
+
+    /// An item that fails off screen does not stall the batch: the others go
+    /// on, and it runs once more at the end, with the app back.
+    func testAnOffScreenFailureRunsAgainAfterTheOtherItems() async throws {
+        let (result, calls) = try await runOffScreenBatch(failAgain: false)
+        XCTAssertEqual(calls, ["a", "b", "a"])
+        XCTAssertEqual(result.summary.skipped, 2)
+        XCTAssertEqual(result.summary.failed, 0, "an interruption is not a failure")
+    }
+
+    /// The final pass runs in the foreground, so a failure there counts.
+    func testAFailureInTheFinalPassCounts() async throws {
+        let (result, calls) = try await runOffScreenBatch(failAgain: true)
+        XCTAssertEqual(calls, ["a", "b", "a"])
+        XCTAssertEqual(result.summary.failed, 1)
+        XCTAssertEqual(result.summary.skipped, 1)
     }
 
     /// A request parked before the user finished the review must not replay over

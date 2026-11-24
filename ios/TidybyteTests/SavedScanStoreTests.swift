@@ -102,6 +102,9 @@ final class SavedScanStoreTests: XCTestCase {
         let restored = try XCTUnwrap(loaded?.payload.photos["a"]?.modified)
         XCTAssertTrue(SavedScanStore.sameModification(restored, modified))
         XCTAssertFalse(SavedScanStore.sameModification(restored, modified.addingTimeInterval(1)), "an edit changes it")
+        // The tolerance itself: under a millisecond matches, over it does not.
+        XCTAssertTrue(SavedScanStore.sameModification(modified, modified.addingTimeInterval(0.000_5)))
+        XCTAssertFalse(SavedScanStore.sameModification(modified, modified.addingTimeInterval(0.002)))
         XCTAssertTrue(SavedScanStore.sameModification(nil, nil))
         XCTAssertFalse(SavedScanStore.sameModification(nil, modified))
     }

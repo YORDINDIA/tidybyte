@@ -29,8 +29,12 @@ final class CompressionSession {
     /// in the background, a suspended read): the loop runs it again on return,
     /// and its journal row is settled as skipped, not failed.
     static var isInterrupted: Bool {
-        pausedCount > 0 || UIApplication.shared.applicationState != .active
+        pausedCount > 0 || !isAppActive()
     }
+
+    /// Whether the app is on screen. Tests replace it to simulate the app off
+    /// screen; the test host itself stays active.
+    static var isAppActive: () -> Bool = { UIApplication.shared.applicationState == .active }
 
     /// What a batch loop does after an item throws.
     enum AfterFailure: Equatable, Sendable {
@@ -83,7 +87,7 @@ final class CompressionSession {
         Self.afterFailure(
             userStopped: userStopped,
             paused: lostBackgroundTime,
-            appActive: UIApplication.shared.applicationState == .active,
+            appActive: Self.isAppActive(),
             isCancellationError: error is CancellationError
         )
     }
@@ -120,7 +124,7 @@ final class CompressionSession {
     func waitWhilePaused() async {
         guard lostBackgroundTime else { return }
         await AppForeground.wait()
-        guard UIApplication.shared.applicationState == .active else { return }
+        guard Self.isAppActive() else { return }
         lostBackgroundTime = false
         requestBackgroundTime()
     }
@@ -147,7 +151,7 @@ final class CompressionSession {
     /// commit: it returns at once in the foreground, and otherwise tells the
     /// user to open the app and waits for it.
     func waitForForeground() async {
-        guard UIApplication.shared.applicationState != .active else { return }
+        guard !Self.isAppActive() else { return }
         if #available(iOS 26.0, *), let task = continuedTask as? BGContinuedProcessingTask {
             task.updateTitle(title, subtitle: L10n.string("Open TidyByte to finish"))
         }
@@ -247,7 +251,7 @@ enum AppForeground {
     /// Returns once the app is active: at once when it already is, and also
     /// when the calling task is cancelled.
     static func wait() async {
-        guard UIApplication.shared.applicationState != .active else { return }
+        guard !CompressionSession.isAppActive() else { return }
         for await _ in NotificationCenter.default.notifications(named: UIApplication.didBecomeActiveNotification) {
             return
         }
@@ -567,7 +571,8 @@ enum CompressionBatchRunner {
             await session.waitWhilePaused()
             if isCancelled() { break }
             handlers.setPhase(.savingCopies(done: offset, total: orderedIds.count))
-            defer { session.report(done: offset + 1) }
+            // A deferred item is not done yet: its final pass reports it.
+            defer { session.report(done: offset + 1 - deferred.count) }
             // A selected id with no row index cannot be reported through
             // `setState`, but it must still land in the tally. Skipping it
             // outright left completed + failed + skipped short of `selected`,
@@ -605,8 +610,12 @@ enum CompressionBatchRunner {
         // after every other item, once the app is back.
         if !deferred.isEmpty, !isCancelled() {
             await session.waitForForeground()
-            retryLoop: for item in deferred {
+            // Clears a pause that ended while waiting, so a failure in this
+            // pass counts instead of waiting again.
+            await session.waitWhilePaused()
+            retryLoop: for (done, item) in deferred.enumerated() {
                 if isCancelled() { break }
+                defer { session.report(done: orderedIds.count - deferred.count + done + 1) }
                 while true {
                     switch await attempt(item.id, item.index, lastTry: true) {
                     case .done, .later:

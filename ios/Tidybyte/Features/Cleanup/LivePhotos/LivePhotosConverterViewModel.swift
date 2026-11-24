@@ -270,7 +270,8 @@ final class LivePhotosConverterViewModel {
             // D2: cancellation checked at the top of every iteration.
             if isCancelled { break }
             phase = .savingCopies(done: offset, total: pendingIds.count)
-            defer { session.report(done: offset + 1) }
+            // A deferred photo is not done yet: its final pass reports it.
+            defer { session.report(done: offset + 1 - deferred.count) }
             guard items.contains(where: { $0.id == itemId }) else { continue }
             // Repeats only when the background time ended mid-conversion.
             while true {
@@ -293,8 +294,12 @@ final class LivePhotosConverterViewModel {
         // try, after every other photo, once the app is back.
         if !deferred.isEmpty, !isCancelled {
             await session.waitForForeground()
-            retryLoop: for itemId in deferred where items.contains(where: { $0.id == itemId }) {
+            // Clears a pause that ended while waiting, so a failure in this
+            // pass counts instead of waiting again.
+            await session.waitWhilePaused()
+            retryLoop: for (done, itemId) in deferred.enumerated() where items.contains(where: { $0.id == itemId }) {
                 if isCancelled { break }
+                defer { session.report(done: pendingIds.count - deferred.count + done + 1) }
                 while true {
                     switch await attempt(itemId, lastTry: true) {
                     case .done, .later:
