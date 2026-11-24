@@ -38,7 +38,14 @@ struct RootView: View {
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 
-    var body: some View {
+    /// Settings > Reduce Swipe Motion, or iOS Reduce Motion until the user picks.
+    private var reduceSwipeMotion: Bool {
+        reduceSwipeMotionChoice ?? systemReduceMotion
+    }
+
+    /// Its own property: inside `body`, the tabs plus the long modifier chain
+    /// were too slow for the type checker on CI.
+    private var tabs: some View {
         TabView(selection: tabSelectionBinding) {
             NavigationStack {
                 permissionGatedView { SwipeHomeView() }
@@ -87,6 +94,10 @@ struct RootView: View {
             }
             .tag(AppTab.settings)
         }
+    }
+
+    var body: some View {
+        tabs
         .adaptiveSidebarStyle()
         .environment(appNavigation)
         .environment(libraryMonitor)
@@ -120,7 +131,7 @@ struct RootView: View {
         // it is what the rebuild cost.
         .environment(\.locale, languageStore.locale)
         .environment(\.layoutDirection, languageStore.layoutDirection)
-        .environment(\.reduceSwipeMotion, reduceSwipeMotionChoice ?? systemReduceMotion)
+        .environment(\.reduceSwipeMotion, reduceSwipeMotion)
         // `nil` for the default: SwiftUI then keeps following the device's
         // light/dark setting and any automatic schedule, which is the behavior
         // the app had before this setting existed.
