@@ -25,8 +25,11 @@ import SwiftData
 ///        as completed with the sizes journaled at save-commit time.
 ///      - original gone, no replacement → the user deleted the original
 ///        outside the swap; nothing to credit, mark failed.
-///      - original + replacement   → crash hit the deadly window; delete the
-///                                   orphaned replacement, mark failed.
+///      - original + replacement   → crash hit the deadly window. When the
+///                                   batch meant to delete the original
+///                                   (`deletesOriginal`), finish the swap:
+///                                   delete the original. Otherwise delete
+///                                   the orphaned replacement, mark failed.
 ///      - original only            → nothing durable happened; drop the row —
 ///                                   unless `saveAttempted` is set, in which
 ///                                   case the save had already begun and a
@@ -68,7 +71,8 @@ enum CompressionJournal {
         assetId: String,
         originalSize: Int64,
         compressedSize: Int64,
-        exportPreset: String
+        exportPreset: String,
+        deletesOriginal: Bool = false
     ) throws -> CompressionRecord {
         let record = CompressionRecord(
             assetLocalIdentifier: assetId,
@@ -77,7 +81,8 @@ enum CompressionJournal {
             compressedSizeBytes: compressedSize,
             exportPreset: exportPreset,
             outcome: CompressionOutcome.pending.rawValue,
-            mediaType: mediaType.rawValue
+            mediaType: mediaType.rawValue,
+            deletesOriginal: deletesOriginal
         )
         modelContext.insert(record)
         do {
@@ -266,6 +271,10 @@ enum CompressionJournal {
         case failed
         /// Both copies exist: remove the orphaned replacement, then fail.
         case deleteOrphanThenFail(id: String)
+        /// Both copies exist and the batch meant to replace the original (an
+        /// app kill before the one delete commit). Finish the swap: delete the
+        /// original, then complete. A decline keeps both, as in the batch.
+        case deleteOriginalThenComplete
         /// A library write had begun but its id never reached the journal, so a
         /// copy may exist that we cannot name. Surface it as a failed attempt —
         /// dropping the row would hide that duplicate from every cleanup path.
@@ -277,7 +286,8 @@ enum CompressionJournal {
     nonisolated static func resolution(
         originalExists: Bool,
         replacementId: String?,
-        saveAttempted: Bool
+        saveAttempted: Bool,
+        deletesOriginal: Bool = false
     ) -> Resolution {
         switch (originalExists, replacementId) {
         case (false, .some):
@@ -285,7 +295,7 @@ enum CompressionJournal {
         case (false, .none):
             return .failed
         case (true, .some(let orphanId)):
-            return .deleteOrphanThenFail(id: orphanId)
+            return deletesOriginal ? .deleteOriginalThenComplete : .deleteOrphanThenFail(id: orphanId)
         case (true, .none):
             return saveAttempted ? .failedWithPossibleOrphan : .dropRow
         }
@@ -313,6 +323,13 @@ enum CompressionJournal {
                 result[record.assetLocalIdentifier] = replacement
             }
         }
+    }
+
+    /// Originals whose settled copy is still in the library (`liveCopies`):
+    /// these must not be compressed or converted again. A copy the user later
+    /// deleted in Photos frees its original for a new run.
+    nonisolated static func idsWithLiveCopy(settled: [String: String], liveCopies: Set<String>) -> Set<String> {
+        Set(settled.filter { liveCopies.contains($0.value) }.keys)
     }
 
     /// Copies this app made that are still named on a settled row: completed
@@ -354,17 +371,26 @@ enum CompressionJournal {
             resolved.append((record, Self.resolution(
                 originalExists: existingOriginals.contains(record.assetLocalIdentifier),
                 replacementId: record.replacementAssetLocalIdentifier,
-                saveAttempted: record.saveAttempted
+                saveAttempted: record.saveAttempted,
+                deletesOriginal: record.deletesOriginal
             )))
         }
 
-        // Remove every stranded replacement in ONE call, so the user sees one
-        // iOS delete prompt instead of one per row.
+        // Remove every stranded replacement and every original to finish in
+        // ONE call, so the user sees one iOS delete prompt instead of one per row.
         let orphanIds = resolved.compactMap { _, resolution -> String? in
             if case .deleteOrphanThenFail(let id) = resolution { return id }
             return nil
         }
-        let removedOrphans = await PhotoLibraryService.shared.removeOrphanedAssets(ids: orphanIds)
+        let originalIds = resolved.compactMap { record, resolution -> String? in
+            resolution == .deleteOriginalThenComplete ? record.assetLocalIdentifier : nil
+        }
+        let removed = await PhotoLibraryService.shared.removeOrphanedAssets(ids: orphanIds + originalIds)
+        let sizes = Dictionary(
+            resolved.map { ($0.0.assetLocalIdentifier, $0.0.originalSizeBytes) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        CleanupLedger.shared.publishDeletion(deletedIds: removed.intersection(originalIds), sizeOf: { sizes[$0] ?? 0 })
 
         for (record, resolution) in resolved {
             switch resolution {
@@ -383,7 +409,7 @@ enum CompressionJournal {
                 // the item again. If the removal fails the row stays PENDING so
                 // the next reconcile retries instead of hiding the duplicate
                 // for good.
-                guard removedOrphans.contains(orphanId) else {
+                guard removed.contains(orphanId) else {
                     AppLog.compression.error(
                         "Reconcile could not remove stranded replacement \(orphanId, privacy: .public); will retry on the next load"
                     )
@@ -391,6 +417,11 @@ enum CompressionJournal {
                 }
                 record.replacementAssetLocalIdentifier = nil
                 record.outcome = "failed"
+            case .deleteOriginalThenComplete:
+                // The journaled compressed size is real, so the savings are too.
+                // A decline keeps both versions, settled like a declined commit,
+                // so no later reconcile asks again or deletes the copy.
+                record.outcome = removed.contains(record.assetLocalIdentifier) ? "completed" : "kept"
             case .failedWithPossibleOrphan:
                 // The journal cannot name the copy, so it cannot remove it —
                 // the honest thing is to leave a failed row the user can see.
@@ -421,10 +452,11 @@ extension PhotoLibraryService {
 
     /// Batch form: one `deleteAssets` call (one iOS prompt). Returns the ids
     /// that are really gone, including those removed by a partial failure.
+    /// Runs even when the caller was cancelled (a batch after Stop).
     fileprivate func removeOrphanedAssets(ids: [String]) async -> Set<String> {
         guard !ids.isEmpty else { return [] }
         do {
-            return try await deleteAssets(identifiers: ids).removedIds
+            return try await ignoringCancellation { try await self.deleteAssets(identifiers: ids).removedIds }
         } catch {
             return (error as? PhotoServiceError)?.deletionOutcome?.removedIds ?? []
         }

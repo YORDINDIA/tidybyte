@@ -51,8 +51,6 @@ final class PhotoCompressionViewModel {
     /// show a single summary / success haptic (COMP-09, COMP-11).
     var batchSummary: CompressionBatchSummary?
     private(set) var isCancelled = false
-    /// True once iOS ended background time. The background message stays on screen.
-    private(set) var stoppedForBackground = false
     /// Which step of the replace batch is running, for the bottom bar.
     private(set) var phase: ReplacePhase = .idle
     /// Saved copies whose originals are still in the library (the user tapped
@@ -304,13 +302,6 @@ final class PhotoCompressionViewModel {
         }
     }
 
-    /// iOS ended the background time: stop the batch and say why.
-    func stopForBackground() {
-        stoppedForBackground = true
-        errorMessage = CompressionError.exportInterrupted.localizedDescription
-        cancelCompression()
-    }
-
     /// Conservative synchronous savings estimate for the row hint: scale the
     /// original by quality and, when downscaling, by the area ratio.
     func estimateSize(for photo: PhotoItem) -> Int64 {
@@ -466,7 +457,6 @@ final class PhotoCompressionViewModel {
         guard !selectedIds.isEmpty, !isCompressing, !isDeleting else { return }
         errorMessage = nil
         batchSummary = nil
-        stoppedForBackground = false
 
         // Re-encoding needs scratch space for the temp file; keep parity with the
         // video tool's headroom check.
@@ -492,7 +482,7 @@ final class PhotoCompressionViewModel {
         // being compressed again ("Already compressed" forever).
         let settled = CompressionJournal.settledReplacements(modelContext: modelContext)
         let liveReplacements = await photoService.existingIds(Array(settled.values))
-        let previouslyCompletedIds = Set(settled.filter { liveReplacements.contains($0.value) }.keys)
+        let previouslyCompletedIds = CompressionJournal.idsWithLiveCopy(settled: settled, liveCopies: liveReplacements)
 
         // D1: resolve leftovers from any interrupted swap BEFORE the batch.
         await CompressionJournal.reconcile(modelContext: modelContext)
@@ -524,6 +514,7 @@ final class PhotoCompressionViewModel {
         }
 
         let result = await CompressionBatchRunner.run(
+            title: L10n.string("Compressing Photos"),
             selected: selectedIds,
             fileSizes: fileSizes,
             indexById: indexById,
@@ -533,7 +524,6 @@ final class PhotoCompressionViewModel {
             modelContext: modelContext,
             handlers: handlers,
             deleteOriginals: deleteOriginals,
-            onBackgroundExpiry: { [weak self] in self?.stopForBackground() },
             execute: { [weak self] id, index, report in
                 guard let self else { throw CancellationError() }
                 let preset = self.photos[index].selectedPreset
@@ -553,6 +543,7 @@ final class PhotoCompressionViewModel {
                     assetId: id,
                     originalSize: originalSize,
                     exportPreset: preset.id,
+                    deletesOriginal: self.deleteOriginals,
                     modelContext: modelContext
                 )
                 do {
@@ -589,7 +580,7 @@ final class PhotoCompressionViewModel {
                         swap: swap
                     ))
                 } catch {
-                    if self.isCancelled || error is CancellationError {
+                    if self.isCancelled || error is CancellationError || CompressionSession.isPaused {
                         // A cancel is not a failure: History must not render a red
                         // badge for something the batch summary reports as cancelled.
                         await swap.markSkipped()
@@ -637,12 +628,7 @@ final class PhotoCompressionViewModel {
 
         // COMP-11: one aggregated summary after the batch instead of an alert
         // popping per item mid-loop.
-        // A background stop already set the message, and that is the one the user needs.
-        if let message = CompressionBatchRunner.failureSummary(
-            completed: completedCount,
-            failed: failedCount,
-            stoppedForBackground: stoppedForBackground
-        ) {
+        if let message = CompressionBatchRunner.failureSummary(completed: completedCount, failed: failedCount) {
             errorMessage = message
         }
     }

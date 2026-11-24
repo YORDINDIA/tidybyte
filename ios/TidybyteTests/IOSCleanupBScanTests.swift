@@ -151,38 +151,44 @@ final class IOSCleanupBScanTests: XCTestCase {
         XCTAssertEqual(text, PhotoCompressionError.imageDataLoadFailed.localizedDescription)
     }
 
-    // MARK: - Background stop messages (PR #27 review)
+    // MARK: - Batch summary and background pause
 
-    /// A failed batch must not replace the background message the user needs.
-    func testFailureSummaryYieldsToBackgroundStop() {
-        XCTAssertNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 1, stoppedForBackground: true))
-        XCTAssertNotNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 1, stoppedForBackground: false))
-        XCTAssertNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 0, stoppedForBackground: false))
+    func testFailureSummaryOnlyWhenSomethingFailed() {
+        XCTAssertNotNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 1))
+        XCTAssertNil(CompressionBatchRunner.failureSummary(completed: 2, failed: 0))
+    }
+
+    /// The tester's bug: after Stop the batch task is cancelled, and
+    /// `deleteAssets` refused to start in it, so no original was ever deleted.
+    /// The commit's delete runs through this shield.
+    func testIgnoringCancellationRunsInsideACancelledTask() async throws {
+        let task = Task { () -> (outer: Bool, inner: Bool) in
+            withUnsafeCurrentTask { $0?.cancel() }
+            let inner = try await ignoringCancellation { () -> Bool in
+                try Task.checkCancellation()
+                return Task.isCancelled
+            }
+            return (Task.isCancelled, inner)
+        }
+        let result = try await task.value
+        XCTAssertTrue(result.outer, "the caller is cancelled")
+        XCTAssertFalse(result.inner, "the shielded step is not")
     }
 
     @MainActor
-    func testVideoBackgroundStopSetsFlagAndMessage() {
-        let viewModel = VideoCompressionViewModel()
-        viewModel.stopForBackground()
-        XCTAssertTrue(viewModel.stoppedForBackground)
-        XCTAssertEqual(viewModel.errorMessage, CompressionError.exportInterrupted.localizedDescription)
+    func testNoBatchIsPausedAtRest() {
+        XCTAssertFalse(CompressionSession.isPaused)
     }
 
-    @MainActor
-    func testPhotoBackgroundStopSetsFlagAndMessage() {
-        let viewModel = PhotoCompressionViewModel()
-        viewModel.stopForBackground()
-        XCTAssertTrue(viewModel.stoppedForBackground)
-        XCTAssertEqual(viewModel.errorMessage, CompressionError.exportInterrupted.localizedDescription)
-    }
-
-    @MainActor
-    func testLivePhotoBackgroundStopSetsFlagAndConversionMessage() {
-        let viewModel = LivePhotosConverterViewModel()
-        viewModel.stopForBackground()
-        XCTAssertTrue(viewModel.stoppedForBackground)
-        // The conversion wording, not the compression wording.
-        XCTAssertTrue(viewModel.errorMessage?.contains("Live Photo") == true, viewModel.errorMessage ?? "nil")
+    /// A copy the user later deleted frees its original for a new run; a live
+    /// copy blocks a second compression or Live Photo conversion.
+    func testIdsWithLiveCopy() {
+        let settled = ["a": "copyA", "b": "copyB", "c": "copyC"]
+        XCTAssertEqual(
+            CompressionJournal.idsWithLiveCopy(settled: settled, liveCopies: ["copyA", "copyC", "other"]),
+            ["a", "c"]
+        )
+        XCTAssertEqual(CompressionJournal.idsWithLiveCopy(settled: settled, liveCopies: []), [])
     }
 
     // MARK: - Journal reconcile library gate

@@ -129,9 +129,12 @@ struct LivePhotosConverterView: View {
             }
         }
         .task {
-            await viewModel.loadIfNeeded()
             // D1 (review pass): resolve any conversions a crash interrupted.
+            // Before loading, like the compression tools: finishing a swap
+            // deletes Live Photos the list must not show.
             await CompressionJournal.reconcile(modelContext: modelContext)
+            await viewModel.loadIfNeeded()
+            await viewModel.markAlreadyConverted(modelContext: modelContext)
         }
     }
 

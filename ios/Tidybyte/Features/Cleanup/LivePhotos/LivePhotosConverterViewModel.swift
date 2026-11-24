@@ -39,10 +39,6 @@ final class LivePhotosConverterViewModel {
     /// haptic/summary (COMP-09): success only when `failed == 0`.
     var lastBatch: (converted: Int, failed: Int)?
     private(set) var isCancelled = false
-    /// True once iOS ended background time. The background message stays on screen.
-    private(set) var stoppedForBackground = false
-    /// The still read in progress, if any. The background stop ends it.
-    private var inFlightRead: ThrowingContinuationResumer<Data>?
     /// Which step of the conversion is running, for the bottom bar.
     private(set) var phase: ReplacePhase = .idle
     /// Saved stills whose Live Photos are still in the library (the user
@@ -119,13 +115,17 @@ final class LivePhotosConverterViewModel {
         batchTask?.cancel()
     }
 
-    /// iOS ended the background time: stop Convert All and say why.
-    func stopForBackground() {
-        stoppedForBackground = true
-        errorMessage = L10n.string("TidyByte stopped Live Photo conversion because it left the foreground. Keep TidyByte open while it converts, then try again.")
-        cancelConvertAll()
-        // Ends the PhotoKit read. Its onResume hook cancels the data request.
-        inFlightRead?.resume(throwing: CancellationError())
+    /// Live Photos that already have a still from an earlier conversion whose
+    /// original was kept (a declined prompt, or a stop before the commit).
+    /// They show "Copy saved" and leave the batch, so no second still is made.
+    func markAlreadyConverted(modelContext: ModelContext) async {
+        let settled = CompressionJournal.settledReplacements(modelContext: modelContext)
+        let liveCopies = await photoService.existingIds(Array(settled.values))
+        for id in CompressionJournal.idsWithLiveCopy(settled: settled, liveCopies: liveCopies) {
+            if let idx = items.firstIndex(where: { $0.id == id }), items[idx].conversionState.isConvertible {
+                items[idx].conversionState = .copySaved
+            }
+        }
     }
 
     /// Step 2: delete the Live Photos of every saved still in one call (one
@@ -215,45 +215,59 @@ final class LivePhotosConverterViewModel {
         guard !isBusy else { return }
         errorMessage = nil
         isCancelled = false
-        stoppedForBackground = false
         convertingAll = true
-        // Keeps the screen awake and the batch alive in the background. Ends on every exit.
-        let session = CompressionSession.begin(onExpire: { [weak self] in self?.stopForBackground() })
-        defer { session.end() }
         // D1 (review pass): resolve leftovers from interrupted conversions
         // before starting a batch.
         await CompressionJournal.reconcile(modelContext: modelContext)
+        await markAlreadyConverted(modelContext: modelContext)
         // COMP-09: snapshot the eligible (idle) ids up front so the summary's
         // denominator matches what was actually attempted.
         let pendingIds = Self.eligibleIds(items: items, accepted: accepted)
+        // Keeps the screen awake and the batch going in the background. Ends on every exit.
+        let session = CompressionSession.begin(title: L10n.string("Converting Live Photos"), total: pendingIds.count)
+        defer { session.end() }
         // One album pass for the whole batch instead of one predicate scan
         // per album per item inside `performConversion`.
         let albumMap = await photoService.userAlbumIdentifiers(for: Set(pendingIds))
         var saved: [PendingOriginal] = []
         var failed = 0
-        for (offset, itemId) in pendingIds.enumerated() {
+        itemLoop: for (offset, itemId) in pendingIds.enumerated() {
+            await session.waitWhilePaused()
             // D2: cancellation checked at the top of every iteration.
             if isCancelled { break }
             phase = .savingCopies(done: offset, total: pendingIds.count)
-            guard let index = items.firstIndex(where: { $0.id == itemId }) else { continue }
-            items[index].conversionState = .converting
-            do {
-                let pending = try await performConversion(assetId: itemId, modelContext: modelContext, albumIdentifiers: albumMap[itemId] ?? [])
-                saved.append(pending)
-                setState(.copySaved, for: itemId)
-            } catch {
-                if isCancelled || error is CancellationError {
-                    // A cancel is not a failure: the row goes back to idle so
-                    // it stays eligible for a later run.
-                    setState(.idle, for: itemId)
-                    break
+            defer { session.report(done: offset + 1) }
+            guard items.contains(where: { $0.id == itemId }) else { continue }
+            // Repeats only when iOS took the background time away mid-item:
+            // that conversion was interrupted, so it runs again on return.
+            while true {
+                setState(.converting, for: itemId)
+                do {
+                    let pending = try await performConversion(assetId: itemId, modelContext: modelContext, albumIdentifiers: albumMap[itemId] ?? [])
+                    saved.append(pending)
+                    setState(.copySaved, for: itemId)
+                } catch {
+                    if isCancelled || error is CancellationError {
+                        // A cancel is not a failure: the row goes back to idle so
+                        // it stays eligible for a later run.
+                        setState(.idle, for: itemId)
+                        break itemLoop
+                    }
+                    if session.isPaused {
+                        setState(.idle, for: itemId)
+                        await session.waitWhilePaused()
+                        if isCancelled { break itemLoop }
+                        continue
+                    }
+                    failed += 1
+                    setState(.failed(error.localizedDescription), for: itemId)
                 }
-                failed += 1
-                setState(.failed(error.localizedDescription), for: itemId)
+                break
             }
         }
         // Step 2: one delete for every saved still — one iOS prompt. Also runs
-        // after a Stop, so finished items finish.
+        // after a Stop, so finished items finish. The prompt needs the app on screen.
+        if !saved.isEmpty { await session.waitForForeground() }
         let result = await commitOriginals(saved)
         let totalFailed = failed + result.failed
         phase = .idle
@@ -261,8 +275,7 @@ final class LivePhotosConverterViewModel {
         lastBatch = (converted: result.committed, failed: totalFailed)
         // COMP-09: one aggregated message instead of reporting only the last
         // error.
-        // A background stop already set the message, and it says more.
-        if totalFailed > 0, !stoppedForBackground {
+        if totalFailed > 0 {
             // Through `L10n`, not string interpolation: an interpolated literal
             // is not a catalog key, so it shipped English in all 20 languages.
             errorMessage = L10n.format(
@@ -283,15 +296,11 @@ final class LivePhotosConverterViewModel {
         return nil
     }
 
-    /// Reads the still's bytes from PhotoKit. The read is recorded while it runs,
-    /// so `stopForBackground` can end it and cancel the PhotoKit request.
+    /// Reads the still's bytes from PhotoKit.
     private func readStillData(_ photoResource: PHAssetResource) async throws -> Data {
-        defer { inFlightRead = nil }
         let resourceManager = PHAssetResourceManager.default()
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
             let resumer = ThrowingContinuationResumer(continuation)
-            // Recorded so the background stop can end this read (see stopForBackground).
-            inFlightRead = resumer
             // Chunks arrive on one queue, the completion on another. Both go through the lock.
             let buffer = LockedValue(Data())
             let options = PHAssetResourceRequestOptions()
@@ -361,6 +370,7 @@ final class LivePhotosConverterViewModel {
             assetId: assetId,
             originalSize: originalSize,
             exportPreset: "still",
+            deletesOriginal: true,
             modelContext: modelContext
         )
 
@@ -423,8 +433,9 @@ final class LivePhotosConverterViewModel {
         } catch {
             // A cancel is not a failure — History must not render a red badge
             // for something the batch summary reports as cancelled. Mirrors the
-            // photo and video batch loops.
-            if isCancelled || error is CancellationError {
+            // photo and video batch loops. Nor is a background interruption:
+            // the batch runs this item again on return.
+            if isCancelled || error is CancellationError || CompressionSession.isPaused {
                 await swap.markSkipped()
                 throw error
             }

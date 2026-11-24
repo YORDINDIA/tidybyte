@@ -151,6 +151,7 @@ final class AuditRegressionTests: XCTestCase {
     func testABatchReportsSelectedIdsThatHaveNoRow() async throws {
         let container = try makeContainer([CompressionRecord.self])
         let result = await CompressionBatchRunner.run(
+            title: "Test batch",
             selected: ["has-row", "vanished"],
             fileSizes: ["has-row": 1_000, "vanished": 2_000],
             indexById: ["has-row": 0],

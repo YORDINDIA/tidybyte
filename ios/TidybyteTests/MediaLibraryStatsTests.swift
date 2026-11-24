@@ -271,6 +271,25 @@ final class MediaLibraryStatsTests: XCTestCase {
             CompressionJournal.resolution(originalExists: true, replacementId: "r", saveAttempted: false),
             .deleteOrphanThenFail(id: "r")
         )
+        // Both copies exist and the batch meant to replace the original (an app
+        // kill before the one delete commit) → finish the swap, keep the copy.
+        XCTAssertEqual(
+            CompressionJournal.resolution(originalExists: true, replacementId: "r", saveAttempted: true, deletesOriginal: true),
+            .deleteOriginalThenComplete
+        )
+        // The intent changes nothing once the original is gone, or with no copy.
+        XCTAssertEqual(
+            CompressionJournal.resolution(originalExists: false, replacementId: "r", saveAttempted: true, deletesOriginal: true),
+            .completed
+        )
+        XCTAssertEqual(
+            CompressionJournal.resolution(originalExists: true, replacementId: nil, saveAttempted: true, deletesOriginal: true),
+            .failedWithPossibleOrphan
+        )
+        XCTAssertEqual(
+            CompressionJournal.resolution(originalExists: true, replacementId: nil, saveAttempted: false, deletesOriginal: true),
+            .dropRow
+        )
         // Original only, no library write had begun → nothing durable, drop it.
         XCTAssertEqual(
             CompressionJournal.resolution(originalExists: true, replacementId: nil, saveAttempted: false),
@@ -304,6 +323,24 @@ final class MediaLibraryStatsTests: XCTestCase {
         let fetched = try context.fetch(FetchDescriptor<CompressionRecord>())
         XCTAssertEqual(fetched.count, 1)
         XCTAssertTrue(fetched.first?.saveAttempted ?? false)
+    }
+
+    /// Reconcile reads the delete intent on a later launch, so it must persist.
+    /// Rows default to false, which keeps the old rollback for older rows.
+    func testDeletesOriginalPersistsOnTheRow() throws {
+        let container = try makeContainer()
+        let context = container.mainContext
+        _ = try CompressionJournal.beginPending(
+            modelContext: context, mediaType: .livePhoto, assetId: "replace",
+            originalSize: 1_000, compressedSize: 0, exportPreset: "still", deletesOriginal: true
+        )
+        _ = try CompressionJournal.beginPending(
+            modelContext: context, mediaType: .photo, assetId: "copy-only",
+            originalSize: 1_000, compressedSize: 0, exportPreset: "high"
+        )
+        let rows = try context.fetch(FetchDescriptor<CompressionRecord>())
+        let intent = Dictionary(uniqueKeysWithValues: rows.map { ($0.assetLocalIdentifier, $0.deletesOriginal) })
+        XCTAssertEqual(intent, ["replace": true, "copy-only": false])
     }
 
     func testMarkPendingSkippedIsNotAFailure() async throws {
