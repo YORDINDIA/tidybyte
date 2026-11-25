@@ -93,7 +93,8 @@ struct KeeperMark: View {
     }
 }
 
-/// "Select" in a group header: marks every photo in the group but the keeper.
+/// "Select" in a group header (Duplicates, Similar Photos, Bursts): marks every
+/// photo in the group but the keeper.
 /// Same glyph and colour as `DeleteToggle`, on the list background.
 struct GroupSelectToggle: View {
     let isMarked: Bool
@@ -115,8 +116,6 @@ struct GroupSelectToggle: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        // Keeps "Select" and "Compare" apart, so they read as two controls.
-        .padding(.trailing, Spacing.md)
         .accessibilityHint(isMarked
                            ? "Unmarks every photo in this group"
                            : "Marks every photo in this group for deletion, except the one to keep")

@@ -6,7 +6,7 @@ import Foundation
 /// public `selectedForDeletion` set (pinned by tests and used in SwiftUI
 /// bindings) and funnel every mutation through this helper so the two tools
 /// behave identically. Bursts keeps its own selection flow but shares
-/// `selectNonBest`.
+/// `selectNonBest` and the group Select (`toggleGroup`).
 struct SelectionState {
     private(set) var ids: Set<String> = []
 
@@ -35,6 +35,25 @@ struct SelectionState {
         if groupWasSelecting && !oldBestIsFavorite {
             ids.insert(oldBest)
         }
+    }
+
+    /// The group header's Select: every asset but the keeper is marked.
+    func isGroupMarked(_ assetIds: [String], keeper: String) -> Bool {
+        let extras = assetIds.filter { $0 != keeper }
+        return !extras.isEmpty && extras.allSatisfy(ids.contains)
+    }
+
+    /// Marks every asset in the group but the keeper, favorites included (an
+    /// explicit choice for one group), or clears them when all are marked. The
+    /// keeper never stays marked.
+    mutating func toggleGroup(_ assetIds: [String], keeper: String) {
+        let extras = Set(assetIds).subtracting([keeper])
+        if isGroupMarked(assetIds, keeper: keeper) {
+            ids.subtract(extras)
+        } else {
+            ids.formUnion(extras)
+        }
+        ids.remove(keeper)
     }
 
     /// Suggested selection: every non-best asset across groups, except

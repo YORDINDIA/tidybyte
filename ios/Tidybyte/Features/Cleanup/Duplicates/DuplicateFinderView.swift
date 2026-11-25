@@ -326,6 +326,8 @@ struct DuplicateFinderView: View {
                 GroupSelectToggle(isMarked: viewModel.isGroupSelected(group)) {
                     viewModel.toggleGroupSelection(group)
                 }
+                // Keeps "Select" and "Compare" apart, so they read as two controls.
+                .padding(.trailing, Spacing.md)
                 Button { selectedGroup = group } label: {
                     HStack(spacing: Spacing.xs) {
                         Text("Compare")

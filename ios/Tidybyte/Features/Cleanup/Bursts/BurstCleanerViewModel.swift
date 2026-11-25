@@ -269,6 +269,23 @@ final class BurstCleanerViewModel {
         }
     }
 
+    /// Every frame in the burst except the keeper is marked.
+    func isGroupSelected(_ group: BurstGroup) -> Bool {
+        SelectionState(ids: selectedForDeletion).isGroupMarked(group.assets.map(\.id), keeper: group.bestAssetId)
+    }
+
+    /// The burst's Select control: marks every frame but the keeper (favorites
+    /// included, as Select All does), or clears them when all are marked.
+    /// Touches the group, so a refresh keeps the choice.
+    func toggleGroupSelection(_ group: BurstGroup) {
+        // The current copy: "Keep This" may have moved the keeper since the caller read it.
+        let group = groups.first { $0.id == group.id } ?? group
+        var state = SelectionState(ids: selectedForDeletion)
+        state.toggleGroup(group.assets.map(\.id), keeper: group.bestAssetId)
+        selectedForDeletion = state.ids
+        touchedGroups.insert(group.id)
+    }
+
     /// Marks the frame as the group's best. The previous best is *not*
     /// force-inserted into the deletion set: if the user explicitly deselected
     /// it (or never armed it) it stays kept (LF-12). The new best is always

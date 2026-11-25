@@ -42,6 +42,49 @@ final class CleanupInteractionStateTests: XCTestCase {
         XCTAssertFalse(viewModel.selectedForDeletion.contains(second.id))
     }
 
+    /// Group Select: every photo but the keeper, favorites included, only in
+    /// that group; a second tap clears it; a marked keeper is cleared too.
+    func testSelectionStateToggleGroup() {
+        var state = SelectionState(ids: ["other", "keeper"])
+        XCTAssertFalse(state.isGroupMarked(["keeper", "b", "fav"], keeper: "keeper"))
+        state.toggleGroup(["keeper", "b", "fav"], keeper: "keeper")
+        XCTAssertEqual(state.ids, ["other", "b", "fav"])
+        XCTAssertTrue(state.isGroupMarked(["keeper", "b", "fav"], keeper: "keeper"))
+        state.toggleGroup(["keeper", "b", "fav"], keeper: "keeper")
+        XCTAssertEqual(state.ids, ["other"])
+        XCTAssertFalse(state.isGroupMarked(["keeper"], keeper: "keeper"), "a group with no extras is never marked")
+    }
+
+    /// Similar: Select marks a favorite too (Select All does not), and acts on
+    /// the current group after Keep This moves the keeper.
+    func testSimilarGroupSelectMarksFavoritesAndFollowsKeeper() {
+        let viewModel = SimilarPhotosViewModel()
+        let stale = SimilarGroup(id: "group", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "fav", isFavorite: true)], bestAssetId: "a")
+        viewModel.groups = [stale]
+        viewModel.setBest(assetId: "b", in: "group")
+
+        viewModel.toggleGroupSelection(stale)
+        XCTAssertEqual(viewModel.selectedForDeletion, ["a", "fav"])
+        XCTAssertTrue(viewModel.isGroupSelected(viewModel.groups[0]))
+        viewModel.toggleGroupSelection(stale)
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+    }
+
+    /// Bursts: Select marks every frame but the keeper and touches the group,
+    /// so a refresh keeps the choice.
+    func testBurstGroupSelectTouchesGroup() {
+        let viewModel = BurstCleanerViewModel()
+        let group = BurstGroup(id: "burst", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")], bestAssetId: "a")
+        viewModel.groups = [group]
+
+        viewModel.toggleGroupSelection(group)
+        XCTAssertEqual(viewModel.selectedForDeletion, ["b", "c"])
+        XCTAssertTrue(viewModel.isGroupSelected(group))
+        XCTAssertTrue(viewModel.touchedGroups.contains("burst"))
+        viewModel.toggleGroupSelection(group)
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+    }
+
     func testBurstSetBestMovesDeletionSelectionToPreviousBest() {
         let viewModel = BurstCleanerViewModel()
         let first = makeAsset(id: "first")
@@ -171,7 +214,7 @@ final class CleanupInteractionStateTests: XCTestCase {
         XCTAssertEqual(ScanResults.counts[.blurry], 7)
     }
 
-    private func makeAsset(id: String) -> AssetSummary {
+    private func makeAsset(id: String, isFavorite: Bool = false) -> AssetSummary {
         AssetSummary(
             id: id,
             mediaType: .photo,
@@ -182,7 +225,7 @@ final class CleanupInteractionStateTests: XCTestCase {
             duration: 0,
             fileSize: 8_000_000,
             filename: "\(id).jpg",
-            isFavorite: false,
+            isFavorite: isFavorite,
             isBurst: false,
             burstIdentifier: nil,
             isLivePhoto: false,
