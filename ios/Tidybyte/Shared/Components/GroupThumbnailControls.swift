@@ -93,6 +93,37 @@ struct KeeperMark: View {
     }
 }
 
+/// "Select" in a group header: marks every photo in the group but the keeper.
+/// Same glyph and colour as `DeleteToggle`, on the list background.
+struct GroupSelectToggle: View {
+    let isMarked: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            HapticHelper.selection()
+            action()
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: isMarked ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isMarked ? Color.destructive : .secondary)
+                    .accessibilityHidden(true)
+                Text("Select")
+            }
+            .font(.caption.bold())
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        // Keeps "Select" and "Compare" apart, so they read as two controls.
+        .padding(.trailing, Spacing.md)
+        .accessibilityHint(isMarked
+                           ? "Unmarks every photo in this group"
+                           : "Marks every photo in this group for deletion, except the one to keep")
+        .accessibilityAddTraits(isMarked ? .isSelected : [])
+    }
+}
+
 /// Text button under a non-keeper that makes it the keeper.
 struct MakeKeeperButton: View {
     let action: () -> Void

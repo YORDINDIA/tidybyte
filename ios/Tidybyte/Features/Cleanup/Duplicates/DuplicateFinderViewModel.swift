@@ -370,6 +370,28 @@ final class DuplicateFinderViewModel {
         selectedForDeletion = state.ids
     }
 
+    /// Every copy in the group except the keeper is marked (C7: never the keeper).
+    func isGroupSelected(_ group: DuplicateGroup) -> Bool {
+        let extras = Self.nonBestAssetIds(in: group)
+        return !extras.isEmpty && extras.isSubset(of: selectedForDeletion)
+    }
+
+    /// The group's Select control: marks every copy but the keeper, or clears
+    /// them when they are all marked already.
+    func toggleGroupSelection(_ group: DuplicateGroup) {
+        // The current copy: "Keep This" may have moved the keeper since the caller read it.
+        let group = (exactGroups + visualGroups).first { $0.id == group.id } ?? group
+        let extras = Self.nonBestAssetIds(in: group)
+        var ids = selectedForDeletion
+        if isGroupSelected(group) {
+            ids.subtract(extras)
+        } else {
+            ids.formUnion(extras)
+        }
+        ids.remove(group.bestAssetId)
+        selectedForDeletion = ids
+    }
+
     func setBest(assetId: String, in groupId: String) {
         if let exactIndex = exactGroups.firstIndex(where: { $0.id == groupId }) {
             let oldBest = exactGroups[exactIndex].bestAssetId

@@ -293,6 +293,46 @@ final class DuplicatesRegressionTests: XCTestCase {
         XCTAssertFalse(viewModel.allSelectedForDeletion)
     }
 
+    /// A group's Select marks only that group's copies, never its keeper, and a
+    /// second tap clears them. Other groups keep their marks.
+    func testGroupSelectTogglesOneGroupButNotItsKeeper() {
+        let viewModel = DuplicateFinderViewModel()
+        let g1 = DuplicateGroup(id: "g1", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")], bestAssetId: "a", type: .visual)
+        let g2 = DuplicateGroup(id: "g2", assets: [makeAsset(id: "d"), makeAsset(id: "e")], bestAssetId: "d", type: .visual)
+        viewModel.visualGroups = [g1, g2]
+        viewModel.scanType = .visual
+        viewModel.toggleSelection("e")
+
+        // Partly marked: Select completes the group.
+        viewModel.toggleSelection("b")
+        XCTAssertFalse(viewModel.isGroupSelected(g1))
+        viewModel.toggleGroupSelection(g1)
+        XCTAssertEqual(viewModel.selectedForDeletion, ["b", "c", "e"])
+        XCTAssertTrue(viewModel.isGroupSelected(g1))
+
+        viewModel.toggleGroupSelection(g1)
+        XCTAssertEqual(viewModel.selectedForDeletion, ["e"])
+        XCTAssertFalse(viewModel.isGroupSelected(g1))
+    }
+
+    /// After "Keep This" moves the keeper, Select works on the current group,
+    /// even when the caller still holds the old copy, and never marks the new keeper.
+    func testGroupSelectAfterKeeperChangeNeverMarksNewKeeper() {
+        let viewModel = DuplicateFinderViewModel()
+        let stale = DuplicateGroup(id: "g1", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")], bestAssetId: "a", type: .visual)
+        viewModel.visualGroups = [stale]
+        viewModel.scanType = .visual
+
+        viewModel.setBest(assetId: "b", in: "g1")
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+        viewModel.toggleGroupSelection(stale)
+        XCTAssertEqual(viewModel.selectedForDeletion, ["a", "c"])
+        XCTAssertTrue(viewModel.isGroupSelected(viewModel.visualGroups[0]))
+
+        viewModel.toggleGroupSelection(stale)
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+    }
+
     /// C7 invariant: keepers are never part of the select-all set.
     func testAllSelectedExcludesKeepers() {
         let viewModel = DuplicateFinderViewModel()

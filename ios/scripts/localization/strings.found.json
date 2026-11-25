@@ -2158,6 +2158,10 @@
       "file": "Tidybyte/Services/LocalPhotoIntelligence.swift"
     },
     {
+      "key": "Select",
+      "file": "Tidybyte/Shared/Components/GroupThumbnailControls.swift"
+    },
+    {
       "key": "Select Album",
       "file": "Tidybyte/Features/Swipe/SwipeAlbumPickerSheet.swift"
     },
@@ -2816,5 +2820,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 694
+  "total": 695
 }
