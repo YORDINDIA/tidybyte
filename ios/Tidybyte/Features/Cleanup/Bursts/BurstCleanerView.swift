@@ -345,6 +345,9 @@ struct BurstCleanerView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+                GroupSelectToggle(isMarked: viewModel.isGroupSelected(group)) {
+                    viewModel.toggleGroupSelection(group)
+                }
             }
 
             ScrollView(.horizontal, showsIndicators: false) {

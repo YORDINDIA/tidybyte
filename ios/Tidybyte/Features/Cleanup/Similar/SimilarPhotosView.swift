@@ -315,18 +315,25 @@ struct SimilarPhotosView: View {
 
     private func groupRow(_ group: SimilarGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Button {
-                selectedGroup = group
-            } label: {
-                AdaptiveRow(spacing: nil) {
-                    Text("\(group.assets.count) photos")
-                        .font(.subheadline.bold())
-                    AdaptiveSpacer()
-                    if let date = group.assets.first?.creationDate {
-                        Text(date, format: .dateTime.day().month(.abbreviated).year())
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+            // Select marks the whole group; Review opens the comparison.
+            AdaptiveRow(spacing: nil) {
+                Text("\(group.assets.count) photos")
+                    .font(.subheadline.bold())
+                AdaptiveSpacer()
+                if let date = group.assets.first?.creationDate {
+                    Text(date, format: .dateTime.day().month(.abbreviated).year())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                GroupSelectToggle(isMarked: viewModel.isGroupSelected(group)) {
+                    viewModel.toggleGroupSelection(group)
+                }
+                .disabled(viewModel.isDeleting)
+                // Keeps "Select" and "Review" apart, so they read as two controls.
+                .padding(.trailing, Spacing.md)
+                Button {
+                    selectedGroup = group
+                } label: {
                     HStack(spacing: Spacing.xs) {
                         Text("Review")
                             .font(.caption.bold())
@@ -334,11 +341,11 @@ struct SimilarPhotosView: View {
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Spacing.sm) {

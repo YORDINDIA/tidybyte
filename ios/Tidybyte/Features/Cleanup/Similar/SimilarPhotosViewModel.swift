@@ -559,6 +559,21 @@ final class SimilarPhotosViewModel {
         selectedForDeletion = state.ids
     }
 
+    /// Every photo in the group except the keeper is marked.
+    func isGroupSelected(_ group: SimilarGroup) -> Bool {
+        SelectionState(ids: selectedForDeletion).isGroupMarked(group.assets.map(\.id), keeper: group.bestAssetId)
+    }
+
+    /// The group's Select control: marks every photo but the keeper, favorites
+    /// included, unlike Select All's suggestion. All marked already: clears them.
+    func toggleGroupSelection(_ group: SimilarGroup) {
+        // The current copy: "Keep This" may have moved the keeper since the caller read it.
+        let group = groups.first { $0.id == group.id } ?? group
+        var state = SelectionState(ids: selectedForDeletion)
+        state.toggleGroup(group.assets.map(\.id), keeper: group.bestAssetId)
+        selectedForDeletion = state.ids
+    }
+
     func checkedIds(in group: SimilarGroup) -> Set<String> {
         let nonBest = Set(group.assets.map(\.id).filter { $0 != group.bestAssetId })
         return nonBest.intersection(selectedForDeletion)
