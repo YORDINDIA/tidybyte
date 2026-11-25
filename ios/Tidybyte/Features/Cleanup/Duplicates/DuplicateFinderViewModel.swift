@@ -380,11 +380,14 @@ final class DuplicateFinderViewModel {
     /// them when they are all marked already.
     func toggleGroupSelection(_ group: DuplicateGroup) {
         let extras = Self.nonBestAssetIds(in: group)
+        var ids = selectedForDeletion
         if isGroupSelected(group) {
-            selectedForDeletion.subtract(extras)
+            ids.subtract(extras)
         } else {
-            selectedForDeletion.formUnion(extras)
+            ids.formUnion(extras)
         }
+        ids.remove(group.bestAssetId)
+        selectedForDeletion = ids
     }
 
     func setBest(assetId: String, in groupId: String) {

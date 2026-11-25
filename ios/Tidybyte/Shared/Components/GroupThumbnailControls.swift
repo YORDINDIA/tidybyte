@@ -117,7 +117,9 @@ struct GroupSelectToggle: View {
         .buttonStyle(.plain)
         // Keeps "Select" and "Compare" apart, so they read as two controls.
         .padding(.trailing, Spacing.md)
-        .accessibilityHint("Marks every photo in this group for deletion, except the one to keep")
+        .accessibilityHint(isMarked
+                           ? "Unmarks every photo in this group"
+                           : "Marks every photo in this group for deletion, except the one to keep")
         .accessibilityAddTraits(isMarked ? .isSelected : [])
     }
 }

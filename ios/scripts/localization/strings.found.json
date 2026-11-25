@@ -1479,10 +1479,6 @@
       "file": "Tidybyte/Features/Swipe/SwipeSessionView.swift"
     },
     {
-      "key": "Marks every photo in this group for deletion, except the one to keep",
-      "file": "Tidybyte/Shared/Components/GroupThumbnailControls.swift"
-    },
-    {
       "key": "Marks this photo for deletion and shows the next one",
       "file": "Tidybyte/Features/Swipe/SwipeCardDeck.swift"
     },
@@ -2824,5 +2820,5 @@
       "file": "Tidybyte/Features/Storage/StorageDashboardView.swift"
     }
   ],
-  "total": 696
+  "total": 695
 }

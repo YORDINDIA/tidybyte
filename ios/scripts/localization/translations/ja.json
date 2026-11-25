@@ -788,6 +788,7 @@
     "Undo your newer actions first to reach that photo.": "その写真にたどり着くには、まず新しい操作から取り消してください。",
     "Unknown": "不明",
     "Unknown error": "不明なエラー",
+    "Unmarks every photo in this group": "このグループのすべての写真の削除対象を解除します",
     "Untitled": "名称未設定",
     "Up to %@": "最大 %@",
     "Up to %@ can be freed in the items you picked": "選択した項目で最大 %@ を解放できます",
