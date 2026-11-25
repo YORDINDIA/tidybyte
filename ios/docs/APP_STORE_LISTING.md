@@ -1,11 +1,10 @@
 # App Store Connect Listing — TidyByte
 
-> **Status (2026-11-24):** 1.3.0 (build 13) is live. 1.4.0 (build 15) is in
-> App Review and releases automatically on approval; its copy is below and in
-> `docs/appstore/listings.json`. The website already shows 1.4.0
-> (`website/src/data/releases.ts`) and has its changelog entry with the
-> "Latest iPhone release" badge. If App Review rejects 1.4.0, set the site
-> back to 1.3.0 (build 13) and move the badge back.
+> **Status (2026-11-25):** 1.4.0 (build 15) is live, and the website shows
+> it. 1.4.1 (build 16) is next: sharp photos on the comparison screens (#44)
+> and Select for one whole group in Duplicates (#45). Its copy is below and in
+> `docs/appstore/listings.json`. Update the website after App Review approves
+> 1.4.1.
 > The site's `/changelog` is the canonical version history.
 
 Paste-ready copy for App Store Connect. Char-count annotations are inline. Anything marked **TODO** needs a human decision before submission.
@@ -305,7 +304,14 @@ Both are fixed sizes — the 1179-vs-1206 slack the iPhone row allows does not a
 
 ---
 
-## 12. What's New (v1.4.0 release notes)
+## 12. What's New (v1.4.1 release notes)
+
+```
+When you compare photos in Duplicates and Similar Photos, they are now sharp, the same as in the full-screen view. In Duplicates, a new Select button on each group marks every copy except the one you keep. Everything still runs on your device: no account, no ads, no subscription.
+```
+Length: 280 chars. Translated into all 21 storefront locales by `scripts/localization/translations/_notes-1.4.1.mjs`. Duplicates, Similar Photos and Select use the app's own translations.
+
+### v1.4.0 release notes, for the record
 
 ```
 Long jobs now survive leaving the app: Live Photo conversion and video and photo compression keep running in the background on iOS 26, and on earlier versions they continue when you come back. Swipe sessions remember your place and your marked photos until you reset them in Settings, and the Cleanup tools keep their last scan and your picks. Undo now sits under the photo, and the new Reduce Swipe Motion setting keeps the cards calm. Everything still runs on your device: no account, no ads, no subscription.
@@ -371,7 +377,8 @@ Length: 268 chars. Source: `scripts/localization/translations/_notes-1.1.0.mjs`.
 
 | Version | Build | Release notes source |
 |---|---|---|
-| 1.4.0 | 15 | §12 above. Build 14 was uploaded but never submitted; build 15 adds #42. Batches survive leaving the app (BGContinuedProcessingTask on iOS 26, resume on return before; Stop deletes originals again), saved swipe sessions (Swipe tab, Cleanup review and Live Photo decks) with Keep for Later, Start Over on finished saved decks (not Not Swiped Yet or Largest First), Undo in the button row, Reduce Swipe Motion, and saved scans and picks in the Cleanup tools. |
+| 1.4.1 | 16 | §12 above. The Compare screen (Duplicates) and Review Group screen (Similar Photos) load a sharp photo at the card's pixel size; before, they showed PhotoKit's fast thumbnail, often a small degraded copy (#44). Select in each Duplicates group header marks every copy but the keeper (#45). |
+| 1.4.0 | 15 | §12, "v1.4.0 release notes, for the record". Build 14 was uploaded but never submitted; build 15 adds #42. Batches survive leaving the app (BGContinuedProcessingTask on iOS 26, resume on return before; Stop deletes originals again), saved swipe sessions (Swipe tab, Cleanup review and Live Photo decks) with Keep for Later, Start Over on finished saved decks (not Not Swiped Yet or Largest First), Undo in the button row, Reduce Swipe Motion, and saved scans and picks in the Cleanup tools. |
 | 1.3.0 | 13 | §12, "v1.3.0 release notes, for the record". Live Photo swipe review (marked photos convert in one batch, one iOS delete prompt), the Text Photos tool, sort options in every Cleanup tool, and the Largest First swipe deck. |
 | 1.2.1 | 12 | §12, "v1.2.1 release notes, for the record". Large-library loading fix: the 1.2.0 regression from #27 cleared the resource cache on most library changes; the cache is now kept, stored on disk, and refreshed a slice at a time. Also cancels PhotoKit loads when a card or cell goes away. See `docs/large-library-performance.md`. |
 | 1.2.0 | 11 | §12 above. Delete-prompt fixes (#24), whole-photo swipe cards, compression, accessibility-layout and data-safety fixes (#27). Google Photos stays hidden (no OAuth client ID). |
