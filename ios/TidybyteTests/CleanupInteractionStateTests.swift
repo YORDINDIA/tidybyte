@@ -83,6 +83,11 @@ final class CleanupInteractionStateTests: XCTestCase {
         XCTAssertTrue(viewModel.touchedGroups.contains("burst"))
         viewModel.toggleGroupSelection(group)
         XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+
+        // Keep This moves the keeper to b; Select with the old copy marks a and c.
+        viewModel.setBest(assetId: "b", in: "burst")
+        viewModel.toggleGroupSelection(group)
+        XCTAssertEqual(viewModel.selectedForDeletion, ["a", "c"])
     }
 
     func testBurstSetBestMovesDeletionSelectionToPreviousBest() {

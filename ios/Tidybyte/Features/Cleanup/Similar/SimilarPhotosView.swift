@@ -328,6 +328,7 @@ struct SimilarPhotosView: View {
                 GroupSelectToggle(isMarked: viewModel.isGroupSelected(group)) {
                     viewModel.toggleGroupSelection(group)
                 }
+                .disabled(viewModel.isDeleting)
                 // Keeps "Select" and "Review" apart, so they read as two controls.
                 .padding(.trailing, Spacing.md)
                 Button {
