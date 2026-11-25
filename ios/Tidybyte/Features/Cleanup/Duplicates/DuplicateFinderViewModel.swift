@@ -379,6 +379,8 @@ final class DuplicateFinderViewModel {
     /// The group's Select control: marks every copy but the keeper, or clears
     /// them when they are all marked already.
     func toggleGroupSelection(_ group: DuplicateGroup) {
+        // The current copy: "Keep This" may have moved the keeper since the caller read it.
+        let group = (exactGroups + visualGroups).first { $0.id == group.id } ?? group
         let extras = Self.nonBestAssetIds(in: group)
         var ids = selectedForDeletion
         if isGroupSelected(group) {

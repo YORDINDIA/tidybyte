@@ -315,6 +315,24 @@ final class DuplicatesRegressionTests: XCTestCase {
         XCTAssertFalse(viewModel.isGroupSelected(g1))
     }
 
+    /// After "Keep This" moves the keeper, Select works on the current group,
+    /// even when the caller still holds the old copy, and never marks the new keeper.
+    func testGroupSelectAfterKeeperChangeNeverMarksNewKeeper() {
+        let viewModel = DuplicateFinderViewModel()
+        let stale = DuplicateGroup(id: "g1", assets: [makeAsset(id: "a"), makeAsset(id: "b"), makeAsset(id: "c")], bestAssetId: "a", type: .visual)
+        viewModel.visualGroups = [stale]
+        viewModel.scanType = .visual
+
+        viewModel.setBest(assetId: "b", in: "g1")
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+        viewModel.toggleGroupSelection(stale)
+        XCTAssertEqual(viewModel.selectedForDeletion, ["a", "c"])
+        XCTAssertTrue(viewModel.isGroupSelected(viewModel.visualGroups[0]))
+
+        viewModel.toggleGroupSelection(stale)
+        XCTAssertTrue(viewModel.selectedForDeletion.isEmpty)
+    }
+
     /// C7 invariant: keepers are never part of the select-all set.
     func testAllSelectedExcludesKeepers() {
         let viewModel = DuplicateFinderViewModel()
