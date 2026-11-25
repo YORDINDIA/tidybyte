@@ -70141,6 +70141,136 @@
         }
       }
     },
+    "Marks every photo in this group for deletion, except the one to keep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marks every photo in this group for deletion, except the one to keep"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस समूह की सभी फ़ोटो को हटाने के लिए चिह्नित करता है, रखी जाने वाली फ़ोटो को छोड़कर"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই গ্রুপের সব ফটো মুছে ফেলার জন্য চিহ্নিত করে, যেটি রাখবেন সেটি ছাড়া"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வைத்திருக்கும் புகைப்படம் தவிர, இந்தக் குழுவின் எல்லாப் புகைப்படங்களையும் நீக்குவதற்குக் குறிக்கும்"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఉంచే ఫోటో తప్ప, ఈ సమూహంలోని అన్ని ఫోటోలను తొలగించడానికి గుర్తిస్తుంది"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ठेवायचा फोटो सोडून, या गटातील सर्व फोटो हटवण्यासाठी चिन्हांकित करते"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "આ જૂથના બધા ફોટા કાઢી નાખવા ચિહ્નિત કરે છે, રાખવાના ફોટા સિવાય"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಇರಿಸಿಕೊಳ್ಳುವ ಫೋಟೋ ಹೊರತುಪಡಿಸಿ, ಈ ಗುಂಪಿನ ಎಲ್ಲಾ ಫೋಟೋಗಳನ್ನು ಅಳಿಸಲು ಗುರುತಿಸುತ್ತದೆ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "നിലനിർത്തുന്ന ഫോട്ടോ ഒഴികെ, ഈ ഗ്രൂപ്പിലെ എല്ലാ ഫോട്ടോകളും ഇല്ലാതാക്കാൻ അടയാളപ്പെടുത്തുന്നു"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਰੱਖਣ ਵਾਲੀ ਫ਼ੋਟੋ ਨੂੰ ਛੱਡ ਕੇ, ਇਸ ਗਰੁੱਪ ਦੀਆਂ ਸਾਰੀਆਂ ਫ਼ੋਟੋਆਂ ਨੂੰ ਮਿਟਾਉਣ ਲਈ ਨਿਸ਼ਾਨਬੱਧ ਕਰਦਾ ਹੈ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marca para eliminación todas las fotos de este grupo, excepto la que conservas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marque pour suppression toutes les photos de ce groupe, sauf celle à garder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markiert alle Fotos dieser Gruppe zum Löschen, außer dem, das du behältst"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marca para exclusão todas as fotos deste grupo, exceto a que você vai manter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contrassegna per l'eliminazione tutte le foto di questo gruppo, tranne quella da tenere"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このグループの写真を、残す写真を除いてすべて削除対象にします"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "남길 사진을 제외하고 이 그룹의 모든 사진을 삭제 대상으로 표시합니다"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将此组中除保留照片外的所有照片标记为删除"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помечает для удаления все фото в этой группе, кроме того, которое останется"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحدد كل الصور في هذه المجموعة للحذف، باستثناء الصورة التي ستحتفظ بها"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מסמן למחיקה את כל התמונות בקבוצה זו, חוץ מהתמונה שנשמרת"
+          }
+        }
+      }
+    },
     "Marks this photo for deletion and shows the next one": {
       "localizations": {
         "en": {
@@ -101857,6 +101987,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "ראה כמה אחסון בשימוש וכמה ניתן לנקות."
+          }
+        }
+      }
+    },
+    "Select": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चुनें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নির্বাচন করুন"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "தேர்ந்தெடு"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ఎంచుకోండి"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निवडा"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "પસંદ કરો"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ಆಯ್ಕೆಮಾಡಿ"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "തിരഞ്ഞെടുക്കുക"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ਚੁਣੋ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionner"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswählen"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecionar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleziona"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحديد"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בחר"
           }
         }
       }

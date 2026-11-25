@@ -310,30 +310,36 @@ struct DuplicateFinderView: View {
 
     private func duplicateGroupRow(_ group: DuplicateGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            // The header opens Compare; each thumbnail opens a preview; the
-            // circle marks for deletion. Same pattern as Similar and Bursts.
-            Button { selectedGroup = group } label: {
-                AdaptiveRow(spacing: nil) {
-                    // Two whole phrases, one per group type, rather than a noun
-                    // spliced into a shared template: "%lld %@" cannot be
-                    // reordered into languages that put the number after the
-                    // noun, and the two forms pluralize independently.
-                    Text(group.type == .exact
-                         ? L10n.format("%lld exact copies", group.assets.count)
-                         : L10n.format("%lld look-alike photos", group.assets.count))
-                        .font(.subheadline.bold())
-                    AdaptiveSpacer()
-                    Text("Compare")
-                        .font(.caption.bold())
-                    Image(systemName: "chevron.forward")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+            // The header's Select marks the whole group and Compare opens the
+            // comparison; each thumbnail opens a preview; the circle marks
+            // one photo for deletion. Same pattern as Similar and Bursts.
+            AdaptiveRow(spacing: nil) {
+                // Two whole phrases, one per group type, rather than a noun
+                // spliced into a shared template: "%lld %@" cannot be
+                // reordered into languages that put the number after the
+                // noun, and the two forms pluralize independently.
+                Text(group.type == .exact
+                     ? L10n.format("%lld exact copies", group.assets.count)
+                     : L10n.format("%lld look-alike photos", group.assets.count))
+                    .font(.subheadline.bold())
+                AdaptiveSpacer()
+                GroupSelectToggle(isMarked: viewModel.isGroupSelected(group)) {
+                    viewModel.toggleGroupSelection(group)
                 }
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
+                Button { selectedGroup = group } label: {
+                    HStack(spacing: Spacing.xs) {
+                        Text("Compare")
+                            .font(.caption.bold())
+                        Image(systemName: "chevron.forward")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Opens the side-by-side comparison")
             }
-            .buttonStyle(.plain)
-            .accessibilityHint("Opens the side-by-side comparison")
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: Spacing.sm) {
