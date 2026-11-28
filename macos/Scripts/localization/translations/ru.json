@@ -627,7 +627,7 @@
     "file is missing": "файл отсутствует",
     "File relationship node": "Узел связи файла",
     "File-mutation byte cap": "Лимит байтов изменения файлов",
-    "Filename": "По имени",
+    "Filename": "Имя файла",
     "Files changed since the last scan. Scan again to refresh.": "Файлы изменились со времени последнего сканирования. Просканируйте снова для обновления.",
     "Files go to the Trash, and History can restore them.": "Файлы перемещаются в Корзину и могут быть восстановлены из «Истории».",
     "Files in this group": "Файлы в этой группе",

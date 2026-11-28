@@ -4921,13 +4921,6 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/ExecutionConfirmView.swift"
     },
     {
-      "key": "Filename",
-      "targets": [
-        "appkit"
-      ],
-      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
-    },
-    {
       "key": "Files changed since the last scan. Scan again to refresh.",
       "targets": [
         "appkit"
@@ -14526,7 +14519,6 @@
     "File information: %@",
     "File relationship node",
     "File-mutation byte cap",
-    "Filename",
     "Files changed since the last scan. Scan again to refresh.",
     "Files go to the Trash, and History can restore them.",
     "Files in this group",
@@ -15449,5 +15441,5 @@
       "file": "Scripts/build-app.sh"
     }
   ],
-  "total": 1919
+  "total": 1918
 }

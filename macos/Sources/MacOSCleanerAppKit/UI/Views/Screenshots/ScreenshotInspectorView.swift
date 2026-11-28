@@ -29,7 +29,7 @@ struct ScreenshotInspectorView: View {
                     }
                 }
 
-                Section(L10n.string("Filename", language: override)) {
+                Section(L10n.string("Name", language: override)) {
                     LabeledContent(L10n.string("Current", language: override), value: record.newFileName)
                     LabeledContent(L10n.string("Original", language: override), value: record.originalFileName)
                     LabeledContent(L10n.string("Style", language: override), value: record.namingStyle.displayName)

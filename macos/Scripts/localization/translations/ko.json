@@ -627,7 +627,7 @@
     "file is missing": "파일 없음",
     "File relationship node": "파일 관계 노드",
     "File-mutation byte cap": "파일 변경 바이트 한도",
-    "Filename": "파일명순",
+    "Filename": "파일명",
     "Files changed since the last scan. Scan again to refresh.": "마지막 스캔 이후 파일이 변경되었습니다. 새로고침하려면 다시 스캔하세요.",
     "Files go to the Trash, and History can restore them.": "파일은 휴지통으로 이동하며 기록에서 복원할 수 있습니다.",
     "Files in this group": "이 그룹의 파일",

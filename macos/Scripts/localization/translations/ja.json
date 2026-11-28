@@ -627,7 +627,7 @@
     "file is missing": "ファイルが見つかりません",
     "File relationship node": "ファイル関連ノード",
     "File-mutation byte cap": "ファイル変更バイト数上限",
-    "Filename": "ファイル名順",
+    "Filename": "ファイル名",
     "Files changed since the last scan. Scan again to refresh.": "前回のスキャン以降にファイルが変更されました。更新するには再スキャンしてください。",
     "Files go to the Trash, and History can restore them.": "ファイルはゴミ箱へ移動し、履歴から復元できます。",
     "Files in this group": "このグループ内のファイル",
