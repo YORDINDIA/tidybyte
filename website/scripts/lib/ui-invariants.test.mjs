@@ -13,6 +13,8 @@ test("Header places mobile drawer outside scrolled header element and exposes Cl
   assert.ok(headerCloseIdx > 0 && drawerIdx > headerCloseIdx, "#mobile-menu must sit outside </header>");
   assert.ok(header.includes('role="dialog"'), "mobile drawer must expose dialog semantics");
   assert.ok(header.includes('aria-label={t("Close menu")}'), "drawer close button must have Close menu label");
+  const css = readFileSync(join(root, "src/input.css"), "utf8");
+  assert.ok(css.includes(".header-compact + #mobile-menu:not(.hidden)"), "compact-nav selector matches sibling drawer");
 });
 
 test("nav.js restores focus on drawer close and manages inert background", () => {

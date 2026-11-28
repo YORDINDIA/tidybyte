@@ -852,7 +852,7 @@
   display: inline-flex !important;
 }
 
-.header-compact #mobile-menu:not(.hidden) {
+.header-compact + #mobile-menu:not(.hidden) {
   display: block !important;
 }
 
