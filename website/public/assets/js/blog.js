@@ -8,11 +8,11 @@
 
   var PER_PAGE = 12;
 
-  var FOCUS_RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40';
-  var CHIP_ACTIVE = 'inline-flex cursor-pointer items-center rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-on-primary transition ' + FOCUS_RING;
-  var CHIP_INACTIVE = 'badge cursor-pointer px-4 py-1.5 text-sm font-medium transition hover:text-ink ' + FOCUS_RING;
-  var PAGE_ACTIVE = 'inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-3.5 py-1.5 text-sm font-semibold text-on-primary transition ' + FOCUS_RING;
-  var PAGE_INACTIVE = 'badge cursor-pointer px-3.5 py-1.5 text-sm font-medium transition hover:text-ink ' + FOCUS_RING;
+  var FOCUS_RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange';
+  var CHIP_ACTIVE = 'inline-flex cursor-pointer items-center rounded-full bg-ink px-4 py-1.5 text-sm font-bold text-canvas shadow-[0_0_0_2px_rgb(var(--c-ink))] transition ' + FOCUS_RING;
+  var CHIP_INACTIVE = 'badge cursor-pointer px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-px ' + FOCUS_RING;
+  var PAGE_ACTIVE = 'inline-flex cursor-pointer items-center justify-center rounded-full bg-ink px-3.5 py-1.5 text-sm font-bold text-canvas shadow-[0_0_0_2px_rgb(var(--c-ink))] transition ' + FOCUS_RING;
+  var PAGE_INACTIVE = 'badge cursor-pointer px-3.5 py-1.5 text-sm font-semibold transition hover:-translate-y-px ' + FOCUS_RING;
 
   var grid = document.getElementById('blog-list');
   var cards = grid ? Array.prototype.slice.call(grid.querySelectorAll('article[data-cats]')) : [];

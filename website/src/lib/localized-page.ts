@@ -74,7 +74,7 @@ function metaForSlug(slug: string): { title: string; description: string } | und
  */
 function faqPairs(body: string): { question: string; answer: string }[] {
   const pattern =
-    /<summary class="faq-summary">\s*<span>([\s\S]*?)<\/span>[\s\S]*?<\/summary>\s*<p class="muted mt-4">([\s\S]*?)<\/p>/g;
+    /<summary class="faq-summary">\s*<span[^>]*>([\s\S]*?)<\/span>[\s\S]*?<\/summary>\s*<p class="muted mt-4[^"]*">([\s\S]*?)<\/p>/g;
   return [...body.matchAll(pattern)].map((match) => ({
     // Tags first, then entities: an answer can carry inline links, and
     // `structured data` wants the sentence, not the anchor. Replacing the tag

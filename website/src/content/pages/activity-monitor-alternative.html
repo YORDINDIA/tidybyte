@@ -126,21 +126,23 @@
 <!-- Projects: dev servers and ports. -->
 <section class="section pt-0" aria-labelledby="monitor-projects">
   <div class="container-prose">
-    <div class="rounded-[2rem] bg-surface-dark p-8 sm:p-12">
+    <div class="cr cp-night overflow-hidden p-8 sm:p-12" style="--r:36px;--c:rgb(var(--c-navy))">
+      <div class="solid" aria-hidden="true"></div>
+      <div class="line" aria-hidden="true"></div>
       <h2 id="monitor-projects" class="h-section-on-dark max-w-2xl">Built for people who run things on purpose.</h2>
-      <p class="mt-4 max-w-2xl text-base text-clay-cream/75 sm:text-lg">A development Mac is not just apps — it is servers, agents, and containers. The Monitor gives each its own view instead of burying them in a process list.</p>
+      <p class="mt-4 max-w-2xl text-base text-[#d9d6ff] sm:text-lg">A development Mac is not just apps — it is servers, agents, and containers. The Monitor gives each its own view instead of burying them in a process list.</p>
       <dl class="mt-10 grid gap-x-12 gap-y-8 md:grid-cols-3">
         <div>
-          <dt class="font-display text-lg font-medium text-clay-cream">Projects</dt>
-          <dd class="mt-1.5 text-clay-cream/75">Dev servers and the ports they hold, grouped by project folder. Servers that have gone idle are flagged, so port 3000 stops being a mystery.</dd>
+          <dt class="font-display text-2xl font-bold text-white">Projects</dt>
+          <dd class="mt-1.5 text-[#d9d6ff]">Dev servers and the ports they hold, grouped by project folder. Servers that have gone idle are flagged, so port 3000 stops being a mystery.</dd>
         </div>
         <div>
-          <dt class="font-display text-lg font-medium text-clay-cream">Agents</dt>
-          <dd class="mt-1.5 text-clay-cream/75">Command-line coding assistants — Claude Code, Codex, Gemini CLI, Cursor Agent, Copilot, Aider, and others — as first-class rows with their project, their child processes, and the plan usage known locally.</dd>
+          <dt class="font-display text-2xl font-bold text-white">Agents</dt>
+          <dd class="mt-1.5 text-[#d9d6ff]">Command-line coding assistants — Claude Code, Codex, Gemini CLI, Cursor Agent, Copilot, Aider, and others — as first-class rows with their project, their child processes, and the plan usage known locally.</dd>
         </div>
         <div>
-          <dt class="font-display text-lg font-medium text-clay-cream">Containers</dt>
-          <dd class="mt-1.5 text-clay-cream/75">Docker containers with CPU, memory, network, and ports, side by side with the apps and agents on the same machine.</dd>
+          <dt class="font-display text-2xl font-bold text-white">Containers</dt>
+          <dd class="mt-1.5 text-[#d9d6ff]">Docker containers with CPU, memory, network, and ports, side by side with the apps and agents on the same machine.</dd>
         </div>
       </dl>
     </div>
@@ -153,55 +155,55 @@
   <div class="container-prose">
     <h2 id="monitor-compare" class="h-section max-w-2xl">Activity Monitor and TidyByte Monitor</h2>
     <p class="lede mt-4 max-w-2xl">Activity Monitor is free, built into macOS, and good at what it shows: every process, live. Keep it. The Monitor starts where it stops — it groups those processes by app, remembers what it saw, and adds views for the things developers run.</p>
-    <div class="mt-10 overflow-x-auto">
+    <div class="paper mt-10 overflow-x-auto">
       <table class="w-full min-w-[40rem] text-start text-sm sm:text-base">
-        <thead>
-          <tr class="border-b border-hairline-strong text-ink">
-            <th scope="col" class="py-3 pe-6 text-start font-semibold">What you want to know</th>
-            <th scope="col" class="py-3 pe-6 text-start font-semibold">Activity Monitor (built in)</th>
-            <th scope="col" class="py-3 text-start font-semibold">TidyByte Monitor</th>
+        <thead class="border-b-2 border-ink bg-surface-soft">
+          <tr class="text-ink">
+            <th scope="col" class="p-4 text-start font-bold">What you want to know</th>
+            <th scope="col" class="p-4 text-start font-bold">Activity Monitor (built in)</th>
+            <th scope="col" class="p-4 text-start font-bold text-ink">TidyByte Monitor</th>
           </tr>
         </thead>
-        <tbody class="text-body">
-          <tr class="border-b border-hairline">
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Processes</th>
-            <td class="py-4 pe-6 align-top">Every process, live.</td>
-            <td class="py-4 align-top">Apps first: helpers grouped under the parent app, with the full process list one click away.</td>
-          </tr>
-          <tr class="border-b border-hairline">
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">History</th>
-            <td class="py-4 pe-6 align-top">None — what you see is now.</td>
-            <td class="py-4 align-top">Every metric, per app, up to a year, in a local database.</td>
-          </tr>
-          <tr class="border-b border-hairline">
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Alerts</th>
-            <td class="py-4 pe-6 align-top">None.</td>
-            <td class="py-4 align-top">Notifications for sustained CPU, memory growth, and heavy disk or network use.</td>
-          </tr>
-          <tr class="border-b border-hairline">
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Menu bar</th>
-            <td class="py-4 pe-6 align-top">Not a menu bar item.</td>
-            <td class="py-4 align-top">One live item per metric, plus a combined panel with the busiest apps.</td>
-          </tr>
-          <tr class="border-b border-hairline">
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Dev servers and ports</th>
-            <td class="py-4 pe-6 align-top">Ports, via the command line.</td>
-            <td class="py-4 align-top">A Projects view: servers and ports grouped by project folder, idle servers flagged.</td>
-          </tr>
-          <tr class="border-b border-hairline">
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Coding agents</th>
-            <td class="py-4 pe-6 align-top">Shown as anonymous processes.</td>
-            <td class="py-4 align-top">Claude Code, Codex, Gemini CLI, Cursor Agent, Copilot, Aider and more, with project and plan usage.</td>
-          </tr>
-          <tr class="border-b border-hairline">
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Docker containers</th>
-            <td class="py-4 pe-6 align-top">Shown as processes.</td>
-            <td class="py-4 align-top">A Containers view with CPU, memory, network, and ports.</td>
+        <tbody class="divide-y divide-hairline text-body">
+          <tr>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">Processes</th>
+            <td class="p-4 align-top">Every process, live.</td>
+            <td class="p-4 align-top">Apps first: helpers grouped under the parent app, with the full process list one click away.</td>
           </tr>
           <tr>
-            <th scope="row" class="py-4 pe-6 text-start align-top font-semibold text-ink">Price</th>
-            <td class="py-4 pe-6 align-top">Free, included with macOS.</td>
-            <td class="py-4 align-top">Free, MIT licensed, part of TidyByte for Mac.</td>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">History</th>
+            <td class="p-4 align-top">None — what you see is now.</td>
+            <td class="p-4 align-top">Every metric, per app, up to a year, in a local database.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">Alerts</th>
+            <td class="p-4 align-top">None.</td>
+            <td class="p-4 align-top">Notifications for sustained CPU, memory growth, and heavy disk or network use.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">Menu bar</th>
+            <td class="p-4 align-top">Not a menu bar item.</td>
+            <td class="p-4 align-top">One live item per metric, plus a combined panel with the busiest apps.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">Dev servers and ports</th>
+            <td class="p-4 align-top">Ports, via the command line.</td>
+            <td class="p-4 align-top">A Projects view: servers and ports grouped by project folder, idle servers flagged.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">Coding agents</th>
+            <td class="p-4 align-top">Shown as anonymous processes.</td>
+            <td class="p-4 align-top">Claude Code, Codex, Gemini CLI, Cursor Agent, Copilot, Aider and more, with project and plan usage.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">Docker containers</th>
+            <td class="p-4 align-top">Shown as processes.</td>
+            <td class="p-4 align-top">A Containers view with CPU, memory, network, and ports.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="p-4 text-start align-top font-bold text-ink">Price</th>
+            <td class="p-4 align-top">Free, included with macOS.</td>
+            <td class="p-4 align-top">Free, MIT licensed, part of TidyByte for Mac.</td>
           </tr>
         </tbody>
       </table>
@@ -209,46 +211,51 @@
   </div>
 </section>
 
-<!-- How to use: same numbered clay-step pattern as the home page's
-     "How it works" (rounded tiles, big numeral, ink/soft text tokens).
-     Four colors because this grid runs four wide on lg. Mirrors the HowTo
-     JSON-LD in src/data/pages.ts — keep step names and text in step. -->
+<!-- How to use: four crayon-striped step cards -->
 <section class="section pt-0" aria-labelledby="monitor-how-to">
   <div class="container-prose">
     <h2 id="monitor-how-to" class="h-section max-w-2xl">How to use TidyByte Monitor.</h2>
     <p class="lede mt-4 max-w-2xl">Four steps from download to a live number in your menu bar.</p>
     <ol role="list" class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4" data-reveal-group>
-      <li class="rounded-2xl bg-clay-pink p-6" data-reveal>
-        <div class="flex items-center gap-3">
-          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-pink-ink"><path d="M20 7v17m0 0l-7-7m7 7l7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 31h22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-pink-ink">1</p>
+      <li class="cr flex flex-col justify-between p-6" style="--r:26px;--c:var(--cp-pink)" data-reveal>
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="flex items-center justify-between gap-3">
+          <svg aria-hidden="true" focusable="false" width="32" height="32" viewBox="0 0 40 40" fill="none" class="text-ink"><path d="M20 7v17m0 0l-7-7m7 7l7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 31h22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-bold leading-none text-ink">1</p>
         </div>
-        <h3 class="mt-4 font-display text-lg font-semibold text-clay-pink-ink">Download and open TidyByte</h3>
-        <p class="mt-1.5 text-sm text-clay-pink-soft">Get the Direct disk image from GitHub and drag TidyByte to Applications. It is signed, notarized, and updates with Sparkle (system-wide Monitor requires the Direct build, not the sandboxed App Store build).</p>
+        <h3 class="mt-4 font-display text-2xl font-bold text-ink">Download and open TidyByte</h3>
+        <p class="mt-3 rounded-xl bg-surface-card/95 p-3.5 text-sm text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">Get the Direct disk image from GitHub and drag TidyByte to Applications. It is signed, notarized, and updates with Sparkle (system-wide Monitor requires the Direct build, not the sandboxed App Store build).</p>
       </li>
-      <li class="rounded-2xl bg-clay-lav p-6" data-reveal>
-        <div class="flex items-center gap-3">
-          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-lav-ink"><rect x="6" y="8" width="28" height="24" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 8v24" stroke="currentColor" stroke-width="2"/><path d="M21 17h8M21 23h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-lav-ink">2</p>
+      <li class="cr flex flex-col justify-between p-6" style="--r:26px;--c:var(--cp-lilac)" data-reveal>
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="flex items-center justify-between gap-3">
+          <svg aria-hidden="true" focusable="false" width="32" height="32" viewBox="0 0 40 40" fill="none" class="text-ink"><rect x="6" y="8" width="28" height="24" rx="4" stroke="currentColor" stroke-width="2.5"/><path d="M16 8v24" stroke="currentColor" stroke-width="2.5"/><path d="M21 17h8M21 23h5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-bold leading-none text-ink">2</p>
         </div>
-        <h3 class="mt-4 font-display text-lg font-semibold text-clay-lav-ink">Click Monitor in the sidebar</h3>
-        <p class="mt-1.5 text-sm text-clay-lav-soft">The cleaner and the monitor share one app. Monitor opens on Overview, with the busiest apps on top.</p>
+        <h3 class="mt-4 font-display text-2xl font-bold text-ink">Click Monitor in the sidebar</h3>
+        <p class="mt-3 rounded-xl bg-surface-card/95 p-3.5 text-sm text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">The cleaner and the monitor share one app. Monitor opens on Overview, with the busiest apps on top.</p>
       </li>
-      <li class="rounded-2xl bg-clay-mint p-6" data-reveal>
-        <div class="flex items-center gap-3">
-          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-mint-ink"><path d="M7 27a13 13 0 1 1 26 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M20 27l6-9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="27" r="2.5" fill="currentColor"/></svg>
-          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-mint-ink">3</p>
+      <li class="cr flex flex-col justify-between p-6" style="--r:26px;--c:var(--cp-mint)" data-reveal>
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="flex items-center justify-between gap-3">
+          <svg aria-hidden="true" focusable="false" width="32" height="32" viewBox="0 0 40 40" fill="none" class="text-ink"><path d="M7 27a13 13 0 1 1 26 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M20 27l6-9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="27" r="2.5" fill="currentColor"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-bold leading-none text-ink">3</p>
         </div>
-        <h3 class="mt-4 font-display text-lg font-semibold text-clay-mint-ink">Read the dashboards</h3>
-        <p class="mt-1.5 text-sm text-clay-mint-soft">Thirteen views, from CPU to Containers. Each row is an app, so the overview number drills down to the process causing it.</p>
+        <h3 class="mt-4 font-display text-2xl font-bold text-ink">Read the dashboards</h3>
+        <p class="mt-3 rounded-xl bg-surface-card/95 p-3.5 text-sm text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">Thirteen views, from CPU to Containers. Each row is an app, so the overview number drills down to the process causing it.</p>
       </li>
-      <li class="rounded-2xl bg-clay-peach p-6" data-reveal>
-        <div class="flex items-center gap-3">
-          <svg aria-hidden="true" focusable="false" width="40" height="40" viewBox="0 0 40 40" fill="none" class="text-clay-peach-ink"><rect x="5" y="9" width="30" height="22" rx="4" stroke="currentColor" stroke-width="2"/><path d="M5 16h30" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="12.5" r="1.5" fill="currentColor"/><circle cx="15" cy="12.5" r="1.5" fill="currentColor"/><path d="M11 25h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-peach-ink">4</p>
+      <li class="cr flex flex-col justify-between p-6" style="--r:26px;--c:var(--cp-peach)" data-reveal>
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="flex items-center justify-between gap-3">
+          <svg aria-hidden="true" focusable="false" width="32" height="32" viewBox="0 0 40 40" fill="none" class="text-ink"><rect x="5" y="9" width="30" height="22" rx="4" stroke="currentColor" stroke-width="2.5"/><path d="M5 16h30" stroke="currentColor" stroke-width="2.5"/><circle cx="10" cy="12.5" r="1.5" fill="currentColor"/><circle cx="15" cy="12.5" r="1.5" fill="currentColor"/><path d="M11 25h9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <p aria-hidden="true" class="font-display text-5xl font-bold leading-none text-ink">4</p>
         </div>
-        <h3 class="mt-4 font-display text-lg font-semibold text-clay-peach-ink">Watch it from the menu bar</h3>
-        <p class="mt-1.5 text-sm text-clay-peach-soft">Give each metric a live menu bar item — CPU, memory, network, disk, energy — and let alerts flag whatever stays wrong.</p>
+        <h3 class="mt-4 font-display text-2xl font-bold text-ink">Watch it from the menu bar</h3>
+        <p class="mt-3 rounded-xl bg-surface-card/95 p-3.5 text-sm text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">Give each metric a live menu bar item — CPU, memory, network, disk, energy — and let alerts flag whatever stays wrong.</p>
       </li>
     </ol>
   </div>
@@ -411,18 +418,21 @@
   </div>
 </section>
 
-<!-- Closing: back to the parent product, plus the privacy story and the
-     changelog, so every promise on this page has a place to verify itself. -->
+<!-- Closing: yellow crayon banner -->
 <section class="section-tight pt-0">
   <div class="container-prose">
-    <div class="flex flex-col items-start gap-5 rounded-[2rem] bg-surface-soft p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
-      <div class="max-w-xl">
-        <h2 class="font-display text-2xl font-medium text-ink sm:text-3xl">Part of TidyByte for Mac.</h2>
-        <p class="muted mt-2">The monitor ships alongside the cleaner — caches, developer files, duplicates, and app leftovers, under the same ask-first rules. Nothing recorded ever leaves your Mac, as the <a href="/privacy" class="link">privacy policy</a> spells out, and every release is listed in the <a href="/changelog" class="link">changelog</a>.</p>
+    <div class="cr overflow-hidden p-8 sm:p-10" style="--r:30px;--c:var(--cp-yellow-card)">
+      <div class="fill" aria-hidden="true"></div>
+      <div class="line" aria-hidden="true"></div>
+      <div class="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div class="max-w-xl">
+          <h2 class="font-display text-3xl font-bold text-ink sm:text-4xl">Part of TidyByte for Mac.</h2>
+          <p class="mt-2 text-body">The monitor ships alongside the cleaner — caches, developer files, duplicates, and app leftovers, under the same ask-first rules. Nothing recorded ever leaves your Mac, as the <a href="/privacy" class="link">privacy policy</a> spells out, and every release is listed in the <a href="/changelog" class="link">changelog</a>.</p>
+        </div>
+        <a href="/mac" class="btn-dark-cp shrink-0">
+          About TidyByte for Mac
+        </a>
       </div>
-      <a href="/mac" class="btn-primary shrink-0">
-        About TidyByte for Mac
-      </a>
     </div>
   </div>
 </section>

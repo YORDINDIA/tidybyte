@@ -180,7 +180,7 @@ const skipLink =
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#fffaf0" />
+    <meta name="theme-color" content="#fffdf8" />
     <meta name="robots" content={robots} />
     <meta name="author" content="TidyByte" />
 
@@ -216,7 +216,10 @@ const skipLink =
     {pub && <meta property="article:published_time" content={pub} />}
     {meta.ogType === "article" && mod && <meta property="article:modified_time" content={mod} />}
     {meta.fontPreload && (
-      <link rel="preload" href={meta.fontPreload} as="font" type="font/woff2" crossorigin />
+      <>
+        <link rel="preload" href="/assets/fonts/gaegu-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+      </>
     )}
     {preload && (
       <link
@@ -238,7 +241,32 @@ const skipLink =
     ))}
     <Fragment set:html={jsonLdTail} />
   </head>
-  <body>
+  <body class="cp">
+    <svg aria-hidden="true" width="0" height="0" class="pointer-events-none absolute h-0 w-0 overflow-hidden">
+      <defs>
+        <filter id="cp-line" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="w" />
+          <feDisplacementMap in="SourceGraphic" in2="w" scale="4" result="d" />
+          <feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="1" seed="7" result="g" />
+          <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.1 1.35" result="gm" />
+          <feComposite in="d" in2="gm" operator="in" />
+        </filter>
+        <filter id="cp-wax" x="-5%" y="-8%" width="110%" height="116%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="5" result="w" />
+          <feDisplacementMap in="SourceGraphic" in2="w" scale="6" result="d" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="g" />
+          <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.2 1.4" result="gm" />
+          <feComposite in="d" in2="gm" operator="in" />
+        </filter>
+        <filter id="cp-scribble" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03 0.055" numOctaves="2" seed="9" result="w" />
+          <feDisplacementMap in="SourceGraphic" in2="w" scale="12" result="d" />
+          <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="2" result="g" />
+          <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1 1.35" result="gm" />
+          <feComposite in="d" in2="gm" operator="in" />
+        </filter>
+      </defs>
+    </svg>
     <Fragment set:html={skipLink} />
     <Header home={home} lang={lang} />
     <slot />

@@ -17,7 +17,7 @@ export interface PageMeta {
   ogHeight: string;
   ogUrl: string;
   canonical: string;
-  fontPreload: string | null;
+  fontPreload: boolean;
   extraScripts: string[];
   datePublished?: string;
   dateModified?: string;

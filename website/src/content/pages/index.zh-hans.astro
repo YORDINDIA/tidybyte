@@ -1,22 +1,9 @@
 ---
 // The marketing landing page body, as a real Astro component.
 //
-// One page for both apps: the hero, stats, and toolkit cover iPhone and Mac
-// together, and the two app replicas are rebuilt in HTML/CSS right here —
-// the iPhone's four tabs and the Mac window's four screens are switchable
-// with radio inputs and CSS only (the .ios-demo / .mac-home-demo blocks at
-// the bottom of src/input.css), so the demos work with JavaScript disabled
-// and arrow keys move between screens.
-//
-// This component is the SOURCE OF TRUTH for the landing page's translatable
-// copy: scripts/localization/site/extract-site-strings.mjs pulls the strings
-// out of this file, and build-site-translations.mjs writes one translated
-// component per language to src/content/pages/index.<slug>.astro (plus the
-// English index.html snapshot the llms.txt / *.md endpoints read). Every
-// label you add here needs a translation in all 20
-// scripts/localization/site/site-translations/<lang>.json files or the
-// build fails; unit symbols, disk/file names, and glyph entities that read
-// the same everywhere stay English via keep-literal.mjs.
+// Styled with the Snaptitle crayon-and-paper (.cp / .cr / .paper) design
+// system while preserving all TidyByte interactive iPhone/Mac HTML+CSS
+// replicas, 21-language string extraction, and FAQ JSON-LD parity.
 interface Props {
   /** The rendered "Quick answer" box, built from the page description. */
   quickAnswer?: string;
@@ -24,249 +11,347 @@ interface Props {
 }
 const { quickAnswer = "", iosVersion } = Astro.props;
 ---
-<main id="main">
-<!-- Announcement bar: pill + link. Semantic tokens only — flips with theme. -->
-<div class="border-b border-hairline bg-surface-soft/80 backdrop-blur-sm">
-  <div class="container-prose flex items-center justify-center py-2.5">
-    <p class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-body sm:text-sm">
-      <span class="badge shadow-sm">
-        <span aria-hidden="true" class="inline-block h-2 w-2 rounded-full bg-clay-pink ring-4 ring-clay-pink/15"></span>
-        {iosVersion}
-      </span>
-      <a href="/changelog" class="link group inline-flex items-center gap-1 whitespace-nowrap">看看更新了什么 &rarr;</a>
+<main id="main" data-home>
+<!-- Release pill strip -->
+<div class="pt-4 sm:pt-6">
+  <div class="cp-wrap flex items-center justify-center">
+    <p class="badge px-3.5 py-1.5 text-xs sm:text-sm">
+      <span aria-hidden="true" class="inline-block h-2 w-2 rounded-full bg-cp-orange"></span>
+      <span>{iosVersion}</span>
+      <span aria-hidden="true" class="text-muted-soft">&middot;</span>
+      <a href="/changelog" class="link inline-flex items-center gap-1 whitespace-nowrap">看看更新了什么 &rarr;</a>
     </p>
   </div>
 </div>
 
-<!-- Hero. Above the fold: no scroll-reveal attributes on the h1 — renders
-     fully without JS. One app per screen, one promise for both: the mock
-     devices to the right are pure HTML/CSS replicas of the real apps (the
-     same screens their sections below let you click through), so the page
-     shows the product with zero image weight. -->
-<section class="relative overflow-hidden">
-  <div aria-hidden="true" class="absolute inset-x-0 -top-24 -z-10 h-[520px] bg-hero-glow"></div>
-  <div class="container-prose grid items-center gap-12 pb-16 pt-12 sm:pt-20 lg:grid-cols-[0.98fr_1.02fr] lg:gap-10 lg:pb-24">
-    <div>
-      <p class="badge shadow-sm" data-rise style="--in:0">
-        <svg aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-clay-pink"><circle cx="12" cy="12" r="5"/></svg>
+<!-- Hero with floating doodles, Gaegu 120px display type, and crayon-framed showcase -->
+<section class="home-hero relative">
+  <div class="cp-wrap relative">
+    <!-- Floating hand-drawn SVG doodles (purely decorative) -->
+    <svg aria-hidden="true" focusable="false" width="74" height="74" viewBox="0 0 80 80" fill="none" class="cp-doodle cp-bob hidden start-4 top-2 lg:block" style="--rot:-6deg;--bob-delay:0s">
+      <circle cx="40" cy="40" r="18" fill="#ffd23f" stroke="#121214" stroke-width="3.2"/>
+      <path d="M40 9v9M40 62v9M9 40h9M62 40h9M18 18l6.5 6.5M55.5 55.5L62 62M62 18l-6.5 6.5M24.5 55.5L18 62" stroke="#ff5a14" stroke-width="3.2" stroke-linecap="round"/>
+    </svg>
+    <svg aria-hidden="true" focusable="false" width="92" height="58" viewBox="0 0 100 64" fill="none" class="cp-doodle cp-bob hidden end-4 top-6 lg:block" style="--rot:5deg;--bob-delay:1.2s">
+      <path d="M26 50h46a14 14 0 0 0 2-27.8A18 18 0 0 0 39 16a15 15 0 0 0-13 34Z" fill="#bfe0ff" stroke="#121214" stroke-width="3.2" stroke-linejoin="round"/>
+    </svg>
+    <svg aria-hidden="true" focusable="false" width="60" height="60" viewBox="0 0 64 64" fill="none" class="cp-doodle cp-bob hidden start-10 top-64 xl:block" style="--rot:-10deg;--bob-delay:2.1s">
+      <path d="M32 6l7.2 16.5L57 24.7 43.6 36.8 47.4 55 32 45.8 16.6 55l3.8-18.2L7 24.7l17.8-2.2Z" fill="#c9efa9" stroke="#121214" stroke-width="3.2" stroke-linejoin="round"/>
+    </svg>
+    <svg aria-hidden="true" focusable="false" width="58" height="54" viewBox="0 0 64 60" fill="none" class="cp-doodle cp-bob hidden end-10 top-64 xl:block" style="--rot:8deg;--bob-delay:0.8s">
+      <path d="M32 52S8 37 8 20.5A12.5 12.5 0 0 1 32 15a12.5 12.5 0 0 1 24 5.5C56 37 32 52 32 52Z" fill="#ffb3a7" stroke="#121214" stroke-width="3.2" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="relative z-10 mx-auto max-w-[1040px] text-center">
+      <p class="badge mx-auto mb-4" data-rise style="--in:0">
+        <svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="text-cp-orange"><circle cx="12" cy="12" r="7"/></svg>
         免费 &middot; iPhone &amp; iPad &middot; Mac &middot; iOS 17+ &amp; macOS 26
       </p>
-      <svg aria-hidden="true" focusable="false" width="76" height="10" viewBox="0 0 76 10" fill="none" class="mt-2.5 block text-clay-pink" data-rise style="--in:1"><path d="M2 7c6-5.5 11-5.5 17 0s11 5.5 17 0 11-5.5 17 0 11 5 21-1" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-      <h1 class="h-display mt-5">适用于 iPhone 和 Mac 的最佳免费存储空间清理工具。</h1>
-      <p class="lede mt-5 max-w-prose">在 iPhone 上，滑动照片，几分钟找回数 GB 空间。在 Mac 上，清理缓存、开发文件、重复项和应用残留。一切都在你的设备上运行。无广告，无订阅，无需账号。</p>
-      <div class="mt-8 flex flex-wrap items-center gap-3" data-rise style="--in:3">
-        <a href="https://apps.apple.com/app/id6775769763" class="btn-primary px-6 py-3" target="_blank" rel="noopener">
-          <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.46 2.23-1.21 3.05-.81.87-2.14 1.55-3.23 1.46-.14-1.1.4-2.25 1.16-3.04.85-.89 2.29-1.55 3.28-1.47Zm3.61 16.04c-.6 1.39-1.31 2.62-2.18 3.66-1.13 1.39-2.46 3.05-4.25 3.07-1.7.02-2.14-.99-4.46-.99-2.32 0-2.8 1.01-4.5.99-1.79-.02-3.15-1.6-4.28-2.99-2.6-3.2-4.59-9.05-1.92-12.99 1.32-1.95 3.69-3.18 6.25-3.22 1.78-.04 3.46 1.05 4.55 1.05 1.08 0 3.13-1.3 5.28-1.11.9.04 3.43.36 5.05 2.71-.13.08-3.02 1.76-2.99 5.25.04 4.17 3.66 5.55 3.45 5.57Z"/></svg>
+      <h1 class="h-display relative inline-block">
+        适用于 iPhone 和 Mac 的最佳免费存储清理工具。
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 380 18" fill="none" preserveAspectRatio="none" class="pointer-events-none mx-auto mt-2 h-3.5 w-64 max-w-full text-cp-orange">
+          <path d="M4 12C95 4 230 3 376 11" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+      </h1>
+      <p class="lede mx-auto mt-7 max-w-[640px] text-[17px] sm:text-[21px]">在 iPhone 上，滑动照片，几分钟找回数 GB 空间。在 Mac 上，清理缓存、开发文件、重复项和应用残留。一切都在你的设备上运行。无广告，无订阅，无需账号。</p>
+
+      <div class="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row" data-rise style="--in:2">
+        <a href="https://apps.apple.com/app/id6775769763" class="btn-primary w-full max-w-[340px] px-7 py-3.5 text-[17px] sm:w-auto" target="_blank" rel="noopener">
+          <svg aria-hidden="true" focusable="false" width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.46 2.23-1.21 3.05-.81.87-2.14 1.55-3.23 1.46-.14-1.1.4-2.25 1.16-3.04.85-.89 2.29-1.55 3.28-1.47Zm3.61 16.04c-.6 1.39-1.31 2.62-2.18 3.66-1.13 1.39-2.46 3.05-4.25 3.07-1.7.02-2.14-.99-4.46-.99-2.32 0-2.8 1.01-4.5.99-1.79-.02-3.15-1.6-4.28-2.99-2.6-3.2-4.59-9.05-1.92-12.99 1.32-1.95 3.69-3.18 6.25-3.22 1.78-.04 3.46 1.05 4.55 1.05 1.08 0 3.13-1.3 5.28-1.11.9.04 3.43.36 5.05 2.71-.13.08-3.02 1.76-2.99 5.25.04 4.17 3.66 5.55 3.45 5.57Z"/></svg>
           免费下载 TidyByte
         </a>
-        <a href="/mac" class="btn-ghost px-6 py-3">下载 Mac 版</a>
+        <a href="/mac" class="btn-dark-cp w-full max-w-[340px] px-7 py-3.5 text-[17px] sm:w-auto">下载 Mac 版</a>
       </div>
-      <p class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted" data-rise style="--in:4">
+
+      <p class="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-medium text-muted" data-rise style="--in:3">
         <span class="inline-flex items-center gap-1.5"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-success/15 text-success"><svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg></span>没有广告</span>
         <span class="inline-flex items-center gap-1.5"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-success/15 text-success"><svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg></span>无需账号</span>
         <span class="inline-flex items-center gap-1.5"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-success/15 text-success"><svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg></span>照片不会发送给 TidyByte</span>
       </p>
     </div>
 
-    <!-- Hero devices: Mac window cleanly framed at start-top so traffic lights,
-         titlebar, sidebar, and disk bar stay 100% readable; titanium iPhone
-         anchored at bottom-end with layered foreground depth. -->
-    <div class="relative mx-auto hidden w-full max-w-[590px] pb-10 sm:block" data-settle style="--in:1" role="img" aria-label="正在滑动照片的 iPhone 上的 TidyByte，位于 TidyByte for Mac 概览窗口前方。">
-      <div aria-hidden="true" class="pointer-events-none absolute -inset-6 -z-10 rounded-full bg-[radial-gradient(circle_at_30%_35%,rgba(10,132,255,0.16),transparent_58%),radial-gradient(circle_at_78%_68%,rgba(255,77,139,0.16),transparent_58%)] blur-2xl"></div>
-
-      <!-- Mac window: top-start, full-height NavigationSplitView sidebar -->
-      <div aria-hidden="true" class="me-auto ms-0 w-[84%]">
-        <div class="mac-home-window flex overflow-hidden rounded-2xl">
-          <div class="flex w-[34%] shrink-0 flex-col border-e border-white/[0.08] bg-[#151517]/95">
-            <div class="flex h-8 items-center justify-between px-3">
-              <div class="flex items-center gap-1.5">
-                <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57] ring-1 ring-inset ring-black/20"></span>
-                <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e] ring-1 ring-inset ring-black/20"></span>
-                <span class="h-2.5 w-2.5 rounded-full bg-[#28c840] ring-1 ring-inset ring-black/20"></span>
+    <!-- Hero showcase stage: crayon-bordered frame around the Mac + iPhone preview -->
+    <div class="cr mx-auto mt-10 max-w-[960px] p-5 sm:p-8" style="--r:28px;--c:var(--cp-peach)" data-settle style="--in:1" role="img" aria-label="正在滑动照片的 iPhone 上的 TidyByte，位于 TidyByte for Mac 概览窗口前方。">
+      <div class="fill" aria-hidden="true"></div>
+      <div class="line" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-[740px] pb-6 pt-2">
+        <!-- Mac window: top-start -->
+        <div aria-hidden="true" class="me-auto ms-0 w-[86%] sm:w-[82%]">
+          <div class="mac-home-window flex overflow-hidden rounded-2xl">
+            <div class="flex w-[34%] shrink-0 flex-col border-e border-white/[0.08] bg-[#151517]/95">
+              <div class="flex h-8 items-center justify-between px-3">
+                <div class="flex items-center gap-1.5">
+                  <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
+                  <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
+                  <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
+                </div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-white/55 rtl:-scale-x-100"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg>
               </div>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-white/55 rtl:-scale-x-100"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg>
-            </div>
-            <div class="px-2.5 pb-2.5">
-              <div class="flex items-center gap-1.5 rounded-md bg-white/[0.12] px-2 py-1 text-[10px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5cb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 14h18"/><circle cx="17" cy="16.5" r="0.9" fill="#5cb0ff" stroke="none"/></svg>
-                <span class="truncate">概览</span>
-              </div>
-              <div class="mt-2 space-y-1 text-[10px] text-white/65">
-                <div class="flex items-center gap-1.5 px-2 py-0.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg><span class="truncate">系统垃圾</span></div>
-                <div class="flex items-center justify-between gap-1 px-2 py-0.5"><span class="flex min-w-0 items-center gap-1.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12l-9.5 9.5a1.8 1.8 0 0 1-2.5-2.5L12.5 9.5"/><path d="M17.5 6.5l2.5 2.5-3.5 3.5-5-5 2-2a4.5 4.5 0 0 1 6-.5l-2 1.5z"/></svg><span class="truncate">开发者</span></span><span dir="ltr" class="inline-flex shrink-0 items-baseline gap-0.5 text-[8px] tabular-nums text-white/55"><span>11.2</span> <span>GB</span></span></div>
-                <div class="flex items-center gap-1.5 px-2 py-0.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5cb0ff" stroke-width="2"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span class="truncate">重复项</span></div>
-                <div class="flex items-center gap-1.5 px-2 py-0.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 3.5"/></svg><span class="truncate">空间浏览器</span></div>
-              </div>
-            </div>
-          </div>
-          <div class="flex min-w-0 flex-1 flex-col bg-[#1b1b1e]">
-            <div class="flex h-8 items-center justify-between border-b border-white/[0.08] bg-[#242427] px-3">
-              <span class="text-[11px] font-semibold tracking-tight text-white/85">TidyByte</span>
-              <span class="rounded-full bg-white/[0.07] px-2 py-0.5 text-[9px] font-medium text-white/70">macOS 26</span>
-            </div>
-            <div class="flex-1 space-y-2.5 p-3">
-              <div class="rounded-xl border border-white/[0.06] bg-[#262629] p-2.5">
-                <div class="flex items-center justify-between text-[10px] font-semibold text-white"><span>Macintosh HD</span><span dir="ltr" class="inline-flex items-baseline gap-0.5 font-normal tabular-nums text-white/70"><span>7.59</span> <span>GB</span></span></div>
-                <div class="mt-2 flex h-1.5 gap-[1.5px] overflow-hidden rounded-full bg-white/10">
-                  <span class="h-full w-[42%] rounded-s-full bg-[#0a84ff]"></span>
-                  <span class="h-full w-[18%] bg-[#bf5af2]"></span>
-                  <span class="h-full w-[14%] bg-[#30d158]"></span>
-                  <span class="h-full w-[11%] bg-[#ff9f0a]"></span>
-                  <span class="h-full w-[8%] bg-[#636366]"></span>
+              <div class="px-2.5 pb-3">
+                <div class="flex items-center gap-1.5 rounded-md bg-white/[0.12] px-2 py-1 text-[10px] font-semibold text-white">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5cb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 14h18"/><circle cx="17" cy="16.5" r="0.9" fill="#5cb0ff" stroke="none"/></svg>
+                  <span class="truncate">概览</span>
+                </div>
+                <div class="mt-2 space-y-1 text-[10px] text-white/65">
+                  <div class="flex items-center gap-1.5 px-2 py-0.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg><span class="truncate">系统垃圾</span></div>
+                  <div class="flex items-center justify-between gap-1 px-2 py-0.5"><span class="flex min-w-0 items-center gap-1.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12l-9.5 9.5a1.8 1.8 0 0 1-2.5-2.5L12.5 9.5"/><path d="M17.5 6.5l2.5 2.5-3.5 3.5-5-5 2-2a4.5 4.5 0 0 1 6-.5l-2 1.5z"/></svg><span class="truncate">开发者</span></span><span dir="ltr" class="inline-flex shrink-0 items-baseline gap-0.5 text-[8px] tabular-nums text-white/55"><span>11.2</span> <span>GB</span></span></div>
+                  <div class="flex items-center gap-1.5 px-2 py-0.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5cb0ff" stroke-width="2"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span class="truncate">重复项</span></div>
+                  <div class="flex items-center gap-1.5 px-2 py-0.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 3.5"/></svg><span class="truncate">空间浏览器</span></div>
                 </div>
               </div>
-              <div class="rounded-xl border border-white/[0.06] bg-[#222225] p-3.5 text-start">
-                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-[#0a84ff]/15">
-                  <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5cb0ff" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+            </div>
+            <div class="flex min-w-0 flex-1 flex-col bg-[#1b1b1e]">
+              <div class="flex h-8 items-center justify-between border-b border-white/[0.08] bg-[#242427] px-3">
+                <span class="text-[11px] font-semibold tracking-tight text-white/85">TidyByte</span>
+                <span class="rounded-full bg-white/[0.07] px-2 py-0.5 text-[9px] font-medium text-white/70">macOS 26</span>
+              </div>
+              <div class="flex-1 space-y-2.5 p-3">
+                <div class="rounded-xl border border-white/[0.06] bg-[#262629] p-2.5">
+                  <div class="flex items-center justify-between text-[10px] font-semibold text-white"><span>Macintosh HD</span><span dir="ltr" class="inline-flex items-baseline gap-0.5 font-normal tabular-nums text-white/70"><span>7.59</span> <span>GB</span></span></div>
+                  <div class="mt-2 flex h-1.5 gap-[1.5px] overflow-hidden rounded-full bg-white/10">
+                    <span class="h-full w-[42%] rounded-s-full bg-[#0a84ff]"></span>
+                    <span class="h-full w-[18%] bg-[#bf5af2]"></span>
+                    <span class="h-full w-[14%] bg-[#30d158]"></span>
+                    <span class="h-full w-[11%] bg-[#ff9f0a]"></span>
+                    <span class="h-full w-[8%] bg-[#636366]"></span>
+                  </div>
                 </div>
-                <p class="mt-2 text-[11px] font-semibold text-white">找出可以清理的内容</p>
-                <p class="mt-1 w-3/4 text-[9px] leading-snug text-white/60">缓存、残留文件、重复项、大文件。</p>
-                <div class="mt-2.5 w-fit rounded-lg bg-[#0066cc] px-3 py-1 text-[10px] font-semibold text-white shadow-[0_4px_14px_rgba(0,102,204,0.35)]">扫描我的 Mac</div>
+                <div class="rounded-xl border border-white/[0.06] bg-[#222225] p-3.5 text-start">
+                  <div class="flex h-7 w-7 items-center justify-center rounded-full bg-[#0a84ff]/15">
+                    <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5cb0ff" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+                  </div>
+                  <p class="mt-2 text-[11px] font-semibold text-white">找出可以清理的内容</p>
+                  <p class="mt-1 w-3/4 text-[9px] leading-snug text-white/60">缓存、残留文件、重复项、大文件。</p>
+                  <div class="mt-2.5 w-fit rounded-lg bg-[#0066cc] px-3 py-1 text-[10px] font-semibold text-white shadow-[0_4px_14px_rgba(0,102,204,0.35)]">扫描我的 Mac</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- iPhone, front and inset at bottom-end: titanium chassis + Dynamic Island + waterfall card -->
-      <div aria-hidden="true" class="absolute -bottom-3 -end-1 w-[36%] max-w-[196px] lg:-end-4">
-        <div class="sim-iphone sim-iphone--hero">
-          <div class="sim-iphone__screen">
-            <div class="sim-iphone__sheen"></div>
-            <div dir="ltr" class="flex items-center justify-between px-3 pt-2 text-[8.5px] font-semibold text-white/90">
-              <span>12:05</span>
-              <div class="sim-iphone__island"><span class="sim-iphone__lens"></span></div>
-              <span class="flex items-center gap-1 text-white/90">
-                <svg width="10" height="8" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="6" width="2.2" height="4" rx=".6"/><rect x="3.5" y="4" width="2.2" height="6" rx=".6"/><rect x="7" y="2" width="2.2" height="8" rx=".6"/><rect x="10.5" y="0" width="2.2" height="10" rx=".6"/></svg>
-                <svg width="13" height="8" viewBox="0 0 20 11" fill="none"><rect x=".75" y="1" width="16" height="9" rx="2.2" stroke="currentColor" stroke-width="1.3"/><rect x="2.2" y="2.5" width="11.5" height="6" rx="1" fill="currentColor"/><path d="M18 3.8v3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              </span>
-            </div>
-            <div class="flex items-center justify-between px-2.5 pt-1.5">
-              <div class="flex items-center gap-1">
-                <span class="flex h-4 w-4 items-center justify-center rounded-full bg-[#242426] text-[8px] text-white/85 ring-1 ring-white/10 rtl:-scale-x-100">&#x2039;</span>
-                <span class="rounded-full border border-white/10 bg-[#242426] px-1.5 py-0.5 text-[7px] font-semibold text-[#ff6961]">结束</span>
+        <!-- Titanium iPhone foreground -->
+        <div aria-hidden="true" class="absolute -bottom-2 -end-1 w-[36%] max-w-[200px] sm:-end-3">
+          <div class="sim-iphone sim-iphone--hero">
+            <div class="sim-iphone__screen">
+              <div class="sim-iphone__sheen"></div>
+              <div dir="ltr" class="flex items-center justify-between px-3 pt-2 text-[8.5px] font-semibold text-white/90">
+                <span>12:05</span>
+                <div class="sim-iphone__island"><span class="sim-iphone__lens"></span></div>
+                <span class="flex items-center gap-1 text-white/90">
+                  <svg width="10" height="8" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="6" width="2.2" height="4" rx=".6"/><rect x="3.5" y="4" width="2.2" height="6" rx=".6"/><rect x="7" y="2" width="2.2" height="8" rx=".6"/><rect x="10.5" y="0" width="2.2" height="10" rx=".6"/></svg>
+                  <svg width="13" height="8" viewBox="0 0 20 11" fill="none"><rect x=".75" y="1" width="16" height="9" rx="2.2" stroke="currentColor" stroke-width="1.3"/><rect x="2.2" y="2.5" width="11.5" height="6" rx="1" fill="currentColor"/><path d="M18 3.8v3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
               </div>
-              <span class="truncate px-1 text-[8px] font-semibold text-white">滑动会话</span>
-              <span class="flex h-4 w-4 items-center justify-center rounded-full bg-[#242426] text-white/60 ring-1 ring-white/10"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></span>
+              <div class="flex items-center justify-between px-2.5 pt-1.5">
+                <div class="flex items-center gap-1">
+                  <span class="flex h-4 w-4 items-center justify-center rounded-full bg-[#242426] text-[8px] text-white/85 ring-1 ring-white/10 rtl:-scale-x-100">&#x2039;</span>
+                  <span class="rounded-full border border-white/10 bg-[#242426] px-1.5 py-0.5 text-[7px] font-semibold text-[#ff6961]">结束</span>
+                </div>
+                <span class="truncate px-1 text-[8px] font-semibold text-white">滑动会话</span>
+                <span class="flex h-4 w-4 items-center justify-center rounded-full bg-[#242426] text-white/60 ring-1 ring-white/10"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></span>
+              </div>
+              <div class="mx-2.5 mt-2 aspect-[3/3.9] overflow-hidden rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.45)]">
+                <svg viewBox="0 0 240 310" class="block h-full w-full" preserveAspectRatio="xMidYMid slice">
+                  <defs>
+                    <linearGradient id="hero-wf-sky" x1="0" y1="0" x2=".15" y2="1"><stop offset="0%" stop-color="#ded8eb"/><stop offset="50%" stop-color="#b4a7cb"/><stop offset="100%" stop-color="#766a90"/></linearGradient>
+                    <linearGradient id="hero-wf-rock" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#605466"/><stop offset="100%" stop-color="#352d3c"/></linearGradient>
+                    <linearGradient id="hero-wf-moss" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c8248"/><stop offset="100%" stop-color="#3b5026"/></linearGradient>
+                    <linearGradient id="hero-wf-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="48%" stop-color="#ece8f8"/><stop offset="100%" stop-color="#c3b8dd" stop-opacity=".22"/></linearGradient>
+                  </defs>
+                  <rect width="240" height="310" fill="url(#hero-wf-sky)"/>
+                  <path d="M0 68 C45 58 95 62 135 58 L240 50 L240 240 L0 240 Z" fill="url(#hero-wf-rock)"/>
+                  <path d="M132 62 C168 56 205 52 240 48 L240 230 L152 230 C142 165 138 110 132 62 Z" fill="url(#hero-wf-moss)"/>
+                  <path d="M124 62 C132 60 144 62 150 66 C160 118 168 176 176 238 L108 238 C114 172 118 114 124 62 Z" fill="url(#hero-wf-water)"/>
+                  <path d="M0 226 C55 212 105 218 156 232 C192 216 218 192 240 184 L240 310 L0 310 Z" fill="#2b3d25"/>
+                  <path d="M0 255 C72 240 150 258 240 242 L240 310 L0 310 Z" fill="#1d2b18"/>
+                </svg>
+              </div>
+              <div dir="ltr" class="flex items-center justify-center gap-3 py-2.5">
+                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[#ff453a] shadow-[0_0_12px_rgba(255,69,58,0.45)]"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#636366]/85"><svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><path d="M4 5v14l8-7zM13 5v14l8-7z"/></svg></span>
+                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[#30d158] shadow-[0_0_12px_rgba(48,209,88,0.45)]"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg></span>
+              </div>
+              <div class="mx-2 mb-1.5 grid grid-cols-4 rounded-full border border-white/10 bg-[#222226]/90 p-0.5 text-[6px] font-medium text-[#c7c7cc]">
+                <span class="flex flex-col items-center gap-[1px] rounded-full bg-white/[0.12] py-0.5 text-[#5cb0ff]"><span>滑动</span></span>
+                <span class="flex flex-col items-center gap-[1px] py-0.5"><span>清理</span></span>
+                <span class="flex flex-col items-center gap-[1px] py-0.5"><span>存储空间</span></span>
+                <span class="flex flex-col items-center gap-[1px] py-0.5"><span>设置</span></span>
+              </div>
+              <div class="mx-auto mb-1.5 h-[3px] w-12 rounded-full bg-white/35"></div>
             </div>
-            <div class="mx-2.5 mt-2 aspect-[3/3.9] overflow-hidden rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.45)]">
-              <svg viewBox="0 0 240 310" class="block h-full w-full" preserveAspectRatio="xMidYMid slice">
-                <defs>
-                  <linearGradient id="hero-wf-sky" x1="0" y1="0" x2=".15" y2="1"><stop offset="0%" stop-color="#ded8eb"/><stop offset="50%" stop-color="#b4a7cb"/><stop offset="100%" stop-color="#766a90"/></linearGradient>
-                  <linearGradient id="hero-wf-rock" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#605466"/><stop offset="100%" stop-color="#352d3c"/></linearGradient>
-                  <linearGradient id="hero-wf-moss" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c8248"/><stop offset="100%" stop-color="#3b5026"/></linearGradient>
-                  <linearGradient id="hero-wf-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="48%" stop-color="#ece8f8"/><stop offset="100%" stop-color="#c3b8dd" stop-opacity=".22"/></linearGradient>
-                  <radialGradient id="hero-wf-spray" cx="56%" cy="74%" r="38%"><stop offset="0%" stop-color="#efeaf9" stop-opacity=".85"/><stop offset="55%" stop-color="#b8add3" stop-opacity=".38"/><stop offset="100%" stop-color="#6e638a" stop-opacity="0"/></radialGradient>
-                  <filter id="hero-wf-mist" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="10"/></filter>
-                </defs>
-                <rect width="240" height="310" fill="url(#hero-wf-sky)"/>
-                <ellipse cx="70" cy="36" rx="110" ry="30" fill="#efeaf8" opacity=".45"/>
-                <path d="M0 68 C45 58 95 62 135 58 L240 50 L240 240 L0 240 Z" fill="url(#hero-wf-rock)"/>
-                <!-- Basalt rock strata -->
-                <path d="M0 84 C36 78 78 85 126 78 L128 94 C80 100 38 94 0 98 Z" fill="#4b4052" opacity=".78"/>
-                <path d="M0 108 C42 100 84 110 124 102 L126 120 C84 128 40 118 0 124 Z" fill="#393040" opacity=".72"/>
-                <path d="M0 134 C38 128 82 136 120 130 L122 146 C78 154 36 144 0 150 Z" fill="#514558" opacity=".68"/>
-                <path d="M0 162 C44 156 80 164 118 158 L120 178 C78 184 38 174 0 180 Z" fill="#352c3b" opacity=".65"/>
-                <path d="M4 96 C40 91 80 96 122 90" stroke="#7a6d82" stroke-width="1.1" stroke-opacity=".45" fill="none"/>
-                <path d="M0 122 C42 117 82 123 120 117" stroke="#786b80" stroke-width="1" stroke-opacity=".4" fill="none"/>
-                <path d="M12 102 C36 98 56 104 78 100 L76 112 C54 116 32 110 12 114 Z" fill="#5b723a" opacity=".62"/>
-                <path d="M62 142 C86 138 104 142 120 138 L120 154 C98 158 80 152 62 154 Z" fill="#4e6632" opacity=".58"/>
-                <path d="M132 62 C168 56 205 52 240 48 L240 230 L152 230 C142 165 138 110 132 62 Z" fill="url(#hero-wf-moss)"/>
-                <path d="M168 82 C196 74 220 76 240 70 L240 165 C210 155 186 120 168 82 Z" fill="#7c9352" opacity=".45"/>
-                <!-- Multi-strand waterfall spray -->
-                <path d="M124 62 C132 60 144 62 150 66 C160 118 168 176 176 238 L108 238 C114 172 118 114 124 62 Z" fill="url(#hero-wf-water)"/>
-                <path d="M128 65 C134 118 139 175 142 228" stroke="#ffffff" stroke-width="3.2" stroke-opacity=".8" stroke-linecap="round" fill="none"/>
-                <path d="M136 66 C143 120 148 176 152 228" stroke="#ffffff" stroke-width="2.2" stroke-opacity=".62" stroke-linecap="round" fill="none"/>
-                <path d="M144 69 C152 122 158 178 163 226" stroke="#f7f5fc" stroke-width="1.6" stroke-opacity=".48" stroke-linecap="round" fill="none"/>
-                <path d="M120 76 C124 126 126 176 126 222" stroke="#e9e4f7" stroke-width="2" stroke-opacity=".55" stroke-linecap="round" fill="none"/>
-                <path d="M115 98 C117 142 117 182 116 218" stroke="#dcd6ef" stroke-width="1.3" stroke-opacity=".42" stroke-linecap="round" fill="none"/>
-                <!-- Soft Gaussian blur mist plumes -->
-                <g filter="url(#hero-wf-mist)">
-                  <ellipse cx="140" cy="212" rx="46" ry="22" fill="#f1ecfa" opacity=".72"/>
-                  <ellipse cx="118" cy="224" rx="34" ry="18" fill="#dfd7f2" opacity=".62"/>
-                  <ellipse cx="160" cy="222" rx="30" ry="16" fill="#ebe5f8" opacity=".55"/>
-                </g>
-                <rect width="240" height="310" fill="url(#hero-wf-spray)"/>
-                <path d="M0 226 C55 212 105 218 156 232 C192 216 218 192 240 184 L240 310 L0 310 Z" fill="#2b3d25"/>
-                <path d="M148 232 C180 198 212 172 240 162 L240 264 L148 264 Z" fill="#4f6934"/>
-                <path d="M0 255 C72 240 150 258 240 242 L240 310 L0 310 Z" fill="#1d2b18"/>
-                <!-- Delicate alpine wildflowers -->
-                <path d="M52 282 C54 264 56 248 54 234 M54 248 C48 242 44 238 42 234 M55 244 C61 238 64 235 66 231" stroke="#628048" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-                <circle cx="54" cy="233" r="4.5" fill="#e8dcd4" opacity=".82"/><circle cx="42" cy="233" r="3" fill="#dec6c2" opacity=".76"/><circle cx="66" cy="231" r="2.8" fill="#e8dcd4" opacity=".72"/>
-                <path d="M88 288 C88 270 90 258 88 246 M89 258 C84 253 81 250 79 247" stroke="#57743f" stroke-width="1.1" stroke-linecap="round" fill="none"/>
-                <circle cx="88" cy="245" r="3.8" fill="#e2cfc8" opacity=".8"/><circle cx="79" cy="247" r="2.3" fill="#f0e6df" opacity=".7"/>
-                <circle cx="72" cy="274" r="2.2" fill="#a8c796" opacity=".65"/>
-              </svg>
-            </div>
-            <div dir="ltr" class="flex items-center justify-center gap-3 py-2.5">
-              <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[#ff453a] shadow-[0_0_12px_rgba(255,69,58,0.45)]"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
-              <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#636366]/85"><svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><path d="M4 5v14l8-7zM13 5v14l8-7z"/></svg></span>
-              <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[#30d158] shadow-[0_0_12px_rgba(48,209,88,0.45)]"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg></span>
-            </div>
-            <div class="mx-2 mb-1.5 grid grid-cols-4 rounded-full border border-white/10 bg-[#222226]/90 p-0.5 text-[6px] font-medium text-[#c7c7cc]">
-              <span class="flex flex-col items-center gap-[1px] rounded-full bg-white/[0.12] py-0.5 text-[#5cb0ff]"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 8v12h9"/></svg><span>滑动</span></span>
-              <span class="flex flex-col items-center gap-[1px] py-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8z"/></svg><span>清理</span></span>
-              <span class="flex flex-col items-center gap-[1px] py-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 4"/></svg><span>存储空间</span></span>
-              <span class="flex flex-col items-center gap-[1px] py-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg><span>设置</span></span>
-            </div>
-            <div class="mx-auto mb-1.5 h-[3px] w-12 rounded-full bg-white/35"></div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Shortcut hints under hero frame -->
+    <div dir="ltr" class="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-body">
+      <span class="inline-flex items-center gap-1.5"><kbd class="cp-kbd">&larr;</kbd><kbd class="cp-kbd">&rarr;</kbd> <span>滑动</span></span>
+      <span class="inline-flex items-center gap-1.5"><kbd class="cp-kbd">&#x2318;</kbd><kbd class="cp-kbd">F</kbd> <span>AI 照片搜索</span></span>
+      <span class="inline-flex items-center gap-1.5"><kbd class="cp-kbd">&#x2318;</kbd><kbd class="cp-kbd">Z</kbd> <span>撤销</span></span>
+    </div>
   </div>
 </section>
 
-<!-- Quick answer: rendered here from the page's meta description, so the
-     direct answer sits above the fold for featured snippets and AI citations. -->
-<section class="section-tight pt-0 sm:pt-0">
-  <div class="container-prose">
+<!-- Quick answer box -->
+<section class="mt-10">
+  <div class="cp-wrap max-w-4xl">
     <Fragment set:html={quickAnswer} />
   </div>
 </section>
 
-<!-- Stats band: 4 metrics with soft tinted icon pills and tabular figures. -->
-<section aria-label="用数字看 TidyByte" class="section-tight pt-0 sm:pt-0">
-  <div class="container-prose">
-    <ul role="list" class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline shadow-card md:grid-cols-4">
-      <li class="bg-surface-card px-4 py-6 text-center transition hover:bg-surface-soft sm:px-6">
-        <span class="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl bg-clay-pink/15 text-clay-pink">
-          <svg aria-hidden="true" focusable="false" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>
-        </span>
-        <p class="mt-3 font-display text-3xl font-medium tabular-nums text-ink sm:text-4xl">12</p>
-        <p class="mt-1 text-sm text-muted">清理工具</p>
+<!-- Capture & clutter sources 6-card strip -->
+<section aria-label="用数字看 TidyByte" class="home-sec">
+  <div class="cp-wrap">
+    <p class="eyebrow text-center">占用设备空间的各类杂项</p>
+    <ul role="list" class="cp-srcs mt-5">
+      <li class="cp-src paper p-4 text-center">
+        <p class="font-display text-3xl font-bold tabular-nums text-ink">12</p>
+        <p class="mt-1 text-xs font-semibold text-body">清理工具</p>
       </li>
-      <li class="bg-surface-card px-4 py-6 text-center transition hover:bg-surface-soft sm:px-6">
-        <span class="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl bg-clay-mint/30 text-clay-mint-ink dark:bg-clay-mint/15 dark:text-clay-mint">
-          <svg aria-hidden="true" focusable="false" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6l7-3z"/><path d="M9.5 11.5l2 2 3.5-4"/></svg>
-        </span>
-        <p class="mt-3 font-display text-3xl font-medium tabular-nums text-ink sm:text-4xl">0</p>
-        <p class="mt-1 text-sm text-muted">发送给 TidyByte 的照片数据</p>
+      <li class="cp-src paper p-4 text-center">
+        <p class="font-display text-3xl font-bold tabular-nums text-ink">0</p>
+        <p class="mt-1 text-xs font-semibold text-body">发送给 TidyByte 的照片数据</p>
       </li>
-      <li class="bg-surface-card px-4 py-6 text-center transition hover:bg-surface-soft sm:px-6">
-        <span class="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl bg-clay-ochre/20 text-clay-ochre-ink dark:text-clay-ochre">
-          <svg aria-hidden="true" focusable="false" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H3v9l9.3 9.3a1.5 1.5 0 0 0 2.1 0l7-7a1.5 1.5 0 0 0 0-2.1L12 2z"/><circle cx="8" cy="7" r="1" fill="currentColor" stroke="none"/></svg>
-        </span>
-        <p class="mt-3 font-display text-3xl font-medium tabular-nums text-ink sm:text-4xl">$0</p>
-        <p class="mt-1 text-sm text-muted">一次买断</p>
+      <li class="cp-src paper p-4 text-center">
+        <p class="font-display text-3xl font-bold tabular-nums text-ink">$0</p>
+        <p class="mt-1 text-xs font-semibold text-body">一次买断</p>
       </li>
-      <li class="bg-surface-card px-4 py-6 text-center transition hover:bg-surface-soft sm:px-6">
-        <span class="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl bg-clay-lav/25 text-clay-lav-ink dark:bg-clay-lav/15 dark:text-clay-lav">
-          <svg aria-hidden="true" focusable="false" width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.74 5.49.74 11.76c0 4.96 3.22 9.16 7.68 10.65.56.1.77-.24.77-.55v-1.93c-3.12.68-3.78-1.5-3.78-1.5-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.23.71-1.51-2.49-.28-5.12-1.25-5.12-5.55 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.1 1.15.9-.25 1.86-.38 2.82-.39.96.01 1.92.14 2.82.39 2.15-1.45 3.1-1.15 3.1-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.31-2.64 5.27-5.15 5.54.4.34.76 1.02.76 2.06v3.05c0 .31.2.66.78.55 4.46-1.49 7.67-5.69 7.67-10.65C23.26 5.49 18.27.5 12 .5Z"/></svg>
-        </span>
-        <p class="mt-3 font-display text-3xl font-medium tabular-nums text-ink sm:text-4xl">100%</p>
-        <p class="mt-1 text-sm text-muted">开源，MIT</p>
+      <li class="cp-src cr p-4 text-center" style="--r:20px;--c:var(--cp-sky)">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="rounded-xl bg-surface-card/95 p-2.5 shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+          <p class="font-display text-xl font-bold text-ink">截图</p>
+          <p class="text-[11px] font-medium text-muted">一次集中梳理</p>
+        </div>
+      </li>
+      <li class="cp-src cr p-4 text-center" style="--r:20px;--c:var(--cp-mint)">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="rounded-xl bg-surface-card/95 p-2.5 shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+          <p class="font-display text-xl font-bold text-ink">重复项</p>
+          <p class="text-[11px] font-medium text-muted">SHA-256 与 Vision</p>
+        </div>
+      </li>
+      <li class="cp-src cr p-4 text-center" style="--r:20px;--c:var(--cp-lilac)">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="rounded-xl bg-surface-card/95 p-2.5 shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+          <p class="font-display text-xl font-bold text-ink">100%</p>
+          <p class="text-[11px] font-medium text-muted">开源，MIT</p>
+        </div>
       </li>
     </ul>
   </div>
 </section>
 
-<!-- 01 · The iPhone app, replicated in HTML/CSS inside a sleek studio stage.
-     Top pill switcher AND the in-phone floating iOS 26 liquid-glass tab bar
-     are both wired to the same radio inputs. Interactive swipe deck + settings
-     controls enhance gracefully with JS, while Screen 1 works with zero JS. -->
-<section id="iphone-app" class="section scroll-mt-24 pt-0">
-  <div class="container-prose">
+<!-- Interactive Desktop Cleanup Mockup (Snaptitle signature interactive stage) -->
+<section class="home-sec">
+  <div class="cp-wrap">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="h-section">你的桌面，终于井井有条。</h2>
+      <p class="lede mt-4">点击下方任意杂乱项目，查看 TidyByte 如何在本地清理、折叠为 APFS 克隆或压缩。</p>
+    </div>
+
+    <div class="cr mx-auto mt-10 max-w-[1040px] p-2 sm:p-3" style="--r:30px">
+      <div class="line" aria-hidden="true"></div>
+      <div class="cp-desk-wall relative flex flex-col justify-between overflow-hidden rounded-[24px] shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+        <!-- Decorative yellow striped hill + wax sun -->
+        <div aria-hidden="true" class="cp-desk-hill pointer-events-none absolute -bottom-16 -start-16 h-64 w-[58%] rounded-[100%] border-t-4 border-ink/20"></div>
+        <div aria-hidden="true" class="pointer-events-none absolute end-10 top-14 h-20 w-20 rounded-full bg-cp-yellow opacity-85 shadow-[0_0_0_3px_#121214]"></div>
+
+        <!-- macOS Menu bar -->
+        <div dir="ltr" class="relative z-10 flex h-8 items-center justify-between border-b-2 border-ink/80 bg-canvas/90 px-4 text-[11.5px] font-semibold text-ink backdrop-blur-sm">
+          <div class="flex items-center gap-4">
+            <span class="font-bold">Finder</span>
+            <span class="hidden sm:inline text-body">File</span>
+            <span class="hidden sm:inline text-body">Edit</span>
+            <span class="hidden sm:inline text-body">View</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="rounded-full bg-cp-orange px-2.5 py-0.5 text-[10.5px] font-bold text-[#121214] shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-status>
+              <span data-desk-idle>点击清理</span>
+              <span class="hidden" aria-hidden="true" data-desk-done><span data-desk-count>0 / 8</span> <span>已整理</span></span>
+            </span>
+            <span class="hidden sm:inline tabular-nums text-body">12:05</span>
+          </div>
+        </div>
+
+        <!-- Clickable Desktop Items Grid -->
+        <div dir="ltr" class="relative z-10 grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:gap-5 sm:p-8">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 18h6"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Screenshot 13.19.52.png</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>已清理 &middot; 废纸篓</span>
+          </button>
+
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="12" height="12" rx="2"/><rect x="9" y="9" width="12" height="12" rx="2"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>IMG_4471 copy.jpg</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>APFS 克隆 &middot; 3.8 MB</span>
+          </button>
+
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12l-9.5 9.5a1.8 1.8 0 0 1-2.5-2.5L12.5 9.5"/><path d="M17.5 6.5l2.5 2.5-3.5 3.5-5-5 2-2a4.5 4.5 0 0 1 6-.5l-2 1.5z"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Xcode DerivedData</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>已释放 4.8 GB</span>
+          </button>
+
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="12" height="14" rx="2"/><path d="M15 10l6-3v10l-6-3"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>holiday-clip.mov</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>310 MB &middot; HEVC</span>
+          </button>
+
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 16l5-5 4 4 3-3 5 5"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>IMG_8920.heic</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>模糊 &middot; 废纸篓</span>
+          </button>
+
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M12 13v8"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>node_modules</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>已释放 3.6 GB</span>
+          </button>
+
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l3 2"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Old-App-1.2.dmg</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>安装包 &middot; 废纸篓</span>
+          </button>
+
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+            <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
+              <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="14" height="4" rx="1.5"/><rect x="5" y="11" width="14" height="4" rx="1.5"/><rect x="7" y="17" width="14" height="4" rx="1.5"/></svg>
+            </span>
+            <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Burst_0042</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>保留最佳 &middot; 废纸篓</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="mt-4 text-center text-sm font-medium text-muted">点击桌面上的任意项目，亲自体验清理效果。</p>
+  </div>
+</section>
+
+<!-- 01 · The iPhone app, inside a crayon-and-paper studio stage -->
+<section id="iphone-app" class="home-sec scroll-mt-24">
+  <div class="cp-wrap">
     <div class="mx-auto max-w-2xl text-center" data-reveal>
       <p class="eyebrow">01 &mdash; iPhone 应用</p>
       <h2 class="h-section mt-3">这就是真实的界面。试一试。</h2>
@@ -287,18 +372,18 @@ const { quickAnswer = "", iosVersion } = Astro.props;
         <label for="tidy-ios-settings">设置</label>
       </div>
 
-      <div class="demo-stage mt-6 grid items-center justify-items-center gap-6 px-2.5 py-7 sm:px-10 sm:py-12 lg:grid-cols-[1fr_auto_1fr]">
-        <div aria-hidden="true" class="hidden w-full max-w-[210px] flex-col gap-3.5 justify-self-end lg:flex">
-          <div class="rounded-2xl border border-hairline bg-surface-card/90 p-4 shadow-card backdrop-blur-sm">
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-clay-pink/15 text-clay-pink">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M5 9l-3 3 3 3M19 9l3 3-3 3"/></svg>
+      <div class="demo-stage mt-6 grid items-center justify-items-center gap-6 px-3 py-8 sm:px-10 sm:py-12 lg:grid-cols-[1fr_auto_1fr]">
+        <div aria-hidden="true" class="hidden w-full max-w-[215px] flex-col gap-4 justify-self-end lg:flex">
+          <div class="paper p-4">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-cp-peach text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M5 9l-3 3 3 3M19 9l3 3-3 3"/></svg>
             </span>
-            <p class="mt-2.5 font-display text-sm font-semibold text-ink">滑动决定</p>
-            <p class="mt-1 text-xs leading-relaxed text-muted">左滑删除，右滑保留。每个选择都会先进入待确认列表，之后才会真正动手。</p>
+            <p class="mt-2.5 font-display text-xl font-bold text-ink">滑动决定</p>
+            <p class="mt-1 text-xs leading-relaxed text-body">左滑删除，右滑保留。每个选择都会先进入待确认列表，之后才会真正动手。</p>
           </div>
-          <div class="rounded-2xl border border-hairline bg-surface-card/90 p-4 shadow-card backdrop-blur-sm">
-            <p class="font-display text-2xl font-medium tabular-nums text-ink">12</p>
-            <p class="mt-0.5 text-xs text-muted">清理工具</p>
+          <div class="paper p-4">
+            <p class="font-display text-3xl font-bold tabular-nums text-ink">12</p>
+            <p class="mt-0.5 text-xs font-semibold text-body">清理工具</p>
           </div>
         </div>
 
@@ -350,46 +435,13 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                             <linearGradient id="c0-rock" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#605466"/><stop offset="100%" stop-color="#352d3c"/></linearGradient>
                             <linearGradient id="c0-moss" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c8248"/><stop offset="100%" stop-color="#3b5026"/></linearGradient>
                             <linearGradient id="c0-fall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="48%" stop-color="#ece8f8"/><stop offset="100%" stop-color="#c3b8dd" stop-opacity=".22"/></linearGradient>
-                            <radialGradient id="c0-spray" cx="56%" cy="74%" r="38%"><stop offset="0%" stop-color="#efeaf9" stop-opacity=".85"/><stop offset="55%" stop-color="#b8add3" stop-opacity=".38"/><stop offset="100%" stop-color="#6e638a" stop-opacity="0"/></radialGradient>
-                            <filter id="c0-mist-blur" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="13"/></filter>
                           </defs>
                           <rect width="300" height="400" fill="url(#c0-sky)"/>
-                          <ellipse cx="88" cy="46" rx="138" ry="38" fill="#efeaf8" opacity=".45"/>
                           <path d="M0 88 C56 75 118 80 168 74 L300 64 L300 310 L0 310 Z" fill="url(#c0-rock)"/>
-                          <!-- Basalt rock strata -->
-                          <path d="M0 108 C46 100 98 110 158 100 L160 122 C100 130 48 122 0 126 Z" fill="#4b4052" opacity=".78"/>
-                          <path d="M0 140 C52 130 106 142 155 132 L158 156 C104 166 50 154 0 160 Z" fill="#393040" opacity=".72"/>
-                          <path d="M0 174 C48 166 102 176 150 168 L152 190 C98 200 46 186 0 194 Z" fill="#514558" opacity=".68"/>
-                          <path d="M0 210 C55 202 100 212 148 204 L150 230 C98 238 48 224 0 232 Z" fill="#352c3b" opacity=".65"/>
-                          <path d="M6 124 C50 118 100 124 152 116" stroke="#7a6d82" stroke-width="1.3" stroke-opacity=".45" fill="none"/>
-                          <path d="M0 158 C52 152 102 160 150 151" stroke="#786b80" stroke-width="1.2" stroke-opacity=".4" fill="none"/>
-                          <path d="M16 132 C46 126 70 134 98 129 L96 144 C68 150 40 142 16 146 Z" fill="#5b723a" opacity=".62"/>
-                          <path d="M78 184 C108 178 130 184 150 178 L150 198 C122 204 100 196 78 198 Z" fill="#4e6632" opacity=".58"/>
                           <path d="M166 80 C210 72 256 66 300 62 L300 296 L190 296 C178 214 172 142 166 80 Z" fill="url(#c0-moss)"/>
-                          <path d="M210 104 C244 94 275 96 300 90 L300 212 C262 198 232 154 210 104 Z" fill="#7c9352" opacity=".45"/>
-                          <!-- Multi-strand waterfall spray -->
                           <path d="M155 80 C166 76 180 80 188 84 C200 152 210 226 220 306 L134 306 C142 222 148 148 155 80 Z" fill="url(#c0-fall)"/>
-                          <path d="M160 84 C168 152 174 226 178 294" stroke="#ffffff" stroke-width="4" stroke-opacity=".8" stroke-linecap="round" fill="none"/>
-                          <path d="M170 86 C179 154 185 228 190 294" stroke="#ffffff" stroke-width="2.8" stroke-opacity=".62" stroke-linecap="round" fill="none"/>
-                          <path d="M180 89 C190 158 198 230 204 292" stroke="#f7f5fc" stroke-width="2" stroke-opacity=".48" stroke-linecap="round" fill="none"/>
-                          <path d="M150 98 C155 162 158 226 158 286" stroke="#e9e4f7" stroke-width="2.5" stroke-opacity=".55" stroke-linecap="round" fill="none"/>
-                          <path d="M144 126 C146 182 146 234 145 280" stroke="#dcd6ef" stroke-width="1.6" stroke-opacity=".42" stroke-linecap="round" fill="none"/>
-                          <!-- Soft Gaussian blur mist plumes -->
-                          <g filter="url(#c0-mist-blur)">
-                            <ellipse cx="175" cy="274" rx="58" ry="28" fill="#f1ecfa" opacity=".72"/>
-                            <ellipse cx="148" cy="290" rx="42" ry="22" fill="#dfd7f2" opacity=".62"/>
-                            <ellipse cx="200" cy="288" rx="38" ry="20" fill="#ebe5f8" opacity=".55"/>
-                          </g>
-                          <rect width="300" height="400" fill="url(#c0-spray)"/>
                           <path d="M0 290 C68 272 130 280 195 298 C240 278 272 248 300 238 L300 400 L0 400 Z" fill="#2b3d25"/>
-                          <path d="M185 298 C225 254 265 222 300 210 L300 340 L185 340 Z" fill="#4f6934"/>
                           <path d="M0 328 C90 308 188 332 300 310 L300 400 L0 400 Z" fill="#1d2b18"/>
-                          <!-- Delicate alpine wildflowers -->
-                          <path d="M64 364 C66 340 69 320 67 302 M68 320 C60 312 55 307 52 302 M68 315 C76 307 80 303 83 298" stroke="#628048" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                          <circle cx="67" cy="300" r="5.5" fill="#e8dcd4" opacity=".84"/><circle cx="52" cy="300" r="3.8" fill="#dec6c2" opacity=".78"/><circle cx="83" cy="297" r="3.4" fill="#e8dcd4" opacity=".74"/>
-                          <path d="M110 370 C110 348 112 332 110 318 M111 332 C105 326 101 322 98 318" stroke="#57743f" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-                          <circle cx="110" cy="316" r="4.6" fill="#e2cfc8" opacity=".82"/><circle cx="98" cy="318" r="2.8" fill="#f0e6df" opacity=".72"/>
-                          <circle cx="90" cy="352" r="2.8" fill="#a8c796" opacity=".65"/>
                         </svg>
                         <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent"></div>
                         <span aria-hidden="true" class="ios-swipe-stamp ios-swipe-stamp--keep pointer-events-none absolute start-3 top-3 -rotate-6 rounded-lg border-2 border-[#4ade80] bg-black/75 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#4ade80] shadow-lg backdrop-blur-md">保留</span>
@@ -409,12 +461,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                           </defs>
                           <rect width="300" height="400" fill="url(#c1-sky)"/>
                           <circle cx="195" cy="186" r="34" fill="#fff4c9" opacity=".95"/>
-                          <circle cx="195" cy="186" r="56" fill="#ffdf9b" opacity=".28"/>
                           <rect y="218" width="300" height="182" fill="url(#c1-sea)"/>
-                          <ellipse cx="195" cy="242" rx="48" ry="5" fill="#ffebc2" opacity=".65"/>
-                          <ellipse cx="195" cy="264" rx="34" ry="4" fill="#ffebc2" opacity=".45"/>
-                          <ellipse cx="195" cy="292" rx="22" ry="3" fill="#ffebc2" opacity=".3"/>
-                          <path d="M0 208 Q65 182 128 214 L128 232 L0 232 Z" fill="#2c2b3c"/>
                           <path d="M0 326 Q110 296 230 342 L300 320 L300 400 L0 400 Z" fill="#18212e"/>
                         </svg>
                         <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent"></div>
@@ -435,8 +482,6 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                           <rect width="300" height="400" fill="url(#c2-sky)"/>
                           <circle cx="88" cy="115" r="24" fill="#fff7da"/>
                           <path d="M0 245 L72 155 L146 230 L216 140 L300 225 L300 400 L0 400 Z" fill="#6b8399"/>
-                          <path d="M72 155 L92 184 L74 176 L56 188 Z" fill="#f8fbff" opacity=".88"/>
-                          <path d="M216 140 L242 178 L218 168 L195 182 Z" fill="#f8fbff" opacity=".9"/>
                           <path d="M0 278 L98 208 L188 272 L262 214 L300 250 L300 400 L0 400 Z" fill="#3a5d54"/>
                           <path d="M0 326 Q110 296 300 322 L300 400 L0 400 Z" fill="#1e3830"/>
                         </svg>
@@ -460,12 +505,10 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                           <rect x="92" y="92" width="66" height="226" rx="4" fill="#23213e"/>
                           <rect x="172" y="144" width="52" height="174" rx="4" fill="#1a1a30"/>
                           <rect x="234" y="110" width="46" height="208" rx="4" fill="#252242"/>
-                          <rect x="104" y="164" width="42" height="16" rx="3" fill="#ff4d8b" opacity=".85"/>
+                          <rect x="104" y="164" width="42" height="16" rx="3" fill="#ff5a14" opacity=".85"/>
                           <rect x="38" y="210" width="30" height="14" rx="3" fill="#64d2ff" opacity=".8"/>
                           <rect x="184" y="202" width="28" height="16" rx="3" fill="#ffd60a" opacity=".8"/>
                           <rect y="302" width="300" height="98" fill="#0d0e1a"/>
-                          <ellipse cx="125" cy="346" rx="36" ry="7" fill="#ff4d8b" opacity=".28"/>
-                          <ellipse cx="198" cy="356" rx="26" ry="6" fill="#ffd60a" opacity=".22"/>
                         </svg>
                         <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent"></div>
                         <span aria-hidden="true" class="ios-swipe-stamp ios-swipe-stamp--keep pointer-events-none absolute start-3 top-3 -rotate-6 rounded-lg border-2 border-[#4ade80] bg-black/75 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#4ade80] shadow-lg backdrop-blur-md">保留</span>
@@ -491,7 +534,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                   </div>
                 </div>
 
-                <!-- Screen 2: Cleanup tool grid (matching real iOS cards + status counts) -->
+                <!-- Screen 2: Cleanup tool grid -->
                 <div data-ios="cleanup" class="flex h-full flex-col px-3">
                   <p class="px-0.5 pt-1 text-[20px] font-bold tracking-tight text-white">清理</p>
                   <div class="mt-1.5 grid grid-cols-2 gap-1.5 sm:mt-2 sm:gap-2">
@@ -562,7 +605,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                   </div>
                 </div>
 
-                <!-- Screen 3: Storage dashboard + matched legend + iCloud Status card -->
+                <!-- Screen 3: Storage dashboard -->
                 <div data-ios="storage" class="flex h-full flex-col px-3">
                   <p class="px-0.5 pt-1 text-[20px] font-bold tracking-tight text-white">存储空间</p>
                   <div class="mt-2 rounded-[14px] border border-white/[0.08] bg-[#1c1c1e] p-3">
@@ -611,7 +654,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                   </div>
                 </div>
 
-                <!-- Screen 4: Settings (iOS 26 pill sliders + interactive controls) -->
+                <!-- Screen 4: Settings -->
                 <div data-ios="settings" class="flex h-full flex-col px-3">
                   <p class="px-0.5 pt-1 text-[20px] font-bold tracking-tight text-white">设置</p>
                   <div class="mt-2 space-y-2">
@@ -646,7 +689,6 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                 </div>
               </div>
 
-              <!-- iOS 26 floating liquid-glass capsule tab bar + home indicator -->
               <nav class="ios-tabbar" aria-hidden="true" aria-label="iPhone 版 TidyByte 标签页">
                 <label for="tidy-ios-swipe" aria-hidden="true"><svg aria-hidden="true" focusable="false" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 8v12h9"/></svg><span>滑动</span></label>
                 <label for="tidy-ios-cleanup" aria-hidden="true"><svg aria-hidden="true" focusable="false" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8z"/></svg><span>清理</span></label>
@@ -658,37 +700,36 @@ const { quickAnswer = "", iosVersion } = Astro.props;
           </div>
         </div>
 
-        <div aria-hidden="true" class="hidden w-full max-w-[210px] flex-col gap-3.5 justify-self-start lg:flex">
-          <div class="rounded-2xl border border-hairline bg-surface-card/90 p-4 shadow-card backdrop-blur-sm">
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-clay-mint/30 text-clay-mint-ink dark:bg-clay-mint/15 dark:text-clay-mint">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6l7-3z"/><path d="M9.5 11.5l2 2 3.5-4"/></svg>
+        <div aria-hidden="true" class="hidden w-full max-w-[215px] flex-col gap-4 justify-self-start lg:flex">
+          <div class="paper p-4">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-cp-mint text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6l7-3z"/><path d="M9.5 11.5l2 2 3.5-4"/></svg>
             </span>
-            <p class="mt-2.5 font-display text-2xl font-medium tabular-nums text-ink">0</p>
-            <p class="mt-0.5 text-xs text-muted">发送给 TidyByte 的照片数据</p>
+            <p class="mt-2.5 font-display text-3xl font-bold tabular-nums text-ink">0</p>
+            <p class="mt-0.5 text-xs font-semibold text-body">发送给 TidyByte 的照片数据</p>
           </div>
-          <div class="rounded-2xl border border-hairline bg-surface-card/90 p-4 shadow-card backdrop-blur-sm">
-            <p class="font-display text-sm font-semibold text-ink">一次清空</p>
-            <p class="mt-1 text-xs leading-relaxed text-muted">确认一次，空间就回来了。删除的照片会在「最近删除」里等 30 天。</p>
+          <div class="paper p-4">
+            <p class="font-display text-xl font-bold text-ink">一次清空</p>
+            <p class="mt-1 text-xs leading-relaxed text-body">确认一次，空间就回来了。删除的照片会在「最近删除」里等 30 天。</p>
           </div>
         </div>
       </div>
     </fieldset>
 
-    <p class="muted mx-auto mt-6 max-w-xl text-center text-sm">以上全部都是 HTML 和 CSS，而非截图 &mdash; 应用内的一切都在你的设备上运行。删除的照片会像“照片”应用一样，在“最近删除”中保留 30 天。</p>
+    <p class="mx-auto mt-6 max-w-xl text-center text-sm font-medium text-muted">以上全部都是 HTML 和 CSS，而非截图 &mdash; 应用内的一切都在你的设备上运行。删除的照片会像“照片”应用一样，在“最近删除”中保留 30 天。</p>
   </div>
 </section>
 
-<!-- 02 · The Mac app, replicated in HTML/CSS. Both the pill switcher above
-     AND the sidebar navigation rows switch screens and synchronize state. -->
-<section id="mac-app" class="section scroll-mt-24 pt-0">
-  <div class="container-prose">
+<!-- 02 · The Mac app, replicated in HTML/CSS inside a crayon stage -->
+<section id="mac-app" class="home-sec scroll-mt-24">
+  <div class="cp-wrap">
     <div class="mx-auto max-w-2xl text-center" data-reveal>
       <p class="eyebrow">02 &mdash; Mac 应用</p>
       <h2 class="h-section mt-3">对你的 Mac 同样用心。</h2>
       <p class="lede mt-4">和 iPhone 应用一样：免费、开源、本地优先。切换屏幕看看它能做什么 &mdash; 未经你确认，任何东西都不会被删除。</p>
     </div>
 
-    <fieldset class="mac-home-demo mx-auto mt-10 w-full max-w-4xl min-w-0 border-0 p-0" data-reveal>
+    <fieldset class="mac-home-demo mx-auto mt-10 w-full max-w-[1040px] min-w-0 border-0 p-0" data-reveal>
       <legend class="sr-only">TidyByte for Mac — 屏幕</legend>
       <input type="radio" name="tidy-mac-home" id="tidy-mac-home-overview" class="sr-only" checked>
       <input type="radio" name="tidy-mac-home" id="tidy-mac-home-developer" class="sr-only">
@@ -702,14 +743,14 @@ const { quickAnswer = "", iosVersion } = Astro.props;
         <label for="tidy-mac-home-explorer">空间浏览器</label>
       </div>
 
-      <div class="mac-home-window mt-6 flex overflow-hidden rounded-[1.25rem]">
-        <!-- Full-height macOS NavigationSplitView Sidebar -->
+      <div class="mac-home-window mt-6 flex overflow-hidden rounded-[22px]">
+        <!-- Full-height macOS Sidebar -->
         <div class="mac-sidebar hidden w-52 shrink-0 flex-col border-e border-white/[0.08] bg-[#141416]/95 text-[12px] sm:flex">
           <div class="flex h-11 items-center justify-between px-3.5">
             <div class="flex items-center gap-2" aria-hidden="true">
-              <span class="h-3 w-3 rounded-full bg-[#ff5f57] ring-1 ring-inset ring-black/20"></span>
-              <span class="h-3 w-3 rounded-full bg-[#febc2e] ring-1 ring-inset ring-black/20"></span>
-              <span class="h-3 w-3 rounded-full bg-[#28c840] ring-1 ring-inset ring-black/20"></span>
+              <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
+              <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
+              <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
             </div>
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-white/55 rtl:-scale-x-100"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg>
           </div>
@@ -746,18 +787,9 @@ const { quickAnswer = "", iosVersion } = Astro.props;
 
             <p class="mt-3.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/55">应用</p>
             <div class="mt-1 space-y-0.5 text-white/70">
-              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1">
-                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="1.7"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1"/><rect x="3" y="17" width="4" height="4" rx="1"/><rect x="10" y="17" width="4" height="4" rx="1"/><rect x="17" y="17" width="4" height="4" rx="1"/></svg>
-                <span>应用程序</span>
-              </div>
-              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1">
-                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="1.9" stroke-linecap="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.5 8.5L12 13l8.5-4.5M12 13v8"/></svg>
-                <span>应用残留</span>
-              </div>
-              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1">
-                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a1a1a6" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v8M7.5 6.5a7.5 7.5 0 1 0 9 0"/></svg>
-                <span>登录项</span>
-              </div>
+              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="1.7"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1"/></svg><span>应用程序</span></div>
+              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="1.9" stroke-linecap="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.5 8.5L12 13l8.5-4.5M12 13v8"/></svg><span>应用残留</span></div>
+              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a1a1a6" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v8M7.5 6.5a7.5 7.5 0 1 0 9 0"/></svg><span>登录项</span></div>
             </div>
 
             <p class="mt-3.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/55">洞察</p>
@@ -766,27 +798,20 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                 <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7d7aff" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 3.5"/></svg>
                 <span>空间浏览器</span>
               </label>
-              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1">
-                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff375f" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
-                <span>变化</span>
-              </div>
-              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1">
-                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff9f0a" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-                <span>记录</span>
-              </div>
+              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff375f" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg><span>变化</span></div>
+              <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff9f0a" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><span>记录</span></div>
             </div>
           </div>
         </div>
 
-        <!-- Detail column: toolbar + main pane switcher -->
+        <!-- Detail column -->
         <div class="flex min-w-0 flex-1 flex-col bg-[#1b1b1e]">
-          <!-- Unified macOS Tahoe detail toolbar -->
           <div class="flex h-11 items-center justify-between border-b border-white/[0.08] bg-[#232327]/95 px-4">
             <div class="flex min-w-0 items-center gap-2.5">
               <div class="flex items-center gap-1.5 sm:hidden" aria-hidden="true">
-                <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57] ring-1 ring-inset ring-black/20"></span>
-                <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e] ring-1 ring-inset ring-black/20"></span>
-                <span class="h-2.5 w-2.5 rounded-full bg-[#28c840] ring-1 ring-inset ring-black/20"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
               </div>
               <span class="text-xs font-semibold text-white/90">TidyByte</span>
               <span class="text-white/40" aria-hidden="true">/</span>
@@ -819,7 +844,6 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                   </span>
                   <span class="tabular-nums text-white/65"><span dir="ltr" class="inline-flex items-baseline gap-1"><span>7.59</span> <span>GB</span></span> <span>可用</span> <span>&middot;</span> <span dir="ltr" class="inline-flex items-baseline gap-1"><span>994.61</span> <span>GB</span></span></span>
                 </div>
-                <!-- Multi-segment macOS storage capacity bar -->
                 <div class="mt-3 flex h-2.5 gap-[2px] overflow-hidden rounded-full bg-white/10">
                   <span class="h-full w-[42%] rounded-s-full bg-[#0a84ff]"></span>
                   <span class="h-full w-[18%] bg-[#bf5af2]"></span>
@@ -928,7 +952,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
               </div>
             </div>
 
-            <!-- Pane 3: Duplicates with thumbnails, hash badges, interactive pills & APFS clone callout -->
+            <!-- Pane 3: Duplicates -->
             <div data-mac="duplicates" class="space-y-2.5">
               <div class="flex items-center justify-between text-xs">
                 <span data-mac-focus-target tabindex="-1" class="rounded font-semibold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5cb0ff]">重复项</span>
@@ -988,21 +1012,19 @@ const { quickAnswer = "", iosVersion } = Astro.props;
               </div>
             </div>
 
-            <!-- Pane 4: Space Explorer (Interactive Proportional Bento Treemap + breakdown) -->
+            <!-- Pane 4: Space Explorer -->
             <div data-mac="explorer" class="space-y-3">
               <div class="flex items-center justify-between text-xs">
                 <span class="font-semibold text-white">空间浏览器</span>
                 <span class="tabular-nums text-white/65"><span dir="ltr" class="inline-flex items-baseline gap-1"><span>64.3</span> <span>GB</span></span> <span>可见</span></span>
               </div>
-
-              <!-- Interactive Treemap Canvas -->
               <div class="grid h-36 grid-cols-[1.45fr_1fr] gap-2">
                 <button type="button" data-treemap-tile="photos" aria-pressed="true" class="mac-treemap-tile flex min-w-0 cursor-pointer flex-col justify-between rounded-xl bg-[#0062cc] p-3.5 text-start text-white ring-2 ring-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5cb0ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1b1b1e]">
                   <span class="flex w-full items-center justify-between gap-2">
                     <span class="rounded-md bg-black/25 px-1.5 py-0.5 text-[10px] font-semibold text-white">照片</span>
                     <span class="text-[11px] font-medium tabular-nums text-white/95">59%</span>
                   </span>
-                  <span dir="ltr" class="inline-flex items-baseline gap-1 font-display text-xl font-medium tabular-nums"><span>38.1</span> <span>GB</span></span>
+                  <span dir="ltr" class="inline-flex items-baseline gap-1 font-display text-2xl font-bold tabular-nums"><span>38.1</span> <span>GB</span></span>
                 </button>
                 <div class="grid min-w-0 grid-rows-[1.1fr_1fr] gap-2">
                   <button type="button" data-treemap-tile="developer" aria-pressed="false" class="mac-treemap-tile flex w-full min-w-0 cursor-pointer items-end justify-between rounded-xl bg-[#7b2cbf] p-3 text-start text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5cb0ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1b1b1e]">
@@ -1021,8 +1043,6 @@ const { quickAnswer = "", iosVersion } = Astro.props;
                   </div>
                 </div>
               </div>
-
-              <!-- Breakdown Cards wired to treemap tiles -->
               <div class="grid grid-cols-2 gap-2">
                 <div data-treemap-detail="photos" class="rounded-xl border border-white/[0.06] bg-[#2d2d31] p-2.5 ring-1 ring-[#3699ff]/70 transition">
                   <div class="flex items-center justify-between text-[11px] text-white"><span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-[3px] bg-[#0a84ff]"></span>照片</span><span dir="ltr" class="inline-flex items-baseline gap-1 tabular-nums text-white/80"><span>38.1</span> <span>GB</span></span></div>
@@ -1051,264 +1071,424 @@ const { quickAnswer = "", iosVersion } = Astro.props;
       </div>
     </fieldset>
 
-    <p class="muted mx-auto mt-6 max-w-xl text-center text-sm">免费 &middot; macOS 26 或更高版本 &middot; Apple silicon &middot; 来自 GitHub Releases 的公证磁盘映像。 <a href="/mac" class="link">全面了解 TidyByte for Mac &rarr;</a></p>
+    <p class="mx-auto mt-6 max-w-xl text-center text-sm font-medium text-muted">免费 &middot; macOS 26 或更高版本 &middot; Apple silicon &middot; 来自 GitHub Releases 的公证磁盘映像。 <a href="/mac" class="link">全面了解 TidyByte for Mac &rarr;</a></p>
   </div>
 </section>
 
-<!-- 03 · How it works: 3 numbered clay steps with specular rims and smooth lift. -->
-<section id="how-it-works" class="section scroll-mt-24 pt-0">
-  <div class="container-prose">
-    <div class="max-w-2xl scroll-mt-24">
+<!-- 03 · How it works: 3 crayon-striped step cards + 2x2 interactive Bento -->
+<section id="how-it-works" class="home-sec scroll-mt-24">
+  <div class="cp-wrap">
+    <div class="mx-auto max-w-2xl text-center">
       <p class="eyebrow">03 &mdash; 使用方式</p>
       <h2 class="h-section mt-3">滑动是怎么回事。</h2>
       <p class="lede mt-4">一张卡，一个决定。咖啡还没凉，你就能清掉几年的照片。</p>
     </div>
 
-    <ol role="list" class="mt-12 grid gap-6 md:grid-cols-3" data-reveal-group>
-      <li class="clay-tile rounded-3xl bg-clay-pink p-7 transition duration-200 hover:-translate-y-1 hover:shadow-pop" data-reveal>
-        <div class="flex items-center gap-3.5">
-          <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/40 text-clay-pink-ink shadow-sm">
-            <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="6" y="5" width="19" height="26" rx="4" fill="currentColor" opacity=".3"/><rect x="15" y="9" width="19" height="26" rx="4" stroke="currentColor" stroke-width="2.2"/><circle cx="24.5" cy="17" r="3" fill="currentColor"/><path d="M18 28h13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <!-- 3-step crayon cards (carousel on <= 600px mobile) -->
+    <ol role="list" class="cp-cards3 cp-swipe mt-12" data-carousel="steps" data-reveal-group>
+      <li class="cr flex flex-col justify-between p-6 sm:p-7" style="--r:28px;--c:var(--cp-peach-deep)" data-reveal>
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="flex items-center justify-between">
+          <span class="paper inline-flex h-12 w-12 items-center justify-center rounded-2xl text-ink">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 40 40" fill="none"><rect x="6" y="5" width="19" height="26" rx="4" fill="currentColor" opacity=".2"/><rect x="15" y="9" width="19" height="26" rx="4" stroke="currentColor" stroke-width="2.5"/><circle cx="24.5" cy="17" r="3" fill="currentColor"/></svg>
           </span>
-          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-pink-ink">1</p>
+          <span aria-hidden="true" class="font-display text-5xl font-bold leading-none text-ink">1</span>
         </div>
-        <h3 class="mt-5 font-display text-lg font-semibold text-clay-pink-ink">选择从哪里开始</h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-clay-pink-soft">截图、重复、模糊，或者整个图库。每个工具都会打开一叠照片卡。</p>
+        <h3 class="cp-step-title mt-5 font-display font-bold text-ink">选择从哪里开始</h3>
+        <p class="mt-4 rounded-2xl bg-surface-card/95 p-4 text-sm leading-relaxed text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">截图、重复、模糊，或者整个图库。每个工具都会打开一叠照片卡。</p>
       </li>
-      <li class="clay-tile rounded-3xl bg-clay-lav p-7 transition duration-200 hover:-translate-y-1 hover:shadow-pop" data-reveal>
-        <div class="flex items-center gap-3.5">
-          <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/45 text-clay-lav-ink shadow-sm">
-            <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 40 40" fill="none"><rect x="13" y="7" width="14" height="26" rx="3.5" fill="currentColor" opacity=".3"/><rect x="13" y="7" width="14" height="26" rx="3.5" stroke="currentColor" stroke-width="2.2"/><path d="M9 14l-4 4m0 0l4 4M5 18h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M31 14l4 4m0 0l-4 4m4-4h-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <li class="cr flex flex-col justify-between p-6 sm:p-7" style="--r:28px;--c:var(--cp-green)" data-reveal>
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="flex items-center justify-between">
+          <span class="paper inline-flex h-12 w-12 items-center justify-center rounded-2xl text-ink">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 40 40" fill="none"><rect x="13" y="7" width="14" height="26" rx="3.5" fill="currentColor" opacity=".2"/><rect x="13" y="7" width="14" height="26" rx="3.5" stroke="currentColor" stroke-width="2.5"/><path d="M9 14l-4 4m0 0l4 4M5 18h6M31 14l4 4m0 0l-4 4m4-4h-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-lav-ink">2</p>
+          <span aria-hidden="true" class="font-display text-5xl font-bold leading-none text-ink">2</span>
         </div>
-        <h3 class="mt-5 font-display text-lg font-semibold text-clay-lav-ink">滑动决定</h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-clay-lav-soft">左滑删除，右滑保留。每个选择都会先进入待确认列表，之后才会真正动手。</p>
+        <h3 class="cp-step-title mt-5 font-display font-bold text-ink">滑动决定</h3>
+        <p class="mt-4 rounded-2xl bg-surface-card/95 p-4 text-sm leading-relaxed text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">左滑删除，右滑保留。每个选择都会先进入待确认列表，之后才会真正动手。</p>
       </li>
-      <li class="clay-tile rounded-3xl bg-clay-mint p-7 transition duration-200 hover:-translate-y-1 hover:shadow-pop" data-reveal>
-        <div class="flex items-center gap-3.5">
-          <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/45 text-clay-mint-ink shadow-sm">
-            <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 40 40" fill="none"><path d="M26 4l2.2 5.3L33.5 11.5l-5.3 2.2L26 19l-2.2-5.3L18.5 11.5l5.3-2.2L26 4z" fill="currentColor" opacity=".3"/><path d="M11 24l5 5 11-12" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <li class="cr flex flex-col justify-between p-6 sm:p-7" style="--r:28px;--c:var(--cp-blue)" data-reveal>
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="flex items-center justify-between">
+          <span class="paper inline-flex h-12 w-12 items-center justify-center rounded-2xl text-ink">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 40 40" fill="none"><path d="M11 22l6 6 13-14" stroke="#ff5a14" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          <p aria-hidden="true" class="font-display text-5xl font-semibold leading-none text-clay-mint-ink">3</p>
+          <span aria-hidden="true" class="font-display text-5xl font-bold leading-none text-ink">3</span>
         </div>
-        <h3 class="mt-5 font-display text-lg font-semibold text-clay-mint-ink">一次清空</h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-clay-mint-soft">确认一次，空间就回来了。删除的照片会在「最近删除」里等 30 天。</p>
+        <h3 class="cp-step-title mt-5 font-display font-bold text-ink">一次清空</h3>
+        <p class="mt-4 rounded-2xl bg-surface-card/95 p-4 text-sm leading-relaxed text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">确认一次，空间就回来了。删除的照片会在「最近删除」里等 30 天。</p>
       </li>
     </ol>
+    <div class="cp-dots" data-dots-for="steps" aria-hidden="true"></div>
+
+    <!-- 2x2 Interactive Bento Grid -->
+    <div class="cp-pair cp-swipe mt-8" data-carousel="bento">
+      <!-- Bento 1: Interactive Batch Tidy -->
+      <div class="cr flex flex-col justify-between p-6 sm:p-8" style="--r:30px;--c:var(--cp-lilac)">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div>
+          <h3 class="cp-bento-title font-display font-bold text-ink">一次批量清理完成。</h3>
+          <p class="mt-3 text-sm leading-relaxed text-body sm:text-[15.5px]">指向截屏、重复照片或 Mac 缓存，集中查看建议并一次清理。</p>
+        </div>
+        <div class="paper mt-6 p-4" dir="ltr" data-bento-tidy>
+          <div class="flex items-center justify-between border-b border-hairline pb-2.5">
+            <span class="text-xs font-bold text-ink">清理队列</span>
+            <button type="button" data-bento-tidy-btn aria-pressed="false" class="cursor-pointer rounded-full bg-cp-orange px-3.5 py-1 text-xs font-bold text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))] transition hover:-translate-y-px"><span data-tidy-idle>一键清理</span><span class="hidden" aria-hidden="true" data-tidy-undo>撤销</span></button>
+          </div>
+          <ul class="mt-2.5 space-y-2 text-xs">
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>Screenshot 13.19.52.png</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>已清理 &middot; 4.2 MB</span><span class="text-muted">4.2 MB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>IMG_2208 (blur).jpg</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>已移除 &middot; 3.1 MB</span><span class="text-muted">3.1 MB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>4K Clip.mov</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>已压缩 &middot; 310 MB</span><span class="text-muted">1.4 GB</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bento 2: On-device AI Photo Search -->
+      <div class="cr flex flex-col justify-between p-6 sm:p-8" style="--r:30px;--c:var(--cp-yellow-card)">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div>
+          <h3 class="cp-bento-title font-display font-bold text-ink">用平常的话找到任何照片。</h3>
+          <p class="mt-3 text-sm leading-relaxed text-body sm:text-[15.5px]">用自然语言描述照片或票据，无需上传图库即可在设备本地找到。</p>
+        </div>
+        <div class="paper mt-6 p-4" dir="ltr">
+          <div class="flex items-center justify-between rounded-xl border-2 border-ink/80 bg-surface-soft px-3 py-2 text-xs font-semibold text-ink">
+            <span>日落海滩</span>
+            <span class="cp-kbd text-[10px]">&#x2318; F</span>
+          </div>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li class="flex items-center justify-between text-ink"><span>海岸 <mark class="rounded bg-cp-yellow px-1 text-[#121214]">日落海滩</mark></span><span class="text-muted">3.4 MB</span></li>
+            <li class="flex items-center justify-between text-ink"><span><mark class="rounded bg-cp-yellow px-1 text-[#121214]">海滩</mark> 黄昏木栈道</span><span class="text-muted">2.8 MB</span></li>
+            <li class="flex items-center justify-between text-ink"><span>里斯本 <mark class="rounded bg-cp-yellow px-1 text-[#121214]">日落</mark> 渡轮</span><span class="text-muted">4.1 MB</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bento 3: SHA-256 + APFS Clones -->
+      <div class="cr flex flex-col justify-between p-6 sm:p-8" style="--r:30px;--c:var(--cp-sky)">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div>
+          <h3 class="cp-bento-title font-display font-bold text-ink">精确合并重复文件，毫不猜测。</h3>
+          <p class="mt-3 text-sm leading-relaxed text-body sm:text-[15.5px]">精确重复通过 SHA-256 哈希匹配；在 Mac 上无需删除即可折叠为 APFS 克隆。</p>
+        </div>
+        <div class="paper mt-6 p-4" dir="ltr">
+          <div class="flex items-center justify-between text-xs font-bold text-ink">
+            <span class="font-mono">IMG_4032.jpg</span>
+            <span class="rounded-full bg-cp-mint px-2.5 py-0.5 text-[11px] font-bold text-[#121214]">SHA-256 匹配</span>
+          </div>
+          <p class="mt-2 font-mono text-[11px] text-muted">~/Pictures/IMG_4032.jpg<span aria-hidden="true"> &middot; </span><span>保留</span></p>
+          <p class="mt-1 font-mono text-[11px] text-cp-orange-deep">~/Downloads/IMG_4032 2.jpg &rarr; APFS Clone</p>
+        </div>
+      </div>
+
+      <!-- Bento 4: Undo & 30-day safety -->
+      <div class="cr flex flex-col justify-between p-6 sm:p-8" style="--r:30px;--c:var(--cp-pink)">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div>
+          <h3 class="cp-bento-title font-display font-bold text-ink">轻点一下就能反悔。</h3>
+          <p class="mt-3 text-sm leading-relaxed text-body sm:text-[15.5px]">每次操作都会记录在本地。删除的照片会在“最近删除”中保留 30 天。</p>
+        </div>
+        <div class="paper mt-6 p-4" dir="ltr">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-ink">清理记录</span>
+            <span class="inline-flex items-center gap-1"><kbd class="cp-kbd text-[10px]">&#x2318;</kbd><kbd class="cp-kbd text-[10px]">Z</kbd></span>
+          </div>
+          <ul class="mt-2.5 space-y-1.5 text-xs text-body">
+            <li class="flex items-center justify-between"><span>&#x2713; 最近删除（30 天）</span><span class="font-semibold text-success">安全</span></li>
+            <li class="flex items-center justify-between"><span>&#x2713; Mac 废纸篓与 SQLite 撤销</span><span class="font-semibold text-success">本地</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="cp-dots" data-dots-for="bento" aria-hidden="true"></div>
   </div>
 </section>
 
-<!-- 04 · Cleanup toolkit -->
-<section id="features" class="section scroll-mt-24 pt-0 sm:pt-0">
-  <div class="container-prose">
+<!-- 04 · Cleanup toolkit: all 12+ linked tool pages -->
+<section id="features" class="home-sec scroll-mt-24">
+  <div class="cp-wrap">
     <div class="grid items-center gap-10 lg:grid-cols-[1fr_auto]" data-reveal>
       <div class="max-w-2xl">
         <p class="eyebrow">04 &mdash; 清理工具箱</p>
         <h2 class="h-section mt-3">各种杂物，逐一处理。</h2>
         <p class="lede mt-4">十二个清理工具，加上存储构成、清理记录和端侧 AI 搜索 &mdash; 全部在你的设备上运行。点开任意一个就能看到它怎么工作。</p>
       </div>
-      <svg aria-hidden="true" focusable="false" width="320" height="240" viewBox="0 0 320 240" fill="none" class="hidden w-full max-w-[320px] lg:block">
-        <rect x="88" y="118" width="46" height="32" rx="6" fill="#a4d4c5" transform="rotate(-8 111 134)"/>
-        <rect x="128" y="112" width="46" height="32" rx="6" fill="#fffaf0" transform="rotate(5 151 128)"/>
-        <rect x="60" y="30" width="40" height="52" rx="8" fill="#b8a4ed" transform="rotate(-14 80 56)"/>
-        <rect x="130" y="20" width="40" height="52" rx="8" fill="#ffb084" transform="rotate(6 150 46)"/>
-        <rect x="196" y="34" width="40" height="52" rx="8" fill="#a4d4c5" transform="rotate(14 216 60)"/>
-        <path d="M124 158a36 20 0 0 1 72 0" stroke="#4a1425" stroke-width="7" stroke-linecap="round"/>
-        <rect x="86" y="112" width="148" height="42" rx="11" fill="#ff7aa2" transform="rotate(-18 160 133)"/>
-        <rect x="90" y="150" width="140" height="58" rx="13" fill="#ff4d8b"/>
-        <rect x="146" y="142" width="28" height="16" rx="4" fill="#fffaf0"/>
-        <path d="M262 78l-24 90" stroke="#b8a4ed" stroke-width="7" stroke-linecap="round"/>
-        <ellipse cx="232" cy="184" rx="25" ry="15" fill="#e8b94a"/>
-        <rect x="213" y="170" width="38" height="11" rx="5.5" fill="#fffaf0" opacity=".85"/>
-        <path d="M52 178l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#ffb084"/>
-        <path d="M286 118l2 4.8 4.8 2-4.8 2-2 4.8-2-4.8-4.8-2 4.8-2z" fill="#a4d4c5"/>
-        <circle cx="205" cy="222" r="3" fill="#e8b94a" opacity=".7"/>
-        <circle cx="222" cy="230" r="2.2" fill="#ff7aa2" opacity=".7"/>
-        <circle cx="243" cy="224" r="2.6" fill="#a4d4c5" opacity=".7"/>
+      <svg aria-hidden="true" focusable="false" width="260" height="200" viewBox="0 0 320 240" fill="none" class="hidden w-full max-w-[260px] lg:block">
+        <rect x="60" y="30" width="44" height="56" rx="8" fill="#e0d4ff" stroke="#121214" stroke-width="3" transform="rotate(-14 82 58)"/>
+        <rect x="130" y="20" width="44" height="56" rx="8" fill="#ffe1bf" stroke="#121214" stroke-width="3" transform="rotate(6 152 48)"/>
+        <rect x="196" y="34" width="44" height="56" rx="8" fill="#c9efa9" stroke="#121214" stroke-width="3" transform="rotate(14 218 62)"/>
+        <rect x="86" y="112" width="148" height="42" rx="11" fill="#ffb3a7" stroke="#121214" stroke-width="3" transform="rotate(-14 160 133)"/>
+        <rect x="90" y="150" width="140" height="58" rx="13" fill="#ff5a14" stroke="#121214" stroke-width="3"/>
+        <rect x="146" y="142" width="28" height="16" rx="4" fill="#fffdf8" stroke="#121214" stroke-width="3"/>
       </svg>
     </div>
 
-    <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal-group>
+    <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal-group>
       <li data-reveal>
-        <a href="/duplicate-photo-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-pink p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/duplicate-photo-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-pink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="12" rx="2" fill="currentColor" opacity=".25" stroke="none"/><rect x="9" y="9" width="12" height="12" rx="2"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-pink-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-pink-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-pink text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="12" rx="2"/><rect x="9" y="9" width="12" height="12" rx="2"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-pink-ink">重复项</h3>
-          <p class="mt-1 text-sm text-clay-pink-soft">逐字节找出完全相同的副本。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">重复项</h3>
+          <p class="mt-1 text-sm text-body">逐字节找出完全相同的副本。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/similar-photo-cleaner" class="clay-tile-dark group block h-full rounded-3xl bg-clay-teal p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-cream">
+        <a href="/similar-photo-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-teal shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="9" height="9" rx="2" fill="currentColor" opacity=".25" stroke="none"/><rect x="12" y="3" width="9" height="9" rx="2" fill="currentColor" opacity=".25" stroke="none"/><rect x="7.5" y="12" width="9" height="9" rx="2"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-mint/50 transition group-hover:translate-x-0.5 group-hover:text-clay-cream rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-sky text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="9" height="9" rx="2"/><rect x="12" y="3" width="9" height="9" rx="2"/><rect x="7.5" y="12" width="9" height="9" rx="2"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-cream">相似照片</h3>
-          <p class="mt-1 text-sm text-clay-mint">把几乎一样的照片归到一起。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">相似照片</h3>
+          <p class="mt-1 text-sm text-body">把几乎一样的照片归到一起。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/screenshot-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-lav p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/screenshot-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-lav-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5" fill="currentColor" opacity=".25" stroke="none"/><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 18h6"/><circle cx="12" cy="7" r="2"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-lav-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-lav-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-lilac text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 18h6"/><circle cx="12" cy="7" r="2"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-lav-ink">截图</h3>
-          <p class="mt-1 text-sm text-clay-lav-soft">一次收集，一次清空。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">截图</h3>
+          <p class="mt-1 text-sm text-body">一次收集，一次清空。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/blurry-photo-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-peach p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/blurry-photo-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-peach-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="6" fill="currentColor" opacity=".25" stroke="none"/><path d="M12 3c-3.5 4-6 6.5-6 10a6 6 0 0 0 12 0c0-3.5-2.5-6-6-10Z"/><path d="M4 4l16 16"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-peach-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-peach-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-peach text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3.5 4-6 6.5-6 10a6 6 0 0 0 12 0c0-3.5-2.5-6-6-10Z"/><path d="M4 4l16 16"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-peach-ink">模糊照片</h3>
-          <p class="mt-1 text-sm text-clay-peach-soft">找出跑焦和手抖的照片。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">模糊照片</h3>
+          <p class="mt-1 text-sm text-body">找出跑焦和手抖的照片。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/large-file-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-ochre p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/large-file-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-ochre-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".25" stroke="none"/><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-ochre-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-ochre-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-yellow-soft text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-ochre-ink">大文件</h3>
-          <p class="mt-1 text-sm text-clay-ochre-soft">找出最占空间的文件。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">大文件</h3>
+          <p class="mt-1 text-sm text-body">找出最占空间的文件。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/burst-photo-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-mint p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/burst-photo-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-mint-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="15" height="18" rx="2" fill="currentColor" opacity=".25" stroke="none"/><rect x="3" y="5" width="14" height="4" rx="1.5"/><rect x="5" y="11" width="14" height="4" rx="1.5"/><rect x="7" y="17" width="14" height="4" rx="1.5"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-mint-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-mint-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-mint text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="4" rx="1.5"/><rect x="5" y="11" width="14" height="4" rx="1.5"/><rect x="7" y="17" width="14" height="4" rx="1.5"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-mint-ink">连拍照片</h3>
-          <p class="mt-1 text-sm text-clay-mint-soft">从连拍里挑出最好的一张。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">连拍照片</h3>
+          <p class="mt-1 text-sm text-body">从连拍里挑出最好的一张。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/live-photo-converter" class="clay-tile group block h-full rounded-3xl bg-clay-rose p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/live-photo-converter" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-rose-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" fill="currentColor" opacity=".25" stroke="none"/><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-rose-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-rose-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-pink text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-rose-ink">Live Photos</h3>
-          <p class="mt-1 text-sm text-clay-rose-soft">转成静态照片，省出空间。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">Live Photos</h3>
+          <p class="mt-1 text-sm text-body">转成静态照片，省出空间。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/video-compression" class="clay-tile-dark group block h-full rounded-3xl bg-clay-teal p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-cream">
+        <a href="/video-compression" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-teal shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" fill="currentColor" opacity=".25" stroke="none"/><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16"/><path d="M17 4v16"/><path d="M3 9h4M3 15h4M17 9h4M17 15h4"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-mint/50 transition group-hover:translate-x-0.5 group-hover:text-clay-cream rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-sky text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-cream">视频压缩</h3>
-          <p class="mt-1 text-sm text-clay-mint">压缩视频，依然好看。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">视频压缩</h3>
+          <p class="mt-1 text-sm text-body">压缩视频，依然好看。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/image-compression" class="clay-tile group block h-full rounded-3xl bg-clay-lav p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/image-compression" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-lav-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" fill="currentColor" opacity=".25" stroke="none"/><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/><path d="M14 8l3-3M17 5h-3M17 5v3"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-lav-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-lav-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-lilac text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-lav-ink">照片压缩</h3>
-          <p class="mt-1 text-sm text-clay-lav-soft">重新编码照片，找回空间。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">照片压缩</h3>
+          <p class="mt-1 text-sm text-body">重新编码照片，找回空间。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/photo-organizer" class="clay-tile group block h-full rounded-3xl bg-clay-peach p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/photo-organizer" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-peach-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5" fill="currentColor" opacity=".25" stroke="none"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5" fill="currentColor" opacity=".25" stroke="none"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-peach-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-peach-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-peach text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-peach-ink">智能分类</h3>
-          <p class="mt-1 text-sm text-clay-peach-soft">按内容类型排序，浏览更快。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">智能分类</h3>
+          <p class="mt-1 text-sm text-body">按内容类型排序，浏览更快。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/storage-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-ochre p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/storage-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-ochre-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12V3a9 9 0 0 1 8.6 11.6L12 12z" fill="currentColor" opacity=".25" stroke="none"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-ochre-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-ochre-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-yellow-soft text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-ochre-ink">存储构成</h3>
-          <p class="mt-1 text-sm text-clay-ochre-soft">按类型展示图库的环形图，以及最大的文件。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">存储构成</h3>
+          <p class="mt-1 text-sm text-body">按类型展示图库的环形图，以及最大的文件。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/storage-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-mint p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/storage-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-mint-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8" fill="currentColor" opacity=".25" stroke="none"/><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-mint-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-mint-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-mint text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-mint-ink">清理记录</h3>
-          <p class="mt-1 text-sm text-clay-mint-soft">每一次删除和压缩决定都记录在设备上，随时可查。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">清理记录</h3>
+          <p class="mt-1 text-sm text-body">每一次删除和压缩决定都记录在设备上，随时可查。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/screen-recording-cleaner" class="clay-tile group block h-full rounded-3xl bg-clay-rose p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/screen-recording-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-rose-ink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2" fill="currentColor" opacity=".25" stroke="none"/><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M10 8.5l4.5 2.5L10 13.5z" fill="currentColor" stroke="none"/><path d="M8 20h8"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-rose-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-rose-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-pink text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M10 8.5l4.5 2.5L10 13.5z" fill="currentColor" stroke="none"/><path d="M8 20h8"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-rose-ink">屏幕录制</h3>
-          <p class="mt-1 text-sm text-clay-rose-soft">没人记得拍过的那些最大的文件。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">屏幕录制</h3>
+          <p class="mt-1 text-sm text-body">没人记得拍过的那些最大的文件。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/chat-media-cleaner" class="clay-tile-dark group block h-full rounded-3xl bg-clay-teal p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-cream">
+        <a href="/chat-media-cleaner" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-teal shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z" fill="currentColor" opacity=".25" stroke="none"/><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/><circle cx="11" cy="11" r="1.5"/><path d="M7.5 16l3-3.5 2.5 3 2-2.5 2.5 3"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-mint/50 transition group-hover:translate-x-0.5 group-hover:text-clay-cream rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-sky text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/><circle cx="11" cy="11" r="1.5"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-cream">聊天媒体</h3>
-          <p class="mt-1 text-sm text-clay-mint">清掉 WhatsApp 和 Telegram 保存的内容。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">聊天媒体</h3>
+          <p class="mt-1 text-sm text-body">清掉 WhatsApp 和 Telegram 保存的内容。</p>
         </a>
       </li>
       <li data-reveal>
-        <a href="/on-device-ai-photo-search" class="clay-tile group block h-full rounded-3xl bg-clay-pink p-6 transition duration-200 hover:-translate-y-1 hover:shadow-pop focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+        <a href="/on-device-ai-photo-search" class="paper group block h-full p-6 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
           <div class="flex items-start justify-between">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-clay-pink shadow-sm"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3l1.6 4.4L17 9l-4.4 1.6L11 15l-1.6-4.4L5 9l4.4-1.6z" fill="currentColor" opacity=".3" stroke="none"/><path d="M11 3l1.6 4.4L17 9l-4.4 1.6L11 15l-1.6-4.4L5 9l4.4-1.6z"/><path d="M18 14l.9 2.4L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.6z"/></svg></span>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-clay-pink-ink/40 transition group-hover:translate-x-0.5 group-hover:text-clay-pink-ink rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cp-yellow-soft text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))]"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3l1.6 4.4L17 9l-4.4 1.6L11 15l-1.6-4.4L5 9l4.4-1.6z"/><path d="M18 14l.9 2.4L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.6z"/></svg></span>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-muted transition group-hover:translate-x-0.5 group-hover:text-cp-orange rtl:-scale-x-100"><path d="M7 17L17 7M7 7h10v10"/></svg>
           </div>
-          <h3 class="mt-4 font-display text-lg font-semibold text-clay-pink-ink">AI 照片搜索</h3>
-          <p class="mt-1 text-sm text-clay-pink-soft">用大白话描述一张照片，在设备上找到它。</p>
+          <h3 class="mt-4 font-display text-2xl font-bold text-ink">AI 照片搜索</h3>
+          <p class="mt-1 text-sm text-body">用大白话描述一张照片，在设备上找到它。</p>
         </a>
       </li>
     </ul>
   </div>
 </section>
 
-<!-- 05 · Privacy (framed clay artwork so it integrates smoothly onto clay-teal) -->
-<section class="section pt-0">
-  <div class="container-prose">
-    <div class="clay-tile-dark relative overflow-hidden rounded-[2rem] bg-clay-teal p-8 sm:p-12" data-reveal>
-      <div aria-hidden="true" class="pointer-events-none absolute -end-20 -top-20 h-72 w-72 rounded-full bg-clay-mint/10 blur-3xl"></div>
-      <div class="relative grid items-center gap-10 md:grid-cols-[1.05fr_0.95fr]">
+<!-- Interactive Keyboard Section (Snaptitle's Hands on the keys) -->
+<section class="home-sec">
+  <div class="cp-wrap">
+    <div class="grid items-center gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12">
+      <div>
+        <p class="eyebrow">键盘快捷操作</p>
+        <h2 class="h-section mt-3">扫描、审核、撤销，全程键盘搞定。</h2>
+        <div class="mt-6 inline-flex rounded-full bg-surface-card p-1 shadow-[0_0_0_2px_rgb(var(--c-ink))]" role="tablist" aria-label="快捷键分组">
+          <button type="button" role="tab" aria-selected="true" data-kb-tab="swipe" class="cursor-pointer rounded-full bg-ink px-4 py-1.5 text-sm font-bold text-canvas transition">滑动</button>
+          <button type="button" role="tab" aria-selected="false" data-kb-tab="mac" class="cursor-pointer rounded-full px-4 py-1.5 text-sm font-bold text-body transition hover:text-ink">Mac</button>
+          <button type="button" role="tab" aria-selected="false" data-kb-tab="undo" class="cursor-pointer rounded-full px-4 py-1.5 text-sm font-bold text-body transition hover:text-ink">撤销</button>
+        </div>
+
+        <div class="mt-5 space-y-2.5" dir="ltr" data-kb-list>
+          <button type="button" data-kb-row data-kb-group="swipe" data-kb-keys="ArrowLeft" class="paper flex w-full cursor-pointer items-center justify-between px-4 py-3 text-start text-sm font-bold text-ink">
+            <span>标记为删除</span>
+            <span class="flex gap-1"><kbd class="cp-kbd on">&larr;</kbd></span>
+          </button>
+          <button type="button" data-kb-row data-kb-group="swipe" data-kb-keys="ArrowRight" class="flex w-full cursor-pointer items-center justify-between rounded-2xl bg-surface-card px-4 py-3 text-start text-sm font-semibold text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+            <span>保留照片</span>
+            <span class="flex gap-1"><kbd class="cp-kbd">&rarr;</kbd></span>
+          </button>
+          <button type="button" data-kb-row data-kb-group="swipe" data-kb-keys="Meta+z" class="flex w-full cursor-pointer items-center justify-between rounded-2xl bg-surface-card px-4 py-3 text-start text-sm font-semibold text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+            <span>撤销上一次滑动</span>
+            <span class="flex gap-1"><kbd class="cp-kbd">&#x2318;</kbd><kbd class="cp-kbd">Z</kbd></span>
+          </button>
+
+          <button type="button" data-kb-row data-kb-group="mac" data-kb-keys="Meta+f" class="hidden w-full cursor-pointer items-center justify-between rounded-2xl bg-surface-card px-4 py-3 text-start text-sm font-semibold text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+            <span>搜索扫描结果</span>
+            <span class="flex gap-1"><kbd class="cp-kbd">&#x2318;</kbd><kbd class="cp-kbd">F</kbd></span>
+          </button>
+          <button type="button" data-kb-row data-kb-group="mac" data-kb-keys="Meta+r" class="hidden w-full cursor-pointer items-center justify-between rounded-2xl bg-surface-card px-4 py-3 text-start text-sm font-semibold text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+            <span>重新扫描 Mac</span>
+            <span class="flex gap-1"><kbd class="cp-kbd">&#x2318;</kbd><kbd class="cp-kbd">R</kbd></span>
+          </button>
+          <button type="button" data-kb-row data-kb-group="mac" data-kb-keys="Meta+k" class="hidden w-full cursor-pointer items-center justify-between rounded-2xl bg-surface-card px-4 py-3 text-start text-sm font-semibold text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+            <span>打开空间探索器</span>
+            <span class="flex gap-1"><kbd class="cp-kbd">&#x2318;</kbd><kbd class="cp-kbd">K</kbd></span>
+          </button>
+
+          <button type="button" data-kb-row data-kb-group="undo" data-kb-keys="Meta+z" class="hidden w-full cursor-pointer items-center justify-between rounded-2xl bg-surface-card px-4 py-3 text-start text-sm font-semibold text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+            <span>撤销上一步操作</span>
+            <span class="flex gap-1"><kbd class="cp-kbd">&#x2318;</kbd><kbd class="cp-kbd">Z</kbd></span>
+          </button>
+          <button type="button" data-kb-row data-kb-group="undo" data-kb-keys="Space" class="hidden w-full cursor-pointer items-center justify-between rounded-2xl bg-surface-card px-4 py-3 text-start text-sm font-semibold text-body shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+            <span>跳过当前项目</span>
+            <span class="flex gap-1"><kbd class="cp-kbd">Space</kbd></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ANSI Keyboard Frame -->
+      <div dir="ltr" class="cr p-4 sm:p-5" style="--r:22px;--c:var(--cp-keycap)">
+        <div class="solid" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <div class="space-y-1.5" data-keyboard>
+          <div class="cp-key-row flex gap-1.5">
+            <span class="cp-key flex-1">esc</span><span class="cp-key flex-1">1</span><span class="cp-key flex-1">2</span><span class="cp-key flex-1">3</span><span class="cp-key flex-1">4</span><span class="cp-key flex-1">5</span><span class="cp-key flex-1">6</span><span class="cp-key flex-1">7</span><span class="cp-key flex-1">8</span><span class="cp-key flex-1">9</span><span class="cp-key flex-1">0</span><span class="cp-key flex-[1.5]">&larr;</span>
+          </div>
+          <div class="cp-key-row flex gap-1.5">
+            <span class="cp-key flex-[1.5]">tab</span><span class="cp-key flex-1">Q</span><span class="cp-key flex-1">W</span><span class="cp-key flex-1">E</span><span class="cp-key flex-1" data-key="r">R</span><span class="cp-key flex-1">T</span><span class="cp-key flex-1">Y</span><span class="cp-key flex-1">U</span><span class="cp-key flex-1">I</span><span class="cp-key flex-1">O</span><span class="cp-key flex-1">P</span>
+          </div>
+          <div class="cp-key-row flex gap-1.5">
+            <span class="cp-key flex-[1.8]">caps</span><span class="cp-key flex-1">A</span><span class="cp-key flex-1">S</span><span class="cp-key flex-1">D</span><span class="cp-key flex-1" data-key="f">F</span><span class="cp-key flex-1">G</span><span class="cp-key flex-1">H</span><span class="cp-key flex-1">J</span><span class="cp-key flex-1" data-key="k">K</span><span class="cp-key flex-1">L</span><span class="cp-key flex-[1.8]">return</span>
+          </div>
+          <div class="cp-key-row flex gap-1.5">
+            <span class="cp-key flex-[2.2]">shift</span><span class="cp-key flex-1" data-key="z">Z</span><span class="cp-key flex-1">X</span><span class="cp-key flex-1">C</span><span class="cp-key flex-1">V</span><span class="cp-key flex-1">B</span><span class="cp-key flex-1">N</span><span class="cp-key flex-1">M</span><span class="cp-key flex-1">,</span><span class="cp-key flex-1">.</span><span class="cp-key flex-[2.2]">shift</span>
+          </div>
+          <div class="cp-key-row flex gap-1.5">
+            <span class="cp-key flex-1">fn</span><span class="cp-key flex-1">ctrl</span><span class="cp-key flex-1">opt</span><span class="cp-key flex-[1.6]" data-key="Meta">&#x2318;</span><span class="cp-key flex-[4.5]" data-key="Space">space</span><span class="cp-key flex-1 on" data-key="ArrowLeft">&larr;</span><span class="cp-key flex-1" data-key="ArrowRight">&rarr;</span><span class="cp-key flex-1">up</span>
+          </div>
+        </div>
+        <p class="mt-3 text-center text-xs font-medium text-muted">试试看：按下你键盘上的几个按键。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · Privacy Night Block (#2b2f6b + 0 bytes white-outlined box) -->
+<section class="home-sec">
+  <div class="cp-wrap">
+    <div class="cr cp-night overflow-hidden p-7 sm:p-12" style="--r:36px;--c:rgb(var(--c-navy))" data-reveal>
+      <div class="solid" aria-hidden="true"></div>
+      <div class="line" aria-hidden="true"></div>
+      <div class="relative grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
         <div>
           <p class="eyebrow-on-dark">05 &mdash; 隐私</p>
           <h2 class="h-section-on-dark mt-3">照片不会发送给 TidyByte。</h2>
-          <ul class="mt-6 space-y-4 text-sm sm:text-base text-clay-cream/90">
+          <ul class="mt-6 space-y-3.5 text-sm text-[#d9d6ff] sm:text-base">
             <li class="flex gap-3">
-              <span class="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-clay-mint text-clay-teal">
-                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
+              <span class="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-cp-yellow text-[#121214]">
+                <svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
               </span>
               iPhone 照片图库的清理由 Apple Photos 和 Vision 框架在设备上完成。
             </li>
             <li class="flex gap-3">
-              <span class="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-clay-mint text-clay-teal">
-                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
+              <span class="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-cp-yellow text-[#121214]">
+                <svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
               </span>
               在 Mac 上，每次扫描同样都在本地运行。没有 TidyByte 后端，没有分析 SDK，没有广告，没有追踪。
             </li>
             <li class="flex gap-3">
-              <span class="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-clay-mint text-clay-teal">
-                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
+              <span class="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-cp-yellow text-[#121214]">
+                <svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
               </span>
               在启用了 Google Photos 的版本中，应用会直接连接 Google，以便登录、查询存储空间并读取你选择的项目。
             </li>
@@ -1317,12 +1497,19 @@ const { quickAnswer = "", iosVersion } = Astro.props;
             <a href="/privacy" class="btn-on-color">阅读隐私政策</a>
           </p>
         </div>
-        <div class="relative mx-auto w-full max-w-[360px]">
-          <div class="overflow-hidden rounded-[1.5rem] bg-[#fdedcc] shadow-pop">
-            <picture>
-              <source srcset="/assets/img/illustrations/privacy-vault.avif" type="image/avif">
-              <img src="/assets/img/illustrations/privacy-vault.webp" alt="黏土插画：一个青色保险箱守护着笑脸照片卡。" width="1152" height="864" loading="lazy" decoding="async" class="block aspect-[4/3] w-full scale-[1.08] object-cover">
-            </picture>
+
+        <div class="cr p-6 sm:p-8" style="--r:26px;--lc:#fff">
+          <div class="line" aria-hidden="true"></div>
+          <p class="text-center text-xs font-bold uppercase tracking-[0.14em] text-[#d9d6ff]">上传至服务器的数据</p>
+          <p dir="ltr" class="mt-1 flex items-baseline justify-center gap-2 font-display leading-[0.85]">
+            <span class="text-[110px] font-bold tracking-[-0.04em] text-white sm:text-[150px]">0</span>
+            <span class="text-4xl font-bold text-[#ffd23f] sm:text-5xl">字节</span>
+          </p>
+          <div class="mt-6 grid grid-cols-2 gap-3 text-xs font-semibold text-[#d9d6ff]">
+            <div class="rounded-xl bg-white/10 px-3 py-2.5 text-center shadow-[0_0_0_2px_rgba(255,255,255,0.85)]">端侧 Vision 分析</div>
+            <div class="rounded-xl bg-white/10 px-3 py-2.5 text-center shadow-[0_0_0_2px_rgba(255,255,255,0.85)]">离线可用</div>
+            <div class="rounded-xl bg-white/10 px-3 py-2.5 text-center shadow-[0_0_0_2px_rgba(255,255,255,0.85)]">无需账号</div>
+            <div class="rounded-xl bg-white/10 px-3 py-2.5 text-center shadow-[0_0_0_2px_rgba(255,255,255,0.85)]">无统计分析</div>
           </div>
         </div>
       </div>
@@ -1330,164 +1517,217 @@ const { quickAnswer = "", iosVersion } = Astro.props;
   </div>
 </section>
 
-<!-- 06 · Open source -->
-<section id="open-source" class="section scroll-mt-24 pt-0">
-  <div class="container-prose">
-    <div class="clay-tile-dark relative overflow-hidden rounded-[2rem] border border-hairline bg-surface-dark p-8 text-center sm:p-12" data-reveal>
-      <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 bottom-0 mx-auto h-56 w-96 rounded-full bg-clay-mint/10 blur-3xl"></div>
-      <div class="relative">
-        <p class="eyebrow-on-dark">06 &mdash; 开源</p>
-        <h2 class="h-section-on-dark mx-auto mt-3 max-w-2xl">读懂每一行接触照片的代码。</h2>
-        <p class="mx-auto mt-4 max-w-xl text-base text-clay-cream/70 sm:text-lg">两个应用都采用 MIT 许可证。阅读源码，验证所言非虚，提交问题。</p>
-        <p class="mt-7">
-          <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="btn-on-color">
-            <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.74 5.49.74 11.76c0 4.96 3.22 9.16 7.68 10.65.56.1.77-.24.77-.55v-1.93c-3.12.68-3.78-1.5-3.78-1.5-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.23.71-1.51-2.49-.28-5.12-1.25-5.12-5.55 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.1 1.15.9-.25 1.86-.38 2.82-.39.96.01 1.92.14 2.82.39 2.15-1.45 3.1-1.15 3.1-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.31-2.64 5.27-5.15 5.54.4.34.76 1.02.76 2.06v3.05c0 .31.2.66.78.55 4.46-1.49 7.67-5.69 7.67-10.65C23.26 5.49 18.27.5 12 .5Z"/></svg>
-            在 GitHub 上查看 &rarr;
-          </a>
-        </p>
-        <svg aria-hidden="true" focusable="false" viewBox="0 0 360 200" fill="none" class="mx-auto mt-10 w-full max-w-sm">
-          <g transform="rotate(-9 116 120)">
-            <rect x="70" y="62" width="88" height="114" rx="12" fill="#fffaf0" opacity=".92"/>
-            <rect x="82" y="74" width="64" height="48" rx="8" fill="#a4d4c5"/>
-            <circle cx="95" cy="87" r="5" fill="#ff4d8b"/>
-            <rect x="82" y="132" width="48" height="7" rx="3.5" fill="#1a3a3a" opacity=".18"/>
-            <rect x="82" y="146" width="34" height="7" rx="3.5" fill="#1a3a3a" opacity=".12"/>
-          </g>
-          <g transform="rotate(6 226 120)">
-            <rect x="182" y="58" width="88" height="114" rx="12" fill="#fffaf0"/>
-            <rect x="194" y="70" width="64" height="48" rx="8" fill="#ffb084"/>
-            <circle cx="207" cy="83" r="5" fill="#1a3a3a"/>
-            <rect x="194" y="128" width="48" height="7" rx="3.5" fill="#1a3a3a" opacity=".18"/>
-            <rect x="194" y="142" width="34" height="7" rx="3.5" fill="#1a3a3a" opacity=".12"/>
-          </g>
-          <circle cx="204" cy="102" r="42" fill="#a4d4c5" opacity=".14"/>
-          <circle cx="204" cy="102" r="42" stroke="#a4d4c5" stroke-width="9"/>
-          <path d="M234 134l24 24" stroke="#a4d4c5" stroke-width="12" stroke-linecap="round"/>
-          <path d="M296 52l-14 12 14 12M322 52l14 12-14 12M313 46l-9 36" stroke="#fffaf0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>
-          <path d="M56 34l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#ff7aa2"/>
-          <path d="M330 150l2 4.8 4.8 2-4.8 2-2 4.8-2-4.8-4.8-2 4.8-2z" fill="#a4d4c5"/>
-        </svg>
+<!-- 06 · Free & Open Source (Snaptitle 3-tier layout + trust bar) -->
+<section id="open-source" class="home-sec scroll-mt-24">
+  <div class="cp-wrap">
+    <div class="mx-auto max-w-2xl text-center" data-reveal>
+      <p class="eyebrow">06 &mdash; 开源</p>
+      <h2 class="h-section mt-3">读懂每一行接触照片的代码。</h2>
+      <p class="lede mt-4">两个应用都采用 MIT 许可证。阅读源码，验证所言非虚，提交问题。</p>
+    </div>
+
+    <!-- Mobile segmented tier switcher -->
+    <div class="cp-pswitch mt-8" role="tablist" aria-label="支持平台">
+      <button type="button" role="tab" aria-selected="false" data-plan-tab="0" class="cursor-pointer rounded-full py-2 text-xs font-bold text-body">iPhone</button>
+      <button type="button" role="tab" aria-selected="true" data-plan-tab="1" class="cursor-pointer rounded-full bg-ink py-2 text-xs font-bold text-canvas">Mac</button>
+      <button type="button" role="tab" aria-selected="false" data-plan-tab="2" class="cursor-pointer rounded-full py-2 text-xs font-bold text-body">GitHub</button>
+    </div>
+
+    <div class="cp-plans mt-10" data-plans>
+      <!-- Card 1: iPhone & iPad -->
+      <div class="cp-plan cr p-7" style="--r:28px" data-plan-card="0">
+        <div class="line" aria-hidden="true"></div>
+        <div class="rounded-2xl bg-surface-card p-1">
+          <p class="text-sm font-bold text-ink">iPhone 和 iPad</p>
+          <p dir="ltr" class="mt-2 font-display text-[72px] font-bold leading-[0.9] tracking-[-0.03em] text-ink">$0</p>
+          <p class="mt-2 text-sm text-body">App Store 免费下载，支持 iOS 17+</p>
+          <ul class="mt-5 space-y-2 text-sm font-medium text-ink">
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>12 款清理工具</li>
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>端侧 AI 搜索</li>
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>无广告、无付费墙</li>
+          </ul>
+          <a href="https://apps.apple.com/app/id6775769763" target="_blank" rel="noopener" class="btn-dark-cp mt-6 w-full justify-center">免费下载 TidyByte</a>
+        </div>
+      </div>
+
+      <!-- Card 2: Highlighted .pick card (Mac App) -->
+      <div class="cp-plan cp-plan-pick sel cr relative p-7 sm:py-9" style="--r:28px;--c:var(--cp-peach-deep)" data-plan-card="1">
+        <div class="fill" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"></div>
+        <span class="absolute -top-3.5 end-6 z-10 rotate-[4deg] rounded-full bg-cp-yellow px-3.5 py-1 text-xs font-bold text-[#121214] shadow-[0_0_0_2.5px_#121214]">100% 免费 &amp; MIT！</span>
+        <div class="paper p-5">
+          <p class="text-sm font-bold text-ink">TidyByte for Mac</p>
+          <p dir="ltr" class="mt-2 font-display text-[82px] font-bold leading-[0.9] tracking-[-0.03em] text-cp-orange-deep">$0</p>
+          <p class="mt-2 text-sm text-body">Apple 芯片 macOS 26+</p>
+          <ul class="mt-5 space-y-2 text-sm font-medium text-ink">
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>清理器 + 空间探索器</li>
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>APFS 克隆折叠去重</li>
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>活动监视器替代工具</li>
+          </ul>
+          <a href="/mac" class="btn-primary mt-6 w-full justify-center">下载 Mac 版</a>
+        </div>
+      </div>
+
+      <!-- Card 3: Source Code -->
+      <div class="cp-plan cr p-7" style="--r:28px" data-plan-card="2">
+        <div class="line" aria-hidden="true"></div>
+        <div class="rounded-2xl bg-surface-card p-1">
+          <p class="text-sm font-bold text-ink">源代码</p>
+          <p dir="ltr" class="mt-2 font-display text-[72px] font-bold leading-[0.9] tracking-[-0.03em] text-ink">MIT</p>
+          <p class="mt-2 text-sm text-body">GitHub 公开仓库</p>
+          <ul class="mt-5 space-y-2 text-sm font-medium text-ink">
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>纯正 Swift &amp; SwiftUI</li>
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>零统计分析 SDK</li>
+            <li class="flex items-center gap-2"><span class="text-success">&#x2713;</span>审查每一次提交</li>
+          </ul>
+          <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="btn-ghost mt-6 w-full justify-center">在 GitHub 上查看 &rarr;</a>
+        </div>
       </div>
     </div>
+
+    <!-- White trust bar (.inc) -->
+    <ul class="paper mx-auto mt-8 grid max-w-[1040px] grid-cols-2 gap-3 p-4 text-center text-sm font-bold text-ink sm:grid-cols-4">
+      <li class="flex items-center justify-center gap-2"><span class="text-success">&#x2713;</span><span>没有广告</span></li>
+      <li class="flex items-center justify-center gap-2"><span class="text-success">&#x2713;</span><span>无需账号</span></li>
+      <li class="flex items-center justify-center gap-2"><span class="text-success">&#x2713;</span><span>离线可用</span></li>
+      <li class="flex items-center justify-center gap-2"><span class="text-success">&#x2713;</span><span>MIT 开源协议</span></li>
+    </ul>
   </div>
 </section>
 
-<!-- 07 · FAQ -->
-<section id="faq" class="section scroll-mt-24 pt-0">
-  <div class="container-prose">
-    <div class="max-w-2xl" data-reveal>
+<!-- 07 · Numbered FAQ Accordion -->
+<section id="faq" class="home-sec scroll-mt-24">
+  <div class="cp-wrap">
+    <div class="mx-auto max-w-[820px] text-center" data-reveal>
       <p class="eyebrow">07 &mdash; 常见问题</p>
       <h2 class="h-section mt-3">常见问题。</h2>
     </div>
 
-    <div data-faq-accordion class="mx-auto mt-10 max-w-3xl space-y-3" data-reveal>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+    <div data-faq-accordion class="faq-list mx-auto mt-10 max-w-[820px]" data-reveal>
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>TidyByte 会上传我的照片吗？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">TidyByte 会上传我的照片吗？</span>
+          <span aria-hidden="true" class="faq-num order-first">01</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">不会。TidyByte 没有接收照片的服务器。iPhone 照片图库的清理由设备本地完成。在启用了 Google Photos 的版本中，应用会直接连接 Google，以便登录、查询存储空间并读取你选择的项目。所选预览会从 Google 获取到设备上，并在设备本地扫描。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">不会。TidyByte 没有接收照片的服务器。iPhone 照片图库的清理由设备本地完成。在启用了 Google Photos 的版本中，应用会直接连接 Google，以便登录、查询存储空间并读取你选择的项目。所选预览会从 Google 获取到设备上，并在设备本地扫描。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>TidyByte for Mac 能清理什么？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">TidyByte for Mac 能清理什么？</span>
+          <span aria-hidden="true" class="faq-num order-first">02</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">系统垃圾、缓存、开发文件、大文件与旧文件、重复项、应用残留和登录项。每次扫描都在你的 Mac 上本地运行，未经你审阅确认，不会删除任何内容。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">系统垃圾、缓存、开发文件、大文件与旧文件、重复项、应用残留和登录项。每次扫描都在你的 Mac 上本地运行，未经你审阅确认，不会删除任何内容。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>我需要两个应用吗？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">我需要两个应用吗？</span>
+          <span aria-hidden="true" class="faq-num order-first">03</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">不需要 &mdash; 每个应用都免费且独立运行。照片图库用 iPhone 应用，磁盘用 Mac 应用。很多人两个都用，而且都不会把你的文件发送到任何地方。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">不需要 &mdash; 每个应用都免费且独立运行。照片图库用 iPhone 应用，磁盘用 Mac 应用。很多人两个都用，而且都不会把你的文件发送到任何地方。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>只存在 iCloud 的照片呢？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">只存在 iCloud 的照片呢？</span>
+          <span aria-hidden="true" class="faq-num order-first">04</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">TidyByte 支持整个图库，包括只存在 iCloud 里的项目。系统会按需下载；你也可以不等下载直接滑过去。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">TidyByte 支持整个图库，包括只存在 iCloud 里的项目。系统会按需下载；你也可以不等下载直接滑过去。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>删除的照片会立刻消失吗？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">删除的照片会立刻消失吗？</span>
+          <span aria-hidden="true" class="faq-num order-first">05</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">它们会进入 iOS 的「最近删除」相簿，在那里停留 30 天后被永久删除 &mdash; 和在 Photos 应用里删除完全一样。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">它们会进入 iOS 的「最近删除」相簿，在那里停留 30 天后被永久删除 &mdash; 和在 Photos 应用里删除完全一样。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>会降低我的照片画质吗？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">会降低我的照片画质吗？</span>
+          <span aria-hidden="true" class="faq-num order-first">06</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">没有任何清理工具会改动原图。唯一会重新编码的是你主动使用的视频压缩和照片压缩，而且预设由你选择。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">没有任何清理工具会改动原图。唯一会重新编码的是你主动使用的视频压缩和照片压缩，而且预设由你选择。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>重复照片是怎么检测的？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">重复照片是怎么检测的？</span>
+          <span aria-hidden="true" class="faq-num order-first">07</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">完全重复的文件通过文件数据的 SHA-256 哈希匹配。近似重复使用 Apple Vision 特征打印找出视觉上相似的照片。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">完全重复的文件通过文件数据的 SHA-256 哈希匹配。近似重复使用 Apple Vision 特征打印找出视觉上相似的照片。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>有免费试用或订阅吗？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">有免费试用或订阅吗？</span>
+          <span aria-hidden="true" class="faq-num order-first">08</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">TidyByte 完全免费，没有内购，没有付费墙。所有功能对所有人开放。查看 <a href="/free-photo-cleaner-no-subscription" class="link">它和订阅制照片清理应用的对比</a>.</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">TidyByte 完全免费，没有内购，没有付费墙。所有功能对所有人开放。查看 <a href="/free-photo-cleaner-no-subscription" class="link">它和订阅制照片清理应用的对比</a>.</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>TidyByte 支持 iPad 吗？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">TidyByte 支持 iPad 吗？</span>
+          <span aria-hidden="true" class="faq-num order-first">09</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">支持。TidyByte 是一款通用应用，在 iPhone 和 iPad 上都原生运行。所有清理工具在两者上都能用，滑动界面会适配 iPad 更大的屏幕，iPad 支持所有方向。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">支持。TidyByte 是一款通用应用，在 iPhone 和 iPad 上都原生运行。所有清理工具在两者上都能用，滑动界面会适配 iPad 更大的屏幕，iPad 支持所有方向。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>TidyByte 支持 iPhone Duo 吗？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">TidyByte 支持 iPhone Duo 吗？</span>
+          <span aria-hidden="true" class="faq-num order-first">10</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4">支持。同一个应用可在 iPhone、iPad 和 iPhone Duo 上运行，滑动界面无需任何设置即可适配 iPhone Duo 的外屏和内屏。所有清理工具都是为两块屏幕而打造的。</p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6">支持。同一个应用可在 iPhone、iPad 和 iPhone Duo 上运行，滑动界面无需任何设置即可适配 iPhone Duo 的外屏和内屏。所有清理工具都是为两块屏幕而打造的。</p>
       </details>
-      <details class="clay-card group p-5 transition hover:border-hairline-strong sm:p-6">
+      <details class="faq-item group">
         <summary class="faq-summary">
-          <span>怎么反馈问题或提需求？</span>
-          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas/80"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="faq-chev"><path d="m6 9 6 6 6-6"/></svg></span>
+          <span class="flex-1">怎么反馈问题或提需求？</span>
+          <span aria-hidden="true" class="faq-num order-first">11</span>
+          <span aria-hidden="true" class="faq-pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path class="faq-pm-v" d="M12 5v14"/></svg></span>
         </summary>
-        <p class="muted mt-4"><a href="/support" class="link">打开支持页面，通过电子邮件联系我们。</a> <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="link">也可以在 GitHub 上提交问题。</a></p>
+        <p class="muted mt-4 px-5 pb-5 sm:px-6 sm:pb-6"><a href="/support" class="link">打开支持页面，通过电子邮件联系我们。</a> <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="link">也可以在 GitHub 上提交问题。</a></p>
       </details>
     </div>
   </div>
 </section>
 
-<!-- Final CTA: edge-bleed clay hills with soft top mask so there are no harsh seams. -->
-<section class="section-tight">
-  <div class="container-prose">
-    <div class="relative overflow-hidden rounded-[2rem] border border-hairline bg-surface-soft px-8 pt-10 text-center shadow-card sm:px-12 sm:pt-14" data-reveal>
-      <div class="relative z-10 mx-auto max-w-xl">
+<!-- 08 · Yellow End CTA Banner (#ffe27a) -->
+<section class="home-sec">
+  <div class="cp-wrap">
+    <div class="cr overflow-hidden p-8 text-center sm:p-14" style="--r:36px;--c:var(--cp-yellow-card)" data-reveal>
+      <div class="fill" aria-hidden="true"></div>
+      <div class="line" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-2xl">
         <p class="eyebrow">08 &mdash; 获取应用</p>
-        <h2 class="h-display mt-3">几分钟清理完你的图库。</h2>
+        <h2 class="mt-3 font-display text-[44px] font-bold leading-[0.94] tracking-[-0.045em] text-ink sm:text-[74px]">几分钟内清理好你的图库。</h2>
+
+        <!-- Smiling friendly Mac/iPhone mascot doodle -->
+        <svg aria-hidden="true" focusable="false" width="170" height="118" viewBox="0 0 200 140" fill="none" class="mx-auto mt-6">
+          <rect x="28" y="18" width="144" height="92" rx="14" fill="#bfe0ff" stroke="#121214" stroke-width="4"/>
+          <rect x="40" y="30" width="120" height="68" rx="8" fill="#fffdf8" stroke="#121214" stroke-width="3"/>
+          <circle cx="82" cy="58" r="5" fill="#121214"/>
+          <circle cx="118" cy="58" r="5" fill="#121214"/>
+          <path d="M84 74c6 8 26 8 32 0" stroke="#ff5a14" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M16 112h168a6 6 0 0 1 6 6v6H10v-6a6 6 0 0 1 6-6Z" fill="#ffd23f" stroke="#121214" stroke-width="4"/>
+        </svg>
+
         <p class="lede mt-4">不用注册账号，不用管理订阅。一次滑一张就够了。</p>
-        <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <a href="https://apps.apple.com/app/id6775769763" class="btn-primary px-6 py-3" target="_blank" rel="noopener">
+        <div class="mt-7 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
+          <a href="https://apps.apple.com/app/id6775769763" class="btn-dark-cp w-full max-w-[340px] px-7 py-3.5 sm:w-auto" target="_blank" rel="noopener">
             <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.46 2.23-1.21 3.05-.81.87-2.14 1.55-3.23 1.46-.14-1.1.4-2.25 1.16-3.04.85-.89 2.29-1.55 3.28-1.47Zm3.61 16.04c-.6 1.39-1.31 2.62-2.18 3.66-1.13 1.39-2.46 3.05-4.25 3.07-1.7.02-2.14-.99-4.46-.99-2.32 0-2.8 1.01-4.5.99-1.79-.02-3.15-1.6-4.28-2.99-2.6-3.2-4.59-9.05-1.92-12.99 1.32-1.95 3.69-3.18 6.25-3.22 1.78-.04 3.46 1.05 4.55 1.05 1.08 0 3.13-1.3 5.28-1.11.9.04 3.43.36 5.05 2.71-.13.08-3.02 1.76-2.99 5.25.04 4.17 3.66 5.55 3.45 5.57Z"/></svg>
             免费下载 TidyByte
           </a>
-          <a href="/mac" class="btn-ghost px-6 py-3">下载 Mac 版</a>
+          <a href="/mac" class="btn-ghost w-full max-w-[340px] px-7 py-3.5 sm:w-auto">下载 Mac 版</a>
         </div>
-      </div>
-      <svg aria-hidden="true" focusable="false" width="120" height="72" viewBox="0 0 120 72" fill="none" class="absolute end-8 top-8 hidden sm:block">
-        <path d="M24 14l3.5 8.5L36 26l-8.5 3.5L24 38l-3.5-8.5L12 26l8.5-3.5z" fill="#ff7aa2" opacity=".9"/>
-        <path d="M78 8l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#a4d4c5" opacity=".9"/>
-        <path d="M96 44l2 4.8 4.8 2-4.8 2-2 4.8-2-4.8-4.8-2 4.8-2z" fill="#e8b94a" opacity=".9"/>
-      </svg>
-      <div class="-mx-8 mt-6 overflow-hidden sm:-mx-12">
-        <picture aria-hidden="true">
-          <source srcset="/assets/img/illustrations/cta-hills.avif" type="image/avif">
-          <img src="/assets/img/illustrations/cta-hills.webp" alt="" width="1400" height="600" loading="lazy" decoding="async" class="cta-hills-fade pointer-events-none block max-h-[210px] w-full select-none object-cover object-[50%_82%] opacity-95 sm:max-h-[250px] dark:opacity-75 dark:brightness-90 dark:contrast-[1.05]">
-        </picture>
+
+        <p class="mt-7 inline-block rounded-full bg-surface-card/90 px-4 py-1.5 text-xs font-semibold text-ink shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+          iOS 17+ 及 Apple 芯片 macOS 26+ &middot; 免费且开源
+        </p>
       </div>
     </div>
   </div>

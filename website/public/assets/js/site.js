@@ -15,6 +15,11 @@
     initImageFade();
     initIosDemo();
     initMacDemo();
+    initDesktopDemo();
+    initBentoTidy();
+    initKeyboardExplorer();
+    initMobileCarousels();
+    initPlanSwitcher();
   });
 
   // 1) Light / Dark / System popover in the header.
@@ -682,6 +687,240 @@
           }
         });
       }
+    }
+  }
+
+  // 6) Interactive Desktop Cleaner (Snaptitle-style clickable desktop items).
+  function initDesktopDemo() {
+    var items = document.querySelectorAll('[data-desk-item]');
+    var status = document.querySelector('[data-desk-status]');
+    if (!items.length) return;
+
+    function updateStatus() {
+      if (!status) return;
+      var cleaned = 0;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].getAttribute('data-cleaned') === 'true') cleaned++;
+      }
+      var idleEl = status.querySelector('[data-desk-idle]');
+      var doneEl = status.querySelector('[data-desk-done]');
+      var countEl = status.querySelector('[data-desk-count]');
+      var active = cleaned > 0;
+      if (idleEl && doneEl) {
+        idleEl.classList.toggle('hidden', active);
+        idleEl.setAttribute('aria-hidden', String(active));
+        doneEl.classList.toggle('hidden', !active);
+        doneEl.setAttribute('aria-hidden', String(!active));
+        if (countEl) countEl.textContent = cleaned + ' / ' + items.length;
+      } else {
+        status.textContent = cleaned === 0 ? 'Tap to clean' : cleaned + ' / ' + items.length + ' tidy';
+      }
+    }
+
+    for (var i = 0; i < items.length; i++) {
+      items[i].addEventListener('click', function (event) {
+        var btn = event.currentTarget;
+        var beforeEl = btn.querySelector('[data-desk-label]');
+        var afterEl = btn.querySelector('[data-desk-after]');
+        var isCleaned = btn.getAttribute('data-cleaned') === 'true';
+        var next = !isCleaned;
+        btn.setAttribute('data-cleaned', String(next));
+        if (beforeEl && afterEl) {
+          beforeEl.classList.toggle('hidden', next);
+          beforeEl.setAttribute('aria-hidden', String(next));
+          afterEl.classList.toggle('hidden', !next);
+          afterEl.setAttribute('aria-hidden', String(!next));
+          var activeEl = next ? afterEl : beforeEl;
+          activeEl.classList.remove('cp-rn');
+          void activeEl.offsetWidth;
+          activeEl.classList.add('cp-rn');
+        }
+        updateStatus();
+      });
+    }
+  }
+
+  // 7) Interactive Bento "Tidy Up" / "Undo" button.
+  function initBentoTidy() {
+    var box = document.querySelector('[data-bento-tidy]');
+    if (!box) return;
+    var btn = box.querySelector('[data-bento-tidy-btn]');
+    var rows = box.querySelectorAll('[data-tidy-item]');
+    if (!btn || !rows.length) return;
+
+    var idleLabel = btn.querySelector('[data-tidy-idle]');
+    var undoLabel = btn.querySelector('[data-tidy-undo]');
+
+    btn.addEventListener('click', function () {
+      var active = btn.getAttribute('aria-pressed') === 'true';
+      var next = !active;
+      btn.setAttribute('aria-pressed', String(next));
+      if (idleLabel && undoLabel) {
+        idleLabel.classList.toggle('hidden', next);
+        idleLabel.setAttribute('aria-hidden', String(next));
+        undoLabel.classList.toggle('hidden', !next);
+        undoLabel.setAttribute('aria-hidden', String(!next));
+      }
+      for (var i = 0; i < rows.length; i++) {
+        var beforeEl = rows[i].querySelector('[data-tidy-before]');
+        var afterEl = rows[i].querySelector('[data-tidy-after]');
+        if (beforeEl && afterEl) {
+          beforeEl.classList.toggle('hidden', next);
+          beforeEl.setAttribute('aria-hidden', String(next));
+          afterEl.classList.toggle('hidden', !next);
+          afterEl.setAttribute('aria-hidden', String(!next));
+        }
+      }
+    });
+  }
+
+  // 8) Interactive Keyboard Shortcut Explorer + live physical key highlighting.
+  function initKeyboardExplorer() {
+    var tabs = document.querySelectorAll('[data-kb-tab]');
+    var rows = document.querySelectorAll('[data-kb-row]');
+    var kb = document.querySelector('[data-keyboard]');
+    if (!tabs.length || !rows.length || !kb) return;
+
+    function findKeyEl(keyVal) {
+      var all = kb.querySelectorAll('[data-key]');
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].getAttribute('data-key') === keyVal) return all[i];
+      }
+      return null;
+    }
+
+    function highlightKeys(combo) {
+      var allKeys = kb.querySelectorAll('[data-key]');
+      for (var i = 0; i < allKeys.length; i++) allKeys[i].classList.remove('on');
+      if (!combo) return;
+      var parts = combo.split('+');
+      for (var p = 0; p < parts.length; p++) {
+        var target = findKeyEl(parts[p]);
+        if (target) target.classList.add('on');
+      }
+    }
+
+    function setRowActive(targetRow) {
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        var on = r === targetRow;
+        r.classList.toggle('paper', on);
+        r.classList.toggle('font-bold', on);
+        r.classList.toggle('text-ink', on);
+        r.classList.toggle('text-body', !on);
+        var kbds = r.querySelectorAll('.cp-kbd');
+        for (var k = 0; k < kbds.length; k++) kbds[k].classList.toggle('on', on);
+      }
+      if (targetRow) highlightKeys(targetRow.getAttribute('data-kb-keys'));
+    }
+
+    for (var t = 0; t < tabs.length; t++) {
+      tabs[t].addEventListener('click', function (event) {
+        var btn = event.currentTarget;
+        var group = btn.getAttribute('data-kb-tab');
+        for (var i = 0; i < tabs.length; i++) {
+          var isMe = tabs[i] === btn;
+          tabs[i].setAttribute('aria-selected', String(isMe));
+          tabs[i].classList.toggle('bg-ink', isMe);
+          tabs[i].classList.toggle('text-canvas', isMe);
+          tabs[i].classList.toggle('text-body', !isMe);
+        }
+        var firstVisible = null;
+        for (var r = 0; r < rows.length; r++) {
+          var show = rows[r].getAttribute('data-kb-group') === group;
+          rows[r].classList.toggle('hidden', !show);
+          rows[r].classList.toggle('flex', show);
+          if (show && !firstVisible) firstVisible = rows[r];
+        }
+        setRowActive(firstVisible);
+      });
+    }
+
+    for (var r = 0; r < rows.length; r++) {
+      rows[r].addEventListener('click', function (event) {
+        setRowActive(event.currentTarget);
+      });
+    }
+
+    function mapKey(e) {
+      if (e.key === 'Meta' || e.key === 'OS') return 'Meta';
+      if (e.key === ' ') return 'Space';
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') return e.key;
+      if (e.key && e.key.length === 1) return e.key.toLowerCase();
+      return null;
+    }
+
+    document.addEventListener('keydown', function (e) {
+      var k = mapKey(e);
+      if (!k) return;
+      var el = findKeyEl(k);
+      if (el) el.classList.add('on');
+    });
+
+    document.addEventListener('keyup', function (e) {
+      var k = mapKey(e);
+      if (!k) return;
+      var el = findKeyEl(k);
+      if (el) el.classList.remove('on');
+    });
+  }
+
+  // 9) Mobile scroll-snap carousel pagination dots (supports RTL and LTR).
+  function initMobileCarousels() {
+    var carousels = document.querySelectorAll('[data-carousel]');
+    for (var c = 0; c < carousels.length; c++) {
+      (function (track) {
+        var name = track.getAttribute('data-carousel');
+        var dotsWrap = document.querySelector('[data-dots-for="' + name + '"]');
+        var slides = track.children;
+        if (!dotsWrap || !slides.length) return;
+        dotsWrap.removeAttribute('aria-hidden');
+        dotsWrap.textContent = '';
+        var btns = [];
+        for (var i = 0; i < slides.length; i++) {
+          (function (idx) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.setAttribute('aria-label', String(idx + 1) + ' / ' + String(slides.length));
+            b.setAttribute('aria-current', idx === 0 ? 'true' : 'false');
+            b.addEventListener('click', function () {
+              slides[idx].scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', inline: 'start', block: 'nearest' });
+            });
+            dotsWrap.appendChild(b);
+            btns.push(b);
+          })(i);
+        }
+        track.addEventListener('scroll', function () {
+          var width = slides[0].getBoundingClientRect().width || 1;
+          var offset = Math.abs(track.scrollLeft);
+          var active = Math.min(slides.length - 1, Math.max(0, Math.round(offset / width)));
+          for (var i = 0; i < btns.length; i++) {
+            btns[i].setAttribute('aria-current', i === active ? 'true' : 'false');
+          }
+        }, { passive: true });
+      })(carousels[c]);
+    }
+  }
+
+  // 10) Mobile segmented switcher for 3 platform cards.
+  function initPlanSwitcher() {
+    var tabs = document.querySelectorAll('[data-plan-tab]');
+    var cards = document.querySelectorAll('[data-plan-card]');
+    if (!tabs.length || !cards.length) return;
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener('click', function (event) {
+        var idx = event.currentTarget.getAttribute('data-plan-tab');
+        for (var t = 0; t < tabs.length; t++) {
+          var on = tabs[t].getAttribute('data-plan-tab') === idx;
+          tabs[t].setAttribute('aria-selected', String(on));
+          tabs[t].classList.toggle('bg-ink', on);
+          tabs[t].classList.toggle('text-canvas', on);
+          tabs[t].classList.toggle('text-body', !on);
+        }
+        for (var c = 0; c < cards.length; c++) {
+          cards[c].classList.toggle('sel', cards[c].getAttribute('data-plan-card') === idx);
+        }
+      });
     }
   }
 })();

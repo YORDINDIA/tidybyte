@@ -2,16 +2,8 @@
 /**
  * og-cards.mjs — render 1200x630 Open Graph cards for the tool landing pages.
  *
- * Every tool page declares /assets/img/og/<slug>.jpg as its og:image and
- * twitter:image (see toolPageMeta in src/data/tools.ts). Social scrapers and
- * answer engines fetch that file, so it has to exist and has to be a real
- * 1200x630 JPEG — an SVG or a square icon silently produces no card.
- *
- * Card content is read from built HTML. Run `npm run build` first; --check
- * detects changes to the page text, template, font, or generated image.
- *
- * Usage: node scripts/og-cards.mjs [--check]
- *   --check: verify dimensions and the card manifest (no rendering)
+ * Uses the Snaptitle crayon-and-paper palette (#fffdf8 paper, #121214 ink,
+ * #ff5a14 orange, Gaegu bold display font) to match the redesigned site.
  */
 import { chromium } from "playwright";
 import { createHash } from "node:crypto";
@@ -22,7 +14,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
 const OUT = join(ROOT, "public/assets/img/og");
-const FONT = pathToFileURL(join(ROOT, "public/assets/fonts/fredoka-var-latin.woff2")).href;
+const FONT = pathToFileURL(join(ROOT, "public/assets/fonts/gaegu-700-latin.woff2")).href;
+const FONT_INTER = pathToFileURL(join(ROOT, "public/assets/fonts/inter-var-latin.woff2")).href;
 const CHECK = process.argv.includes("--check");
 const MANIFEST = join(OUT, "manifest.json");
 const RENDER_OPTIONS = { type: "jpeg", quality: 84 };
@@ -57,44 +50,45 @@ mkdirSync(OUT, { recursive: true });
 
 const card = (p) => `<!doctype html>
 <html><head><meta charset="utf-8"><style>
-  @font-face { font-family: 'Fredoka'; src: url('${FONT}') format('woff2'); font-weight: 300 700; }
+  @font-face { font-family: 'Gaegu'; src: url('${FONT}') format('woff2'); font-weight: 700; }
+  @font-face { font-family: 'Inter'; src: url('${FONT_INTER}') format('woff2'); font-weight: 400 800; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     width: 1200px; height: 630px; overflow: hidden;
-    background: #fffaf0; color: #26221a;
-    font-family: 'Fredoka', system-ui, sans-serif;
-    display: flex; flex-direction: column; justify-content: center; gap: 34px;
+    background: #fffdf8; color: #121214;
+    font-family: 'Gaegu', system-ui, sans-serif;
+    display: flex; flex-direction: column; justify-content: center; gap: 28px;
     align-items: flex-start;
-    padding: 64px 72px 132px;
+    padding: 64px 76px 132px;
     position: relative;
+    border: 14px solid #ffe27a;
   }
-  .glow {
-    position: absolute; inset: -180px -120px auto -120px; height: 520px;
-    background: radial-gradient(ellipse 60% 100% at 30% 40%, rgba(255,77,139,.16), transparent 70%);
+  .frame {
+    position: absolute; inset: 14px; border: 4px solid #121214; border-radius: 24px; pointer-events: none;
   }
-  .blobs { position: absolute; right: -60px; bottom: -80px; opacity: .55; }
   .badge {
     display: inline-flex; align-items: center; gap: 10px;
-    background: #ffe3ee; color: #8a1e46; border-radius: 999px;
-    padding: 10px 20px; font-size: 22px; font-weight: 500;
+    background: #ffe1bf; color: #121214; border-radius: 999px;
+    border: 3px solid #121214;
+    box-shadow: 3px 4px 0 #121214;
+    padding: 8px 22px; font-size: 24px; font-weight: 700;
   }
-  h1 { font-size: 68px; line-height: 1.08; font-weight: 600; letter-spacing: -.02em; max-width: 980px; }
-  .brand { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 600; }
-  .dot { width: 12px; height: 12px; border-radius: 999px; background: #ff4d8b; }
+  h1 {
+    font-size: 80px; line-height: 0.94; font-weight: 700; letter-spacing: -0.04em; max-width: 980px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-size: 38px; font-weight: 700; }
+  .dot { width: 14px; height: 14px; border-radius: 999px; background: #ff5a14; border: 2px solid #121214; }
   .foot {
-    position: absolute; left: 72px; right: 72px; bottom: 56px;
+    position: absolute; left: 76px; right: 76px; bottom: 52px;
     display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
   }
-  .facts { font-size: 23px; color: #6b6152; max-width: 620px; line-height: 1.35; }
+  .facts {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 21px; font-weight: 600; color: #3d3d44; max-width: 680px; line-height: 1.35;
+  }
 </style></head>
 <body>
-  <div class="glow"></div>
-  <svg class="blobs" width="360" height="330" viewBox="0 0 320 300" fill="none" aria-hidden="true">
-    <circle cx="200" cy="190" r="96" fill="#a4d4c5" opacity=".5"/>
-    <circle cx="90" cy="120" r="54" fill="#b8a4ed" opacity=".5"/>
-    <circle cx="250" cy="80" r="38" fill="#ffb084" opacity=".6"/>
-    <path d="M40 240l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#ff7aa2" opacity=".8"/>
-  </svg>
+  <div class="frame"></div>
   <span class="badge">${p.badge}</span>
   <h1>${p.h1}</h1>
   <div class="foot">
@@ -103,10 +97,10 @@ const card = (p) => `<!doctype html>
   </div>
 </body></html>`;
 
-// Record both the source and the generated bytes, so stale or replaced cards fail.
 const digest = (value) => createHash("sha256").update(value).digest("hex");
-const fontHash = digest(readFileSync(join(ROOT, "public/assets/fonts/fredoka-var-latin.woff2")));
-const sourceHash = (p) => digest(card(p).replaceAll(FONT, "<font>") + fontHash + JSON.stringify({ RENDER_OPTIONS, RENDER_CONTEXT }));
+const fontHash = digest(readFileSync(join(ROOT, "public/assets/fonts/gaegu-700-latin.woff2"))) +
+  digest(readFileSync(join(ROOT, "public/assets/fonts/inter-var-latin.woff2")));
+const sourceHash = (p) => digest(card(p).replaceAll(FONT, "<font>").replaceAll(FONT_INTER, "<font-inter>") + fontHash + JSON.stringify({ RENDER_OPTIONS, RENDER_CONTEXT }));
 
 function jpegSize(data) {
   if (data.length < 4 || data.readUInt16BE(0) !== 0xffd8) return null;
@@ -148,8 +142,6 @@ if (CHECK) {
   process.exit(0);
 }
 
-// The playwright npm package does not bundle the browser binary. A fresh
-// `npm ci` cannot render until Chromium is downloaded once.
 let browser;
 try {
   browser = await chromium.launch();

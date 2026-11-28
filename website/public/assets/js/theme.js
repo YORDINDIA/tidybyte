@@ -12,8 +12,8 @@
   document.documentElement.classList.add('js');
 
   var STORAGE_KEY = 'tidybyte-theme';
-  var DARK_COLOR = '#121212';
-  var LIGHT_COLOR = '#fffaf0';
+  var DARK_COLOR = '#141418';
+  var LIGHT_COLOR = '#fffdf8';
 
   function stored() {
     try {

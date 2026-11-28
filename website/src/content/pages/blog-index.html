@@ -1,38 +1,38 @@
   <main id="main">
-    <div class="container-prose pt-10 text-center sm:pt-14">
+    <div class="cp-wrap pt-10 text-center sm:pt-14">
       <p class="eyebrow">Blog</p>
       <h1 class="h-display mt-3">iPhone photo cleanup guides.</h1>
       <p class="lede mx-auto mt-5 max-w-prose">{{BLOG_COUNT}} expert tips on freeing up storage, finding duplicates, compressing videos, and organizing your photo library &mdash; all using free, on-device tools.</p>
     </div>
 
-<!-- quick-answer: rendered from the page's meta description. The wrapper
-     supplies the container width the injected box expects. -->
-<div class="container-prose">
-  <!-- quick-answer -->
-</div>
+    <div class="cp-wrap max-w-3xl">
+      <!-- quick-answer -->
+    </div>
 
-      <div class="mx-auto mt-10 max-w-3xl px-5 sm:px-8">
-        <div class="flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Filter by category">
-          <!-- BLOG_FILTERS -->
-        </div>
-        <p class="muted mt-3 text-center text-sm" id="result-count">{{BLOG_COUNT}} posts</p>
+    <div class="cp-wrap mt-10 max-w-4xl">
+      <div class="flex flex-wrap items-center justify-center gap-2.5" role="group" aria-label="Filter by category">
+        <!-- BLOG_FILTERS -->
       </div>
+      <p class="mt-4 text-center text-sm font-semibold text-muted" id="result-count">{{BLOG_COUNT}} posts</p>
+    </div>
 
-      <h2 id="grid-heading" tabindex="-1" class="h-section mx-auto mt-14 max-w-3xl">All posts</h2>
-      <div id="blog-list" class="mx-auto mt-6 grid max-w-3xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="cp-wrap max-w-5xl">
+      <h2 id="grid-heading" tabindex="-1" class="h-section mt-12 text-3xl sm:text-5xl">All posts</h2>
+      <div id="blog-list" class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <!-- BLOG_CARDS -->
       </div>
 
-      <div id="blog-empty" class="mx-auto mt-10 hidden max-w-3xl text-center">
+      <div id="blog-empty" class="mt-10 hidden text-center">
         <p class="muted">No posts in this category yet.</p>
         <p class="mt-3"><a href="/blog" id="blog-empty-all" class="link">View all posts</a></p>
       </div>
 
-      <nav aria-label="Blog pagination" class="mx-auto mt-12 max-w-3xl" id="pagination">
+      <nav aria-label="Blog pagination" class="mt-12" id="pagination">
         <div class="flex items-center justify-center gap-2">
-          <button class="badge cursor-pointer px-3.5 py-1.5 text-sm font-medium transition hover:text-ink" id="prev-btn" disabled aria-label="Previous page">&larr; Previous</button>
-          <div id="page-buttons" class="flex gap-1"></div>
-          <button class="badge cursor-pointer px-3.5 py-1.5 text-sm font-medium transition hover:text-ink" id="next-btn" aria-label="Next page">Next &rarr;</button>
+          <button class="badge cursor-pointer px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-px" id="prev-btn" disabled aria-label="Previous page">&larr; Previous</button>
+          <div id="page-buttons" class="flex gap-1.5"></div>
+          <button class="badge cursor-pointer px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-px" id="next-btn" aria-label="Next page">Next &rarr;</button>
         </div>
       </nav>
+    </div>
   </main>
