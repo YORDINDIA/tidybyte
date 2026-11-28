@@ -940,7 +940,7 @@ public actor CleanerRuleEngine {
             .replacingOccurrences(of: ")", with: "")
     }
 
-    private static let localizedScreenshotPrefixes: [String] = [
+    static let localizedScreenshotPrefixes: [String] = [
         "screen shot ", "screenshot ", "screenshot_", "screenshot-", "screen recording ",
         "bildschirmfoto ", "bildschirmaufnahme ",
         "capture d’écran ", "capture d'écran ", "enregistrement de l’écran ", "enregistrement de l'écran ",
@@ -949,7 +949,7 @@ public actor CleanerRuleEngine {
         "スクリーンショット", "截屏", "屏幕截图", "스크린샷", "снимок экрана "
     ]
 
-    nonisolated private static func hasScreenCaptureXattr(at url: URL) -> Bool {
+    nonisolated static func hasScreenCaptureXattr(at url: URL) -> Bool {
         let key = "com.apple.metadata:kMDItemIsScreenCapture"
         let size = Darwin.getxattr(url.path, key, nil, 0, 0, XATTR_NOFOLLOW)
         guard size > 0, size <= 1024 else { return false }

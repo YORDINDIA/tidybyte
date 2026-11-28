@@ -40,7 +40,7 @@ public enum UndoManagerServiceError: Error, LocalizedError, Sendable {
 
 /// Device and inode identity of a filesystem artifact, captured when the artifact is
 /// created so undo can verify ownership before deleting anything.
-struct FileArtifactIdentity: Codable, Equatable, Sendable {
+struct FileArtifactIdentity: Codable, Hashable, Sendable {
     var deviceID: UInt64
     var inodeID: UInt64
 

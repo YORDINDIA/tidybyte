@@ -101,6 +101,7 @@ extension SettingsView {
                 cliToolSection(override: override)
                 #endif
             }
+            screenshotSettingsSection(override: override)
             aboutSection(override: override)
         }
         .formStyle(.grouped)
@@ -218,6 +219,43 @@ extension SettingsView {
         }
     }
     #endif
+
+    private func screenshotSettingsSection(override: AppLanguage?) -> some View {
+        Section {
+            Toggle(
+                L10n.string("Auto-rename new screenshots", language: override),
+                isOn: Binding(
+                    get: { model.screenshots.isAutoRenameEnabled },
+                    set: { enabled in Task { await model.screenshots.setAutoRenameEnabled(enabled) } }
+                )
+            )
+            Picker(
+                L10n.string("Naming style", language: override),
+                selection: Binding(
+                    get: { model.screenshots.namingStyle },
+                    set: { style in Task { await model.screenshots.setNamingStyle(style) } }
+                )
+            ) {
+                ForEach(ScreenshotNamingStyle.allCases) { style in
+                    Text(style.displayName).tag(style)
+                }
+            }
+            Toggle(
+                L10n.string("Use Apple Intelligence when available", language: override),
+                isOn: Binding(
+                    get: { model.screenshots.useAppleIntelligence },
+                    set: { value in Task { await model.screenshots.setUseAppleIntelligence(value) } }
+                )
+            )
+        } header: {
+            Text(L10n.string("Screenshots", language: override))
+        } footer: {
+            Text(L10n.string(
+                "All screenshot naming runs on this Mac with zero uploads and preserves original file dates.",
+                language: override
+            ))
+        }
+    }
 
     private func aboutSection(override: AppLanguage?) -> some View {
         let devFallback = L10n.string("Development", language: override)

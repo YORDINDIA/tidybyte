@@ -340,6 +340,7 @@ extension AppViewModel {
             try await keychain.deleteAllAPIKeys()
             try await store.deleteAllData()
             await cleanup.resetAfterClear()
+            await screenshots.resetAfterClear()
             stopAllSecurityScopedAccess()
             resetAllDataState()
             for key in SettingsKey.allCases.map(\.rawValue) + AutoScanSettingsKey.allCases.map(\.rawValue) {

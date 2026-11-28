@@ -90,6 +90,8 @@ public struct MacOSCleanerApp: App {
         case "activity":
             model.historyShowsMedia = true
             model.destination = .history
+        case "screenshots":
+            model.destination = .screenshots
         case "monitor":
             guard DistributionChannel.supportsAdvanced else { return }
             let tabName = url.pathComponents.dropFirst().first
@@ -139,12 +141,36 @@ struct MenuBarView: View {
         if let memory = SystemStatus.memory() {
             Text(memoryLine(memory, override: override))
         }
+        if model.screenshots.totalNamedCount > 0 {
+            Text(
+                model.screenshots.totalNamedCount == 1
+                    ? L10n.string("1 screenshot named on this Mac", language: override)
+                    : L10n.format("%lld screenshots named on this Mac", language: override, model.screenshots.totalNamedCount)
+            )
+        }
         Divider()
         Button(L10n.string("Open Tidybyte", language: override)) { showMainWindow() }
             .keyboardShortcut("o", modifiers: [.command])
         Button(L10n.string("Scan Now", language: override)) {
             showMainWindow()
             AppDelegate.shared?.scanNow()
+        }
+        Toggle(
+            L10n.string("Auto-Rename Screenshots", language: override),
+            isOn: Binding(
+                get: { model.screenshots.isAutoRenameEnabled },
+                set: { enabled in Task { await model.screenshots.setAutoRenameEnabled(enabled) } }
+            )
+        )
+        Button(L10n.string("Tidy Up Screenshots…", language: override)) {
+            showMainWindow()
+            model.destination = .screenshots
+            Task { await model.screenshots.chooseFolderAndTidyUp() }
+        }
+        if model.screenshots.canUndoLast {
+            Button(L10n.string("Undo Last Screenshot Rename", language: override)) {
+                Task { await model.screenshots.undoLast() }
+            }
         }
         Button(L10n.string("Undo Last Cleanup", language: override)) {
             Task { @MainActor in await AppDelegate.shared?.undoLastAction() }

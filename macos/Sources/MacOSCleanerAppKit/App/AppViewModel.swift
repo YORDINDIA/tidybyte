@@ -180,6 +180,7 @@ final class AppViewModel {
     var planSaveTask: Task<Void, Never>?
 
     let cleanup: CleanupModel
+    let screenshots: ScreenshotRenameModel
     let store: SQLiteStore
     let keychain: KeychainStore
     let memory: MemoryEngine
@@ -216,6 +217,7 @@ final class AppViewModel {
         )
         self.store = store
         self.cleanup = CleanupModel(store: store)
+        self.screenshots = ScreenshotRenameModel(store: store, defaults: defaults)
         self.keychain = keychain
         self.memory = memory
         self.orchestrator = orchestrator
@@ -259,6 +261,7 @@ final class AppViewModel {
         removalWatcher?.stop()
         removalWatcher = nil
         cleanup.cancel()
+        screenshots.stop()
         monitor.stop()
         stopAllSecurityScopedAccess()
     }
