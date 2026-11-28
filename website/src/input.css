@@ -3,109 +3,163 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
-   Theme tokens. Space-separated RGB triplets so Tailwind's <alpha-value>
-   keeps opacity modifiers working (e.g. bg-canvas/80).
-   Light is the authored-first theme; `.dark` (set by theme.js) flips the
-   variables — utilities like `bg-canvas` or `text-ink` never change.
---------------------------------------------------------------------------- */
+   Snaptitle Crayon-and-Paper (.cp) Design System — Light & Dark Adaptive
+   Space-separated RGB triplets keep Tailwind <alpha-value> modifiers working.
+   --------------------------------------------------------------------------- */
 @layer base {
   :root {
-    --c-canvas: 255 250 240;
-    /* #fffaf0 cream floor   */
-    --c-surface-soft: 250 245 232;
-    /* #faf5e8 CTA/footer    */
-    --c-surface-card: 245 240 224;
-    /* #f5f0e0 cards         */
-    --c-surface-dark: 10 26 26;
-    /* #0a1a1a dark band     */
-    --c-hairline: 229 229 229;
-    /* #e5e5e5 1px borders   */
-    --c-hairline-strong: 212 212 205;
-    /* #d4d4cd               */
-    --c-ink: 10 10 10;
-    /* #0a0a0a headlines/CTA */
-    --c-body: 58 58 58;
-    /* #3a3a3a running text  */
-    --c-muted: 106 106 106;
-    /* #6a6a6a secondary     */
-    --c-muted-soft: 107 107 102;
-    /* #6b6b66 fine print    */
-    --c-primary: 20 20 20;
-    /* #141414 primary CTA   */
-    --c-on-primary: 255 255 255;
-    /* white on primary      */
-    --c-success: 31 122 77;
-    /* #1f7a4d on cream      */
-    --c-destructive: 194 54 75;
-    /* #c2364b on cream      */
+    --c-canvas: 255 253 248;         /* #fffdf8 warm sketchbook paper */
+    --c-surface-soft: 247 244 236;   /* #f7f4ec warm paper tint       */
+    --c-surface-card: 255 255 255;   /* #ffffff crisp inner paper     */
+    --c-surface-dark: 27 31 69;      /* #1b1f45 deep navy footer      */
+    --c-hairline: 222 218 208;       /* subtle warm rule              */
+    --c-hairline-strong: 18 18 20;   /* #121214 crisp ink outline     */
+    --c-ink: 18 18 20;               /* #121214 primary ink           */
+    --c-body: 61 61 68;              /* #3d3d44 secondary body        */
+    --c-muted: 102 102 109;          /* #66666d captions              */
+    --c-muted-soft: 140 140 148;     /* muted metadata (AA contrast)  */
+    --c-shadow: 18 18 20;            /* #121214 hard offset shadow    */
 
-    /* --- Motion: one rhythm for the whole site --------------------------
-       Tactile feedback is fast, surfaces take longer, and everything
-       decelerates. Exits run shorter than their entrance because the user
-       already understands the object by the time it leaves. */
+    --c-primary: 255 90 20;          /* #ff5a14 primary orange CTA    */
+    --c-on-primary: 255 255 255;
+    --c-dark-btn: 18 18 20;          /* #121214 charcoal CTA          */
+    --c-on-dark-btn: 255 255 255;
+
+    --c-orange: 255 90 20;           /* #ff5a14                       */
+    --c-orange-deep: 226 65 10;      /* #e2410a                       */
+    --c-yellow: 255 210 63;          /* #ffd23f                       */
+    --c-yellow-soft: 255 226 122;    /* #ffe27a                       */
+    --c-navy: 43 47 107;             /* #2b2f6b privacy block         */
+    --c-navy-deep: 27 31 69;         /* #1b1f45 footer                */
+    --c-success: 47 154 58;          /* #2f9a3a check green           */
+    --c-destructive: 217 43 33;
+
+    /* Pastel crayon fills */
+    --cp-sky: #bfe0ff;
+    --cp-mint: #c9efa9;
+    --cp-peach: #ffe1bf;
+    --cp-peach-deep: #ffb27e;
+    --cp-peach-wall: #ffc79e;
+    --cp-lilac: #e0d4ff;
+    --cp-pink: #ffb3a7;
+    --cp-green: #a6e27a;
+    --cp-blue: #9fcfff;
+    --cp-yellow-card: #ffe27a;
+    --cp-keycap: #d9dae0;
+    --cp-scrim: rgba(18, 18, 20, 0.35);
+
+    /* Gutters & motion */
+    --gutter: clamp(16px, 5vw, 72px);
     --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-snap: cubic-bezier(0.32, 0.72, 0, 1);
     --dur-tap: 90ms;
-    /* press-in                              */
     --dur-quick: 150ms;
-    /* hover, focus, small state changes     */
     --dur-base: 220ms;
-    /* menus, FAQ answers                    */
     --dur-surface: 300ms;
-    /* drawers, layout reflow                */
     --dur-enter: 520ms;
-    /* hero beats                            */
     --dur-exit: 160ms;
-    /* outgoing default                      */
 
     color-scheme: light;
   }
 
-  /* Near-black neutral grey — no teal tint. */
   .dark {
-    --c-canvas: 18 18 18;
-    /* #121212               */
-    --c-surface-soft: 13 13 13;
-    /* #0d0d0d               */
-    --c-surface-card: 30 30 30;
-    /* #1e1e1e               */
-    --c-surface-dark: 10 10 10;
-    /* #0a0a0a               */
-    --c-hairline: 42 42 42;
-    /* #2a2a2a               */
-    --c-hairline-strong: 58 58 58;
-    /* #3a3a3a               */
-    --c-ink: 250 250 250;
-    /* #fafafa               */
-    --c-body: 212 212 212;
-    /* #d4d4d4               */
-    --c-muted: 163 163 163;
-    /* #a3a3a3               */
-    --c-muted-soft: 143 143 143;
-    /* #8f8f8f               */
-    --c-primary: 255 250 240;
-    /* #fffaf0 cream CTA     */
-    --c-on-primary: 20 20 20;
-    /* #141414 on cream      */
+    --c-canvas: 20 20 24;            /* #141418 charcoal sketchbook   */
+    --c-surface-soft: 27 27 33;      /* #1b1b21                       */
+    --c-surface-card: 31 31 38;      /* #1f1f26                       */
+    --c-surface-dark: 19 22 54;      /* #131636                       */
+    --c-hairline: 54 54 64;
+    --c-hairline-strong: 245 242 234;
+    --c-ink: 255 253 248;            /* #fffdf8 chalk-cream ink       */
+    --c-body: 214 212 206;
+    --c-muted: 168 166 160;
+    --c-muted-soft: 132 130 125;
+    --c-shadow: 6 6 9;               /* deep drop shadow on dark      */
+
+    --c-primary: 255 107 44;         /* #ff6b2c higher luminance      */
+    --c-on-primary: 255 255 255;
+    --c-dark-btn: 255 253 248;
+    --c-on-dark-btn: 18 18 20;
+
+    --c-orange: 255 107 44;
+    --c-orange-deep: 255 138 82;
+    --c-yellow: 255 215 80;
+    --c-yellow-soft: 245 206 90;
+    --c-navy: 31 35 84;
+    --c-navy-deep: 19 22 54;
     --c-success: 74 222 128;
-    /* #4ade80 on #121212    */
     --c-destructive: 248 113 113;
-    /* #f87171 on #121212    */
+
+    /* Deeper chalk-crayon tints for dark paper */
+    --cp-sky: #254a6b;
+    --cp-mint: #2c4d27;
+    --cp-peach: #5c3a21;
+    --cp-peach-deep: #6b3b1e;
+    --cp-peach-wall: #4f2f1c;
+    --cp-lilac: #3e3161;
+    --cp-pink: #5e2c28;
+    --cp-green: #2c5222;
+    --cp-blue: #244669;
+    --cp-yellow-card: #594a17;
+    --cp-keycap: #282832;
+    --cp-scrim: rgba(0, 0, 0, 0.62);
+
     color-scheme: dark;
   }
 
-  html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    scroll-behavior: smooth;
+  /* Self-hosted fonts (CSP font-src 'self') */
+  @font-face {
+    font-family: 'Gaegu';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/assets/fonts/gaegu-400-latin.woff2') format('woff2');
+    /* Exclude U+2000-206F so smart quotes/dashes use Fredoka proportions instead of wide CJK punctuation. */
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+      U+02DC, U+0304, U+0308, U+0329, U+20AC, U+2122, U+2191, U+2193, U+2212,
+      U+2215, U+FEFF, U+FFFD;
   }
 
-  body {
-    @apply bg-canvas font-sans text-body;
-    font-feature-settings: 'cv11', 'ss01', 'ss03';
+  @font-face {
+    font-family: 'Gaegu';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/assets/fonts/gaegu-700-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+      U+02DC, U+0304, U+0308, U+0329, U+20AC, U+2122, U+2191, U+2193, U+2212,
+      U+2215, U+FEFF, U+FFFD;
   }
 
-  /* Display face: Fredoka (SIL OFL), self-hosted in /assets/fonts. */
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/assets/fonts/inter-var-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+      U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+      U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/assets/fonts/inter-var-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+      U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+      U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+
+  @font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/assets/fonts/jetbrains-mono-var-latin.woff2') format('woff2');
+  }
+
   @font-face {
     font-family: 'Fredoka';
     font-style: normal;
@@ -128,17 +182,40 @@
       U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
   }
 
-  ::selection {
-    @apply bg-clay-pink/30 text-ink;
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+    overflow-x: clip;
   }
 
-  /* Scroll-reveal (see assets/js/site.js). Reduced motion is honored in JS.
-     The reveal script adds reveal-ready after it can show the content.
-     --reveal-delay is stamped per element by site.js, so
-     elements sharing a [data-reveal-group] cascade in reading order. */
-  /* Content stays visible: only the 14px slide is deferred. Opacity is not
-     gated, so a capture without scrolling (full-page screenshots, print,
-     crawlers) still shows every section. */
+  body.cp {
+    @apply relative bg-canvas font-sans text-body;
+    min-height: 100vh;
+    overflow-x: clip;
+  }
+
+  /* Warm speckled sketchbook paper grain across the entire viewport */
+  body.cp::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.7;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .6 0 0 0 0 .55 0 0 0 0 .45 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .dark body.cp::before {
+    opacity: 0.28;
+  }
+
+  ::selection {
+    background: rgb(var(--c-yellow) / 0.55);
+    color: #121214;
+  }
+
   html.reveal-ready [data-reveal] {
     transform: translateY(14px);
     transition-property: transform;
@@ -158,83 +235,181 @@
       transform: none;
       transition: none;
     }
-  }
 
-  /* Storage donut segments (landing page): rest at final arc length; draw
-     in when #tidy-ios-storage is checked and reduced motion is off. */
-  .donut-seg {
-    stroke-dasharray: var(--seg-len, 0) 251.33;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
     }
+  }
+
+  .donut-seg {
+    stroke-dasharray: var(--seg-len, 0) 251.33;
   }
 }
 
 @layer components {
   .container-prose {
-    @apply mx-auto w-full max-w-content px-5 sm:px-8;
+    @apply mx-auto w-full max-w-content px-4 sm:px-8 lg:px-12;
   }
 
-  /* Cream card: hairline border + subtle top specular highlight + soft shadow. */
+  /* Snaptitle wrapper (.wrap): 1136px inner width + responsive side gutters */
+  .cp-wrap {
+    width: 100%;
+    max-width: calc(1136px + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* -------------------------------------------------------------------------
+     Composite Crayon Frame (.cr) + Crisp Paper Elevation (.paper)
+     ------------------------------------------------------------------------- */
+  .cr {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .cr > .line,
+  .cr > .fill,
+  .cr > .solid {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .cr > .line {
+    inset: 0;
+    z-index: 2;
+    border: 4px solid var(--lc, rgb(var(--c-ink)));
+    border-radius: var(--r, 24px);
+    filter: url(#cp-line);
+  }
+
+  .cr > .fill {
+    inset: 6px;
+    z-index: 0;
+    border-radius: var(--r, 24px);
+    background: repeating-linear-gradient(-56deg, var(--c, var(--cp-peach)) 0 5px, transparent 5px 10px);
+    filter: url(#cp-scribble);
+  }
+
+  .cr > .solid {
+    inset: 0;
+    z-index: 0;
+    border-radius: var(--r, 24px);
+    background: var(--c, rgb(var(--c-ink)));
+    filter: url(#cp-wax);
+  }
+
+  .cr > :not(.line):not(.fill):not(.solid) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .paper {
+    background: rgb(var(--c-surface-card));
+    border-radius: var(--pr, 16px);
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 4px 5px 0 rgb(var(--c-shadow));
+  }
+
+  .paper-lg {
+    background: rgb(var(--c-surface-card));
+    border-radius: var(--pr, 18px);
+    box-shadow: 0 0 0 3px rgb(var(--c-ink)), 5px 6px 0 rgb(var(--c-shadow));
+  }
+
+  /* Legacy .clay-card globally upgraded to .paper crisp elevation */
   .clay-card {
-    @apply rounded-2xl border border-hairline bg-surface-card shadow-card;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 1px 2px rgba(38, 34, 24, 0.05), 0 12px 30px -16px rgba(38, 34, 24, 0.14);
+    background: rgb(var(--c-surface-card));
+    border-radius: 18px;
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 4px 5px 0 rgb(var(--c-shadow));
   }
 
-  .dark .clay-card {
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 1px 2px rgba(0, 0, 0, 0.25), 0 14px 32px -16px rgba(0, 0, 0, 0.45);
-  }
-
-  /* Clay feature cards (layered here so utility hover/focus rings take precedence). */
   .clay-tile {
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), inset 0 0 0 1px rgb(20 20 20 / 0.06);
+    background: rgb(var(--c-surface-card));
+    border-radius: 26px;
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 4px 5px 0 rgb(var(--c-shadow));
   }
 
   .clay-tile-dark {
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), inset 0 0 0 1px rgb(255 255 255 / 0.08);
+    background: rgb(var(--c-navy));
+    border-radius: 36px;
+    box-shadow: 0 0 0 3px rgb(var(--c-ink)), 6px 7px 0 rgb(var(--c-shadow));
   }
 
   [data-quick-answer] {
     position: relative;
-    border-inline-start: 3px solid #ff4d8b;
+    background: rgb(var(--c-surface-card));
+    border-radius: 18px;
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 4px 5px 0 rgb(var(--c-shadow));
   }
 
+  /* -------------------------------------------------------------------------
+     Buttons (wax-filled orange/dark/yellow pills with tactile hover tilt)
+     ------------------------------------------------------------------------- */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition hover:-translate-y-px hover:opacity-95 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-pink;
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[16px] font-bold text-white whitespace-nowrap select-none;
+    background: rgb(var(--c-orange));
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 3px 4px 0 rgb(var(--c-shadow));
+  }
+
+  .btn-dark-cp {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[16px] font-bold whitespace-nowrap select-none;
+    background: rgb(var(--c-dark-btn));
+    color: rgb(var(--c-on-dark-btn));
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 3px 4px 0 rgb(var(--c-shadow));
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-hairline-strong bg-surface-card px-5 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:-translate-y-px hover:border-ink/30 hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60;
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[16px] font-bold whitespace-nowrap select-none;
+    background: rgb(var(--c-surface-card));
+    color: rgb(var(--c-ink));
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 3px 4px 0 rgb(var(--c-shadow));
   }
 
-  /* White button used on saturated color cards. */
+  .btn-yellow-cp {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[16px] font-bold whitespace-nowrap select-none;
+    background: rgb(var(--c-yellow));
+    color: #121214;
+    box-shadow: 0 0 0 2.5px #121214, 3px 4px 0 #121214;
+  }
+
   .btn-on-color {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#1a1a1a] shadow-sm transition hover:-translate-y-px hover:bg-white/95 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-pink;
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-[16px] font-bold text-[#121214] whitespace-nowrap select-none;
+    box-shadow: 0 0 0 2.5px #121214, 3px 4px 0 #121214;
+  }
+
+  .btn-primary:focus-visible,
+  .btn-dark-cp:focus-visible,
+  .btn-ghost:focus-visible,
+  .btn-yellow-cp:focus-visible,
+  .btn-on-color:focus-visible {
+    outline: 3px solid rgb(var(--c-orange));
+    outline-offset: 3px;
   }
 
   .badge {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-hairline-strong bg-surface-card px-2.5 py-1 text-xs font-medium text-body;
+    @apply inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3 py-1 text-xs font-bold text-ink;
+    box-shadow: 0 0 0 2px rgb(var(--c-ink));
   }
 
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.14em] text-muted;
+    @apply text-[13px] font-bold uppercase tracking-[0.14em];
+    color: rgb(var(--c-orange-deep));
   }
 
-  /* Eyebrow/heading variants for the dark teal + OSS bands (no !important). */
   .eyebrow-on-dark {
-    @apply text-xs font-semibold uppercase tracking-[0.14em] text-clay-mint;
+    @apply text-[13px] font-bold uppercase tracking-[0.14em];
+    color: #ffb27e;
   }
 
   .h-section-on-dark {
-    @apply font-display text-2xl font-medium leading-tight tracking-[-0.01em] text-clay-cream sm:text-3xl md:text-4xl;
+    @apply font-display font-bold text-white;
+    font-size: clamp(2.75rem, 5.4vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+    word-spacing: -0.08em;
   }
 
-  /* Header/footer nav pill with visible keyboard focus. */
   .nav-link {
-    @apply rounded-full px-3 py-1.5 text-sm font-medium text-body transition hover:bg-surface-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-pink;
+    @apply rounded-full px-3 py-1.5 text-[16px] font-semibold text-ink transition hover:text-cp-orange-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange;
   }
 
   .section {
@@ -246,88 +421,277 @@
   }
 
   .h-display {
-    @apply font-display text-4xl font-medium leading-[1.05] tracking-[-0.02em] text-ink sm:text-5xl md:text-6xl;
+    @apply font-display font-bold text-ink;
+    font-size: clamp(2.75rem, 6vw, 4.65rem);
+    line-height: 0.96;
+    letter-spacing: -0.04em;
+    word-spacing: -0.06em;
   }
 
   .h-section {
-    @apply font-display text-2xl font-medium leading-tight tracking-[-0.01em] text-ink sm:text-3xl md:text-4xl;
+    @apply font-display font-bold text-ink;
+    font-size: clamp(2.5rem, 6.2vw, 5.15rem);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+    word-spacing: -0.08em;
   }
 
   .lede {
-    @apply text-base text-muted sm:text-lg;
+    @apply text-base leading-relaxed text-body sm:text-[1.18rem];
   }
 
   .muted {
-    @apply text-muted;
+    @apply text-body;
   }
 
   .link {
-    @apply font-medium text-ink underline decoration-clay-pink/60 decoration-2 underline-offset-2 transition hover:decoration-clay-pink;
+    @apply font-semibold text-ink underline decoration-2 underline-offset-4 transition;
+    text-decoration-color: rgb(var(--c-orange));
   }
 
-  /* FAQ rows: <details class="group"><summary class="faq-summary">… */
+  .link:hover {
+    color: rgb(var(--c-orange-deep));
+  }
+
+  /* Non-Latin & RTL script safety: relax tight negative word/letter tracking */
+  :is(html[lang="ar"], html[lang="he"], html[lang="hi"], html[lang="bn"], html[lang="ta"], html[lang="te"], html[lang="mr"], html[lang="gu"], html[lang="kn"], html[lang="ml"], html[lang="pa"], html[lang="ja"], html[lang="ko"], html[lang="zh-Hans"], html[lang="ru"]) :is(.h-display, .h-section, .h-section-on-dark, .cp-step-title, .cp-bento-title) {
+    letter-spacing: -0.015em;
+    word-spacing: normal;
+    line-height: 1.12;
+  }
+
+  /* FAQ Accordion — smooth 0fr -> 1fr grid expand + rotating + -> - circle */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .faq-item {
+    background: rgb(var(--c-surface-card));
+    border-radius: 18px;
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink));
+    transition: transform var(--dur-quick) var(--ease-out-quart), box-shadow var(--dur-quick) var(--ease-out-quart);
+  }
+
+  .faq-item[open] {
+    transform: translate(-2px, -2px);
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 5px 6px 0 rgb(var(--c-shadow));
+  }
+
   .faq-summary {
-    @apply flex cursor-pointer list-none items-center justify-between gap-4 text-start font-display text-base font-medium text-ink sm:text-lg;
+    @apply flex cursor-pointer list-none items-center justify-between gap-4 p-5 text-start sm:px-6 sm:py-5;
+    font-family: var(--font-sans, Inter, system-ui, sans-serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: rgb(var(--c-ink));
   }
 
   .faq-summary::-webkit-details-marker {
     display: none;
   }
 
-  .faq-chev {
-    @apply shrink-0 text-muted transition-transform duration-200;
+  .faq-num {
+    @apply shrink-0 font-mono text-[13px] font-semibold tabular-nums;
+    color: rgb(var(--c-muted-soft));
+    transition: color var(--dur-quick) ease;
   }
 
-  details[open]>.faq-summary .faq-chev {
+  .faq-item[open] .faq-num {
+    color: rgb(var(--c-orange-deep));
+  }
+
+  .faq-pm {
+    @apply relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full;
+    box-shadow: 0 0 0 2px rgb(var(--c-ink));
+    color: rgb(var(--c-ink));
+    transition: transform 0.32s var(--ease-snap), background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .faq-item[open] .faq-pm {
+    transform: rotate(180deg);
+    background: rgb(var(--c-orange));
+    color: #fff;
+    box-shadow: 0 0 0 2px rgb(var(--c-ink));
+  }
+
+  .faq-item[open] .faq-pm-v {
+    opacity: 0;
+  }
+
+  .faq-chev {
+    @apply shrink-0 text-ink transition-transform duration-200;
+  }
+
+  details[open] > .faq-summary .faq-chev {
     transform: rotate(180deg);
   }
 
-  /* Language switcher: a native <details> disclosure, so the menu opens
-     without JS. The marker triangle is dropped — the summary carries its own
-     globe and caret — and the panel is inset with a logical edge so it
-     mirrors under RTL. */
-  .lang-menu>summary {
+  /* Language switcher */
+  .lang-menu > summary {
     @apply cursor-pointer list-none;
   }
 
-  .lang-menu>summary::-webkit-details-marker {
+  .lang-menu > summary::-webkit-details-marker {
     display: none;
+  }
+
+  /* Sub-page article prose polish */
+  .prose-section h2 {
+    margin-top: 3rem;
+  }
+
+  .prose-section p,
+  .prose-section li {
+    max-width: 70ch;
+  }
+
+  .prose-section code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.88em;
+    padding: 0.14em 0.42em;
+    border-radius: 6px;
+    background: rgb(var(--c-surface-soft));
+    box-shadow: inset 0 0 0 1px rgb(var(--c-hairline));
+  }
+
+  .prose-section blockquote {
+    border-radius: 16px;
+    padding: 1.15rem 1.35rem;
+    background: rgb(var(--c-surface-card));
+    box-shadow: 0 0 0 2px rgb(var(--c-ink)), 3px 4px 0 rgb(var(--c-shadow));
   }
 }
 
 /* ===========================================================================
-   MOTION SYSTEM
-   ---------------------------------------------------------------------------
-   Deliberately top-level (unlayered) CSS. Tailwind prunes any class in
-   @layer components/utilities that it cannot find in `content`, and unlayered
-   rules already outrank the utilities layer, so this is the one place where
-   motion can be authored without fighting either constraint.
-
-   Reveal elements are hidden only after their observer is ready. Every
-   animation is gated on `prefers-reduced-motion:
-   no-preference`; the kill switch at the bottom is the backstop for the
-   transitions that are not.
+   HEADER SCROLL STATE & MOBILE PANEL DRAWER
    =========================================================================== */
+.cp-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 84px;
+  transition: background-color 220ms var(--ease-out-quart);
+}
 
+.cp-header .cp-header-line {
+  position: absolute;
+  inset-inline: 0;
+  bottom: -2px;
+  height: 4px;
+  opacity: 0;
+  background: rgb(var(--c-ink));
+  filter: url(#cp-line);
+  pointer-events: none;
+  transition: opacity 220ms var(--ease-out-quart);
+}
+
+.cp-header[data-scrolled="true"] {
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .cp-header[data-scrolled="true"] {
+  background: rgba(20, 20, 24, 0.94);
+}
+
+.cp-header[data-scrolled="true"] .cp-header-line {
+  opacity: 1;
+}
+
+.cp-drawer-scrim {
+  background: var(--cp-scrim);
+  backdrop-filter: blur(3px);
+}
+
+.cp-drawer-panel {
+  border-radius: 26px;
+  background: rgb(var(--c-canvas));
+  box-shadow: 0 0 0 3px rgb(var(--c-ink)), 6px 7px 0 rgb(var(--c-shadow));
+}
+
+/* ===========================================================================
+   FOOTER (.foot — full-bleed deep navy with #cp-wax edge)
+   =========================================================================== */
+.cp-foot {
+  position: relative;
+  isolation: isolate;
+  color: #e7e6ff;
+  margin-top: clamp(4rem, 8vw, 6.5rem);
+}
+
+.cp-foot-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgb(var(--c-navy-deep));
+  pointer-events: none;
+}
+
+.cp-foot-edge {
+  position: absolute;
+  inset-inline: 0;
+  top: -10px;
+  height: 22px;
+  background: rgb(var(--c-navy-deep));
+  filter: url(#cp-wax);
+  pointer-events: none;
+}
+
+.cp-foot-divider {
+  border-top: 2px dashed rgba(255, 255, 255, 0.25);
+}
+
+.cp-foot a {
+  color: #e7e6ff;
+  transition: color 150ms ease;
+}
+
+.cp-foot a:hover {
+  color: #ffd23f;
+}
+
+/* ===========================================================================
+   MOTION SYSTEM
+   =========================================================================== */
 @media (prefers-reduced-motion: no-preference) {
+  .btn-primary,
+  .btn-dark-cp,
+  .btn-ghost,
+  .btn-yellow-cp,
+  .btn-on-color {
+    transition: transform 150ms var(--ease-out-quart), box-shadow 150ms var(--ease-out-quart), background-color 150ms ease;
+  }
 
-  /* --- Hero: a staged arrival -------------------------------------------
-     The h1 and the hero image are deliberately left alone. They are the most
-     likely LCP elements, and an element that starts at opacity 0 is not
-     painted, which pushes LCP out. Only the elements around them arrive, so
-     the headline is legible from the first frame.
+  @media (hover: hover) {
+    .btn-primary:hover,
+    .btn-dark-cp:hover,
+    .btn-ghost:hover,
+    .btn-yellow-cp:hover,
+    .btn-on-color:hover {
+      transform: translate(-1px, -2px) rotate(-0.6deg);
+    }
+  }
 
-     Every entrance below fills `backwards`, never `both`. `both` keeps the
-     animation filling forward forever, which pins the element to its own
-     compositing layer for the life of the page, and that layer's cached
-     raster is not byte-identical to the plain one — so the finished page
-     stops matching the never-animated page. Measured against a build with no
-     motion, `both` drifted in 12 of 18 screenshot comparisons, `backwards` in
-     4, and removing the animations entirely gives 0. Every one of these
-     keyframes ends on its element's natural state, so `backwards` releases
-     the layer with no visible change. The two exit animations below are the
-     exception: they must hold their end state until the script hides the
-     node. */
+  .btn-primary:active,
+  .btn-dark-cp:active,
+  .btn-ghost:active,
+  .btn-yellow-cp:active,
+  .btn-on-color:active {
+    transform: translate(1px, 1px) scale(0.98);
+    transition-duration: var(--dur-tap);
+  }
+
+  .cp-bob {
+    animation: cp-bob 6s ease-in-out infinite;
+    animation-delay: var(--bob-delay, 0s);
+  }
+
+  .cp-rn {
+    animation: cp-rn 0.75s var(--ease-out-quart);
+  }
+
   html.js [data-rise],
   html.js [data-settle] {
     animation-duration: var(--dur-enter);
@@ -344,10 +708,6 @@
     animation-name: settle;
   }
 
-  /* --- Lazy images fade in on decode instead of popping in mid-scroll ---
-     The keyframe declares only `from`, so the animation settles on whatever
-     opacity the element already carries. An illustration that is deliberately
-     `opacity-90` stays at .9 instead of being flattened to full. */
   html.js img.motion-fade {
     opacity: 0;
   }
@@ -356,24 +716,15 @@
     animation: img-in 320ms var(--ease-out-quart) backwards;
   }
 
-  /* --- Blog hub: a card that becomes visible cascades in -----------------
-     --i is stamped by blog.js only on newly shown cards, so cards that were
-     already on screen keep their delay and stay put. */
-  html.js #blog-list>article:not(.hidden) {
+  html.js #blog-list > article:not(.hidden) {
     animation: card-in 340ms var(--ease-out-quart) backwards;
     animation-delay: calc(var(--i, 0) * 32ms);
   }
 
-  /* --- Enter transitions ------------------------------------------------ */
   html.js .motion-enter {
     animation: rise var(--dur-enter) var(--ease-out-quart) backwards;
   }
 
-  /* --- Header disclosures ----------------------------------------------- */
-  /* Theme popover is anchored to its trigger, so it only needs opacity and a
-     short drop. `.is-closing` has to stay after the open rule: while the
-     popover animates out both selectors match at equal specificity, and
-     source order is what breaks the tie. */
   html.js [data-theme-menu]:not(.hidden) {
     transform-origin: top right;
     animation: pop-in 170ms var(--ease-out-quart) backwards;
@@ -383,25 +734,17 @@
     transform-origin: top left;
   }
 
-  /* Exit is the one case that has to fill forwards: the node must stay
-     collapsed until the script can put `hidden` back on it. It is short-lived,
-     so the extra layer costs nothing. */
   html.js [data-theme-menu].is-closing {
     animation: pop-out 130ms var(--ease-out-quart) both;
   }
 
-  /* The mobile menu sits in the document flow, so its height has to animate
-     or the page jumps. `grid-template-rows: 0fr -> 1fr` is the one height
-     transition that never touches a layout property. The wrapper exists so
-     the collapsing grid has a single child; #mobile-menu keeps its own
-     `hidden` toggle. */
   html.js [data-drawer] {
     display: grid;
     grid-template-rows: 1fr;
     overflow: hidden;
   }
 
-  html.js [data-drawer]>* {
+  html.js [data-drawer] > * {
     min-height: 0;
   }
 
@@ -409,46 +752,25 @@
     animation: drawer-in var(--dur-surface) var(--ease-out-quart) backwards;
   }
 
-  /* Fills forwards so the drawer stays collapsed until the script hides it. */
   html.js [data-mobile-menu].is-closing [data-drawer] {
     animation: drawer-out var(--dur-exit) var(--ease-out-quart) both;
   }
 
-  /* --- FAQ answer opens with the panel, not before it ------------------- */
-  html.js details[open]>*:not(summary) {
+  html.js details[open] > *:not(summary) {
     animation: answer-in var(--dur-base) var(--ease-out-quart) backwards;
   }
 
-  /* --- Storage donut segments draw in when Storage tab is checked ------- */
-  #tidy-ios-storage:checked~.demo-stage .demo-phone .donut-seg {
+  #tidy-ios-storage:checked ~ .demo-stage .demo-phone .donut-seg {
     animation: donut-draw 780ms var(--ease-out-quart) backwards;
   }
 
-  #tidy-ios-storage:checked~.demo-stage .demo-phone .donut-seg:nth-of-type(3) {
+  #tidy-ios-storage:checked ~ .demo-stage .demo-phone .donut-seg:nth-of-type(3) {
     animation-delay: 110ms;
   }
 
-  #tidy-ios-storage:checked~.demo-stage .demo-phone .donut-seg:nth-of-type(4) {
+  #tidy-ios-storage:checked ~ .demo-stage .demo-phone .donut-seg:nth-of-type(4) {
     animation-delay: 210ms;
   }
-}
-
-/* --- Feedback ------------------------------------------------------------
-   Press is faster than release: a tap should feel like it landed, and the
-   return should still read as smooth. */
-.btn-primary,
-.btn-ghost,
-.btn-on-color {
-  transition-property: opacity, transform, background-color, color, border-color, box-shadow;
-  transition-duration: var(--dur-quick);
-  transition-timing-function: var(--ease-out-quart);
-}
-
-.btn-primary:active,
-.btn-ghost:active,
-.btn-on-color:active {
-  transform: scale(0.975);
-  transition-duration: var(--dur-tap);
 }
 
 .icon-btn {
@@ -462,52 +784,30 @@
   transition-duration: var(--dur-tap);
 }
 
-.nav-link {
-  transition-property: background-color, color;
-  transition-duration: var(--dur-quick);
-  transition-timing-function: var(--ease-out-quart);
-}
-
-html.js .faq-chev {
-  transition: transform var(--dur-base) var(--ease-out-quart);
-}
-
-/* --- Blog cards ----------------------------------------------------------
-   The card lifts and the illustration breathes. Movement is never the only
-   signal: the existing hover:border-hairline-strong still fires. `hover:
-   hover` keeps this off touch devices, and :focus-visible gives keyboard
-   users the same acknowledgement. */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .card-link .clay-card {
-    transition-property: transform, box-shadow, border-color;
-    transition-duration: 240ms, 240ms, 150ms;
-    transition-timing-function: var(--ease-out-quart), var(--ease-out-quart), ease;
+    transition-property: transform, box-shadow;
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-out-quart);
   }
 
   .card-link .clay-card img {
-    transition: transform 520ms var(--ease-out-quart);
+    transition: transform 420ms var(--ease-out-quart);
   }
 
   .card-link:hover .clay-card,
   .card-link:focus-visible .clay-card {
-    transform: translateY(-3px);
-    box-shadow: 0 18px 38px -20px rgba(38, 34, 24, 0.30);
+    transform: translate(-2px, -3px);
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 6px 8px 0 rgb(var(--c-shadow));
   }
 
   .card-link:hover .clay-card img,
   .card-link:focus-visible .clay-card img {
-    transform: scale(1.04);
+    transform: scale(1.03);
   }
 }
 
-/* --- Theme switch --------------------------------------------------------
-   Crossfade the palette. Scoped to a class that only exists for the length of
-   the switch, so the broad selector costs nothing at rest. Trade-off: for
-   ~220ms it replaces other transitions, so a reveal in flight at that exact
-   moment settles instead of easing. Rare, and cheaper than animating every
-   themed surface individually. */
 @media (prefers-reduced-motion: no-preference) {
-
   html.theme-switching,
   html.theme-switching *,
   html.theme-switching *::before,
@@ -519,12 +819,7 @@ html.js .faq-chev {
   }
 }
 
-/* --- Reduced motion: the backstop ----------------------------------------
-   Animate as little as possible, but keep the events firing — `0.01ms` rather
-   than `none`, so transitionend/animationend still land and the JS waiting on
-   them cannot hang. */
 @media (prefers-reduced-motion: reduce) {
-
   html.js *,
   html.js *::before,
   html.js *::after {
@@ -539,8 +834,7 @@ html.js .faq-chev {
   }
 }
 
-/* Languages whose desktop nav does not fit (see COMPACT_NAV in src/lib/chrome.js):
-   the menu button and the full menu stay available at every width. */
+/* Languages whose desktop nav does not fit the desktop header box */
 .header-compact .primary-nav {
   display: none !important;
 }
@@ -553,123 +847,77 @@ html.js .faq-chev {
   display: block !important;
 }
 
-@keyframes rise {
-  from {
-    transform: translateY(14px);
+@keyframes cp-bob {
+  0%, 100% {
+    transform: translateY(0) rotate(var(--rot, 0deg));
   }
+  50% {
+    transform: translateY(-8px) rotate(var(--rot, 0deg));
+  }
+}
 
-  to {
-    opacity: 1;
-    transform: none;
+@keyframes cp-rn {
+  0% {
+    background-color: #1f7ae0;
+    color: #fff;
   }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes rise {
+  from { transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes img-in {
-  from {
-    opacity: 0;
-  }
+  from { opacity: 0; }
 }
 
 @keyframes settle {
-  from {
-    transform: translateY(16px) scale(0.988);
-  }
-
-  to {
-    transform: none;
-  }
+  from { transform: translateY(16px) scale(0.988); }
+  to { transform: none; }
 }
 
 @keyframes pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.96);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes pop-out {
-  from {
-    opacity: 1;
-    transform: none;
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-4px) scale(0.98); }
 }
 
 @keyframes drawer-in {
-  from {
-    grid-template-rows: 0fr;
-    opacity: 0;
-  }
-
-  to {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
+  from { grid-template-rows: 0fr; opacity: 0; }
+  to { grid-template-rows: 1fr; opacity: 1; }
 }
 
 @keyframes drawer-out {
-  from {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
-
-  to {
-    grid-template-rows: 0fr;
-    opacity: 0;
-  }
+  from { grid-template-rows: 1fr; opacity: 1; }
+  to { grid-template-rows: 0fr; opacity: 0; }
 }
 
 @keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes answer-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 1; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes donut-draw {
-  from {
-    stroke-dasharray: 0 251.33;
-  }
-
-  to {
-    stroke-dasharray: var(--seg-len, 0) 251.33;
-  }
+  from { stroke-dasharray: 0 251.33; }
+  to { stroke-dasharray: var(--seg-len, 0) 251.33; }
 }
 
 /* ===========================================================================
    MAC PAGE SCREEN SWITCHER (src/content/pages/mac.html)
-   ---------------------------------------------------------------------------
-   Radio inputs and CSS only. The checked input shows its screen, so the first
-   screen renders with no JS, arrow keys move between screens, and nothing is
-   hidden behind an animation: the fade only runs on a screen that is already
-   displayed. Unlayered, like the motion system above, so Tailwind keeps it.
-=========================================================================== */
+   =========================================================================== */
 .mac-views {
   margin: 0;
   min-width: 0;
@@ -681,22 +929,22 @@ html.js .faq-chev {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
   width: fit-content;
   max-width: 100%;
   margin-inline: auto;
-  padding: 0.25rem;
+  padding: 0.3rem;
   border-radius: 9999px;
   background: rgb(var(--c-surface-card));
-  box-shadow: inset 0 0 0 1px rgb(var(--c-hairline-strong) / 0.6);
+  box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 3px 4px 0 rgb(var(--c-shadow));
 }
 
 .mac-views__tabs label {
   cursor: pointer;
   border-radius: 9999px;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.05rem;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.25rem;
   color: rgb(var(--c-muted));
   transition: background-color var(--dur-quick) var(--ease-out-quart),
@@ -707,7 +955,6 @@ html.js .faq-chev {
   color: rgb(var(--c-ink));
 }
 
-/* Four tabs do not fit one row on a phone: a 2 x 2 grid, not a wrapped pill. */
 @media (max-width: 34rem) {
   .mac-views__tabs {
     display: grid;
@@ -735,8 +982,7 @@ html.js .faq-chev {
   display: block;
   width: 100%;
   height: auto;
-  /* One light source above the window: a short, tight fall-off, not a halo. */
-  filter: drop-shadow(0 10px 14px rgb(10 10 10 / 0.16));
+  border-radius: 1.25rem;
 }
 
 .mac-views__panels figcaption {
@@ -746,75 +992,344 @@ html.js .faq-chev {
   color: rgb(var(--c-muted));
 }
 
-#mac-view-overview:checked~.mac-views__tabs label[for="mac-view-overview"],
-#mac-view-space:checked~.mac-views__tabs label[for="mac-view-space"],
-#mac-view-duplicates:checked~.mac-views__tabs label[for="mac-view-duplicates"],
-#mac-view-apps:checked~.mac-views__tabs label[for="mac-view-apps"] {
-  background: rgb(var(--c-primary));
-  color: rgb(var(--c-on-primary));
+#mac-view-overview:checked ~ .mac-views__tabs label[for="mac-view-overview"],
+#mac-view-space:checked ~ .mac-views__tabs label[for="mac-view-space"],
+#mac-view-duplicates:checked ~ .mac-views__tabs label[for="mac-view-duplicates"],
+#mac-view-apps:checked ~ .mac-views__tabs label[for="mac-view-apps"] {
+  background: rgb(var(--c-ink));
+  color: rgb(var(--c-canvas));
 }
 
-#mac-view-overview:focus-visible~.mac-views__tabs label[for="mac-view-overview"],
-#mac-view-space:focus-visible~.mac-views__tabs label[for="mac-view-space"],
-#mac-view-duplicates:focus-visible~.mac-views__tabs label[for="mac-view-duplicates"],
-#mac-view-apps:focus-visible~.mac-views__tabs label[for="mac-view-apps"] {
-  outline: 2px solid rgb(255 77 139 / 0.6);
+#mac-view-overview:focus-visible ~ .mac-views__tabs label[for="mac-view-overview"],
+#mac-view-space:focus-visible ~ .mac-views__tabs label[for="mac-view-space"],
+#mac-view-duplicates:focus-visible ~ .mac-views__tabs label[for="mac-view-duplicates"],
+#mac-view-apps:focus-visible ~ .mac-views__tabs label[for="mac-view-apps"] {
+  outline: 3px solid rgb(var(--c-orange));
   outline-offset: 2px;
 }
 
-#mac-view-overview:checked~.mac-views__panels [data-view="overview"],
-#mac-view-space:checked~.mac-views__panels [data-view="space"],
-#mac-view-duplicates:checked~.mac-views__panels [data-view="duplicates"],
-#mac-view-apps:checked~.mac-views__panels [data-view="apps"] {
+#mac-view-overview:checked ~ .mac-views__panels [data-view="overview"],
+#mac-view-space:checked ~ .mac-views__panels [data-view="space"],
+#mac-view-duplicates:checked ~ .mac-views__panels [data-view="duplicates"],
+#mac-view-apps:checked ~ .mac-views__panels [data-view="apps"] {
   display: block;
   animation: mac-view-in var(--dur-base) var(--ease-out-quart);
 }
 
 @keyframes mac-view-in {
-  from {
-    opacity: 0.35;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mac-views__panels figure {
-    animation: none !important;
-  }
+  from { opacity: 0.35; }
+  to { opacity: 1; }
 }
 
 /* ===========================================================================
-   HOME PAGE APP DEMOS (src/content/pages/index.html)
-   ---------------------------------------------------------------------------
-   The landing page replicates both apps in HTML/CSS, and the replicas are
-   interactive the same way the Mac page's screen switcher is: radio inputs
-   and CSS only. The checked radio shows its screen, so everything works
-   with no JS, arrow keys move between tabs, and keyboard focus draws the
-   ring on the label that owns the focus. Unlayered, like the motion system
-   above, so Tailwind keeps it.
-=========================================================================== */
-
-/* --- Studio showcase stage & subtle architectural grid ------------------ */
-.demo-stage {
-  position: relative;
-  border-radius: 2rem;
-  border: 1px solid rgb(var(--c-hairline));
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 45%, rgb(255 77 139 / 0.11), transparent 72%),
-    radial-gradient(ellipse 55% 45% at 55% 55%, rgb(10 132 255 / 0.09), transparent 72%),
-    rgb(var(--c-surface-soft) / 0.8);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 14px 36px -22px rgb(24 22 18 / 0.14);
+   HOME PAGE LANDING SYSTEM & INTERACTIVE DEMOS
+   =========================================================================== */
+[data-home] {
+  overflow: clip;
 }
 
-.dark .demo-stage {
+[data-home] .home-hero {
+  padding-top: clamp(32px, 5vw, 60px);
+}
+
+[data-home] .home-hero h1.h-display {
+  font-size: clamp(3.1rem, 7.6vw, 6.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  word-spacing: -0.08em;
+}
+
+.home-sec {
+  margin-top: clamp(5rem, 11vw, 8.125rem);
+}
+
+/* Hero floating doodles */
+.cp-doodle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Sources 6-card strip */
+.cp-srcs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cp-src {
+  border-radius: 20px;
+  transition: transform 180ms var(--ease-out-quart);
+}
+
+@media (hover: hover) {
+  .cp-src:hover {
+    transform: translateY(-3px) rotate(-1.5deg);
+  }
+}
+
+@media (max-width: 1100px) {
+  .cp-srcs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .cp-srcs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Interactive Desktop / Library Cleanup Stage */
+.cp-desk-wall {
+  aspect-ratio: 16 / 9.4;
   background:
-    radial-gradient(ellipse 70% 55% at 50% 45%, rgb(255 77 139 / 0.12), transparent 72%),
-    radial-gradient(ellipse 55% 45% at 55% 55%, rgb(10 132 255 / 0.12), transparent 72%),
-    rgb(var(--c-surface-soft) / 0.9);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 18px 44px -22px rgb(0 0 0 / 0.65);
+    repeating-linear-gradient(-56deg, var(--cp-peach-deep) 0 6px, transparent 6px 13px),
+    var(--cp-peach-wall);
+}
+
+.cp-desk-hill {
+  background:
+    repeating-linear-gradient(-45deg, rgb(var(--c-yellow)) 0 6px, transparent 6px 12px),
+    rgb(var(--c-yellow-soft));
+}
+
+.cp-desk-ic {
+  transition: transform 160ms var(--ease-out-quart);
+}
+
+.cp-desk-ic:hover {
+  transform: translateY(-2px);
+}
+
+.cp-desk-ic .cp-lb {
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.cp-desk-ic[data-cleaned="true"] .cp-lb {
+  background: #1f7ae0;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .cp-desk-wall {
+    aspect-ratio: 4 / 3.4;
+  }
+}
+
+@media (max-width: 600px) {
+  .cp-desk-wall {
+    aspect-ratio: 3 / 4.4;
+  }
+}
+
+/* 3-Step Cards + 2x2 Bento: mobile horizontal scroll-snap carousel */
+.cp-cards3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+}
+
+.cp-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
+}
+
+.cp-step-title {
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.cp-bento-title {
+  font-size: clamp(34px, 3.6vw, 48px);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  word-spacing: -0.06em;
+}
+
+@media (max-width: 900px) {
+  .cp-step-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cp-cards3.cp-swipe,
+  .cp-pair.cp-swipe {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding-bottom: 12px;
+    scrollbar-width: none;
+  }
+
+  .cp-cards3.cp-swipe::-webkit-scrollbar,
+  .cp-pair.cp-swipe::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cp-cards3.cp-swipe > *,
+  .cp-pair.cp-swipe > * {
+    flex: 0 0 86%;
+    scroll-snap-align: start;
+  }
+}
+
+/* Carousel pagination dots (mobile only) */
+.cp-dots {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .cp-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .cp-dots button {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: rgb(var(--c-ink) / 0.25);
+    transition: width 200ms ease, background-color 200ms ease;
+  }
+
+  .cp-dots button[aria-current="true"] {
+    width: 24px;
+    background: rgb(var(--c-orange));
+  }
+}
+
+/* Interactive Keyboard Explorer (.cp-kbd) */
+.cp-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.8em;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgb(var(--c-surface-card));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--c-ink));
+  box-shadow: 0 0 0 2px rgb(var(--c-ink)), 2px 3px 0 rgb(var(--c-shadow));
+  transition: transform 90ms ease, box-shadow 90ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.cp-key-row {
+  --kh: 38px;
+}
+
+.cp-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--kh);
+  border-radius: 8px;
+  background: rgb(var(--c-surface-card));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgb(var(--c-ink));
+  box-shadow: 0 0 0 2px rgb(var(--c-ink)), 2px 3px 0 rgb(var(--c-shadow));
+  transition: transform 90ms ease, box-shadow 90ms ease, background-color 120ms ease, color 120ms ease;
+  user-select: none;
+}
+
+.cp-key.on,
+.cp-kbd.on {
+  background: rgb(var(--c-orange));
+  color: #fff;
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 2px rgb(var(--c-ink)), 0 1px 0 rgb(var(--c-shadow));
+}
+
+@media (max-width: 760px) {
+  .cp-key-row {
+    --kh: 30px;
+  }
+  .cp-key {
+    font-size: 9.5px;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cp-key-row {
+    --kh: 22px;
+  }
+  .cp-key {
+    font-size: 8px;
+    border-radius: 5px;
+    box-shadow: 0 0 0 1.5px rgb(var(--c-ink)), 1px 2px 0 rgb(var(--c-shadow));
+  }
+}
+
+/* Privacy Night Block (#2b2f6b) */
+.cp-night {
+  background: rgb(var(--c-navy));
+  border-radius: 36px;
+  color: #fff;
+}
+
+/* Free / Open Source 3-tier layout */
+.cp-plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 22px;
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+.cp-plan-pick {
+  transform: translateY(-6px);
+}
+
+.cp-pswitch {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .cp-pswitch {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    max-width: 360px;
+    margin: 0 auto 20px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgb(var(--c-surface-card));
+    box-shadow: 0 0 0 2.5px rgb(var(--c-ink));
+  }
+
+  .cp-plans {
+    display: block;
+    max-width: 420px;
+  }
+
+  .cp-plans > .cp-plan {
+    display: none;
+    transform: none;
+  }
+
+  .cp-plans > .cp-plan.sel {
+    display: block;
+  }
+}
+
+/* Studio showcase stage for interactive iPhone & Mac app replicas */
+.demo-stage {
+  position: relative;
+  border-radius: 26px;
+  background: rgb(var(--c-surface-soft));
+  box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 4px 5px 0 rgb(var(--c-shadow));
 }
 
 .demo-stage::before {
@@ -823,7 +1338,7 @@ html.js .faq-chev {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background-image: radial-gradient(circle, rgb(var(--c-ink) / 0.07) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgb(var(--c-ink) / 0.08) 1px, transparent 1px);
   background-size: 20px 20px;
   mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 30%, transparent 85%);
   -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 30%, transparent 85%);
@@ -836,17 +1351,8 @@ html.js .faq-chev {
   padding: 8px;
   background: linear-gradient(145deg, #47474d 0%, #1c1c1f 42%, #343439 100%);
   box-shadow:
-    0 30px 70px -20px rgb(16 14 10 / 0.42),
-    0 8px 22px -8px rgb(16 14 10 / 0.22),
-    inset 0 1px 0 rgb(255 255 255 / 0.32),
-    inset 0 -1px 0 rgb(255 255 255 / 0.12);
-}
-
-.dark .sim-iphone {
-  box-shadow:
-    0 34px 80px -20px rgb(0 0 0 / 0.8),
-    0 0 0 1px rgb(255 255 255 / 0.08),
-    inset 0 1px 0 rgb(255 255 255 / 0.28);
+    0 0 0 2.5px rgb(var(--c-ink)),
+    5px 7px 0 rgb(var(--c-shadow));
 }
 
 .sim-iphone--hero {
@@ -908,35 +1414,34 @@ html.js .faq-chev {
 }
 
 /* --- iPhone demo: synced top pill tabs + in-phone floating tab bar ------ */
-.ios-screens>[data-ios] {
+.ios-screens > [data-ios] {
   display: none;
 }
 
-#tidy-ios-swipe:checked~.demo-stage .demo-phone [data-ios="swipe"],
-#tidy-ios-cleanup:checked~.demo-stage .demo-phone [data-ios="cleanup"],
-#tidy-ios-storage:checked~.demo-stage .demo-phone [data-ios="storage"],
-#tidy-ios-settings:checked~.demo-stage .demo-phone [data-ios="settings"] {
+#tidy-ios-swipe:checked ~ .demo-stage .demo-phone [data-ios="swipe"],
+#tidy-ios-cleanup:checked ~ .demo-stage .demo-phone [data-ios="cleanup"],
+#tidy-ios-storage:checked ~ .demo-stage .demo-phone [data-ios="storage"],
+#tidy-ios-settings:checked ~ .demo-stage .demo-phone [data-ios="settings"] {
   display: flex;
   animation: ios-view-in var(--dur-base) var(--ease-out-quart);
 }
 
-#tidy-ios-swipe:checked~.mac-views__tabs label[for="tidy-ios-swipe"],
-#tidy-ios-cleanup:checked~.mac-views__tabs label[for="tidy-ios-cleanup"],
-#tidy-ios-storage:checked~.mac-views__tabs label[for="tidy-ios-storage"],
-#tidy-ios-settings:checked~.mac-views__tabs label[for="tidy-ios-settings"] {
-  background: rgb(var(--c-primary));
-  color: rgb(var(--c-on-primary));
+#tidy-ios-swipe:checked ~ .mac-views__tabs label[for="tidy-ios-swipe"],
+#tidy-ios-cleanup:checked ~ .mac-views__tabs label[for="tidy-ios-cleanup"],
+#tidy-ios-storage:checked ~ .mac-views__tabs label[for="tidy-ios-storage"],
+#tidy-ios-settings:checked ~ .mac-views__tabs label[for="tidy-ios-settings"] {
+  background: rgb(var(--c-ink));
+  color: rgb(var(--c-canvas));
 }
 
-#tidy-ios-swipe:focus-visible~.mac-views__tabs label[for="tidy-ios-swipe"],
-#tidy-ios-cleanup:focus-visible~.mac-views__tabs label[for="tidy-ios-cleanup"],
-#tidy-ios-storage:focus-visible~.mac-views__tabs label[for="tidy-ios-storage"],
-#tidy-ios-settings:focus-visible~.mac-views__tabs label[for="tidy-ios-settings"] {
-  outline: 2px solid rgb(255 77 139 / 0.6);
+#tidy-ios-swipe:focus-visible ~ .mac-views__tabs label[for="tidy-ios-swipe"],
+#tidy-ios-cleanup:focus-visible ~ .mac-views__tabs label[for="tidy-ios-cleanup"],
+#tidy-ios-storage:focus-visible ~ .mac-views__tabs label[for="tidy-ios-storage"],
+#tidy-ios-settings:focus-visible ~ .mac-views__tabs label[for="tidy-ios-settings"] {
+  outline: 3px solid rgb(var(--c-orange));
   outline-offset: 2px;
 }
 
-/* iOS 26 floating liquid-glass capsule tab bar */
 .ios-tabbar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -978,36 +1483,21 @@ html.js .faq-chev {
   color: #ffffff;
 }
 
-#tidy-ios-swipe:checked~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-swipe"],
-#tidy-ios-cleanup:checked~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-cleanup"],
-#tidy-ios-storage:checked~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-storage"],
-#tidy-ios-settings:checked~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-settings"] {
+#tidy-ios-swipe:checked ~ .demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-swipe"],
+#tidy-ios-cleanup:checked ~ .demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-cleanup"],
+#tidy-ios-storage:checked ~ .demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-storage"],
+#tidy-ios-settings:checked ~ .demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-settings"] {
   color: #5cb0ff;
   background: rgb(255 255 255 / 0.13);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
 }
 
-#tidy-ios-swipe:focus-visible~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-swipe"],
-#tidy-ios-cleanup:focus-visible~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-cleanup"],
-#tidy-ios-storage:focus-visible~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-storage"],
-#tidy-ios-settings:focus-visible~.demo-stage .demo-phone .ios-tabbar label[for="tidy-ios-settings"] {
-  outline: 2px solid rgb(92 176 255 / 0.85);
-  outline-offset: 2px;
-}
-
 @keyframes ios-view-in {
-  from {
-    opacity: 0.45;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0.45; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
 }
 
-/* Interactive Swipe Deck physics (progressive JS enhancement) */
+/* Interactive Swipe Deck physics */
 .ios-deck {
   position: relative;
   margin-bottom: 10px;
@@ -1096,71 +1586,52 @@ html.js .faq-chev {
 /* --- Mac demo: synced pill tabs + clickable sidebar + toolbar title ---- */
 .mac-home-window {
   background: linear-gradient(180deg, #1e1e21 0%, #17171a 100%);
-  box-shadow:
-    0 32px 72px -20px rgb(14 14 18 / 0.42),
-    0 6px 18px -6px rgb(14 14 18 / 0.2),
-    inset 0 1px 0 rgb(255 255 255 / 0.14),
-    0 0 0 1px rgb(255 255 255 / 0.1);
+  box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 5px 7px 0 rgb(var(--c-shadow));
 }
 
-.dark .mac-home-window {
-  box-shadow:
-    0 34px 80px -20px rgb(0 0 0 / 0.78),
-    inset 0 1px 0 rgb(255 255 255 / 0.12),
-    0 0 0 1px rgb(255 255 255 / 0.11);
-}
-
-.mac-home-panes>[data-mac],
-.mac-toolbar-titles>[data-mac-pane] {
+.mac-home-panes > [data-mac],
+.mac-toolbar-titles > [data-mac-pane] {
   display: none;
 }
 
-#tidy-mac-home-overview:checked~.mac-home-window [data-mac="overview"],
-#tidy-mac-home-developer:checked~.mac-home-window [data-mac="developer"],
-#tidy-mac-home-duplicates:checked~.mac-home-window [data-mac="duplicates"],
-#tidy-mac-home-explorer:checked~.mac-home-window [data-mac="explorer"] {
+#tidy-mac-home-overview:checked ~ .mac-home-window [data-mac="overview"],
+#tidy-mac-home-developer:checked ~ .mac-home-window [data-mac="developer"],
+#tidy-mac-home-duplicates:checked ~ .mac-home-window [data-mac="duplicates"],
+#tidy-mac-home-explorer:checked ~ .mac-home-window [data-mac="explorer"] {
   display: block;
   animation: mac-view-in var(--dur-base) var(--ease-out-quart);
 }
 
-#tidy-mac-home-overview:checked~.mac-home-window [data-mac-pane="overview"],
-#tidy-mac-home-developer:checked~.mac-home-window [data-mac-pane="developer"],
-#tidy-mac-home-duplicates:checked~.mac-home-window [data-mac-pane="duplicates"],
-#tidy-mac-home-explorer:checked~.mac-home-window [data-mac-pane="explorer"] {
+#tidy-mac-home-overview:checked ~ .mac-home-window [data-mac-pane="overview"],
+#tidy-mac-home-developer:checked ~ .mac-home-window [data-mac-pane="developer"],
+#tidy-mac-home-duplicates:checked ~ .mac-home-window [data-mac-pane="duplicates"],
+#tidy-mac-home-explorer:checked ~ .mac-home-window [data-mac-pane="explorer"] {
   display: inline;
 }
 
-#tidy-mac-home-overview:checked~.mac-views__tabs label[for="tidy-mac-home-overview"],
-#tidy-mac-home-developer:checked~.mac-views__tabs label[for="tidy-mac-home-developer"],
-#tidy-mac-home-duplicates:checked~.mac-views__tabs label[for="tidy-mac-home-duplicates"],
-#tidy-mac-home-explorer:checked~.mac-views__tabs label[for="tidy-mac-home-explorer"] {
-  background: rgb(var(--c-primary));
-  color: rgb(var(--c-on-primary));
+#tidy-mac-home-overview:checked ~ .mac-views__tabs label[for="tidy-mac-home-overview"],
+#tidy-mac-home-developer:checked ~ .mac-views__tabs label[for="tidy-mac-home-developer"],
+#tidy-mac-home-duplicates:checked ~ .mac-views__tabs label[for="tidy-mac-home-duplicates"],
+#tidy-mac-home-explorer:checked ~ .mac-views__tabs label[for="tidy-mac-home-explorer"] {
+  background: rgb(var(--c-ink));
+  color: rgb(var(--c-canvas));
 }
 
-#tidy-mac-home-overview:checked~.mac-home-window .mac-sidebar label[for="tidy-mac-home-overview"],
-#tidy-mac-home-developer:checked~.mac-home-window .mac-sidebar label[for="tidy-mac-home-developer"],
-#tidy-mac-home-duplicates:checked~.mac-home-window .mac-sidebar label[for="tidy-mac-home-duplicates"],
-#tidy-mac-home-explorer:checked~.mac-home-window .mac-sidebar label[for="tidy-mac-home-explorer"] {
+#tidy-mac-home-overview:checked ~ .mac-home-window .mac-sidebar label[for="tidy-mac-home-overview"],
+#tidy-mac-home-developer:checked ~ .mac-home-window .mac-sidebar label[for="tidy-mac-home-developer"],
+#tidy-mac-home-duplicates:checked ~ .mac-home-window .mac-sidebar label[for="tidy-mac-home-duplicates"],
+#tidy-mac-home-explorer:checked ~ .mac-home-window .mac-sidebar label[for="tidy-mac-home-explorer"] {
   background: rgb(255 255 255 / 0.12);
   color: #fff;
   font-weight: 600;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
 
-#tidy-mac-home-overview:focus-visible~.mac-views__tabs label[for="tidy-mac-home-overview"],
-#tidy-mac-home-developer:focus-visible~.mac-views__tabs label[for="tidy-mac-home-developer"],
-#tidy-mac-home-duplicates:focus-visible~.mac-views__tabs label[for="tidy-mac-home-duplicates"],
-#tidy-mac-home-explorer:focus-visible~.mac-views__tabs label[for="tidy-mac-home-explorer"] {
-  outline: 2px solid rgb(255 77 139 / 0.6);
-  outline-offset: 2px;
-}
-
-#tidy-mac-home-overview:focus-visible~.mac-home-window .mac-sidebar label[for="tidy-mac-home-overview"],
-#tidy-mac-home-developer:focus-visible~.mac-home-window .mac-sidebar label[for="tidy-mac-home-developer"],
-#tidy-mac-home-duplicates:focus-visible~.mac-home-window .mac-sidebar label[for="tidy-mac-home-duplicates"],
-#tidy-mac-home-explorer:focus-visible~.mac-home-window .mac-sidebar label[for="tidy-mac-home-explorer"] {
-  outline: 2px solid rgb(92 176 255 / 0.85);
+#tidy-mac-home-overview:focus-visible ~ .mac-views__tabs label[for="tidy-mac-home-overview"],
+#tidy-mac-home-developer:focus-visible ~ .mac-views__tabs label[for="tidy-mac-home-developer"],
+#tidy-mac-home-duplicates:focus-visible ~ .mac-views__tabs label[for="tidy-mac-home-duplicates"],
+#tidy-mac-home-explorer:focus-visible ~ .mac-views__tabs label[for="tidy-mac-home-explorer"] {
+  outline: 3px solid rgb(var(--c-orange));
   outline-offset: 2px;
 }
 
@@ -1176,20 +1647,9 @@ html.js .faq-chev {
   }
 }
 
-/* --- CTA illustration top mask (deepened in dark mode to mask warm sky) -- */
-.cta-hills-fade {
-  mask-image: linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.25) 18%, black 42%, black 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.25) 18%, black 42%, black 100%);
-}
-
-.dark .cta-hills-fade {
-  mask-image: linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.08) 18%, rgb(0 0 0 / 0.72) 46%, black 70%, black 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.08) 18%, rgb(0 0 0 / 0.72) 46%, black 70%, black 100%);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .mac-home-panes>[data-mac],
-  .ios-screens>[data-ios],
+  .mac-home-panes > [data-mac],
+  .ios-screens > [data-ios],
   .donut-seg {
     animation: none !important;
   }

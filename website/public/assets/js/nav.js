@@ -10,10 +10,22 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    initHeaderScroll();
     initMobileMenu();
     initLanguageMenu();
     initFaqAccordion();
   });
+
+  // 0) Sticky header blur + sketchy bottom border once scrolled.
+  function initHeaderScroll() {
+    var header = document.querySelector('header.cp-header');
+    if (!header) return;
+    function sync() {
+      header.setAttribute('data-scrolled', window.scrollY > 10 ? 'true' : 'false');
+    }
+    sync();
+    window.addEventListener('scroll', sync, { passive: true });
+  }
 
   // 1) Mobile menu toggle
   function initMobileMenu() {
@@ -73,11 +85,11 @@
       setOpen(!isOpen);
     });
 
-    // Close after tapping a link so in-page anchors don't leave the menu open.
+    // Close after tapping a link, scrim, or close button.
     menu.addEventListener('click', function (event) {
-      var link = event.target.closest('a');
-      if (!link) return;
-      setOpen(false);
+      if (event.target.closest('a') || event.target.closest('[data-menu-scrim]') || event.target.closest('[data-menu-close]')) {
+        setOpen(false);
+      }
     });
 
     // Auto-close when the viewport grows past the xl breakpoint (the header's

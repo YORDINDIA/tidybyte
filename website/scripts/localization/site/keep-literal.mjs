@@ -6,9 +6,8 @@
 // Latin-script string on the page with no translation, calls it untranslated,
 // and fails the build for all 20 languages.
 //
-// Product names, Apple framework names and a version string. Translating any of
-// them would be wrong in every language, which is what earns them a place here
-// rather than a translation.
+// Product names, Apple framework names, keycaps, sample filenames, and version
+// strings. Translating any of them would be wrong in every language.
 
 export const KEEP_LITERAL = new Set([
   "TidyByte",
@@ -17,6 +16,8 @@ export const KEEP_LITERAL = new Set([
   "iOS 17+",
   "iPhone",
   "iPad",
+  "Mac",
+  "MIT",
   "App Store",
   "GitHub",
   "Vision",
@@ -25,12 +26,16 @@ export const KEEP_LITERAL = new Set([
   "Telegram",
   "1.0.5",
   "{iosVersion}",
-  // The landing page's app replicas: unit symbols, a disk and file names,
-  // a duration, and HTML entities that render as glyphs. Every language
-  // sees the same characters on screen, so there is nothing to translate.
+  // Unit symbols, disk/file names, durations, and HTML entities
   "GB",
   "MB",
   "KB",
+  "1.4 GB",
+  "2.8 MB",
+  "3.1 MB",
+  "3.4 MB",
+  "4.1 MB",
+  "4.2 MB",
   "60s",
   "12:05",
   "2012-08-09",
@@ -40,9 +45,21 @@ export const KEEP_LITERAL = new Set([
   "1080p HD",
   "macOS 26",
   "APFS",
+  "Finder",
+  "File",
+  "Edit",
+  "View",
   "Macintosh HD",
   "IMG_4032.jpg",
   "IMG_4032 2.jpg",
+  "IMG_2208 (blur).jpg",
+  "IMG_4471 copy.jpg",
+  "IMG_8920.heic",
+  "Old-App-1.2.dmg",
+  "Screenshot 13.19.52.png",
+  "Burst_0042",
+  "4K Clip.mov",
+  "holiday-clip.mov",
   "holiday-video.mp4",
   "/Applications",
   "~/Downloads",
@@ -51,6 +68,8 @@ export const KEEP_LITERAL = new Set([
   "~/Pictures/IMG_4032.jpg",
   "~/Downloads/IMG_4032 2.jpg",
   "~/Movies/holiday-video.mp4",
+  "~/Pictures/IMG_4032.jpg &middot; Keep",
+  "~/Downloads/IMG_4032 2.jpg &rarr; APFS Clone",
   "Xcode DerivedData",
   "node_modules",
   "Homebrew Cache",
@@ -63,13 +82,14 @@ export const KEEP_LITERAL = new Set([
   "sha256:3e1b8d09",
   "&middot;",
   "&#x2039;",
+  "&#x2318; F",
+  // Hardware keyboard keycap legends (ANSI Mac layout)
+  "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+  "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+  "esc", "tab", "caps", "shift", "return", "fn", "ctrl", "opt", "space", "up", "Space",
 ]);
 
 /// True when a page string is deliberately not translated.
-///
-/// Matches the trimmed string exactly. A partial match would be wrong: the
-/// string "Macintosh HD is almost full" contains "Macintosh HD" and must be
-/// translated, while the bare disk label "Macintosh HD" must not.
 export function isKeepLiteral(text) {
   return KEEP_LITERAL.has(text.trim());
 }
