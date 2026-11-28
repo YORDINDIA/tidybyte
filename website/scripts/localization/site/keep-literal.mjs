@@ -6,8 +6,9 @@
 // Latin-script string on the page with no translation, calls it untranslated,
 // and fails the build for all 20 languages.
 //
-// Product names, Apple framework names, keycaps, sample filenames, and version
-// strings. Translating any of them would be wrong in every language.
+// Product names, Apple framework names, keycaps, sample filenames, version
+// strings, and the intentional English Finder menu bar inside `dir="ltr"`
+// macOS window mockups. Translating any of them would be wrong or breaks parity.
 
 export const KEEP_LITERAL = new Set([
   "TidyByte",
@@ -68,7 +69,6 @@ export const KEEP_LITERAL = new Set([
   "~/Pictures/IMG_4032.jpg",
   "~/Downloads/IMG_4032 2.jpg",
   "~/Movies/holiday-video.mp4",
-  "~/Pictures/IMG_4032.jpg &middot; Keep",
   "~/Downloads/IMG_4032 2.jpg &rarr; APFS Clone",
   "Xcode DerivedData",
   "node_modules",

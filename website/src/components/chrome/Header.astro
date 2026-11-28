@@ -118,33 +118,33 @@ const compactNav = COMPACT_NAV.has(lang?.code ?? "en");
 
   <!-- Sketchy bottom border revealed on scroll -->
   <div aria-hidden="true" class="cp-header-line"></div>
-
-  <!-- Mobile slide-in panel drawer -->
-  <div id="mobile-menu" data-mobile-menu class="fixed inset-0 z-50 hidden xl:hidden">
-    <div data-menu-scrim class="cp-drawer-scrim absolute inset-0"></div>
-    <div data-drawer class="relative z-10 ms-auto h-full w-full max-w-[340px] p-3">
-      <nav aria-label={t("Mobile")} class="cp-drawer-panel flex h-full flex-col gap-1 overflow-y-auto p-5 text-base">
-        <div class="mb-3 flex items-center justify-between border-b border-hairline pb-3">
-          <span dir="ltr" class="font-display text-2xl font-bold text-ink">TidyByte<span aria-hidden="true" class="text-cp-orange">.</span></span>
-          <button type="button" data-menu-close aria-label={t("Menu")} class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-soft text-ink shadow-[0_0_0_2px_rgb(var(--c-ink))]">
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-          </button>
-        </div>
-        <a href={anchor("features")} class="nav-link py-2.5">{t("Features")}</a>
-        <a href="/photo-cleaner" class="nav-link py-2.5">{t("Tools")}</a>
-        <a href="/mac" class="nav-link py-2.5">{t("TidyByte for Mac")}</a>
-        <a href={anchor("how-it-works")} class="nav-link py-2.5">{t("How it works")}</a>
-        <a href="/blog" class="nav-link py-2.5">{t("Blog")}</a>
-        <a href={anchor("faq")} class="nav-link py-2.5">{t("FAQ")}</a>
-        <a href="/changelog" class="nav-link py-2.5">{t("Changelog")}</a>
-        <a href="/support" class="nav-link py-2.5">{t("Support")}</a>
-        <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="nav-link py-2.5">GitHub &rarr;</a>
-        <div class="mt-auto pt-4">
-          <a href="https://apps.apple.com/app/id6775769763" target="_blank" rel="noopener" class="btn-primary w-full justify-center">
-            {t("Get the app")}
-          </a>
-        </div>
-      </nav>
-    </div>
-  </div>
 </header>
+
+<!-- Mobile slide-in panel drawer (kept outside <header> so scrolled backdrop-filter never clips fixed positioning) -->
+<div id="mobile-menu" data-mobile-menu role="dialog" aria-modal="true" aria-label={t("Mobile")} class="fixed inset-0 z-50 hidden xl:hidden">
+  <div data-menu-scrim class="cp-drawer-scrim absolute inset-0"></div>
+  <div data-drawer class="relative z-10 ms-auto h-full w-full max-w-[340px] p-3">
+    <nav aria-label={t("Mobile")} class="cp-drawer-panel flex h-full flex-col gap-1 overflow-y-auto p-5 text-base">
+      <div class="mb-3 flex items-center justify-between border-b border-hairline pb-3">
+        <span dir="ltr" class="font-display text-2xl font-bold text-ink">TidyByte<span aria-hidden="true" class="text-cp-orange">.</span></span>
+        <button type="button" data-menu-close aria-label={t("Close menu")} class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-soft text-ink shadow-[0_0_0_2px_rgb(var(--c-ink))]">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <a href={anchor("features")} class="nav-link py-2.5">{t("Features")}</a>
+      <a href="/photo-cleaner" class="nav-link py-2.5">{t("Tools")}</a>
+      <a href="/mac" class="nav-link py-2.5">{t("TidyByte for Mac")}</a>
+      <a href={anchor("how-it-works")} class="nav-link py-2.5">{t("How it works")}</a>
+      <a href="/blog" class="nav-link py-2.5">{t("Blog")}</a>
+      <a href={anchor("faq")} class="nav-link py-2.5">{t("FAQ")}</a>
+      <a href="/changelog" class="nav-link py-2.5">{t("Changelog")}</a>
+      <a href="/support" class="nav-link py-2.5">{t("Support")}</a>
+      <a href="https://github.com/YORDINDIA/tidybyte" target="_blank" rel="noopener" class="nav-link py-2.5">GitHub &rarr;</a>
+      <div class="mt-auto pt-4">
+        <a href="https://apps.apple.com/app/id6775769763" target="_blank" rel="noopener" class="btn-primary w-full justify-center">
+          {t("Get the app")}
+        </a>
+      </div>
+    </nav>
+  </div>
+</div>

@@ -1,66 +1,66 @@
 {
   "blurry-photo-cleaner": {
-    "source": "82b21edf783f92204f4f75bc71b8c76ff9323cae5d73fe564548381ae411d56b",
+    "source": "305410a18b17bb703330cbcced980828950602fc5908c9819e691c5f7f168865",
     "image": "9827dcbeb42c2f63205ff26e6c49aec4a664d111472b2b8105875dafb1427dc3"
   },
   "burst-photo-cleaner": {
-    "source": "e773bd2e0132d8f464a51ab493ae53021f69e4f63e1b14b3307955e58e957b80",
+    "source": "3c5bf4549fa9626b5a5530e6cde74b03cd958787f476f318021aec7adc0dd80f",
     "image": "3dd7ac49561f105be02c1f3dc7049115c505cbcb958e029eebe227c44267f2c2"
   },
   "chat-media-cleaner": {
-    "source": "8f8634f3259eaf4f9731f8e812160e511d54ae6d0faece4d6714fd1db235f53d",
+    "source": "bbcb5f9f134785030ed3c2b2384810a353c9c6384545b0ec41295fef26c9413f",
     "image": "1120d92e0ef08847be8c8a07538afb2d137353d986e11099e3f7958371a92c8f"
   },
   "duplicate-photo-cleaner": {
-    "source": "3f5fba53c4aa79484b6c44910f3028c4a060b3e3536064fe5a968bf18a700409",
+    "source": "1b38b8b926b70a63025d00d6febe354ee6dde9a9060363070fbc0e6b7d7dd46a",
     "image": "d99a082e195a75065bc9e18cba1087d6dedcf92689b842f0c2474fe7007093f0"
   },
   "free-photo-cleaner-no-subscription": {
-    "source": "17ef54ef0b948b2e1d6bae75b7e16ae8df6c6712d187caabfc690cb72c72731a",
+    "source": "8826849a035d04cc636198069501c4e47028cd562a3cb99ea5b2d04be3ae29a2",
     "image": "8d4751c65ab4e34def854c544d8178f12d2e7945f605108acbdc2e3f14610bf4"
   },
   "image-compression": {
-    "source": "698c205deb392a2630f3babfe95a08b5f15a964f94fbc4907151a27b0351b0b7",
+    "source": "302bb427ac06beb062b4250511bc23ae3007ebf50ed727fb0d2c83357b624e57",
     "image": "763716bd4bf1245eab2f1709dc84835c3d161db49c54a326b9e7e773b62e7a04"
   },
   "large-file-cleaner": {
-    "source": "99825cf9177af30256c8699953c9fd7906ba6f6faf75b4d1cc8f01204e17e8dd",
+    "source": "0c3769df209083b0805db6e7cf8dbcabf5fa4d845a06d37af4103d5b6c4ecd5b",
     "image": "d145528abdac7999c352b96867d1c91e131ea8cfae53e30cd582fd8dbe357258"
   },
   "live-photo-converter": {
-    "source": "5d82ad2df054ef5483331cba02993394f896e8e271365e25fccb77e175887418",
+    "source": "ad9dd5f812c7f439ad85bf991cc9c6197e0fd6fa8bd96d96879acedecacdfe90",
     "image": "2eaf54710bd502fddb75f8cb97041e7384bf303b3c91243aa01fe05943cf3298"
   },
   "on-device-ai-photo-search": {
-    "source": "39552c71ab37f891de14b1e264daca59ddb3ba088053736ce96a7d333fe3686e",
+    "source": "be5384b273f078f76d1e616d0fbab853b27cb00ebb0a80fa4fac4ee8fd4a5f82",
     "image": "4120a6b28a59752eb089745d90d4642f8e8455400fb577c823f388173b7159d6"
   },
   "photo-cleaner": {
-    "source": "d7b15e1d20dedcd674bbd58267ab19d5aa1033c1c4d750aa5dbbf233672a7138",
+    "source": "962a900bd37dcb426e3d039668d925a346ca85b9076fb90f5cc091732c0ea339",
     "image": "8d3fb0b9d11411330ab37e33d1cb70f98dc476b764f98436c3e1447f49cda198"
   },
   "photo-organizer": {
-    "source": "1278306618b0e8a44b69b9ef4da2e5a18fe02ecb4b42687122f33976fb903a2d",
+    "source": "d7b72fb245a563ea146180fc2afe282bd4be3160ef4b5a01a188792a5c0274e0",
     "image": "4be38cafa224155adfb35e9556ac22aa33402134e8c123bf87213eb274f772b4"
   },
   "screen-recording-cleaner": {
-    "source": "b07becdf20a16780dd36ad8c798541600256b06bd46bb5a02df29b24f5a65d26",
+    "source": "f7f0cc05575e260b573e6bf65d32cc3dabeb33e0a5a1729be69dc6f74f814cc8",
     "image": "53296cb8fa9a62d1c6c52c6f9a25addb80a8ea4e895d8d5f178c6fb7c2a74d78"
   },
   "screenshot-cleaner": {
-    "source": "3826bedb75471aea2f46bc45a44feec87a1d3ddac3851a7ca511bc30e7799fed",
+    "source": "81892f2d76d6e3ffc99affa10c1f5c16eff0b17bd9a5fa569b6c8f94112a9c83",
     "image": "fce9c17678d509cf7206082411fe92c8304b06382b02caeb301f91deca695cdd"
   },
   "similar-photo-cleaner": {
-    "source": "38cbacd0753f5293686c4d81ebf61bfd4a56c11cb90bf3be598dc29fdb700940",
+    "source": "eb34a80ff7c6eabfdf1cae22a31ac214d6749122ced4835f96c5935db338283c",
     "image": "66d77a545b82965f6fd1149d2be08aaf22f75c300fb04e57b0834cd3a304969d"
   },
   "storage-cleaner": {
-    "source": "e5c2aebdeef2ba1060027ef2b15e5e62ee951a9d58b81b558d7925db805a66f6",
+    "source": "6ed83ce4c910efba2168e0f0ccd04402da537626321006996de349a2fc829c98",
     "image": "008bb20f625679714d1638e4c8635aaf9805633d4adfdb3de9b734f4bf876fd7"
   },
   "video-compression": {
-    "source": "2a2194e8b2051dbd08c83eb951dfe2e184fae12b6fa225206b283b3f8d64fffd",
+    "source": "a74ac010ceac16ade3be926ee0627520a1fc760424e3f0c9e87db80bc61eb546",
     "image": "ef5e4d5c024b23ffbe2c1c3baea874b4506dac413da01afc4f2349c492cf8929"
   }
 }

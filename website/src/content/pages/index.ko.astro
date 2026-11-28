@@ -47,14 +47,11 @@ const { quickAnswer = "", iosVersion } = Astro.props;
         <svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="text-cp-orange"><circle cx="12" cy="12" r="7"/></svg>
         무료 &middot; iPhone &amp; iPad &middot; Mac &middot; iOS 17+ &amp; macOS 26
       </p>
-      <h1 class="h-display">
-        가장 깔끔한 무료 저장공간 정리 앱<br />
-        <span class="relative inline-block text-cp-orange">
-          iPhone 및 Mac용.
-          <svg aria-hidden="true" focusable="false" viewBox="0 0 380 18" fill="none" preserveAspectRatio="none" class="pointer-events-none absolute -bottom-2 start-0 h-3.5 w-full text-cp-orange">
-            <path d="M4 12C95 4 230 3 376 11" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-          </svg>
-        </span>
+      <h1 class="h-display relative inline-block">
+        iPhone과 Mac을 위한 최고의 무료 저장 공간 정리 앱.
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 380 18" fill="none" preserveAspectRatio="none" class="pointer-events-none mx-auto mt-2 h-3.5 w-64 max-w-full text-cp-orange">
+          <path d="M4 12C95 4 230 3 376 11" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        </svg>
       </h1>
       <p class="lede mx-auto mt-7 max-w-[640px] text-[17px] sm:text-[21px]">iPhone에서는 사진을 스와이프해 몇 분 만에 기가바이트를 되찾으세요. Mac에서는 캐시, 개발자 파일, 중복 항목, 앱 잔여 데이터를 정리하세요. 모든 작업은 기기에서 실행됩니다. 광고 없음, 구독 없음, 계정 없음.</p>
 
@@ -272,67 +269,78 @@ const { quickAnswer = "", iosVersion } = Astro.props;
             <span class="hidden sm:inline text-body">View</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="rounded-full bg-cp-orange px-2.5 py-0.5 text-[10.5px] font-bold text-white shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-status>눌러서 정리</span>
+            <span class="rounded-full bg-cp-orange px-2.5 py-0.5 text-[10.5px] font-bold text-[#121214] shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-status>
+              <span data-desk-idle>눌러서 정리</span>
+              <span class="hidden" aria-hidden="true" data-desk-done><span data-desk-count>0 / 8</span> <span>정리됨</span></span>
+            </span>
             <span class="hidden sm:inline tabular-nums text-body">12:05</span>
           </div>
         </div>
 
         <!-- Clickable Desktop Items Grid -->
         <div dir="ltr" class="relative z-10 grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:gap-5 sm:p-8">
-          <button type="button" data-desk-item data-before="Screenshot 13.19.52.png" data-after="Cleaned · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 18h6"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Screenshot 13.19.52.png</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>정리됨 &middot; 휴지통</span>
           </button>
 
-          <button type="button" data-desk-item data-before="IMG_4471 copy.jpg" data-after="APFS Clone · 3.8 MB" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="12" height="12" rx="2"/><rect x="9" y="9" width="12" height="12" rx="2"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>IMG_4471 copy.jpg</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>APFS 클론 &middot; 3.8 MB</span>
           </button>
 
-          <button type="button" data-desk-item data-before="Xcode DerivedData" data-after="4.8 GB freed" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12l-9.5 9.5a1.8 1.8 0 0 1-2.5-2.5L12.5 9.5"/><path d="M17.5 6.5l2.5 2.5-3.5 3.5-5-5 2-2a4.5 4.5 0 0 1 6-.5l-2 1.5z"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Xcode DerivedData</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>4.8 GB 확보</span>
           </button>
 
-          <button type="button" data-desk-item data-before="holiday-clip.mov" data-after="310 MB · HEVC" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="12" height="14" rx="2"/><path d="M15 10l6-3v10l-6-3"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>holiday-clip.mov</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>310 MB &middot; HEVC</span>
           </button>
 
-          <button type="button" data-desk-item data-before="IMG_8920.heic" data-after="Blurry · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 16l5-5 4 4 3-3 5 5"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>IMG_8920.heic</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>흐림 &middot; 휴지통</span>
           </button>
 
-          <button type="button" data-desk-item data-before="node_modules" data-after="3.6 GB freed" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M12 13v8"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>node_modules</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>3.6 GB 확보</span>
           </button>
 
-          <button type="button" data-desk-item data-before="Old-App-1.2.dmg" data-after="Installer · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l3 2"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Old-App-1.2.dmg</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>설치 파일 &middot; 휴지통</span>
           </button>
 
-          <button type="button" data-desk-item data-before="Burst_0042" data-after="Best kept · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="14" height="4" rx="1.5"/><rect x="5" y="11" width="14" height="4" rx="1.5"/><rect x="7" y="17" width="14" height="4" rx="1.5"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Burst_0042</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>베스트 보관 &middot; 휴지통</span>
           </button>
         </div>
       </div>
@@ -1130,12 +1138,12 @@ const { quickAnswer = "", iosVersion } = Astro.props;
         <div class="paper mt-6 p-4" dir="ltr" data-bento-tidy>
           <div class="flex items-center justify-between border-b border-hairline pb-2.5">
             <span class="text-xs font-bold text-ink">정리 대기열</span>
-            <button type="button" data-bento-tidy-btn aria-pressed="false" class="cursor-pointer rounded-full bg-cp-orange px-3.5 py-1 text-xs font-bold text-white shadow-[0_0_0_2px_rgb(var(--c-ink))] transition hover:-translate-y-px">정리하기</button>
+            <button type="button" data-bento-tidy-btn aria-pressed="false" class="cursor-pointer rounded-full bg-cp-orange px-3.5 py-1 text-xs font-bold text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))] transition hover:-translate-y-px"><span data-tidy-idle>정리하기</span><span class="hidden" aria-hidden="true" data-tidy-undo>실행 취소</span></button>
           </div>
           <ul class="mt-2.5 space-y-2 text-xs">
-            <li class="flex items-center justify-between"><span class="font-mono text-ink" data-tidy-row="Screenshot 13.19.52.png" data-tidy-done="Cleaned · 4.2 MB">Screenshot 13.19.52.png</span><span class="text-muted">4.2 MB</span></li>
-            <li class="flex items-center justify-between"><span class="font-mono text-ink" data-tidy-row="IMG_2208 (blur).jpg" data-tidy-done="Removed · 3.1 MB">IMG_2208 (blur).jpg</span><span class="text-muted">3.1 MB</span></li>
-            <li class="flex items-center justify-between"><span class="font-mono text-ink" data-tidy-row="4K Clip.mov" data-tidy-done="Compressed · 310 MB">4K Clip.mov</span><span class="text-muted">1.4 GB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>Screenshot 13.19.52.png</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>정리됨 &middot; 4.2 MB</span><span class="text-muted">4.2 MB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>IMG_2208 (blur).jpg</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>삭제됨 &middot; 3.1 MB</span><span class="text-muted">3.1 MB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>4K Clip.mov</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>압축됨 &middot; 310 MB</span><span class="text-muted">1.4 GB</span></li>
           </ul>
         </div>
       </div>
@@ -1174,7 +1182,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
             <span class="font-mono">IMG_4032.jpg</span>
             <span class="rounded-full bg-cp-mint px-2.5 py-0.5 text-[11px] font-bold text-[#121214]">SHA-256 일치</span>
           </div>
-          <p class="mt-2 font-mono text-[11px] text-muted">~/Pictures/IMG_4032.jpg &middot; Keep</p>
+          <p class="mt-2 font-mono text-[11px] text-muted">~/Pictures/IMG_4032.jpg<span aria-hidden="true"> &middot; </span><span>남기기</span></p>
           <p class="mt-1 font-mono text-[11px] text-cp-orange-deep">~/Downloads/IMG_4032 2.jpg &rarr; APFS Clone</p>
         </div>
       </div>
@@ -1696,9 +1704,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
       <div class="line" aria-hidden="true"></div>
       <div class="relative mx-auto max-w-2xl">
         <p class="eyebrow">08 &mdash; 앱 받기</p>
-        <h2 class="mt-3 font-display text-[44px] font-bold leading-[0.94] tracking-[-0.045em] text-ink sm:text-[74px]">
-          사진 보관함을 <span class="text-cp-orange-deep">몇 분 만에 정리하세요.</span>
-        </h2>
+        <h2 class="mt-3 font-display text-[44px] font-bold leading-[0.94] tracking-[-0.045em] text-ink sm:text-[74px]">단 몇 분 만에 보관함을 정리하세요.</h2>
 
         <!-- Smiling friendly Mac/iPhone mascot doodle -->
         <svg aria-hidden="true" focusable="false" width="170" height="118" viewBox="0 0 200 140" fill="none" class="mx-auto mt-6">

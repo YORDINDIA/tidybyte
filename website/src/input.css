@@ -17,7 +17,7 @@
     --c-ink: 18 18 20;               /* #121214 primary ink           */
     --c-body: 61 61 68;              /* #3d3d44 secondary body        */
     --c-muted: 102 102 109;          /* #66666d captions              */
-    --c-muted-soft: 140 140 148;     /* muted metadata (AA contrast)  */
+    --c-muted-soft: 102 102 109;     /* #66666d metadata (5.9:1 AA)   */
     --c-shadow: 18 18 20;            /* #121214 hard offset shadow    */
 
     --c-primary: 255 90 20;          /* #ff5a14 primary orange CTA    */
@@ -72,7 +72,7 @@
     --c-ink: 255 253 248;            /* #fffdf8 chalk-cream ink       */
     --c-body: 214 212 206;
     --c-muted: 168 166 160;
-    --c-muted-soft: 132 130 125;
+    --c-muted-soft: 156 154 148;     /* #9c9a94 metadata (AA on dark) */
     --c-shadow: 6 6 9;               /* deep drop shadow on dark      */
 
     --c-primary: 255 107 44;         /* #ff6b2c higher luminance      */
@@ -345,7 +345,7 @@
      Buttons (wax-filled orange/dark/yellow pills with tactile hover tilt)
      ------------------------------------------------------------------------- */
   .btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[16px] font-bold text-white whitespace-nowrap select-none;
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[16px] font-bold text-[#121214] whitespace-nowrap select-none;
     background: rgb(var(--c-orange));
     box-shadow: 0 0 0 2.5px rgb(var(--c-ink)), 3px 4px 0 rgb(var(--c-shadow));
   }
@@ -453,11 +453,20 @@
     color: rgb(var(--c-orange-deep));
   }
 
+  .cp-foot-head {
+    @apply text-[13px] font-bold uppercase text-[#b7b5e6];
+    letter-spacing: 0.12em;
+  }
+
   /* Non-Latin & RTL script safety: relax tight negative word/letter tracking */
   :is(html[lang="ar"], html[lang="he"], html[lang="hi"], html[lang="bn"], html[lang="ta"], html[lang="te"], html[lang="mr"], html[lang="gu"], html[lang="kn"], html[lang="ml"], html[lang="pa"], html[lang="ja"], html[lang="ko"], html[lang="zh-Hans"], html[lang="ru"]) :is(.h-display, .h-section, .h-section-on-dark, .cp-step-title, .cp-bento-title) {
     letter-spacing: -0.015em;
     word-spacing: normal;
     line-height: 1.12;
+  }
+
+  :is(html[lang="ar"], html[lang="he"], html[lang="hi"], html[lang="bn"], html[lang="ta"], html[lang="te"], html[lang="mr"], html[lang="gu"], html[lang="kn"], html[lang="ml"], html[lang="pa"], html[lang="ja"], html[lang="ko"], html[lang="zh-Hans"], html[lang="ru"]) .cp-foot-head {
+    letter-spacing: normal;
   }
 
   /* FAQ Accordion — smooth 0fr -> 1fr grid expand + rotating + -> - circle */
@@ -906,7 +915,7 @@
 }
 
 @keyframes answer-in {
-  from { opacity: 1; transform: translateY(-4px); }
+  from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: none; }
 }
 

@@ -27,7 +27,7 @@
     window.addEventListener('scroll', sync, { passive: true });
   }
 
-  // 1) Mobile menu toggle
+  // 1) Mobile menu toggle with focus management and inert background
   function initMobileMenu() {
     var toggle = document.querySelector('[data-menu-toggle]');
     var menu = document.querySelector('[data-mobile-menu]');
@@ -36,14 +36,19 @@
     var reduced = prefersReduced();
     var closing = false;
     var closeTimer = null;
+    var closeBtn = menu.querySelector('[data-menu-close]');
 
     // Ensure the menu starts hidden on mobile (the component classes set
     // visibility at xl+, so we only need to keep the closed state consistent).
     if (!menu.hasAttribute('data-open')) menu.setAttribute('data-open', 'false');
 
-    // The drawer animates its own height, so `hidden` has to stay off until
-    // the collapse finishes. Scroll unlocks and aria-expanded flips right
-    // away: the menu is already closed as far as the document is concerned.
+    function setBackgroundInert(flag) {
+      var els = document.querySelectorAll('header.cp-header, main, footer.cp-foot, a[href="#main"]');
+      for (var i = 0; i < els.length; i++) {
+        if ('inert' in els[i]) els[i].inert = flag;
+      }
+    }
+
     function finishClose() {
       window.clearTimeout(closeTimer);
       closeTimer = null;
@@ -52,10 +57,11 @@
       menu.classList.add('hidden');
     }
 
-    function setOpen(isOpen) {
+    function setOpen(isOpen, restoreFocus) {
       toggle.setAttribute('aria-expanded', String(isOpen));
       menu.setAttribute('data-open', String(isOpen));
       document.body.classList.toggle('overflow-hidden', isOpen);
+      setBackgroundInert(isOpen);
 
       if (isOpen) {
         window.clearTimeout(closeTimer);
@@ -63,8 +69,11 @@
         closing = false;
         menu.classList.remove('is-closing');
         menu.classList.remove('hidden');
+        if (closeBtn) closeBtn.focus();
         return;
       }
+
+      if (restoreFocus) toggle.focus();
 
       if (closing) return;
       if (menu.classList.contains('hidden')) return;
@@ -82,28 +91,45 @@
 
     toggle.addEventListener('click', function () {
       var isOpen = toggle.getAttribute('aria-expanded') === 'true';
-      setOpen(!isOpen);
+      setOpen(!isOpen, isOpen);
     });
 
     // Close after tapping a link, scrim, or close button.
     menu.addEventListener('click', function (event) {
-      if (event.target.closest('a') || event.target.closest('[data-menu-scrim]') || event.target.closest('[data-menu-close]')) {
-        setOpen(false);
+      if (event.target.closest('a')) {
+        setOpen(false, false);
+      } else if (event.target.closest('[data-menu-scrim]') || event.target.closest('[data-menu-close]')) {
+        setOpen(false, true);
+      }
+    });
+
+    // Keep keyboard Tab cycling inside the open drawer.
+    menu.addEventListener('keydown', function (event) {
+      if (event.key !== 'Tab') return;
+      var focusable = menu.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     });
 
     // Auto-close when the viewport grows past the xl breakpoint (the header's
     // desktop nav appears at 1280px).
     var mq = window.matchMedia('(min-width: 1280px)');
-    var onChange = function (e) { if (e.matches) setOpen(false); };
+    var onChange = function (e) { if (e.matches) setOpen(false, false); };
     if (mq.addEventListener) mq.addEventListener('change', onChange);
     else if (mq.addListener) mq.addListener(onChange);
 
-    // Close on Escape.
+    // Close on Escape and return focus to toggle.
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
-        setOpen(false);
-        toggle.focus();
+        setOpen(false, true);
       }
     });
   }

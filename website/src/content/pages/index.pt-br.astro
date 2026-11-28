@@ -47,14 +47,11 @@ const { quickAnswer = "", iosVersion } = Astro.props;
         <svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="text-cp-orange"><circle cx="12" cy="12" r="7"/></svg>
         Grátis &middot; iPhone &amp; iPad &middot; Mac &middot; iOS 17+ &amp; macOS 26
       </p>
-      <h1 class="h-display">
-        O melhor limpador de espaço grátis<br />
-        <span class="relative inline-block text-cp-orange">
-          para iPhone e Mac.
-          <svg aria-hidden="true" focusable="false" viewBox="0 0 380 18" fill="none" preserveAspectRatio="none" class="pointer-events-none absolute -bottom-2 start-0 h-3.5 w-full text-cp-orange">
-            <path d="M4 12C95 4 230 3 376 11" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-          </svg>
-        </span>
+      <h1 class="h-display relative inline-block">
+        O melhor limpador gratuito de armazenamento para iPhone e Mac.
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 380 18" fill="none" preserveAspectRatio="none" class="pointer-events-none mx-auto mt-2 h-3.5 w-64 max-w-full text-cp-orange">
+          <path d="M4 12C95 4 230 3 376 11" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        </svg>
       </h1>
       <p class="lede mx-auto mt-7 max-w-[640px] text-[17px] sm:text-[21px]">No iPhone, deslize pelas fotos e recupere gigas em minutos. No Mac, limpe caches, arquivos de desenvolvedor, duplicados e sobras de apps. Tudo roda no seu dispositivo. Sem anúncios, sem assinatura, sem conta.</p>
 
@@ -272,67 +269,78 @@ const { quickAnswer = "", iosVersion } = Astro.props;
             <span class="hidden sm:inline text-body">View</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="rounded-full bg-cp-orange px-2.5 py-0.5 text-[10.5px] font-bold text-white shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-status>Toque para limpar</span>
+            <span class="rounded-full bg-cp-orange px-2.5 py-0.5 text-[10.5px] font-bold text-[#121214] shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-status>
+              <span data-desk-idle>Toque para limpar</span>
+              <span class="hidden" aria-hidden="true" data-desk-done><span data-desk-count>0 / 8</span> <span>limpo</span></span>
+            </span>
             <span class="hidden sm:inline tabular-nums text-body">12:05</span>
           </div>
         </div>
 
         <!-- Clickable Desktop Items Grid -->
         <div dir="ltr" class="relative z-10 grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:gap-5 sm:p-8">
-          <button type="button" data-desk-item data-before="Screenshot 13.19.52.png" data-after="Cleaned · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 18h6"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Screenshot 13.19.52.png</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>Limpo &middot; Lixo</span>
           </button>
 
-          <button type="button" data-desk-item data-before="IMG_4471 copy.jpg" data-after="APFS Clone · 3.8 MB" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="12" height="12" rx="2"/><rect x="9" y="9" width="12" height="12" rx="2"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>IMG_4471 copy.jpg</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>Clone APFS &middot; 3,8 MB</span>
           </button>
 
-          <button type="button" data-desk-item data-before="Xcode DerivedData" data-after="4.8 GB freed" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12l-9.5 9.5a1.8 1.8 0 0 1-2.5-2.5L12.5 9.5"/><path d="M17.5 6.5l2.5 2.5-3.5 3.5-5-5 2-2a4.5 4.5 0 0 1 6-.5l-2 1.5z"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Xcode DerivedData</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>4,8 GB liberados</span>
           </button>
 
-          <button type="button" data-desk-item data-before="holiday-clip.mov" data-after="310 MB · HEVC" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="12" height="14" rx="2"/><path d="M15 10l6-3v10l-6-3"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>holiday-clip.mov</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>310 MB &middot; HEVC</span>
           </button>
 
-          <button type="button" data-desk-item data-before="IMG_8920.heic" data-after="Blurry · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 16l5-5 4 4 3-3 5 5"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>IMG_8920.heic</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>Desfocada &middot; Lixo</span>
           </button>
 
-          <button type="button" data-desk-item data-before="node_modules" data-after="3.6 GB freed" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M12 13v8"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>node_modules</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>3,6 GB liberados</span>
           </button>
 
-          <button type="button" data-desk-item data-before="Old-App-1.2.dmg" data-after="Installer · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l3 2"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Old-App-1.2.dmg</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>Instalador &middot; Lixo</span>
           </button>
 
-          <button type="button" data-desk-item data-before="Burst_0042" data-after="Best kept · Trash" data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
+          <button type="button" data-desk-item data-cleaned="false" class="cp-desk-ic flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange">
             <span class="paper flex h-12 w-12 items-center justify-center rounded-xl text-ink">
               <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="14" height="4" rx="1.5"/><rect x="5" y="11" width="14" height="4" rx="1.5"/><rect x="7" y="17" width="14" height="4" rx="1.5"/></svg>
             </span>
             <span class="cp-lb rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-ink shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" data-desk-label>Burst_0042</span>
+            <span class="cp-lb hidden rounded-md bg-canvas/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-cp-orange-deep shadow-[0_0_0_1.5px_rgb(var(--c-ink))]" aria-hidden="true" data-desk-after>Melhor mantida &middot; Lixo</span>
           </button>
         </div>
       </div>
@@ -1130,12 +1138,12 @@ const { quickAnswer = "", iosVersion } = Astro.props;
         <div class="paper mt-6 p-4" dir="ltr" data-bento-tidy>
           <div class="flex items-center justify-between border-b border-hairline pb-2.5">
             <span class="text-xs font-bold text-ink">Fila de limpeza</span>
-            <button type="button" data-bento-tidy-btn aria-pressed="false" class="cursor-pointer rounded-full bg-cp-orange px-3.5 py-1 text-xs font-bold text-white shadow-[0_0_0_2px_rgb(var(--c-ink))] transition hover:-translate-y-px">Organizar</button>
+            <button type="button" data-bento-tidy-btn aria-pressed="false" class="cursor-pointer rounded-full bg-cp-orange px-3.5 py-1 text-xs font-bold text-[#121214] shadow-[0_0_0_2px_rgb(var(--c-ink))] transition hover:-translate-y-px"><span data-tidy-idle>Organizar</span><span class="hidden" aria-hidden="true" data-tidy-undo>Desfazer</span></button>
           </div>
           <ul class="mt-2.5 space-y-2 text-xs">
-            <li class="flex items-center justify-between"><span class="font-mono text-ink" data-tidy-row="Screenshot 13.19.52.png" data-tidy-done="Cleaned · 4.2 MB">Screenshot 13.19.52.png</span><span class="text-muted">4.2 MB</span></li>
-            <li class="flex items-center justify-between"><span class="font-mono text-ink" data-tidy-row="IMG_2208 (blur).jpg" data-tidy-done="Removed · 3.1 MB">IMG_2208 (blur).jpg</span><span class="text-muted">3.1 MB</span></li>
-            <li class="flex items-center justify-between"><span class="font-mono text-ink" data-tidy-row="4K Clip.mov" data-tidy-done="Compressed · 310 MB">4K Clip.mov</span><span class="text-muted">1.4 GB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>Screenshot 13.19.52.png</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>Limpo &middot; 4,2 MB</span><span class="text-muted">4.2 MB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>IMG_2208 (blur).jpg</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>Removida &middot; 3,1 MB</span><span class="text-muted">3.1 MB</span></li>
+            <li class="flex items-center justify-between" data-tidy-item><span class="font-mono text-ink" data-tidy-before>4K Clip.mov</span><span class="hidden font-mono font-bold text-cp-orange-deep" aria-hidden="true" data-tidy-after>Comprimido &middot; 310 MB</span><span class="text-muted">1.4 GB</span></li>
           </ul>
         </div>
       </div>
@@ -1174,7 +1182,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
             <span class="font-mono">IMG_4032.jpg</span>
             <span class="rounded-full bg-cp-mint px-2.5 py-0.5 text-[11px] font-bold text-[#121214]">Correspondência SHA-256</span>
           </div>
-          <p class="mt-2 font-mono text-[11px] text-muted">~/Pictures/IMG_4032.jpg &middot; Keep</p>
+          <p class="mt-2 font-mono text-[11px] text-muted">~/Pictures/IMG_4032.jpg<span aria-hidden="true"> &middot; </span><span>Manter</span></p>
           <p class="mt-1 font-mono text-[11px] text-cp-orange-deep">~/Downloads/IMG_4032 2.jpg &rarr; APFS Clone</p>
         </div>
       </div>
@@ -1193,7 +1201,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
             <span class="inline-flex items-center gap-1"><kbd class="cp-kbd text-[10px]">&#x2318;</kbd><kbd class="cp-kbd text-[10px]">Z</kbd></span>
           </div>
           <ul class="mt-2.5 space-y-1.5 text-xs text-body">
-            <li class="flex items-center justify-between"><span>&#x2713; Apagados recentemente (30 dias)</span><span class="font-semibold text-success">Seguro</span></li>
+            <li class="flex items-center justify-between"><span>&#x2713; Excluídos recentemente (30 dias)</span><span class="font-semibold text-success">Seguro</span></li>
             <li class="flex items-center justify-between"><span>&#x2713; Lixo do Mac e desfazer via SQLite</span><span class="font-semibold text-success">Local</span></li>
           </ul>
         </div>
@@ -1492,7 +1500,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
 
         <div class="cr p-6 sm:p-8" style="--r:26px;--lc:#fff">
           <div class="line" aria-hidden="true"></div>
-          <p class="text-center text-xs font-bold uppercase tracking-[0.14em] text-[#d9d6ff]">Enviado a algum servidor</p>
+          <p class="text-center text-xs font-bold uppercase tracking-[0.14em] text-[#d9d6ff]">Enviado a nenhum servidor</p>
           <p dir="ltr" class="mt-1 flex items-baseline justify-center gap-2 font-display leading-[0.85]">
             <span class="text-[110px] font-bold tracking-[-0.04em] text-white sm:text-[150px]">0</span>
             <span class="text-4xl font-bold text-[#ffd23f] sm:text-5xl">bytes</span>
@@ -1696,9 +1704,7 @@ const { quickAnswer = "", iosVersion } = Astro.props;
       <div class="line" aria-hidden="true"></div>
       <div class="relative mx-auto max-w-2xl">
         <p class="eyebrow">08 &mdash; Baixe o app</p>
-        <h2 class="mt-3 font-display text-[44px] font-bold leading-[0.94] tracking-[-0.045em] text-ink sm:text-[74px]">
-          Limpe sua fototeca <span class="text-cp-orange-deep">em minutos.</span>
-        </h2>
+        <h2 class="mt-3 font-display text-[44px] font-bold leading-[0.94] tracking-[-0.045em] text-ink sm:text-[74px]">Limpe sua fototeca em minutos.</h2>
 
         <!-- Smiling friendly Mac/iPhone mascot doodle -->
         <svg aria-hidden="true" focusable="false" width="170" height="118" viewBox="0 0 200 140" fill="none" class="mx-auto mt-6">

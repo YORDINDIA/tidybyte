@@ -15,6 +15,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
 const OUT = join(ROOT, "public/assets/img/og");
 const FONT = pathToFileURL(join(ROOT, "public/assets/fonts/gaegu-700-latin.woff2")).href;
+const FONT_INTER = pathToFileURL(join(ROOT, "public/assets/fonts/inter-var-latin.woff2")).href;
 const CHECK = process.argv.includes("--check");
 const MANIFEST = join(OUT, "manifest.json");
 const RENDER_OPTIONS = { type: "jpeg", quality: 84 };
@@ -50,6 +51,7 @@ mkdirSync(OUT, { recursive: true });
 const card = (p) => `<!doctype html>
 <html><head><meta charset="utf-8"><style>
   @font-face { font-family: 'Gaegu'; src: url('${FONT}') format('woff2'); font-weight: 700; }
+  @font-face { font-family: 'Inter'; src: url('${FONT_INTER}') format('woff2'); font-weight: 400 800; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     width: 1200px; height: 630px; overflow: hidden;
@@ -81,7 +83,7 @@ const card = (p) => `<!doctype html>
     display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
   }
   .facts {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: 21px; font-weight: 600; color: #3d3d44; max-width: 680px; line-height: 1.35;
   }
 </style></head>
@@ -96,8 +98,9 @@ const card = (p) => `<!doctype html>
 </body></html>`;
 
 const digest = (value) => createHash("sha256").update(value).digest("hex");
-const fontHash = digest(readFileSync(join(ROOT, "public/assets/fonts/gaegu-700-latin.woff2")));
-const sourceHash = (p) => digest(card(p).replaceAll(FONT, "<font>") + fontHash + JSON.stringify({ RENDER_OPTIONS, RENDER_CONTEXT }));
+const fontHash = digest(readFileSync(join(ROOT, "public/assets/fonts/gaegu-700-latin.woff2"))) +
+  digest(readFileSync(join(ROOT, "public/assets/fonts/inter-var-latin.woff2")));
+const sourceHash = (p) => digest(card(p).replaceAll(FONT, "<font>").replaceAll(FONT_INTER, "<font-inter>") + fontHash + JSON.stringify({ RENDER_OPTIONS, RENDER_CONTEXT }));
 
 function jpegSize(data) {
   if (data.length < 4 || data.readUInt16BE(0) !== 0xffd8) return null;

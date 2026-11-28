@@ -702,21 +702,38 @@
       for (var i = 0; i < items.length; i++) {
         if (items[i].getAttribute('data-cleaned') === 'true') cleaned++;
       }
-      status.textContent = cleaned === 0 ? 'Tap to clean' : cleaned + ' / ' + items.length + ' tidy';
+      var idleEl = status.querySelector('[data-desk-idle]');
+      var doneEl = status.querySelector('[data-desk-done]');
+      var countEl = status.querySelector('[data-desk-count]');
+      var active = cleaned > 0;
+      if (idleEl && doneEl) {
+        idleEl.classList.toggle('hidden', active);
+        idleEl.setAttribute('aria-hidden', String(active));
+        doneEl.classList.toggle('hidden', !active);
+        doneEl.setAttribute('aria-hidden', String(!active));
+        if (countEl) countEl.textContent = cleaned + ' / ' + items.length;
+      } else {
+        status.textContent = cleaned === 0 ? 'Tap to clean' : cleaned + ' / ' + items.length + ' tidy';
+      }
     }
 
     for (var i = 0; i < items.length; i++) {
       items[i].addEventListener('click', function (event) {
         var btn = event.currentTarget;
-        var label = btn.querySelector('[data-desk-label]');
+        var beforeEl = btn.querySelector('[data-desk-label]');
+        var afterEl = btn.querySelector('[data-desk-after]');
         var isCleaned = btn.getAttribute('data-cleaned') === 'true';
         var next = !isCleaned;
         btn.setAttribute('data-cleaned', String(next));
-        if (label) {
-          label.textContent = next ? btn.getAttribute('data-after') : btn.getAttribute('data-before');
-          label.classList.remove('cp-rn');
-          void label.offsetWidth;
-          label.classList.add('cp-rn');
+        if (beforeEl && afterEl) {
+          beforeEl.classList.toggle('hidden', next);
+          beforeEl.setAttribute('aria-hidden', String(next));
+          afterEl.classList.toggle('hidden', !next);
+          afterEl.setAttribute('aria-hidden', String(!next));
+          var activeEl = next ? afterEl : beforeEl;
+          activeEl.classList.remove('cp-rn');
+          void activeEl.offsetWidth;
+          activeEl.classList.add('cp-rn');
         }
         updateStatus();
       });
@@ -728,19 +745,31 @@
     var box = document.querySelector('[data-bento-tidy]');
     if (!box) return;
     var btn = box.querySelector('[data-bento-tidy-btn]');
-    var rows = box.querySelectorAll('[data-tidy-row]');
+    var rows = box.querySelectorAll('[data-tidy-item]');
     if (!btn || !rows.length) return;
+
+    var idleLabel = btn.querySelector('[data-tidy-idle]');
+    var undoLabel = btn.querySelector('[data-tidy-undo]');
 
     btn.addEventListener('click', function () {
       var active = btn.getAttribute('aria-pressed') === 'true';
       var next = !active;
       btn.setAttribute('aria-pressed', String(next));
-      btn.textContent = next ? 'Undo' : 'Tidy Up';
+      if (idleLabel && undoLabel) {
+        idleLabel.classList.toggle('hidden', next);
+        idleLabel.setAttribute('aria-hidden', String(next));
+        undoLabel.classList.toggle('hidden', !next);
+        undoLabel.setAttribute('aria-hidden', String(!next));
+      }
       for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        row.textContent = next ? row.getAttribute('data-tidy-done') : row.getAttribute('data-tidy-row');
-        row.classList.toggle('text-cp-orange-deep', next);
-        row.classList.toggle('font-bold', next);
+        var beforeEl = rows[i].querySelector('[data-tidy-before]');
+        var afterEl = rows[i].querySelector('[data-tidy-after]');
+        if (beforeEl && afterEl) {
+          beforeEl.classList.toggle('hidden', next);
+          beforeEl.setAttribute('aria-hidden', String(next));
+          afterEl.classList.toggle('hidden', !next);
+          afterEl.setAttribute('aria-hidden', String(!next));
+        }
       }
     });
   }
@@ -752,13 +781,21 @@
     var kb = document.querySelector('[data-keyboard]');
     if (!tabs.length || !rows.length || !kb) return;
 
+    function findKeyEl(keyVal) {
+      var all = kb.querySelectorAll('[data-key]');
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].getAttribute('data-key') === keyVal) return all[i];
+      }
+      return null;
+    }
+
     function highlightKeys(combo) {
       var allKeys = kb.querySelectorAll('[data-key]');
       for (var i = 0; i < allKeys.length; i++) allKeys[i].classList.remove('on');
       if (!combo) return;
       var parts = combo.split('+');
       for (var p = 0; p < parts.length; p++) {
-        var target = kb.querySelector('[data-key="' + parts[p] + '"]');
+        var target = findKeyEl(parts[p]);
         if (target) target.classList.add('on');
       }
     }
@@ -816,19 +853,19 @@
     document.addEventListener('keydown', function (e) {
       var k = mapKey(e);
       if (!k) return;
-      var el = kb.querySelector('[data-key="' + k + '"]');
+      var el = findKeyEl(k);
       if (el) el.classList.add('on');
     });
 
     document.addEventListener('keyup', function (e) {
       var k = mapKey(e);
       if (!k) return;
-      var el = kb.querySelector('[data-key="' + k + '"]');
+      var el = findKeyEl(k);
       if (el) el.classList.remove('on');
     });
   }
 
-  // 9) Mobile scroll-snap carousel pagination dots.
+  // 9) Mobile scroll-snap carousel pagination dots (supports RTL and LTR).
   function initMobileCarousels() {
     var carousels = document.querySelectorAll('[data-carousel]');
     for (var c = 0; c < carousels.length; c++) {
@@ -837,13 +874,14 @@
         var dotsWrap = document.querySelector('[data-dots-for="' + name + '"]');
         var slides = track.children;
         if (!dotsWrap || !slides.length) return;
+        dotsWrap.removeAttribute('aria-hidden');
         dotsWrap.textContent = '';
         var btns = [];
         for (var i = 0; i < slides.length; i++) {
           (function (idx) {
             var b = document.createElement('button');
             b.type = 'button';
-            b.setAttribute('aria-label', 'Slide ' + (idx + 1));
+            b.setAttribute('aria-label', String(idx + 1) + ' / ' + String(slides.length));
             b.setAttribute('aria-current', idx === 0 ? 'true' : 'false');
             b.addEventListener('click', function () {
               slides[idx].scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', inline: 'start', block: 'nearest' });
@@ -854,7 +892,8 @@
         }
         track.addEventListener('scroll', function () {
           var width = slides[0].getBoundingClientRect().width || 1;
-          var active = Math.min(slides.length - 1, Math.max(0, Math.round(track.scrollLeft / width)));
+          var offset = Math.abs(track.scrollLeft);
+          var active = Math.min(slides.length - 1, Math.max(0, Math.round(offset / width)));
           for (var i = 0; i < btns.length; i++) {
             btns[i].setAttribute('aria-current', i === active ? 'true' : 'false');
           }

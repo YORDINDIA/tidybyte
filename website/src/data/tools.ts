@@ -1667,7 +1667,7 @@ export function toolPageMeta(t: Tool): PageMeta {
     ogHeight: "630",
     ogUrl: url,
     canonical: url,
-    fontPreload: null,
+    fontPreload: false,
     extraScripts: [],
     dateModified: webPage.dateModified,
     headTail:
