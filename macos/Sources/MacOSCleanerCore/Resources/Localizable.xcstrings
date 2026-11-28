@@ -20801,6 +20801,136 @@
         }
       }
     },
+    "Cannot rename protected or unsafe file: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cannot rename protected or unsafe file: %@"
+          }
+        }
+      }
+    },
     "Cannot save the verified output. The original was kept.": {
       "localizations": {
         "en": {
@@ -21317,6 +21447,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "לא ניתן לכתוב את התמונה המכווצת."
+          }
+        }
+      }
+    },
+    "Captured Screenshot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured Screenshot"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Captured Screenshot"
           }
         }
       }
@@ -26427,6 +26687,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "תאריך צילום"
+          }
+        }
+      }
+    },
+    "Date first": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date first"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Date first"
           }
         }
       }
@@ -46131,6 +46521,136 @@
         }
       }
     },
+    "No screenshot renames are available to undo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No screenshot renames are available to undo."
+          }
+        }
+      }
+    },
     "Not Reviewed Yet": {
       "localizations": {
         "en": {
@@ -57351,6 +57871,136 @@
         }
       }
     },
+    "Sentence case": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentence case"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentence case"
+          }
+        }
+      }
+    },
     "Shared app group of this app": {
       "localizations": {
         "en": {
@@ -57997,6 +58647,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "דלג"
+          }
+        }
+      }
+    },
+    "Skipped undo because %@ was replaced on disk.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Skipped undo because %@ was replaced on disk."
           }
         }
       }
@@ -63327,6 +64107,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "הקובץ אינו זמין עוד: %@"
+          }
+        }
+      }
+    },
+    "The file no longer exists: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "The file no longer exists: %@"
           }
         }
       }
@@ -69311,6 +70221,136 @@
         }
       }
     },
+    "This rename was already undone.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This rename was already undone."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "This rename was already undone."
+          }
+        }
+      }
+    },
     "This restore is already running.": {
       "localizations": {
         "en": {
@@ -70867,6 +71907,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "גיבויי Time Machine"
+          }
+        }
+      }
+    },
+    "Title Case": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title Case"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Title Case"
           }
         }
       }
@@ -77927,6 +79097,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "קבצי יומן"
+          }
+        }
+      }
+    },
+    "lowercase-dashes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lowercase-dashes"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "te": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "gu": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "kn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "ml": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "pa": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "lowercase-dashes"
           }
         }
       }

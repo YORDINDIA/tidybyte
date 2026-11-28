@@ -134,6 +134,13 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/ProcessInspectorView.swift"
     },
     {
+      "key": "%@ already looks tidy (%lld well-named files left alone).",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
       "key": "%@ and %lld more",
       "targets": [
         "appkit"
@@ -694,6 +701,13 @@
       "file": "Sources/MacOSCleanerCore/Services/CleanerRuleEngine.swift"
     },
     {
+      "key": "%lld screenshots named on this Mac",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/MacOSCleanerApp.swift"
+    },
+    {
       "key": "%lld sensors",
       "targets": [
         "appkit"
@@ -734,6 +748,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/DuplicateDetector.swift"
+    },
+    {
+      "key": "%lld well-named files will be left alone.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/TidyUpPreviewSheet.swift"
     },
     {
       "key": "%lld/%lld",
@@ -784,6 +805,20 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerCore/Services/ByteFormatting.swift"
+    },
+    {
+      "key": "0 bytes uploaded · %lld named on this Mac",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "0 bytes uploaded · 1 named on this Mac",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "1 action completed cleanly. Files in Trash can be restored or emptied anytime.",
@@ -947,6 +982,13 @@
       "file": "Sources/MacOSCleanerCore/Services/CleanerRuleEngine.swift"
     },
     {
+      "key": "1 screenshot named on this Mac",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/MacOSCleanerApp.swift"
+    },
+    {
       "key": "1 second",
       "targets": [
         "appkit"
@@ -959,6 +1001,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorOverviewView.swift"
+    },
+    {
+      "key": "1 well-named file will be left alone.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/TidyUpPreviewSheet.swift"
     },
     {
       "key": "1 year",
@@ -1185,6 +1234,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/SelectionInspectorView.swift"
     },
     {
+      "key": "Add Watched Folder…",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "Added %@ to Leftovers for review.",
       "targets": [
         "appkit"
@@ -1409,6 +1465,13 @@
       "file": "Sources/MacOSCleanerAppKit/App/AppViewModel+StoreSelection.swift"
     },
     {
+      "key": "All dropped files already have readable names.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
       "key": "All processing happens on this device.",
       "targets": [
         "appkit"
@@ -1442,6 +1505,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/FilesView.swift"
+    },
+    {
+      "key": "All screenshot naming runs on this Mac with zero uploads and preserves original file dates.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
     },
     {
       "key": "All selected approved actions completed.",
@@ -1724,6 +1794,13 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitoringSettingsView.swift"
     },
     {
+      "key": "Apple Intelligence Ready",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "Apple Silicon Update",
       "targets": [
         "core"
@@ -1779,6 +1856,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/App/AppDestination.swift"
+    },
+    {
+      "key": "Apply & Teach Style",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
     },
     {
       "key": "Apply Changes",
@@ -1977,6 +2061,20 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupToolView+Actions.swift"
     },
     {
+      "key": "Auto-rename new screenshots",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
+    },
+    {
+      "key": "Auto-Rename Screenshots",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/MacOSCleanerApp.swift"
+    },
+    {
       "key": "Automatic",
       "targets": [
         "appkit"
@@ -2017,6 +2115,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/AutoScanService.swift"
+    },
+    {
+      "key": "Automatic Screenshot Naming",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "Available",
@@ -2581,6 +2686,13 @@
       "file": "Sources/MacOSCleanerCore/Services/ReviewInventory.swift"
     },
     {
+      "key": "Cannot rename protected or unsafe file: %@",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScreenshotRenameService.swift"
+    },
+    {
       "key": "Cannot save the verified output. The original was kept.",
       "targets": [
         "core"
@@ -2614,6 +2726,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/MediaAnalysisService.swift"
+    },
+    {
+      "key": "Captured Screenshot",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScreenshotNameFormatter.swift"
     },
     {
       "key": "Cargo package archive cache.",
@@ -2714,6 +2833,13 @@
       "file": "Sources/MacOSCleanerCore/Services/SQLiteStore.swift"
     },
     {
+      "key": "Choose a folder containing screenshots or images.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
       "key": "Choose a local folder outside protected and cloud locations.",
       "targets": [
         "core"
@@ -2735,6 +2861,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupToolView+Actions.swift"
     },
     {
+      "key": "Choose Folder",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
       "key": "Choose Folder…",
       "targets": [
         "appkit"
@@ -2754,6 +2887,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/OverviewView.swift"
+    },
+    {
+      "key": "Choose how renamed screenshots are formatted",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/ContentView.swift"
     },
     {
       "key": "Choose how to show files",
@@ -3781,6 +3921,13 @@
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
     },
     {
+      "key": "Current",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
+    },
+    {
       "key": "Current Best Shot",
       "targets": [
         "appkit"
@@ -3793,6 +3940,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/Explore/FoldersGridView.swift"
+    },
+    {
+      "key": "Custom name (teaches style)",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
     },
     {
       "key": "Daemon",
@@ -3835,6 +3989,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupActivityView.swift"
+    },
+    {
+      "key": "Date first",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Models/ScreenshotNamingModels.swift"
     },
     {
       "key": "Date Taken",
@@ -4293,6 +4454,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/ScanSetupView.swift"
     },
     {
+      "key": "Drop screenshots, images, or a folder here to tidy up",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "Duplicate",
       "targets": [
         "core",
@@ -4357,6 +4525,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/SnapshotDiffView.swift"
+    },
+    {
+      "key": "Edit name to teach your style",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "Efficiency Cluster (%@)",
@@ -4618,6 +4793,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/ContentView.swift"
     },
     {
+      "key": "Extracted Text",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
+    },
+    {
       "key": "Failed",
       "targets": [
         "core",
@@ -4737,6 +4919,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Components/ExecutionConfirmView.swift"
+    },
+    {
+      "key": "Filename",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
     },
     {
       "key": "Files changed since the last scan. Scan again to refresh.",
@@ -5034,6 +5223,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/LivePhotoPlayerView.swift"
     },
     {
+      "key": "From: %@",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "Full Access",
       "targets": [
         "appkit"
@@ -5074,6 +5270,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/DuplicateDetector.swift"
+    },
+    {
+      "key": "Future screenshots will learn from the filename style you pick.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "General",
@@ -6024,6 +6227,20 @@
       "file": "Sources/MacOSCleanerCore/Services/MemoryEngine.swift"
     },
     {
+      "key": "Learned Naming Style",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Learned naming style: %@",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
       "key": "Left Arrow or Delete key",
       "targets": [
         "appkit"
@@ -6380,6 +6597,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/MemoryEngine.swift"
+    },
+    {
+      "key": "lowercase-dashes",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Models/ScreenshotNamingModels.swift"
     },
     {
       "key": "macOS does not let apps change other apps' volume; control each app from its own window.",
@@ -6901,6 +7125,20 @@
       "file": "Sources/MacOSCleanerCore/Services/ApplicationFootprintMatching.swift"
     },
     {
+      "key": "Naming Format",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Naming style",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
+    },
+    {
       "key": "NAND 1",
       "targets": [
         "core"
@@ -7032,6 +7270,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeAlbumPickerSheet.swift"
+    },
+    {
+      "key": "New filename",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "New Scan…",
@@ -7314,6 +7559,13 @@
       "file": "Sources/MacOSCleanerAppKit/App/AppViewModel+StoreSelection.swift"
     },
     {
+      "key": "No folders watched yet. Add a folder to enable automatic renaming.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "No GPU readings",
       "targets": [
         "appkit"
@@ -7426,6 +7678,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/RelationshipGraphView.swift"
     },
     {
+      "key": "No renamed screenshots match your search.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "No report generated yet.",
       "targets": [
         "appkit"
@@ -7445,6 +7704,20 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/FilesView.swift"
+    },
+    {
+      "key": "No screenshot renames are available to undo.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScreenshotRenameService.swift"
+    },
+    {
+      "key": "No screenshots renamed yet.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "No selection",
@@ -7487,6 +7760,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/MediaTrendView.swift"
+    },
+    {
+      "key": "No vague screenshots or images found in %@.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
     },
     {
       "key": "Nominal",
@@ -7685,6 +7965,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/OverviewView.swift"
     },
     {
+      "key": "Nothing to undo.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
       "key": "Nothing to undo. No completed cleanup operations yet.",
       "targets": [
         "appkit"
@@ -7852,6 +8139,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
+    },
+    {
+      "key": "On-Device OCR & Vision Active",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "One of the selected snapshots no longer exists.",
@@ -8034,6 +8328,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupSettingsView.swift"
+    },
+    {
+      "key": "Original created and modified dates never change.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "Original file missing.",
@@ -8502,6 +8803,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/NaturalLanguagePlanView.swift"
     },
     {
+      "key": "Preserved Dates",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
+    },
+    {
       "key": "Pressure critical",
       "targets": [
         "appkit"
@@ -8521,6 +8829,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorExportView.swift"
+    },
+    {
+      "key": "Preview",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "Preview unavailable",
@@ -9034,6 +9349,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/DomainDisplayNames.swift"
     },
     {
+      "key": "Rename & Teach Style…",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "Rename %@",
       "targets": [
         "appkit"
@@ -9041,11 +9363,67 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Views/WhyPanelView.swift"
     },
     {
+      "key": "Rename and Teach Style",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Rename any file in Finder or here and future screenshots follow your lead.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "rename failed: %@",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/APFSCloneService.swift"
+    },
+    {
+      "key": "Rename History",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Rename immediately on drag & drop",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Rename vague screenshots and images in a folder",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/ContentView.swift"
+    },
+    {
+      "key": "Renamed to %@",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
+      "key": "Renamed to %@ and learned your style.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
+      "key": "Renames vague files like Screenshot, IMG_4471, Untitled, or image (2). Well-named files are left alone.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "Renderer",
@@ -9224,11 +9602,32 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupActivityView.swift"
     },
     {
+      "key": "Restored %@",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
+      "key": "Restored %lld original filenames.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
       "key": "Restored all original actions.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/PlannerAgent.swift"
+    },
+    {
+      "key": "Restored original name: %@",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
     },
     {
       "key": "Restored your last scan from %@.",
@@ -9264,6 +9663,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
+    },
+    {
+      "key": "Reveal in Finder",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
     },
     {
       "key": "Review",
@@ -9968,7 +10374,8 @@
     {
       "key": "Screenshots",
       "targets": [
-        "core"
+        "core",
+        "appkit"
       ],
       "file": "Sources/MacOSCleanerCore/Models/ReviewModels.swift"
     },
@@ -10027,6 +10434,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/UndoHistoryView.swift"
+    },
+    {
+      "key": "Select a renamed screenshot to inspect or edit it.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
     },
     {
       "key": "Select All",
@@ -10174,6 +10588,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupActivityView.swift"
+    },
+    {
+      "key": "Sentence case",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Models/ScreenshotNamingModels.swift"
     },
     {
       "key": "Series",
@@ -10511,6 +10932,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/Views/UndoHistoryView.swift"
+    },
+    {
+      "key": "Skipped undo because %@ was replaced on disk.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScreenshotRenameService.swift"
     },
     {
       "key": "Skipped: the Mac is in use, not charged enough, or maintenance ran recently.",
@@ -10975,6 +11403,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/CleanupSettingsView.swift"
     },
     {
+      "key": "Style",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
+    },
+    {
       "key": "Summarized Folders",
       "targets": [
         "appkit"
@@ -11344,6 +11779,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/ReviewInventory.swift"
+    },
+    {
+      "key": "The file no longer exists: %@",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScreenshotRenameService.swift"
     },
     {
       "key": "The folder is a low-risk rebuildable cache or test artifact. It will still go through review and Trash.",
@@ -11871,6 +12313,13 @@
       "file": "Sources/MacOSCleanerCore/Services/ReviewExecutor.swift"
     },
     {
+      "key": "This rename was already undone.",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Services/ScreenshotRenameService.swift"
+    },
+    {
       "key": "This restore is already running.",
       "targets": [
         "core"
@@ -11932,6 +12381,69 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/MediaCompressionService.swift"
+    },
+    {
+      "key": "Tidied %lld files in %@.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/ScreenshotRenameModel.swift"
+    },
+    {
+      "key": "Tidy Up %@",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/TidyUpPreviewSheet.swift"
+    },
+    {
+      "key": "Tidy Up %lld Files",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/TidyUpPreviewSheet.swift"
+    },
+    {
+      "key": "Tidy Up 1 File",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/TidyUpPreviewSheet.swift"
+    },
+    {
+      "key": "Tidy Up Desktop",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Tidy Up Downloads",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Tidy Up Folder",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Tidy Up Screenshots…",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/MacOSCleanerApp.swift"
+    },
+    {
+      "key": "Tidy Up…",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/ContentView.swift"
     },
     {
       "key": "Tidybyte app icon",
@@ -12074,6 +12586,20 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Components/DomainDisplayNames.swift"
     },
     {
+      "key": "Title",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/TidyUpPreviewSheet.swift"
+    },
+    {
+      "key": "Title Case",
+      "targets": [
+        "core"
+      ],
+      "file": "Sources/MacOSCleanerCore/Models/ScreenshotNamingModels.swift"
+    },
+    {
       "key": "Too aggressive",
       "targets": [
         "appkit"
@@ -12201,6 +12727,20 @@
       "file": "Sources/MacOSCleanerCore/Services/SQLiteStore.swift"
     },
     {
+      "key": "Undo",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
+    },
+    {
+      "key": "Undo (⌘Z)",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
       "key": "Undo completed.",
       "targets": [
         "appkit"
@@ -12213,6 +12753,13 @@
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/UndoManagerService.swift"
+    },
+    {
+      "key": "Undo Last",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "Undo Last Cleanup",
@@ -12229,11 +12776,25 @@
       "file": "Sources/MacOSCleanerAppKit/UI/Cleanup/SwipeReviewView.swift"
     },
     {
+      "key": "Undo Last Screenshot Rename",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/App/MacOSCleanerApp.swift"
+    },
+    {
       "key": "Undo records may not persist across app restart.",
       "targets": [
         "core"
       ],
       "file": "Sources/MacOSCleanerCore/Services/ActionExecutor.swift"
+    },
+    {
+      "key": "Undo Rename",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "Undo skipped. A scan or cleanup is already running.",
@@ -12410,6 +12971,13 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/Monitor/MonitorProcessTable.swift"
+    },
+    {
+      "key": "Use Apple Intelligence when available",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
     },
     {
       "key": "Use as Best Shot",
@@ -12602,6 +13170,13 @@
       "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
     },
     {
+      "key": "Visual Labels",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotInspectorView.swift"
+    },
+    {
       "key": "Visual near-match. Check before removing",
       "targets": [
         "core"
@@ -12656,6 +13231,20 @@
         "appkit"
       ],
       "file": "Sources/MacOSCleanerAppKit/UI/SettingsView.swift"
+    },
+    {
+      "key": "Watched Folders",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
+    },
+    {
+      "key": "Watches for ⇧⌘3, ⇧⌘4, ⇧⌘5, CleanShot, downloads, and synced camera roll captures.",
+      "targets": [
+        "appkit"
+      ],
+      "file": "Sources/MacOSCleanerAppKit/UI/Views/Screenshots/ScreenshotsView.swift"
     },
     {
       "key": "WebKit Data",
@@ -13006,10 +13595,12 @@
     "Cannot read %@. Choose the folder again.",
     "Cannot read the compressed image size.",
     "Cannot read the document package.",
+    "Cannot rename protected or unsafe file: %@",
     "Cannot save the verified output. The original was kept.",
     "Cannot verify the new Photos asset. The original was kept.",
     "Cannot write preview.",
     "Cannot write the compressed image.",
+    "Captured Screenshot",
     "Captured close together",
     "Cargo package archive cache.",
     "Certain match",
@@ -13047,6 +13638,7 @@
     "Database export could not be finalized.",
     "Database export failed with code %d.",
     "Date Taken",
+    "Date first",
     "Deep System",
     "Deep system",
     "Destructive actions against symlinks are rejected: %@",
@@ -13187,6 +13779,7 @@
     "No cleanup actions are currently recommended.",
     "No installed app uses %@, and none of its data changed in 30 days.",
     "No preview is available.",
+    "No screenshot renames are available to undo.",
     "Not Reviewed Yet",
     "Not completed",
     "Not enough free disk space to compress safely.",
@@ -13271,11 +13864,13 @@
     "Select two different snapshots to compare.",
     "Selfies",
     "Sensor %@",
+    "Sentence case",
     "Shared app group of this app",
     "Sharpest photo",
     "Similar Files",
     "Size measurement is supported for images only.",
     "Skip",
+    "Skipped undo because %@ was replaced on disk.",
     "Skipped: the Mac is in use, not charged enough, or maintenance ran recently.",
     "Smart Categories",
     "Socket",
@@ -13317,6 +13912,7 @@
     "The file has no approved folder.",
     "The file is an old downloaded archive or installer. Review before moving it to Trash.",
     "The file is no longer available: %@",
+    "The file no longer exists: %@",
     "The folder is a low-risk rebuildable cache or test artifact. It will still go through review and Trash.",
     "The folder is a rebuildable artifact inside the %@ project. The project is %@, and source/config files remain protected.",
     "The folder is a rebuildable developer artifact, but the surrounding project is unclear, so it requires grouped review.",
@@ -13363,6 +13959,7 @@
     "This photo has very low brightness.",
     "This photo may be out of focus.",
     "This photo received a low visual-quality score.",
+    "This rename was already undone.",
     "This restore is already running.",
     "This symbolic link points to %@, which does not exist. Inspect before removing manually.",
     "This undo expired on %@ and can no longer be restored.",
@@ -13375,6 +13972,7 @@
     "Tidybyte needs Full Disk Access to empty the Trash. You can also empty it in Finder.",
     "Time Machine Backup",
     "Time Machine backups",
+    "Title Case",
     "Too dark",
     "Unable to create PDF report.",
     "Unable to open SQLite database.",
@@ -13427,6 +14025,7 @@
     "large items (100MB+)",
     "learned decision",
     "log files",
+    "lowercase-dashes",
     "macOS System Cache",
     "macOS removes local snapshots when it needs the space. To remove them now, run \"tmutil thinlocalsnapshots / 999999999999 4\" in Terminal.",
     "macOS system caches",
@@ -13453,6 +14052,7 @@
     "%@ (pid %d)",
     "%@ = %@",
     "%@ MB",
+    "%@ already looks tidy (%lld well-named files left alone).",
     "%@ and %lld more",
     "%@ available of %@",
     "%@ could not be added because the plan changed. Try again.",
@@ -13517,15 +14117,19 @@
     "%lld px",
     "%lld readings",
     "%lld removed · %lld kept",
+    "%lld screenshots named on this Mac",
     "%lld sensors",
     "%lld successful · %lld failed · %lld unprocessed",
     "%lld successful · %lld failed · %lld unprocessed. Check Activity.",
+    "%lld well-named files will be left alone.",
     "%lld · %@",
     "%lld%%",
     "%lld/%lld",
     "%lld×%lld",
     "(%@–%@)",
     "0 bytes",
+    "0 bytes uploaded · %lld named on this Mac",
+    "0 bytes uploaded · 1 named on this Mac",
     "1 action completed cleanly. Files in Trash can be restored or emptied anytime.",
     "1 app",
     "1 approved action is review-only and was not executed.",
@@ -13547,8 +14151,10 @@
     "1 month",
     "1 process",
     "1 reading",
+    "1 screenshot named on this Mac",
     "1 second",
     "1 sensor",
+    "1 well-named file will be left alone.",
     "1 year",
     "1080p",
     "1h",
@@ -13580,6 +14186,7 @@
     "Acts on largest member: %@ (%@)",
     "Add %@ to Leftovers?",
     "Add Downloads",
+    "Add Watched Folder…",
     "Add the app and its data to Review. Files change only after approval and confirmation.",
     "Add to Album",
     "Add to Album…",
@@ -13608,9 +14215,11 @@
     "All Scanned Files",
     "All apps",
     "All data cleared.",
+    "All dropped files already have readable names.",
     "All processing happens on this device.",
     "All remaining images are already under 2 MB or in HEIC format.",
     "All scan folders removed.",
+    "All screenshot naming runs on this Mac with zero uploads and preserves original file dates.",
     "All selected approved actions completed.",
     "Allocated",
     "Allow Full Disk Access",
@@ -13627,9 +14236,11 @@
     "App",
     "App Memory",
     "Appearance",
+    "Apple Intelligence Ready",
     "Apple Silicon Updates",
     "Application Support",
     "Applications",
+    "Apply & Teach Style",
     "Apply Changes",
     "Apply Finder tag to %@",
     "Apply these changes",
@@ -13651,8 +14262,11 @@
     "Associated data",
     "Audible",
     "Auto-Clean All…",
+    "Auto-Rename Screenshots",
+    "Auto-rename new screenshots",
     "Automatic",
     "Automatic (Apple SMC)",
+    "Automatic Screenshot Naming",
     "Automatic follows macOS. Tidybyte updates immediately; system dialogs follow on next launch.",
     "Automatic maintenance",
     "Available",
@@ -13721,11 +14335,14 @@
     "Check Result Sizes",
     "Check for Updates…",
     "Children",
+    "Choose Folder",
     "Choose Folders…",
     "Choose Folder…",
     "Choose What to Scan…",
+    "Choose a folder containing screenshots or images.",
     "Choose exported chat folder…",
     "Choose folders or a scan mode to begin.",
+    "Choose how renamed screenshots are formatted",
     "Choose how to show files",
     "Choose nested folder…",
     "Choose the %@ folder to grant access.",
@@ -13817,8 +14434,10 @@
     "Created",
     "Creates verified still photos and moves %lld original Live Photos to Recently Deleted, reclaiming about %@.",
     "Critical",
+    "Current",
     "Current Best Shot",
     "Current folder: %@",
+    "Custom name (teaches style)",
     "DELETE",
     "Data",
     "Database exported successfully.",
@@ -13863,12 +14482,14 @@
     "Drill In",
     "Drills into this group",
     "Drop folders here to add them",
+    "Drop screenshots, images, or a folder here to tidy up",
     "Duplicate",
     "Duplicate resolution",
     "Duplicate results appear when the scan finishes.",
     "Duplicates",
     "Each item shows a live reading and opens a list of the apps behind it.",
     "Each scan saves a snapshot. Start another scan to compare results.",
+    "Edit name to teach your style",
     "Empty Trash",
     "Empty Trash…",
     "Empty the Trash?",
@@ -13892,6 +14513,7 @@
     "Export Of",
     "Export Report…",
     "Export…",
+    "Extracted Text",
     "Failed",
     "Failed actions",
     "Failed or skipped actions",
@@ -13904,6 +14526,7 @@
     "File information: %@",
     "File relationship node",
     "File-mutation byte cap",
+    "Filename",
     "Files changed since the last scan. Scan again to refresh.",
     "Files go to the Trash, and History can restore them.",
     "Files in this group",
@@ -13938,11 +14561,13 @@
     "Forecast",
     "Free Up Space",
     "From %@",
+    "From: %@",
     "Full Access",
     "Full Disk Access is needed to measure the Trash.",
     "Full Document AI",
     "Full Mac Mode",
     "Full Mac Mode covers these personal folders. It does not scan system or application folders. Folder access can be changed in System Settings.",
+    "Future screenshots will learn from the filename style you pick.",
     "GPU",
     "GPU Memory Used",
     "General",
@@ -14024,6 +14649,8 @@
     "Latest Scan",
     "Latest changes",
     "Launch at login",
+    "Learned Naming Style",
+    "Learned naming style: %@",
     "Left Arrow or Delete key",
     "Leftovers",
     "Lens Smudge",
@@ -14110,6 +14737,8 @@
     "Muted",
     "My apps",
     "Name",
+    "Naming Format",
+    "Naming style",
     "Near Duplicate",
     "Need at least two scans to compare.",
     "Needed later",
@@ -14123,6 +14752,7 @@
     "Never suggest deleting source code files without manual review.",
     "New Scan…",
     "New album name",
+    "New filename",
     "Newer snapshot",
     "Newest",
     "Next page",
@@ -14162,6 +14792,7 @@
     "No folder changed between these snapshots.",
     "No folder selected",
     "No folders selected.",
+    "No folders watched yet. Add a folder to enable automatic renaming.",
     "No history yet",
     "No large untouched files found. Everything big was opened recently.",
     "No login items",
@@ -14173,15 +14804,18 @@
     "No processes match the search.",
     "No readings yet",
     "No relationships detected yet.",
+    "No renamed screenshots match your search.",
     "No report generated yet.",
     "No scanned children.",
     "No scanned files",
+    "No screenshots renamed yet.",
     "No selection",
     "No snapshots yet: each scan saves one.",
     "No sound readings",
     "No third-party agents or daemons start with this Mac.",
     "No throttling",
     "No trend yet",
+    "No vague screenshots or images found in %@.",
     "Nominal",
     "None",
     "None visible to this user.",
@@ -14206,6 +14840,7 @@
     "Nothing removable found for %@. It may be missing or protected.",
     "Nothing running.",
     "Nothing to clean right now. Scan again after you use your Mac for a while.",
+    "Nothing to undo.",
     "Nothing to undo. No completed cleanup operations yet.",
     "Nothing to visualize yet.",
     "Nothing to visualize yet. Run a scan or clear the name filter.",
@@ -14218,6 +14853,7 @@
     "Older snapshot",
     "Oldest",
     "On AC power",
+    "On-Device OCR & Vision Active",
     "Only local folders can be added to a scan.",
     "Open Folder",
     "Open Monitor",
@@ -14239,6 +14875,7 @@
     "Order containers by a metric",
     "Order the rows by a metric or name",
     "Original",
+    "Original created and modified dates never change.",
     "Originals",
     "Other",
     "Other File Operations (undoable)",
@@ -14279,9 +14916,11 @@
     "Prefer archiving files instead of moving to trash.",
     "Preference saved.",
     "Preparing your plan…",
+    "Preserved Dates",
     "Pressure critical",
     "Pressure normal",
     "Pressure warning",
+    "Preview",
     "Preview unavailable",
     "Previous actions",
     "Previous page",
@@ -14343,6 +14982,15 @@
     "Removing these files removes the local exported or downloaded copy only. It does not remove the copy inside a chat app.",
     "Rename",
     "Rename %@",
+    "Rename & Teach Style…",
+    "Rename History",
+    "Rename and Teach Style",
+    "Rename any file in Finder or here and future screenshots follow your lead.",
+    "Rename immediately on drag & drop",
+    "Rename vague screenshots and images in a folder",
+    "Renamed to %@",
+    "Renamed to %@ and learned your style.",
+    "Renames vague files like Screenshot, IMG_4471, Untitled, or image (2). Well-named files are left alone.",
     "Renderer",
     "Replace & Trash Live Photo",
     "Replace & Trash Original",
@@ -14367,11 +15015,15 @@
     "Restore this change?",
     "Restore without answering",
     "Restored",
+    "Restored %@",
+    "Restored %lld original filenames.",
+    "Restored original name: %@",
     "Restored your last scan from %@.",
     "Results come from the latest scan.",
     "Results cover the scanned locations, not the whole disk.",
     "Resume",
     "Retained components",
+    "Reveal in Finder",
     "Review",
     "Review & Clean…",
     "Review & Organize",
@@ -14448,6 +15100,7 @@
     "Scanning files…",
     "Scanning…",
     "Score %@",
+    "Screenshots",
     "Screenshots by App",
     "Search %@",
     "Search processes",
@@ -14458,6 +15111,7 @@
     "Select More Photos…",
     "Select a file to see its details.",
     "Select a history item to see its details.",
+    "Select a renamed screenshot to inspect or edit it.",
     "Select an action",
     "Select an action to inspect it. Approval is a separate step.",
     "Select an app to see its details.",
@@ -14572,6 +15226,7 @@
     "Storage timeline",
     "Stored in iCloud",
     "Strict",
+    "Style",
     "Summarized Folders",
     "Sunburst",
     "Sustained for %lld minutes",
@@ -14624,6 +15279,15 @@
     "This permanently erases everything in the Trash. You can't undo this action.",
     "This scan uses local rules. File data is not sent to an AI provider.",
     "This selection cannot be changed. Scan again if the results are out of date.",
+    "Tidied %lld files in %@.",
+    "Tidy Up %@",
+    "Tidy Up %lld Files",
+    "Tidy Up 1 File",
+    "Tidy Up Desktop",
+    "Tidy Up Downloads",
+    "Tidy Up Folder",
+    "Tidy Up Screenshots…",
+    "Tidy Up…",
     "Tidybyte Inbox is ready.",
     "Tidybyte Monitor",
     "Tidybyte app icon",
@@ -14639,6 +15303,7 @@
     "Tiler",
     "Time",
     "Time Machine Backups",
+    "Title",
     "Too aggressive",
     "Too dark",
     "Top %lld by CPU",
@@ -14654,7 +15319,12 @@
     "Treemap",
     "Trend",
     "Turned off",
+    "Undo",
+    "Undo (⌘Z)",
+    "Undo Last",
     "Undo Last Cleanup",
+    "Undo Last Screenshot Rename",
+    "Undo Rename",
     "Undo completed.",
     "Undo last decision",
     "Undo skipped. A scan or cleanup is already running.",
@@ -14674,6 +15344,7 @@
     "Update decisions for %lld actions. No files change.",
     "Update every",
     "Upload",
+    "Use Apple Intelligence when available",
     "Use HEVC (H.265)",
     "Use HEVC (H.265) for video",
     "Use Restore in the history list. Recovery depends on the files remaining available.",
@@ -14694,12 +15365,15 @@
     "View last report",
     "Virtual Machine Tools",
     "Vision AI",
+    "Visual Labels",
     "Wait for the current operation to finish before running a command.",
     "Wait until scan or execution completes to change scan folders.",
     "Wait until the current cleanup finishes, then restore again.",
     "Wait until the current cleanup finishes, then try again.",
     "Wait until the current scan or cleanup finishes.",
     "Waits for idle time and power (or ≥50% battery). Folds duplicate files only. Nothing is ever deleted unattended, and every fold can be undone.",
+    "Watched Folders",
+    "Watches for ⇧⌘3, ⇧⌘4, ⇧⌘5, CleanShot, downloads, and synced camera roll captures.",
     "Weekly cleanup",
     "Weekly cleanup reminder",
     "Welcome to Tidybyte",
@@ -14775,5 +15449,5 @@
       "file": "Scripts/build-app.sh"
     }
   ],
-  "total": 1835
+  "total": 1919
 }

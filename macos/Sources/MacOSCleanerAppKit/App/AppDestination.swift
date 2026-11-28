@@ -6,7 +6,7 @@ import SwiftUI
 enum AppDestination: String, CaseIterable, Identifiable {
     case overview
     case monitor
-    case systemJunk, developer, largeFiles, duplicates, media
+    case systemJunk, developer, largeFiles, duplicates, screenshots, media
     case applications, leftovers, loginItems
     case explorer, changes, history
 
@@ -19,7 +19,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
     /// The Monitor owns its own search field, so the shared one stands down
     /// there (attaching a second would bind it to the wrong model).
     var supportsSearch: Bool {
-        isReview || [.duplicates, .applications, .explorer].contains(self)
+        isReview || [.duplicates, .screenshots, .applications, .explorer].contains(self)
             || ((self == .history || self == .changes) && DistributionChannel.supportsAdvanced)
     }
 
@@ -47,6 +47,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
         case .developer: L10n.string("Developer", language: language)
         case .largeFiles: L10n.string("Large & Old Files", language: language)
         case .duplicates: L10n.string("Duplicates", language: language)
+        case .screenshots: L10n.string("Screenshots", language: language)
         case .media: L10n.string("Photos & Media", language: language)
         default: nil
         }
@@ -72,6 +73,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
         case .developer: "hammer"
         case .largeFiles: "doc.badge.clock"
         case .duplicates: "square.on.square"
+        case .screenshots: "camera.viewfinder"
         case .media: "photo.on.rectangle"
         case .applications: "square.grid.3x3"
         case .leftovers: "shippingbox"
@@ -91,12 +93,12 @@ enum AppDestination: String, CaseIterable, Identifiable {
 
     static func sections(language: AppLanguage?) -> [(title: String?, rows: [AppDestination])] {
         guard DistributionChannel.supportsAdvanced else {
-            return [(nil, [.overview]), (L10n.string("Clean", language: language), [.media]), (nil, [.history])]
+            return [(nil, [.overview]), (L10n.string("Clean", language: language), [.screenshots, .media]), (nil, [.history])]
         }
         return [
             (nil, [.overview]),
             (L10n.string("Monitor", language: language), [.monitor]),
-            (L10n.string("Clean", language: language), [.systemJunk, .developer, .largeFiles, .duplicates, .media]),
+            (L10n.string("Clean", language: language), [.systemJunk, .developer, .largeFiles, .duplicates, .screenshots, .media]),
             (L10n.string("Apps", language: language), [.applications, .leftovers, .loginItems]),
             (L10n.string("Insights", language: language), [.explorer, .changes, .history])
         ]

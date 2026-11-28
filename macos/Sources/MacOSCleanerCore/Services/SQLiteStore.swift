@@ -53,6 +53,8 @@ public enum SQLiteTable: String, CaseIterable, Sendable {
     case cleanupState = "cleanup_state"
     case cleanupActivity = "cleanup_activity"
     case cleanupSnapshots = "cleanup_snapshots"
+    case screenshotRenames = "screenshot_renames"
+    case screenshotStyleExamples = "screenshot_style_examples"
 }
 
 /// Persistent content-hash cache entry. Keyed by normalized path; a cached
@@ -102,7 +104,7 @@ public struct FileHashCacheEntry: Codable, Sendable {
     }
 }
 
-private enum SQLiteValue {
+enum SQLiteValue {
     case text(String)
     case integer(Int64)
     case real(Double)
@@ -536,7 +538,7 @@ public actor SQLiteStore {
 
     /// `scanSessionID` stamps rows whose type has no session field of its
     /// own; ScanSessionScoped types extract theirs from the object.
-    private func saveAll<T: Encodable>(
+    func saveAll<T: Encodable>(
         _ items: [T], idKeyPath: KeyPath<T, String>, table: SQLiteTable, scanSessionID: String? = nil
     ) throws {
         // Batch all INSERTs inside one explicit transaction. Per-row autocommit
@@ -1001,6 +1003,11 @@ public actor SQLiteStore {
                 try migrateV7(database: database)
             }
         }
+        if currentVersion < 8 {
+            try runMigrationStep(8, database: database) {
+                try migrateV8(database: database)
+            }
+        }
     }
 
     private static func ensureBaseSchema(database: OpaquePointer) throws {
@@ -1137,7 +1144,7 @@ public actor SQLiteStore {
     }
 
     /// Highest user_version this build migrates to.
-    static let schemaVersion: Int32 = 7
+    static let schemaVersion: Int32 = 8
 
     /// A file written by a newer build may hold tables and columns this build
     /// does not know. Refuse it rather than write to it.
@@ -1188,7 +1195,7 @@ public actor SQLiteStore {
     /// True when `table` already carries `column` (PRAGMA table_info). Lets
     /// ALTER TABLE steps self-heal a database that half-ran a migration.
     /// `table` is always a code constant, never user input.
-    private static func hasColumn(_ table: String, _ column: String, database: OpaquePointer) -> Bool {
+    static func hasColumn(_ table: String, _ column: String, database: OpaquePointer) -> Bool {
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(database, "PRAGMA table_info(\(table))", -1, &statement, nil) == SQLITE_OK else {
             return false
@@ -1202,7 +1209,7 @@ public actor SQLiteStore {
         return false
     }
 
-    private static func executeMigration(_ sql: String, database: OpaquePointer) throws {
+    static func executeMigration(_ sql: String, database: OpaquePointer) throws {
         var errorMessage: UnsafeMutablePointer<CChar>?
         let result = sqlite3_exec(database, sql, nil, nil, &errorMessage)
         guard result == SQLITE_OK else {
@@ -1214,7 +1221,7 @@ public actor SQLiteStore {
         }
     }
 
-    private func upsert<T: Encodable>(_ object: T, id: String, table: SQLiteTable) throws {
+    func upsert<T: Encodable>(_ object: T, id: String, table: SQLiteTable) throws {
         let json = try encodeJSON(object)
         try execute(Self.upsertSQL(for: table), values: upsertValues(object, id: id, table: table, json: json))
     }
@@ -1260,6 +1267,15 @@ public actor SQLiteStore {
                 json = excluded.json,
                 scan_session_id = excluded.scan_session_id,
                 file_path = excluded.file_path
+            """
+        } else if table == .screenshotRenames {
+            return """
+            INSERT INTO \(table.rawValue) (id, scan_session_id, batch_id, status, created_at, json)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                json = excluded.json,
+                batch_id = excluded.batch_id,
+                status = excluded.status
             """
         } else {
             return """
@@ -1310,6 +1326,17 @@ public actor SQLiteStore {
                 .text(json)
             ]
         }
+        if table == .screenshotRenames {
+            let record = object as? ScreenshotRenameRecord
+            return [
+                .text(rowID),
+                scanSessionID.map { .text($0) } ?? .null,
+                record?.batchID.map { .text($0) } ?? .null,
+                record.map { .text($0.status.rawValue) } ?? .null,
+                .real(record?.createdAt.timeIntervalSince1970 ?? now),
+                .text(json)
+            ]
+        }
         return [
             .text(rowID),
             scanSessionID.map { .text($0) } ?? .null,
@@ -1338,7 +1365,7 @@ public actor SQLiteStore {
         return nil
     }
 
-    private func execute(_ sql: String, values: [SQLiteValue]) throws {
+    func execute(_ sql: String, values: [SQLiteValue]) throws {
         guard !isUnavailable else {
             throw DatabaseError.databaseUnavailable
         }
@@ -1363,7 +1390,7 @@ public actor SQLiteStore {
     /// ROLLBACK on error). Nested calls reuse the already-open outer transaction
     /// instead of opening another one, so callers can compose bulk persist paths
     /// (e.g. savePlan wrapping saveAll) without transaction conflicts.
-    private func withTransaction<T>(_ body: () throws -> T) throws -> T {
+    func withTransaction<T>(_ body: () throws -> T) throws -> T {
         guard !isInTransaction else {
             return try body()
         }
@@ -1381,7 +1408,7 @@ public actor SQLiteStore {
         }
     }
 
-    private func selectJSON<T: Decodable>(_ sql: String, values: [SQLiteValue], as type: T.Type) throws -> [T] {
+    func selectJSON<T: Decodable>(_ sql: String, values: [SQLiteValue], as type: T.Type) throws -> [T] {
         guard !isUnavailable else {
             throw DatabaseError.databaseUnavailable
         }

@@ -104,6 +104,7 @@ struct ContentView: View {
         .task {
             if let message = model.errorMessage { AccessibilityNotification.Announcement(message).post() }
             await model.cleanup.load()
+            await model.screenshots.load()
             await model.loadUndoHistory()
             await model.restoreLastSession()
             model.scheduleDeferredMaintenance()
@@ -132,6 +133,7 @@ struct ContentView: View {
         case .monitor: MonitorView(model: model.monitor)
         case .systemJunk, .developer, .largeFiles, .leftovers: ActionStackView(model: model)
         case .duplicates: DuplicatesTabView(model: model)
+        case .screenshots: ScreenshotsView(model: model)
         case .media: MediaWorkspace(model: model.cleanup)
         case .applications: ApplicationsView(model: model)
         case .loginItems: LoginItemsView(model: model)
@@ -150,6 +152,8 @@ extension ContentView {
             SelectionInspectorView(model: model)
         case .systemJunk, .developer, .largeFiles, .leftovers, .duplicates:
             WhyPanelView(model: model)
+        case .screenshots:
+            ScreenshotInspectorView(model: model)
         case .applications:
             ApplicationDetailsView(model: model)
         case .history:
@@ -278,6 +282,7 @@ extension ContentView {
                 monitorControls(override: override).modifier(HideUnless(shown: model.destination == .monitor))
                 explorerControls(override: override).modifier(HideUnless(shown: model.destination == .explorer))
                 reviewControls(override: override).modifier(HideUnless(shown: model.destination.isReview))
+                screenshotsControls(override: override).modifier(HideUnless(shown: model.destination == .screenshots))
                 changesControls(override: override).modifier(HideUnless(shown: model.destination == .changes))
                 historyControls(override: override).modifier(
                     HideUnless(shown: model.destination == .history && DistributionChannel.supportsAdvanced)
@@ -358,6 +363,34 @@ extension ContentView {
             }
             .help(L10n.string("Describe what to clean in your own words", language: override))
             .disabled(model.plan == nil || isBusy)
+        }
+    }
+
+    private func screenshotsControls(override: AppLanguage?) -> some View {
+        HStack(spacing: Spacing.elementTight) {
+            Menu {
+                ForEach(ScreenshotNamingStyle.allCases) { style in
+                    Button {
+                        Task { await model.screenshots.setNamingStyle(style) }
+                    } label: {
+                        if model.screenshots.namingStyle == style {
+                            Label(style.displayName, systemImage: "checkmark")
+                        } else {
+                            Text(style.displayName)
+                        }
+                    }
+                }
+            } label: {
+                Label(model.screenshots.namingStyle.displayName, systemImage: "textformat")
+            }
+            .help(L10n.string("Choose how renamed screenshots are formatted", language: override))
+            Button {
+                Task { await model.screenshots.chooseFolderAndTidyUp() }
+            } label: {
+                Label(L10n.string("Tidy Up…", language: override), systemImage: "sparkles")
+            }
+            .disabled(model.screenshots.isScanningFolder || model.screenshots.isApplying)
+            .help(L10n.string("Rename vague screenshots and images in a folder", language: override))
         }
     }
 
